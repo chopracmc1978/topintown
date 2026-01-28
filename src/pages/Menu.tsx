@@ -5,8 +5,7 @@ import MenuCardDB from '@/components/MenuCardDB';
 import { useMenuItems, type MenuCategory } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 
-const categories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
-  { id: 'all', name: 'All' },
+const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
   { id: 'sides', name: 'Sides', dbCategory: 'sides' },
   { id: 'drinks', name: 'Drinks', dbCategory: 'drinks' },
@@ -14,14 +13,45 @@ const categories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'dipping_sauce', name: 'Dipping Sauces', dbCategory: 'dipping_sauce' },
 ];
 
+const pizzaSubCategories = [
+  { id: 'vegetarian', name: 'Vegetarian' },
+  { id: 'paneer', name: 'Paneer' },
+  { id: 'chicken', name: 'Chicken' },
+  { id: 'meat', name: 'Meat Pizza' },
+  { id: 'hawaiian', name: 'Hawaiian' },
+];
+
 const Menu = () => {
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState('pizza');
+  const [activePizzaSubCategory, setActivePizzaSubCategory] = useState<string | null>(null);
   
-  const selectedCategory = activeCategory === 'all' 
-    ? undefined 
-    : (activeCategory as MenuCategory);
+  const selectedCategory = activeCategory as MenuCategory;
   
   const { data: menuItems, isLoading } = useMenuItems(selectedCategory);
+
+  // Filter pizzas by sub-category based on name matching
+  const filteredItems = activePizzaSubCategory && activeCategory === 'pizza'
+    ? menuItems?.filter(item => 
+        item.name.toLowerCase().includes(activePizzaSubCategory.toLowerCase())
+      )
+    : menuItems;
+
+  const handleCategoryClick = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    // Reset pizza sub-category when switching categories
+    if (categoryId !== 'pizza') {
+      setActivePizzaSubCategory(null);
+    }
+  };
+
+  const handlePizzaSubCategoryClick = (subCategoryId: string) => {
+    // Toggle off if clicking the same sub-category
+    if (activePizzaSubCategory === subCategoryId) {
+      setActivePizzaSubCategory(null);
+    } else {
+      setActivePizzaSubCategory(subCategoryId);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,12 +71,12 @@ const Menu = () => {
             </p>
           </div>
 
-          {/* Category Filter */}
-          <div className="flex justify-center gap-2 mb-12 flex-wrap">
-            {categories.map((category) => (
+          {/* Main Category Filter */}
+          <div className="flex justify-center gap-2 mb-4 flex-wrap">
+            {mainCategories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => handleCategoryClick(category.id)}
                 className={cn(
                   "px-6 py-2 rounded-full font-medium transition-all",
                   activeCategory === category.id
@@ -59,6 +89,29 @@ const Menu = () => {
             ))}
           </div>
 
+          {/* Pizza Sub-Categories - only show when Pizzas is selected */}
+          {activeCategory === 'pizza' && (
+            <div className="flex justify-center gap-2 mb-12 flex-wrap">
+              {pizzaSubCategories.map((subCategory) => (
+                <button
+                  key={subCategory.id}
+                  onClick={() => handlePizzaSubCategoryClick(subCategory.id)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium transition-all border",
+                    activePizzaSubCategory === subCategory.id
+                      ? "bg-accent text-accent-foreground border-accent"
+                      : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+                  )}
+                >
+                  {subCategory.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Add margin when no sub-categories shown */}
+          {activeCategory !== 'pizza' && <div className="mb-8" />}
+
           {/* Menu Grid */}
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -67,12 +120,12 @@ const Menu = () => {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {menuItems?.map((item) => (
+                {filteredItems?.map((item) => (
                   <MenuCardDB key={item.id} item={item} />
                 ))}
               </div>
 
-              {(!menuItems || menuItems.length === 0) && (
+              {(!filteredItems || filteredItems.length === 0) && (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">No items found in this category.</p>
                   <p className="text-sm text-muted-foreground mt-2">
