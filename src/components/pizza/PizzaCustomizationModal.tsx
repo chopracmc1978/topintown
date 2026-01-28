@@ -7,7 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
-import { useToppings, useSauceOptions } from '@/hooks/useMenuItems';
+import { useToppings } from '@/hooks/useMenuItems';
+import { useGlobalSauces } from '@/hooks/useGlobalSauces';
 import type { SideSpicyLevel, ToppingQuantity, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
 import type { CartItem } from '@/types/menu';
 import { cn } from '@/lib/utils';
@@ -34,10 +35,13 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
   const { data: sizeCrustAvailability } = useSizeCrustAvailability();
   const { data: cheeseOptions } = useCheeseOptions();
   const { data: freeToppingsData } = useFreeToppings();
-  const { data: allSauces } = useSauceOptions();
+  const { data: allSauces } = useGlobalSauces();
   const { data: allToppings } = useToppings();
 
-  const defaultSauceIds = useMemo(() => item.default_sauces?.map(ds => ds.sauce_option_id) || [], [item.default_sauces]);
+  const defaultSauceIds = useMemo(
+    () => item.default_global_sauces?.map(ds => ds.global_sauce_id) || [],
+    [item.default_global_sauces]
+  );
   const defaultSize = item.sizes?.[1] || item.sizes?.[0];
 
   // Get initial values from editingCartItem if in edit mode
@@ -106,10 +110,13 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
 
   // Initialize default sauce
   useEffect(() => {
+    // In edit mode we keep the user's previous choice (including "No Sauce").
+    if (editingCartItem) return;
     if (!isOpen || !allSauces || defaultSauceIds.length === 0) return;
+    if (selectedSauceId !== null) return;
     const sauce = allSauces.find(s => defaultSauceIds.includes(s.id));
     if (sauce) setSelectedSauceId(sauce.id);
-  }, [isOpen, item.id, allSauces, defaultSauceIds]);
+  }, [isOpen, item.id, allSauces, defaultSauceIds, editingCartItem, selectedSauceId]);
 
   // Update crust when size changes
   const availableCrusts = useMemo(() => {
@@ -441,6 +448,23 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
             </div>
             <div className="p-4">
               <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                {/* No Sauce */}
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer flex-1">
+                    <input
+                      type="radio"
+                      name="sauce"
+                      checked={selectedSauceId === null}
+                      onChange={() => {
+                        setSelectedSauceId(null);
+                        setSauceQuantity('normal');
+                      }}
+                      className="w-4 h-4 text-primary"
+                    />
+                    <span>No Sauce</span>
+                  </label>
+                </div>
+
                 {(allSauces || []).map(sauce => {
                   const isDefault = defaultSauceIds.includes(sauce.id);
                   const isSelected = selectedSauceId === sauce.id;
