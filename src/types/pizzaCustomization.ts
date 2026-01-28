@@ -1,6 +1,12 @@
 export type ToppingQuantity = 'none' | 'less' | 'regular' | 'extra';
 export type SauceQuantity = 'regular' | 'extra';
-export type SpicyLevel = 'none' | 'mild' | 'medium' | 'hot';
+export type SpicyLevel = 'none' | 'medium' | 'hot';
+export type PizzaSide = 'left' | 'right' | 'whole';
+
+export interface SideSpicyLevel {
+  left: SpicyLevel;
+  right: SpicyLevel;
+}
 
 export interface SelectedSauce {
   id: string;
@@ -17,6 +23,11 @@ export interface SelectedCheese {
   price: number;
 }
 
+export interface ToppingSideSelection {
+  side: PizzaSide;
+  quantity: Exclude<ToppingQuantity, 'none'>; // 'less' | 'regular' | 'extra'
+}
+
 export interface SelectedTopping {
   id: string;
   name: string;
@@ -24,6 +35,7 @@ export interface SelectedTopping {
   price: number;
   isDefault?: boolean;
   isVeg?: boolean;
+  side?: PizzaSide; // which side of pizza
 }
 
 export interface SelectedFreeTopping {
@@ -45,7 +57,7 @@ export interface PizzaCustomization {
   sauces: SelectedSauce[];
   cheese: SelectedCheese;
   freeToppings: SelectedFreeTopping[];
-  spicyLevel: SpicyLevel;
+  spicyLevel: SideSpicyLevel;
   defaultToppings: SelectedTopping[];
   extraToppings: SelectedTopping[];
   totalPrice: number;

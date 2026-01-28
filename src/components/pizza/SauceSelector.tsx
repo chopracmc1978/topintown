@@ -11,14 +11,17 @@ interface SauceSelectorProps {
 }
 
 const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces }: SauceSelectorProps) => {
-  const toggleSauce = (sauce: SauceOption) => {
-    const existing = selectedSauces.find(s => s.id === sauce.id);
+  // Only one sauce can be selected at a time
+  const selectSauce = (sauce: SauceOption) => {
     const isDefault = defaultSauceIds.includes(sauce.id);
-    
-    if (existing) {
-      onUpdateSauces(selectedSauces.filter(s => s.id !== sauce.id));
+    const isCurrentlySelected = selectedSauces.some(s => s.id === sauce.id);
+
+    if (isCurrentlySelected) {
+      // Clicking the same sauce deselects it
+      onUpdateSauces([]);
     } else {
-      onUpdateSauces([...selectedSauces, {
+      // Replace with single sauce
+      onUpdateSauces([{
         id: sauce.id,
         name: sauce.name,
         quantity: 'regular',
@@ -34,41 +37,42 @@ const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces
     ));
   };
 
+  const selectedSauce = selectedSauces[0];
+
   return (
     <div>
       <h3 className="font-semibold text-foreground mb-3">
-        Sauces
+        Sauce
         <span className="text-sm font-normal text-muted-foreground ml-2">
-          (Default sauces are free, others are charged)
+          (Select one - default is free)
         </span>
       </h3>
       <div className="space-y-2">
         {sauces.map((sauce) => {
-          const isSelected = selectedSauces.some(s => s.id === sauce.id);
-          const selectedSauce = selectedSauces.find(s => s.id === sauce.id);
+          const isSelected = selectedSauce?.id === sauce.id;
           const isDefault = defaultSauceIds.includes(sauce.id);
 
           return (
             <div
               key={sauce.id}
               className={cn(
-                "flex items-center justify-between p-3 rounded-lg border transition-all",
-                isSelected ? "border-primary bg-primary/5" : "border-border",
+                "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
+                isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
                 isDefault && !isSelected && "border-dashed border-green-500/50"
               )}
+              onClick={() => selectSauce(sauce)}
             >
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => toggleSauce(sauce)}
+                <div
                   className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
                     isSelected
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-muted-foreground"
                   )}
                 >
-                  {isSelected && <Check className="w-4 h-4" />}
-                </button>
+                  {isSelected && <Check className="w-3 h-3" />}
+                </div>
                 <div>
                   <span className="font-medium">{sauce.name}</span>
                   {isDefault ? (
@@ -82,14 +86,14 @@ const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces
               </div>
 
               {isSelected && (
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => updateQuantity(sauce.id, 'regular')}
                     className={cn(
                       "px-3 py-1 rounded-full text-xs border transition-all",
                       selectedSauce?.quantity === 'regular'
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border"
+                        : "border-border hover:border-primary/50"
                     )}
                   >
                     Regular
@@ -100,7 +104,7 @@ const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces
                       "px-3 py-1 rounded-full text-xs border transition-all",
                       selectedSauce?.quantity === 'extra'
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border"
+                        : "border-border hover:border-primary/50"
                     )}
                   >
                     Extra +${sauce.price.toFixed(2)}
