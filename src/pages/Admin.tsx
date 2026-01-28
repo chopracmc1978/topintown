@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Cherry, GlassWater, Cake, Droplet, Layers, Users } from 'lucide-react';
+import { LogOut, Pizza, Cherry, GlassWater, Cake, Droplet, Layers, Users, Soup } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
+import { SauceManager } from '@/components/admin/SauceManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -88,7 +89,7 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+            <TabsList className="grid grid-cols-8 w-full max-w-5xl">
               {(Object.keys(categoryLabels) as MenuCategory[]).map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
@@ -98,6 +99,10 @@ const Admin = () => {
               <TabsTrigger value="toppings" className="gap-2">
                 <Layers className="w-4 h-4" />
                 <span className="hidden sm:inline">Toppings</span>
+              </TabsTrigger>
+              <TabsTrigger value="sauces" className="gap-2">
+                <Soup className="w-4 h-4" />
+                <span className="hidden sm:inline">Sauces</span>
               </TabsTrigger>
               <TabsTrigger value="users" className="gap-2">
                 <Users className="w-4 h-4" />
@@ -113,6 +118,10 @@ const Admin = () => {
 
             <TabsContent value="toppings">
               <ToppingsManager />
+            </TabsContent>
+
+            <TabsContent value="sauces">
+              <SauceManager />
             </TabsContent>
 
             <TabsContent value="users">
