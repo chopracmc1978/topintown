@@ -28,7 +28,7 @@ import {
   type MenuItem,
   type MenuCategory,
 } from '@/hooks/useMenuItems';
-import { useGlobalSauces } from '@/hooks/useGlobalSauces';
+import { useGlobalSauces, useManageDefaultGlobalSauces } from '@/hooks/useGlobalSauces';
 
 export type PizzaSubcategory = 'vegetarian' | 'paneer' | 'chicken' | 'meat' | 'hawaiian';
 
@@ -60,6 +60,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const { addDefaultTopping, removeDefaultTopping } = useManageDefaultToppings();
   const { data: allToppings } = useToppings();
   const { data: globalSauces } = useGlobalSauces();
+  const { addDefaultGlobalSauce, removeDefaultGlobalSauce } = useManageDefaultGlobalSauces();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -93,8 +94,9 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
       setSelectedToppings(
         item.default_toppings?.map((t) => t.topping_id) || []
       );
+      // Load sauces from the new global sauces relation
       setSelectedSauces(
-        item.default_sauces?.map((s) => s.sauce_option_id) || []
+        (item as any).default_global_sauces?.map((s: any) => s.global_sauce_id) || []
       );
       // Handle subcategory - cast from string stored in DB
       setSubcategory((item as any).subcategory || '');
@@ -179,21 +181,21 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
           }
         }
 
-        // Handle sauces
-        const existingSauceIds = item.default_sauces?.map((s) => s.sauce_option_id) || [];
+        // Handle sauces (using global sauces now)
+        const existingSauceIds = (item as any).default_global_sauces?.map((s: any) => s.global_sauce_id) || [];
         
         for (const sauceId of existingSauceIds) {
           if (!selectedSauces.includes(sauceId)) {
-            const ds = item.default_sauces?.find((s) => s.sauce_option_id === sauceId);
-            if (ds) await removeDefaultSauce.mutateAsync(ds.id);
+            const ds = (item as any).default_global_sauces?.find((s: any) => s.global_sauce_id === sauceId);
+            if (ds) await removeDefaultGlobalSauce.mutateAsync(ds.id);
           }
         }
 
         for (const sauceId of selectedSauces) {
           if (!existingSauceIds.includes(sauceId)) {
-            await addDefaultSauce.mutateAsync({
+            await addDefaultGlobalSauce.mutateAsync({
               menu_item_id: item.id,
-              sauce_option_id: sauceId,
+              global_sauce_id: sauceId,
             });
           }
         }
@@ -218,11 +220,11 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
           });
         }
 
-        // Add sauces for new item
+        // Add sauces for new item (using global sauces)
         for (const sauceId of selectedSauces) {
-          await addDefaultSauce.mutateAsync({
+          await addDefaultGlobalSauce.mutateAsync({
             menu_item_id: newItem.id,
-            sauce_option_id: sauceId,
+            global_sauce_id: sauceId,
           });
         }
       }

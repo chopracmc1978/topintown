@@ -43,6 +43,19 @@ export interface SauceOption {
   sort_order: number;
 }
 
+export interface ItemDefaultGlobalSauce {
+  id: string;
+  menu_item_id: string;
+  global_sauce_id: string;
+  global_sauce?: {
+    id: string;
+    name: string;
+    price: number;
+    is_available: boolean;
+  };
+}
+
+// Keep old type for backward compatibility
 export interface ItemDefaultSauce {
   id: string;
   menu_item_id: string;
@@ -66,6 +79,7 @@ export interface MenuItem {
   sizes?: MenuItemSize[];
   default_toppings?: ItemDefaultTopping[];
   default_sauces?: ItemDefaultSauce[];
+  default_global_sauces?: ItemDefaultGlobalSauce[];
 }
 
 export const useMenuItems = (category?: MenuCategory) => {
@@ -78,7 +92,8 @@ export const useMenuItems = (category?: MenuCategory) => {
           *,
           sizes:item_sizes(*),
           default_toppings:item_default_toppings(*, topping:toppings(*)),
-          default_sauces:item_default_sauces(*, sauce_option:sauce_options(*))
+          default_sauces:item_default_sauces(*, sauce_option:sauce_options(*)),
+          default_global_sauces:item_default_global_sauces(*, global_sauce:global_sauces(*))
         `)
         .order('sort_order', { ascending: true });
 

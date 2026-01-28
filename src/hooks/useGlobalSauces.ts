@@ -95,3 +95,43 @@ export const useDeleteGlobalSauce = () => {
     },
   });
 };
+
+// Hooks for managing default global sauces per menu item
+export const useManageDefaultGlobalSauces = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const addDefaultGlobalSauce = useMutation({
+    mutationFn: async (data: { menu_item_id: string; global_sauce_id: string }) => {
+      const { data: result, error } = await supabase
+        .from('item_default_global_sauces')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu_items'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const removeDefaultGlobalSauce = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('item_default_global_sauces').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu_items'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { addDefaultGlobalSauce, removeDefaultGlobalSauce };
+};
