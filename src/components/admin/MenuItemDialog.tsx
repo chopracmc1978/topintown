@@ -63,7 +63,8 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
   const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
   const [newToppingId, setNewToppingId] = useState('');
-  const [newSauceId, setNewSauceId] = useState('');
+  // This is only used as a temporary picker value (selecting a sauce immediately adds it)
+  const [newSauceId, setNewSauceId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (item) {
@@ -102,7 +103,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setSelectedToppings([]);
     setSelectedSauces([]);
     setNewToppingId('');
-    setNewSauceId('');
+    setNewSauceId(undefined);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,11 +245,11 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setSelectedToppings(selectedToppings.filter((id) => id !== toppingId));
   };
 
-  const addSauce = () => {
-    if (newSauceId && !selectedSauces.includes(newSauceId)) {
-      setSelectedSauces([...selectedSauces, newSauceId]);
-      setNewSauceId('');
-    }
+  const handleSaucePick = (sauceId: string) => {
+    if (!sauceId) return;
+    setSelectedSauces((prev) => (prev.includes(sauceId) ? prev : [...prev, sauceId]));
+    // Reset picker back to placeholder so they can quickly add multiple sauces
+    setNewSauceId(undefined);
   };
 
   const removeSauce = (sauceId: string) => {
@@ -384,7 +385,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
             <div className="space-y-3">
               <Label>Default Sauces (Free for this pizza)</Label>
               <div className="flex gap-2">
-                <Select value={newSauceId} onValueChange={setNewSauceId}>
+                <Select value={newSauceId} onValueChange={handleSaucePick}>
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Select a sauce" />
                   </SelectTrigger>
@@ -396,10 +397,10 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="button" variant="outline" onClick={addSauce} disabled={!newSauceId}>
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Tip: selecting a sauce adds it as a default automatically.
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selectedSauces.map((sauceId) => {
                   const sauce = allSauces?.find((s) => s.id === sauceId);
