@@ -1,24 +1,27 @@
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import MenuCard from '@/components/MenuCard';
-import { menuItems } from '@/data/menu';
+import MenuCardDB from '@/components/MenuCardDB';
+import { useMenuItems, type MenuCategory } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 
-const categories = [
+const categories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'all', name: 'All' },
-  { id: 'pizza', name: 'Pizzas' },
-  { id: 'sides', name: 'Sides' },
-  { id: 'drinks', name: 'Drinks' },
-  { id: 'desserts', name: 'Desserts' },
+  { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
+  { id: 'sides', name: 'Sides', dbCategory: 'sides' },
+  { id: 'drinks', name: 'Drinks', dbCategory: 'drinks' },
+  { id: 'desserts', name: 'Desserts', dbCategory: 'desserts' },
+  { id: 'dipping_sauce', name: 'Dipping Sauces', dbCategory: 'dipping_sauce' },
 ];
 
 const Menu = () => {
   const [activeCategory, setActiveCategory] = useState('all');
-
-  const filteredItems = activeCategory === 'all'
-    ? menuItems
-    : menuItems.filter((item) => item.category === activeCategory);
+  
+  const selectedCategory = activeCategory === 'all' 
+    ? undefined 
+    : (activeCategory as MenuCategory);
+  
+  const { data: menuItems, isLoading } = useMenuItems(selectedCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,16 +60,27 @@ const Menu = () => {
           </div>
 
           {/* Menu Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((item) => (
-              <MenuCard key={item.id} item={item} />
-            ))}
-          </div>
-
-          {filteredItems.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No items found in this category.</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {menuItems?.map((item) => (
+                  <MenuCardDB key={item.id} item={item} />
+                ))}
+              </div>
+
+              {(!menuItems || menuItems.length === 0) && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No items found in this category.</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Add items from the <a href="/admin" className="text-primary hover:underline">admin dashboard</a>.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
