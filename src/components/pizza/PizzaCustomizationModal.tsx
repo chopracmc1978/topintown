@@ -9,6 +9,7 @@ import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
 import { useToppings, useSauceOptions } from '@/hooks/useMenuItems';
 import type { SideSpicyLevel, ToppingQuantity, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
+import type { CartItem } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { Flame } from 'lucide-react';
 
@@ -16,6 +17,7 @@ interface PizzaCustomizationModalProps {
   item: MenuItem;
   isOpen: boolean;
   onClose: () => void;
+  editingCartItem?: CartItem;
 }
 
 type CheeseQuantity = 'none' | 'light' | 'normal' | 'extra';
@@ -27,8 +29,8 @@ interface CheeseSideSelection {
 
 const GLUTEN_FREE_PRICE = 2.5;
 
-const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationModalProps) => {
-  const { addToCart } = useCart();
+const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: PizzaCustomizationModalProps) => {
+  const { addCustomizedPizza, updateCustomizedPizza } = useCart();
   const { data: sizeCrustAvailability } = useSizeCrustAvailability();
   const { data: cheeseOptions } = useCheeseOptions();
   const { data: freeToppingsData } = useFreeToppings();
@@ -37,19 +39,41 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
 
   const defaultSauceIds = useMemo(() => item.default_sauces?.map(ds => ds.sauce_option_id) || [], [item.default_sauces]);
   const defaultSize = item.sizes?.[1] || item.sizes?.[0];
-  const defaultCheese = cheeseOptions?.find(c => c.is_default);
 
-  const [selectedSize, setSelectedSize] = useState<{ id: string; name: string; price: number } | null>(null);
-  const [selectedCrust, setSelectedCrust] = useState<{ id: string; name: string; price: number } | null>(null);
-  const [selectedCheeseType, setSelectedCheeseType] = useState<string>('mozzarella');
-  const [cheeseSides, setCheeseSides] = useState<CheeseSideSelection[]>([{ side: 'whole', quantity: 'normal' }]);
-  const [selectedSauceId, setSelectedSauceId] = useState<string | null>(null);
-  const [sauceQuantity, setSauceQuantity] = useState<'normal' | 'extra'>('normal');
-  const [selectedFreeToppings, setSelectedFreeToppings] = useState<string[]>([]);
-  const [spicyLevel, setSpicyLevel] = useState<SideSpicyLevel>({ left: 'none', right: 'none' });
-  const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>([]);
-  const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>([]);
-  const [note, setNote] = useState('');
+  // Get initial values from editingCartItem if in edit mode
+  const editCustomization = editingCartItem?.pizzaCustomization;
+
+  const [selectedSize, setSelectedSize] = useState<{ id: string; name: string; price: number } | null>(
+    editCustomization?.size || null
+  );
+  const [selectedCrust, setSelectedCrust] = useState<{ id: string; name: string; price: number } | null>(
+    editCustomization?.crust || null
+  );
+  const [selectedCheeseType, setSelectedCheeseType] = useState<string>(
+    editCustomization?.cheeseType || 'mozzarella'
+  );
+  const [cheeseSides, setCheeseSides] = useState<CheeseSideSelection[]>(
+    editCustomization?.cheeseSides?.map(cs => ({ side: cs.side as PizzaSide, quantity: cs.quantity as CheeseQuantity })) || [{ side: 'whole', quantity: 'normal' }]
+  );
+  const [selectedSauceId, setSelectedSauceId] = useState<string | null>(
+    editCustomization?.sauceId || null
+  );
+  const [sauceQuantity, setSauceQuantity] = useState<'normal' | 'extra'>(
+    editCustomization?.sauceQuantity || 'normal'
+  );
+  const [selectedFreeToppings, setSelectedFreeToppings] = useState<string[]>(
+    editCustomization?.freeToppings || []
+  );
+  const [spicyLevel, setSpicyLevel] = useState<SideSpicyLevel>(
+    editCustomization?.spicyLevel || { left: 'none', right: 'none' }
+  );
+  const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>(
+    editCustomization?.defaultToppings || []
+  );
+  const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>(
+    editCustomization?.extraToppings || []
+  );
+  const [note, setNote] = useState(editCustomization?.note || '');
 
   const isLarge = selectedSize?.name.includes('Large');
   const isGlutenFree = selectedCrust?.name.toLowerCase().includes('gluten free') || false;
@@ -134,15 +158,48 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedCrust) return;
-    addToCart({ 
-      id: `${item.id}-${Date.now()}`, 
-      name: `${item.name} (Customized)`, 
-      description: `${selectedSize.name}, ${selectedCrust.name}${note ? ` | Note: ${note}` : ''}`, 
-      price: totalPrice, 
-      image: item.image_url || '/placeholder.svg', 
-      category: 'pizza' as const, 
-      popular: item.is_popular 
-    });
+    
+    const sauceName = selectedSauceId && allSauces 
+      ? allSauces.find(s => s.id === selectedSauceId)?.name || ''
+      : '';
+    
+    const customization = {
+      size: selectedSize,
+      crust: selectedCrust,
+      cheeseType: selectedCheeseType,
+      cheeseSides: cheeseSides.map(cs => ({ side: cs.side, quantity: cs.quantity })),
+      sauceId: selectedSauceId,
+      sauceName,
+      sauceQuantity,
+      freeToppings: freeToppingsData?.filter(f => selectedFreeToppings.includes(f.id)).map(f => f.name) || [],
+      spicyLevel,
+      defaultToppings,
+      extraToppings,
+      note,
+      originalItemId: item.id,
+    };
+    
+    if (editingCartItem) {
+      updateCustomizedPizza(editingCartItem.id, {
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        price: totalPrice,
+        image: item.image_url || '/placeholder.svg',
+        category: 'pizza',
+        popular: item.is_popular,
+      }, customization, totalPrice);
+    } else {
+      addCustomizedPizza({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        price: totalPrice,
+        image: item.image_url || '/placeholder.svg',
+        category: 'pizza',
+        popular: item.is_popular,
+      }, customization, totalPrice);
+    }
     onClose();
   };
 
@@ -227,7 +284,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             <img src={item.image_url || '/placeholder.svg'} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
             <h2 className="font-serif text-lg font-bold">{item.name}</h2>
           </div>
-          <Button variant="pizza" onClick={handleAddToCart}>Add to Cart - ${totalPrice.toFixed(2)}</Button>
+          <Button variant="pizza" onClick={handleAddToCart}>
+            {editingCartItem ? 'Update Cart' : 'Add to Cart'} - ${totalPrice.toFixed(2)}
+          </Button>
         </div>
 
         <div className="px-4 py-3 space-y-4">

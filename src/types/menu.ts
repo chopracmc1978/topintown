@@ -1,18 +1,38 @@
+import type { PizzaCustomization, SelectedTopping, SelectedFreeTopping, SideSpicyLevel } from './pizzaCustomization';
+
 export interface MenuItem {
   id: string;
   name: string;
   description: string;
   price: number;
   image: string;
-  category: 'pizza' | 'sides' | 'drinks' | 'desserts';
+  category: 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce';
   sizes?: { name: string; price: number }[];
   popular?: boolean;
+}
+
+// Extended pizza customization for cart storage
+export interface CartPizzaCustomization {
+  size: { id: string; name: string; price: number };
+  crust: { id: string; name: string; price: number };
+  cheeseType: string;
+  cheeseSides: { side: string; quantity: string }[];
+  sauceId: string | null;
+  sauceName: string;
+  sauceQuantity: 'normal' | 'extra';
+  freeToppings: string[];
+  spicyLevel: SideSpicyLevel;
+  defaultToppings: SelectedTopping[];
+  extraToppings: SelectedTopping[];
+  note: string;
+  originalItemId: string; // Original menu item ID for re-editing
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
   selectedSize?: string;
   totalPrice: number;
+  pizzaCustomization?: CartPizzaCustomization;
 }
 
 export interface Order {

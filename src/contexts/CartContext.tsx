@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CartItem, MenuItem } from '@/types/menu';
+import { CartItem, MenuItem, CartPizzaCustomization } from '@/types/menu';
 
 interface CartContextType {
   items: CartItem[];
   addToCart: (item: MenuItem, size?: string) => void;
+  addCustomizedPizza: (item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
+  updateCustomizedPizza: (cartItemId: string, item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
   removeFromCart: (itemId: string, size?: string) => void;
   updateQuantity: (itemId: string, quantity: number, size?: string) => void;
   clearCart: () => void;
@@ -19,7 +21,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = (item: MenuItem, size?: string) => {
     setItems((prev) => {
       const existingItem = prev.find(
-        (i) => i.id === item.id && i.selectedSize === size
+        (i) => i.id === item.id && i.selectedSize === size && !i.pizzaCustomization
       );
 
       const itemPrice = size
@@ -28,7 +30,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       if (existingItem) {
         return prev.map((i) =>
-          i.id === item.id && i.selectedSize === size
+          i.id === item.id && i.selectedSize === size && !i.pizzaCustomization
             ? { ...i, quantity: i.quantity + 1, totalPrice: (i.quantity + 1) * itemPrice }
             : i
         );
@@ -46,6 +48,40 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const addCustomizedPizza = (item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => {
+    const cartItemId = `${item.id}-${Date.now()}`;
+    setItems((prev) => [
+      ...prev,
+      {
+        id: cartItemId,
+        name: item.name,
+        description: `${customization.size.name}, ${customization.crust.name}`,
+        price: totalPrice,
+        image: item.image,
+        category: 'pizza' as const,
+        popular: item.popular,
+        quantity: 1,
+        totalPrice: totalPrice,
+        pizzaCustomization: customization,
+      },
+    ]);
+  };
+
+  const updateCustomizedPizza = (cartItemId: string, item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => {
+    setItems((prev) => prev.map((i) => 
+      i.id === cartItemId 
+        ? {
+            ...i,
+            name: item.name,
+            description: `${customization.size.name}, ${customization.crust.name}`,
+            price: totalPrice,
+            totalPrice: totalPrice * i.quantity,
+            pizzaCustomization: customization,
+          }
+        : i
+    ));
+  };
+
   const removeFromCart = (itemId: string, size?: string) => {
     setItems((prev) => prev.filter((i) => !(i.id === itemId && i.selectedSize === size)));
   };
@@ -58,10 +94,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     setItems((prev) =>
       prev.map((i) => {
-        if (i.id === itemId && i.selectedSize === size) {
-          const itemPrice = size
-            ? i.sizes?.find((s) => s.name === size)?.price || i.price
-            : i.price;
+        if (i.id === itemId && (i.selectedSize === size || i.pizzaCustomization)) {
+          const itemPrice = i.pizzaCustomization 
+            ? i.price 
+            : (size ? i.sizes?.find((s) => s.name === size)?.price || i.price : i.price);
           return { ...i, quantity, totalPrice: quantity * itemPrice };
         }
         return i;
@@ -76,7 +112,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
+      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, removeFromCart, updateQuantity, clearCart, total, itemCount }}
     >
       {children}
     </CartContext.Provider>
