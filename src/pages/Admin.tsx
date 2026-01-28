@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Cherry, GlassWater, Cake, Droplet, Layers, Users, Soup } from 'lucide-react';
+import { LogOut, Pizza, Cherry, GlassWater, Droplet, Layers, Users, Soup } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
@@ -14,7 +14,7 @@ const categoryIcons: Record<MenuCategory, React.ReactNode> = {
   pizza: <Pizza className="w-4 h-4" />,
   sides: <Cherry className="w-4 h-4" />,
   drinks: <GlassWater className="w-4 h-4" />,
-  desserts: <Cake className="w-4 h-4" />,
+  desserts: <Pizza className="w-4 h-4" />, // Keep for type safety but won't be used
   dipping_sauce: <Droplet className="w-4 h-4" />,
 };
 
@@ -22,9 +22,12 @@ const categoryLabels: Record<MenuCategory, string> = {
   pizza: 'Pizzas',
   sides: 'Sides',
   drinks: 'Drinks',
-  desserts: 'Desserts',
+  desserts: 'Desserts', // Keep for type safety but won't be used
   dipping_sauce: 'Dipping Sauces',
 };
+
+// Categories to display (excluding desserts)
+const displayCategories: MenuCategory[] = ['pizza', 'sides', 'drinks', 'dipping_sauce'];
 
 const Admin = () => {
   const { user, loading, isAdmin, signOut } = useAuth();
@@ -89,8 +92,8 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-8 w-full max-w-5xl">
-              {(Object.keys(categoryLabels) as MenuCategory[]).map((category) => (
+            <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+              {displayCategories.map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
                   <span className="hidden sm:inline">{categoryLabels[category]}</span>
@@ -110,7 +113,7 @@ const Admin = () => {
               </TabsTrigger>
             </TabsList>
 
-            {(Object.keys(categoryLabels) as MenuCategory[]).map((category) => (
+            {displayCategories.map((category) => (
               <TabsContent key={category} value={category}>
                 <MenuItemsManager category={category} />
               </TabsContent>
