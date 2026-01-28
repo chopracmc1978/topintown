@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Cherry, GlassWater, Droplet, Layers, Users, Soup } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
@@ -12,22 +12,26 @@ import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
   pizza: <Pizza className="w-4 h-4" />,
-  sides: <Cherry className="w-4 h-4" />,
+  sides: <Pizza className="w-4 h-4" />, // Keep for type safety but won't be used
   drinks: <GlassWater className="w-4 h-4" />,
   desserts: <Pizza className="w-4 h-4" />, // Keep for type safety but won't be used
   dipping_sauce: <Droplet className="w-4 h-4" />,
+  chicken_wings: <Drumstick className="w-4 h-4" />,
+  baked_lasagna: <UtensilsCrossed className="w-4 h-4" />,
 };
 
 const categoryLabels: Record<MenuCategory, string> = {
   pizza: 'Pizzas',
-  sides: 'Sides',
+  sides: 'Sides', // Keep for type safety but won't be used
   drinks: 'Drinks',
   desserts: 'Desserts', // Keep for type safety but won't be used
   dipping_sauce: 'Dipping Sauces',
+  chicken_wings: 'Chicken Wings',
+  baked_lasagna: 'Baked Lasagna',
 };
 
-// Categories to display (excluding desserts)
-const displayCategories: MenuCategory[] = ['pizza', 'sides', 'drinks', 'dipping_sauce'];
+// Categories to display (excluding sides and desserts)
+const displayCategories: MenuCategory[] = ['pizza', 'chicken_wings', 'baked_lasagna', 'drinks', 'dipping_sauce'];
 
 const Admin = () => {
   const { user, loading, isAdmin, signOut } = useAuth();

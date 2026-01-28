@@ -472,7 +472,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "staff" | "user"
-      menu_category: "pizza" | "sides" | "drinks" | "desserts" | "dipping_sauce"
+      menu_category:
+        | "pizza"
+        | "sides"
+        | "drinks"
+        | "desserts"
+        | "dipping_sauce"
+        | "chicken_wings"
+        | "baked_lasagna"
       sauce_quantity: "regular" | "extra"
       spicy_level: "none" | "mild" | "medium" | "hot"
       topping_quantity: "none" | "less" | "regular" | "extra"
@@ -604,7 +611,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "staff", "user"],
-      menu_category: ["pizza", "sides", "drinks", "desserts", "dipping_sauce"],
+      menu_category: [
+        "pizza",
+        "sides",
+        "drinks",
+        "desserts",
+        "dipping_sauce",
+        "chicken_wings",
+        "baked_lasagna",
+      ],
       sauce_quantity: ["regular", "extra"],
       spicy_level: ["none", "mild", "medium", "hot"],
       topping_quantity: ["none", "less", "regular", "extra"],

@@ -21,6 +21,8 @@ const categoryLabels: Record<MenuCategory, string> = {
   drinks: 'Drinks',
   desserts: 'Desserts',
   dipping_sauce: 'Dipping Sauces',
+  chicken_wings: 'Chicken Wings',
+  baked_lasagna: 'Baked Lasagna',
 };
 
 const MenuItemsManager = ({ category }: MenuItemsManagerProps) => {
