@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
-import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, useAllSauces, getCrustsForSize } from '@/hooks/usePizzaOptions';
-import { useToppings } from '@/hooks/useMenuItems';
+import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
+import { useToppings, useSauceOptions } from '@/hooks/useMenuItems';
 import type { PizzaCustomization, SpicyLevel, ToppingQuantity, SauceQuantity, SelectedSauce, SelectedTopping } from '@/types/pizzaCustomization';
 import SizeSelector from './SizeSelector';
 import CrustSelector from './CrustSelector';
@@ -28,8 +28,13 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
   const { data: sizeCrustAvailability } = useSizeCrustAvailability();
   const { data: cheeseOptions } = useCheeseOptions();
   const { data: freeToppingsData } = useFreeToppings();
-  const { data: allSauces } = useAllSauces();
+  const { data: allSauces } = useSauceOptions();
   const { data: allToppings } = useToppings();
+
+  // Get default sauce IDs for this pizza
+  const defaultSauceIds = useMemo(() => {
+    return item.default_sauces?.map(ds => ds.sauce_option_id) || [];
+  }, [item.default_sauces]);
 
   // Get default values
   const defaultSize = item.sizes?.[1] || item.sizes?.[0];
@@ -200,6 +205,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             <SauceSelector
               sauces={allSauces || []}
               selectedSauces={selectedSauces}
+              defaultSauceIds={defaultSauceIds}
               onUpdateSauces={setSelectedSauces}
             />
 

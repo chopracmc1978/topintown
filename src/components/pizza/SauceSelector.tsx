@@ -1,18 +1,20 @@
-import { Plus, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import type { SauceOption } from '@/hooks/usePizzaOptions';
+import type { SauceOption } from '@/hooks/useMenuItems';
 import type { SelectedSauce, SauceQuantity } from '@/types/pizzaCustomization';
 
 interface SauceSelectorProps {
   sauces: SauceOption[];
   selectedSauces: SelectedSauce[];
+  defaultSauceIds: string[];
   onUpdateSauces: (sauces: SelectedSauce[]) => void;
 }
 
-const SauceSelector = ({ sauces, selectedSauces, onUpdateSauces }: SauceSelectorProps) => {
+const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces }: SauceSelectorProps) => {
   const toggleSauce = (sauce: SauceOption) => {
     const existing = selectedSauces.find(s => s.id === sauce.id);
+    const isDefault = defaultSauceIds.includes(sauce.id);
+    
     if (existing) {
       onUpdateSauces(selectedSauces.filter(s => s.id !== sauce.id));
     } else {
@@ -21,7 +23,7 @@ const SauceSelector = ({ sauces, selectedSauces, onUpdateSauces }: SauceSelector
         name: sauce.name,
         quantity: 'regular',
         price: sauce.price,
-        isDefault: false,
+        isDefault: isDefault,
       }]);
     }
   };
@@ -37,20 +39,22 @@ const SauceSelector = ({ sauces, selectedSauces, onUpdateSauces }: SauceSelector
       <h3 className="font-semibold text-foreground mb-3">
         Sauces
         <span className="text-sm font-normal text-muted-foreground ml-2">
-          (Select your sauces - charges apply for non-default)
+          (Default sauces are free, others are charged)
         </span>
       </h3>
       <div className="space-y-2">
         {sauces.map((sauce) => {
           const isSelected = selectedSauces.some(s => s.id === sauce.id);
           const selectedSauce = selectedSauces.find(s => s.id === sauce.id);
+          const isDefault = defaultSauceIds.includes(sauce.id);
 
           return (
             <div
               key={sauce.id}
               className={cn(
                 "flex items-center justify-between p-3 rounded-lg border transition-all",
-                isSelected ? "border-primary bg-primary/5" : "border-border"
+                isSelected ? "border-primary bg-primary/5" : "border-border",
+                isDefault && !isSelected && "border-dashed border-green-500/50"
               )}
             >
               <div className="flex items-center gap-3">
@@ -67,13 +71,12 @@ const SauceSelector = ({ sauces, selectedSauces, onUpdateSauces }: SauceSelector
                 </button>
                 <div>
                   <span className="font-medium">{sauce.name}</span>
-                  {!sauce.is_free && sauce.price > 0 && (
+                  {isDefault ? (
+                    <span className="text-xs text-green-600 ml-2">Default (Free)</span>
+                  ) : (
                     <span className="text-sm text-muted-foreground ml-2">
                       +${sauce.price.toFixed(2)}
                     </span>
-                  )}
-                  {sauce.is_free && (
-                    <span className="text-xs text-green-600 ml-2">Free</span>
                   )}
                 </div>
               </div>
