@@ -93,23 +93,23 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     }
   }, [item.default_toppings, defaultToppings.length]);
 
-  // Initialize default sauces - pre-select them when modal opens
+  // Initialize default sauces - always pre-select them when the modal opens
   useEffect(() => {
-    if (allSauces && defaultSauceIds.length > 0 && selectedSauces.length === 0) {
-      const defaultSauces = allSauces
-        .filter(sauce => defaultSauceIds.includes(sauce.id))
-        .map(sauce => ({
-          id: sauce.id,
-          name: sauce.name,
-          quantity: 'regular' as const,
-          price: sauce.price,
-          isDefault: true,
-        }));
-      if (defaultSauces.length > 0) {
-        setSelectedSauces(defaultSauces);
-      }
-    }
-  }, [allSauces, defaultSauceIds, selectedSauces.length]);
+    if (!isOpen) return;
+    if (!allSauces || defaultSauceIds.length === 0) return;
+
+    const defaultSauces = allSauces
+      .filter((sauce) => defaultSauceIds.includes(sauce.id))
+      .map((sauce) => ({
+        id: sauce.id,
+        name: sauce.name,
+        quantity: 'regular' as const,
+        price: sauce.price,
+        isDefault: true,
+      }));
+
+    setSelectedSauces(defaultSauces);
+  }, [isOpen, item.id, allSauces, defaultSauceIds]);
 
   // Available crusts based on selected size
   const availableCrusts = useMemo(() => {
