@@ -7,7 +7,7 @@ import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, Ute
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
-import { SauceManager } from '@/components/admin/SauceManager';
+import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -96,7 +96,7 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-7 w-full max-w-4xl">
+            <TabsList className="grid grid-cols-8 w-full max-w-5xl">
               {displayCategories.map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
@@ -128,7 +128,7 @@ const Admin = () => {
             </TabsContent>
 
             <TabsContent value="sauces">
-              <SauceManager />
+              <GlobalSauceManager />
             </TabsContent>
 
             <TabsContent value="users">

@@ -57,6 +57,7 @@ export interface MenuItem {
   base_price: number;
   image_url: string | null;
   category: MenuCategory;
+  subcategory: string | null;
   is_available: boolean;
   is_popular: boolean;
   sort_order: number;

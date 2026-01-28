@@ -98,6 +98,33 @@ export type Database = {
         }
         Relationships: []
       }
+      global_sauces: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean
+          name: string
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name: string
+          price?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
       item_default_sauces: {
         Row: {
           created_at: string
