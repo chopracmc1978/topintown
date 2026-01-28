@@ -418,20 +418,126 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
               <Flame className="w-4 h-4 text-orange-500" />
               SPICY LEVEL (Optional)
             </p>
-            <div className="flex gap-4">
-              {(['none', 'medium', 'hot'] as const).map(level => (
-                <label key={level} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="spicy"
-                    checked={spicyLevel.left === level && spicyLevel.right === level}
-                    onChange={() => setSpicyLevel({ left: level, right: level })}
-                    className="w-4 h-4"
-                  />
-                  <span className="capitalize">{level === 'none' ? 'No Spicy' : level}</span>
-                </label>
-              ))}
-            </div>
+            
+            {!isLarge ? (
+              // Non-large pizzas: simple radio buttons for whole pizza
+              <div className="flex gap-4">
+                {(['none', 'medium', 'hot'] as const).map(level => (
+                  <label key={level} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="spicy"
+                      checked={spicyLevel.left === level && spicyLevel.right === level}
+                      onChange={() => setSpicyLevel({ left: level, right: level })}
+                      className="w-4 h-4"
+                    />
+                    <span className="capitalize">{level === 'none' ? 'No Spicy' : level}</span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              // Large pizzas: side-based spicy level selection
+              <div className="space-y-3">
+                <div className="flex gap-4 flex-wrap">
+                  {/* No Spicy option */}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="spicy-whole"
+                      checked={spicyLevel.left === 'none' && spicyLevel.right === 'none'}
+                      onChange={() => setSpicyLevel({ left: 'none', right: 'none' })}
+                      className="w-4 h-4"
+                    />
+                    <span>No Spicy</span>
+                  </label>
+                  
+                  {/* Medium with side selection */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Medium:</span>
+                    {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
+                      const isSelected = side === 'whole' 
+                        ? (spicyLevel.left === 'medium' && spicyLevel.right === 'medium')
+                        : side === 'left' 
+                          ? spicyLevel.left === 'medium'
+                          : spicyLevel.right === 'medium';
+                      
+                      return (
+                        <button
+                          key={`medium-${side}`}
+                          onClick={() => {
+                            if (side === 'whole') {
+                              setSpicyLevel({ left: 'medium', right: 'medium' });
+                            } else if (side === 'left') {
+                              // If right is not 'hot', set it to 'none'
+                              const rightLevel = spicyLevel.right === 'hot' ? 'hot' : 'none';
+                              setSpicyLevel({ left: 'medium', right: rightLevel });
+                            } else {
+                              // If left is not 'hot', set it to 'none'
+                              const leftLevel = spicyLevel.left === 'hot' ? 'hot' : 'none';
+                              setSpicyLevel({ left: leftLevel, right: 'medium' });
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-1 text-xs rounded border transition-all",
+                            isSelected 
+                              ? "border-orange-500 bg-orange-500 text-white" 
+                              : "border-border hover:border-orange-500/50"
+                          )}
+                        >
+                          {side === 'left' ? 'L' : side === 'right' ? 'R' : 'W'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Hot with side selection */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Hot:</span>
+                    {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
+                      const isSelected = side === 'whole' 
+                        ? (spicyLevel.left === 'hot' && spicyLevel.right === 'hot')
+                        : side === 'left' 
+                          ? spicyLevel.left === 'hot'
+                          : spicyLevel.right === 'hot';
+                      
+                      return (
+                        <button
+                          key={`hot-${side}`}
+                          onClick={() => {
+                            if (side === 'whole') {
+                              setSpicyLevel({ left: 'hot', right: 'hot' });
+                            } else if (side === 'left') {
+                              // If right is not 'medium', set it to 'none'
+                              const rightLevel = spicyLevel.right === 'medium' ? 'medium' : 'none';
+                              setSpicyLevel({ left: 'hot', right: rightLevel });
+                            } else {
+                              // If left is not 'medium', set it to 'none'
+                              const leftLevel = spicyLevel.left === 'medium' ? 'medium' : 'none';
+                              setSpicyLevel({ left: leftLevel, right: 'hot' });
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-1 text-xs rounded border transition-all",
+                            isSelected 
+                              ? "border-red-500 bg-red-500 text-white" 
+                              : "border-border hover:border-red-500/50"
+                          )}
+                        >
+                          {side === 'left' ? 'L' : side === 'right' ? 'R' : 'W'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Show current selection summary */}
+                {(spicyLevel.left !== 'none' || spicyLevel.right !== 'none') && (
+                  <p className="text-xs text-muted-foreground">
+                    Current: Left - {spicyLevel.left === 'none' ? 'No Spicy' : spicyLevel.left} | Right - {spicyLevel.right === 'none' ? 'No Spicy' : spicyLevel.right}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 5. FREE ADD-ONS (Optional) */}
@@ -512,6 +618,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
                         onUpdate={(q, s, p) => updateTopping(t.id, q, s, p, true)}
                         onRemove={() => setExtraToppings(prev => prev.filter(x => x.id !== t.id))}
                         showRemove
+                        isExtraTopping
                       />
                     ))}
                   </div>
@@ -524,12 +631,12 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
                   Add Extra Toppings <span className="text-primary">+${toppingPrice} each</span>
                 </p>
                 
-                {/* Non-Veg Extras */}
-                {nonVegTops.length > 0 && (
+                {/* Veg Extras (Non-meats first) */}
+                {vegTops.length > 0 && (
                   <div className="mb-3">
-                    <p className="text-xs text-destructive font-medium mb-1">Meats</p>
+                    <p className="text-xs text-green-600 font-medium mb-1">Non-meats</p>
                     <div className="flex flex-wrap gap-2">
-                      {nonVegTops.map(t => (
+                      {vegTops.map(t => (
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
@@ -542,12 +649,12 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
                   </div>
                 )}
 
-                {/* Veg Extras */}
-                {vegTops.length > 0 && (
+                {/* Non-Veg Extras (Meats second) */}
+                {nonVegTops.length > 0 && (
                   <div>
-                    <p className="text-xs text-green-600 font-medium mb-1">Non-meats</p>
+                    <p className="text-xs text-destructive font-medium mb-1">Meats</p>
                     <div className="flex flex-wrap gap-2">
-                      {vegTops.map(t => (
+                      {nonVegTops.map(t => (
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
@@ -587,26 +694,11 @@ interface ToppingRowProps {
   onUpdate: (quantity: ToppingQuantity, side: PizzaSide, price: number) => void;
   onRemove: () => void;
   showRemove?: boolean;
+  isExtraTopping?: boolean;
 }
 
-const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, showRemove }: ToppingRowProps) => {
+const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, showRemove, isExtraTopping }: ToppingRowProps) => {
   const isActive = topping.quantity !== 'none';
-
-  const PizzaSideIcon = ({ side, selected, onClick }: { side: PizzaSide; selected: boolean; onClick: () => void }) => (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "w-6 h-6 rounded-full border flex items-center justify-center transition-all",
-        selected ? "border-primary bg-primary" : "border-muted-foreground/30"
-      )}
-    >
-      <div className={cn("w-4 h-4 rounded-full overflow-hidden", selected ? "bg-primary-foreground" : "bg-muted")}>
-        {side === 'left' && <div className="w-1/2 h-full bg-destructive" />}
-        {side === 'right' && <div className="w-1/2 h-full bg-destructive ml-auto" />}
-        {side === 'whole' && <div className="w-full h-full bg-destructive" />}
-      </div>
-    </button>
-  );
 
   return (
     <div className={cn("flex items-center gap-2 p-2 rounded border", !isActive && "opacity-50 bg-muted/30")}>
@@ -614,7 +706,7 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
         checked={isActive}
         onCheckedChange={(checked) => {
           if (checked) {
-            onUpdate('regular', 'whole', 0);
+            onUpdate('regular', 'whole', isExtraTopping ? toppingPrice : 0);
           } else {
             onRemove();
           }
@@ -624,32 +716,47 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
       
       {isActive && (
         <>
-          {canShowSides && (
-            <div className="flex gap-0.5">
+          {/* Side selection buttons - only for large pizzas OR for extra toppings show L/W/R */}
+          {(canShowSides || isExtraTopping) && canShowSides && (
+            <div className="flex gap-1">
               {(['left', 'whole', 'right'] as PizzaSide[]).map(side => (
-                <PizzaSideIcon
+                <button
                   key={side}
-                  side={side}
-                  selected={topping.side === side}
-                  onClick={() => onUpdate(topping.quantity, side, topping.quantity === 'extra' ? toppingPrice : 0)}
-                />
+                  onClick={() => onUpdate(topping.quantity, side, topping.quantity === 'extra' ? toppingPrice : (isExtraTopping ? toppingPrice : 0))}
+                  className={cn(
+                    "px-2 py-1 text-xs rounded border transition-all",
+                    topping.side === side 
+                      ? "border-primary bg-primary text-primary-foreground" 
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  {side === 'left' ? 'L' : side === 'right' ? 'R' : 'W'}
+                </button>
               ))}
             </div>
           )}
           
-          <Select
-            value={topping.quantity}
-            onValueChange={(v) => onUpdate(v as ToppingQuantity, topping.side || 'whole', v === 'extra' ? toppingPrice : 0)}
-          >
-            <SelectTrigger className="w-24 h-7 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="regular">Normal</SelectItem>
-              <SelectItem value="extra">Extra</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Quantity dropdown - only for default toppings, NOT for extra toppings */}
+          {!isExtraTopping && (
+            <Select
+              value={topping.quantity}
+              onValueChange={(v) => onUpdate(v as ToppingQuantity, topping.side || 'whole', v === 'extra' ? toppingPrice : 0)}
+            >
+              <SelectTrigger className="w-24 h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="regular">Normal</SelectItem>
+                <SelectItem value="extra">Extra +${toppingPrice}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {/* For extra toppings, just show the price */}
+          {isExtraTopping && (
+            <span className="text-xs text-primary font-medium">+${toppingPrice}</span>
+          )}
         </>
       )}
 
