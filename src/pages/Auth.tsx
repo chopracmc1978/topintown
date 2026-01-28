@@ -77,24 +77,30 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // First, look up the email by username
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', username.trim().toLowerCase())
-          .maybeSingle();
+        const { data, error } = await supabase.functions.invoke('username-login', {
+          body: {
+            username: username.trim(),
+            password,
+          },
+        });
 
-        if (profileError) throw profileError;
-        
-        if (!profile) {
-          throw new Error('Username not found. Please check your username or sign up.');
+        if (error) {
+          throw new Error(error.message || 'Login failed');
         }
 
-        const { error } = await supabase.auth.signInWithPassword({
-          email: profile.email,
-          password,
+        const accessToken = data?.session?.access_token as string | undefined;
+        const refreshToken = data?.session?.refresh_token as string | undefined;
+        if (!accessToken || !refreshToken) {
+          throw new Error('Invalid username/email or password');
+        }
+
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
         });
-        if (error) throw error;
+
+        if (setSessionError) throw setSessionError;
+
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
       } else {
         const redirectUrl = `${window.location.origin}/admin`;
@@ -157,18 +163,18 @@ const Auth = () => {
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? 'Sign in with your username to manage the restaurant'
+              ? 'Sign in with your username or email to manage the restaurant'
               : 'Create an admin account to get started'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Username or Email</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="johndoe"
+                placeholder="cmchopra or admin@restaurant.com"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
