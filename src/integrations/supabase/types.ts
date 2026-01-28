@@ -163,6 +163,88 @@ export type Database = {
         }
         Relationships: []
       }
+      sauce_groups: {
+        Row: {
+          created_at: string
+          id: string
+          max_selection: number
+          menu_item_id: string
+          min_selection: number
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_selection?: number
+          menu_item_id: string
+          min_selection?: number
+          name?: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_selection?: number
+          menu_item_id?: string
+          min_selection?: number
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sauce_groups_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sauce_options: {
+        Row: {
+          created_at: string
+          has_spicy_option: boolean
+          id: string
+          is_available: boolean
+          is_free: boolean
+          name: string
+          price: number
+          sauce_group_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          has_spicy_option?: boolean
+          id?: string
+          is_available?: boolean
+          is_free?: boolean
+          name: string
+          price?: number
+          sauce_group_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          has_spicy_option?: boolean
+          id?: string
+          is_available?: boolean
+          is_free?: boolean
+          name?: string
+          price?: number
+          sauce_group_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sauce_options_sauce_group_id_fkey"
+            columns: ["sauce_group_id"]
+            isOneToOne: false
+            referencedRelation: "sauce_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       toppings: {
         Row: {
           created_at: string
@@ -242,6 +324,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "staff" | "user"
       menu_category: "pizza" | "sides" | "drinks" | "desserts" | "dipping_sauce"
+      spicy_level: "none" | "mild" | "medium" | "hot"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -371,6 +454,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "staff", "user"],
       menu_category: ["pizza", "sides", "drinks", "desserts", "dipping_sauce"],
+      spicy_level: ["none", "mild", "medium", "hot"],
     },
   },
 } as const
