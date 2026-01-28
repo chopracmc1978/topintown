@@ -170,6 +170,9 @@ export type Database = {
           is_available: boolean
           name: string
           price: number
+          price_large: number
+          price_medium: number
+          price_small: number
           sort_order: number
           updated_at: string
         }
@@ -179,6 +182,9 @@ export type Database = {
           is_available?: boolean
           name: string
           price?: number
+          price_large?: number
+          price_medium?: number
+          price_small?: number
           sort_order?: number
           updated_at?: string
         }
@@ -188,6 +194,9 @@ export type Database = {
           is_available?: boolean
           name?: string
           price?: number
+          price_large?: number
+          price_medium?: number
+          price_small?: number
           sort_order?: number
           updated_at?: string
         }

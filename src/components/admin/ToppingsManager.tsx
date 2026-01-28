@@ -36,13 +36,17 @@ const ToppingsManager = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTopping, setEditingTopping] = useState<Topping | null>(null);
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
+  const [priceSmall, setPriceSmall] = useState('');
+  const [priceMedium, setPriceMedium] = useState('');
+  const [priceLarge, setPriceLarge] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
 
   const handleEdit = (topping: Topping) => {
     setEditingTopping(topping);
     setName(topping.name);
-    setPrice(topping.price.toString());
+    setPriceSmall((topping.price_small ?? topping.price).toString());
+    setPriceMedium((topping.price_medium ?? topping.price).toString());
+    setPriceLarge((topping.price_large ?? topping.price).toString());
     setIsAvailable(topping.is_available);
     setDialogOpen(true);
   };
@@ -50,7 +54,9 @@ const ToppingsManager = () => {
   const handleCreate = () => {
     setEditingTopping(null);
     setName('');
-    setPrice('');
+    setPriceSmall('');
+    setPriceMedium('');
+    setPriceLarge('');
     setIsAvailable(true);
     setDialogOpen(true);
   };
@@ -66,7 +72,10 @@ const ToppingsManager = () => {
 
     const data = {
       name: name.trim(),
-      price: parseFloat(price) || 0,
+      price: parseFloat(priceSmall) || 0, // Keep base price for backwards compatibility
+      price_small: parseFloat(priceSmall) || 0,
+      price_medium: parseFloat(priceMedium) || 0,
+      price_large: parseFloat(priceLarge) || 0,
       is_available: isAvailable,
       sort_order: 0,
     };
@@ -107,7 +116,9 @@ const ToppingsManager = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>Small</TableHead>
+                  <TableHead>Medium</TableHead>
+                  <TableHead>Large</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
@@ -116,7 +127,9 @@ const ToppingsManager = () => {
                 {toppings.map((topping) => (
                   <TableRow key={topping.id}>
                     <TableCell className="font-medium">{topping.name}</TableCell>
-                    <TableCell>${topping.price.toFixed(2)}</TableCell>
+                    <TableCell>${(topping.price_small ?? topping.price).toFixed(2)}</TableCell>
+                    <TableCell>${(topping.price_medium ?? topping.price).toFixed(2)}</TableCell>
+                    <TableCell>${(topping.price_large ?? topping.price).toFixed(2)}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -182,18 +195,48 @@ const ToppingsManager = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="toppingPrice">Price *</Label>
-              <Input
-                id="toppingPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-                required
-              />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="priceSmall">Small Pizza Price *</Label>
+                <Input
+                  id="priceSmall"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={priceSmall}
+                  onChange={(e) => setPriceSmall(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priceMedium">Medium Pizza Price *</Label>
+                <Input
+                  id="priceMedium"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={priceMedium}
+                  onChange={(e) => setPriceMedium(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priceLarge">Large Pizza Price *</Label>
+                <Input
+                  id="priceLarge"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={priceLarge}
+                  onChange={(e) => setPriceLarge(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
