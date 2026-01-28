@@ -16,6 +16,9 @@ export interface Topping {
   id: string;
   name: string;
   price: number;
+  price_small?: number;
+  price_medium?: number;
+  price_large?: number;
   is_available: boolean;
   sort_order: number;
 }

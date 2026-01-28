@@ -28,8 +28,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { User, Shield, ShieldCheck, ShieldAlert, Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Shield, ShieldCheck, ShieldAlert, Pencil, Plus, Trash2, Loader2, UserPlus } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -41,7 +52,7 @@ const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode; varian
 };
 
 const UsersManager = () => {
-  const { data: users, isLoading, error } = useUsers();
+  const { data: users, isLoading, error, refetch } = useUsers();
   const addRole = useAddRole();
   const removeRole = useRemoveRole();
   const updateProfile = useUpdateProfile();
@@ -49,27 +60,59 @@ const UsersManager = () => {
 
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [editName, setEditName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
   const [addRoleDialogOpen, setAddRoleDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole | ''>('');
+  
+  // Create user dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newFullName, setNewFullName] = useState('');
+  const [newRole, setNewRole] = useState<AppRole>('user');
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Delete user state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithRole | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit user state
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
     setEditName(user.full_name || '');
+    setEditUsername(user.username || '');
   };
 
   const handleSaveProfile = async () => {
     if (!editingUser) return;
 
+    setIsUpdating(true);
     try {
-      await updateProfile.mutateAsync({
-        userId: editingUser.user_id,
-        fullName: editName,
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'update',
+          targetUserId: editingUser.user_id,
+          fullName: editName,
+          username: editUsername,
+        },
       });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+
       toast({ title: 'Profile updated successfully' });
       setEditingUser(null);
+      refetch();
     } catch (err: any) {
       toast({ title: 'Error updating profile', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -101,6 +144,69 @@ const UsersManager = () => {
     setAddRoleDialogOpen(true);
   };
 
+  const handleCreateUser = async () => {
+    if (!newUsername || !newEmail || !newPassword) {
+      toast({ title: 'Please fill in all required fields', variant: 'destructive' });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'create',
+          username: newUsername,
+          email: newEmail,
+          password: newPassword,
+          fullName: newFullName,
+          role: newRole,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+
+      toast({ title: 'User created successfully' });
+      setCreateDialogOpen(false);
+      setNewUsername('');
+      setNewEmail('');
+      setNewPassword('');
+      setNewFullName('');
+      setNewRole('user');
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Error creating user', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'delete',
+          targetUserId: userToDelete.user_id,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error) throw new Error(response.data.error);
+
+      toast({ title: 'User deleted successfully' });
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      refetch();
+    } catch (err: any) {
+      toast({ title: 'Error deleting user', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getAvailableRoles = (currentRoles: AppRole[]): AppRole[] => {
     const allRoles: AppRole[] = ['admin', 'staff', 'user'];
     return allRoles.filter((role) => !currentRoles.includes(role));
@@ -129,20 +235,30 @@ const UsersManager = () => {
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
             User Management
           </CardTitle>
+          <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+            <UserPlus className="w-4 h-4" />
+            Add User
+          </Button>
         </CardHeader>
         <CardContent>
           {users?.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No users found</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No users found</p>
+              <Button onClick={() => setCreateDialogOpen(true)} variant="outline">
+                Add your first user
+              </Button>
+            </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
+                  <TableHead>Username</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Roles</TableHead>
                   <TableHead>Joined</TableHead>
@@ -170,6 +286,7 @@ const UsersManager = () => {
                         </span>
                       </div>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{user.username || '-'}</TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
@@ -205,13 +322,26 @@ const UsersManager = () => {
                       {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => {
+                            setUserToDelete(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -221,19 +351,101 @@ const UsersManager = () => {
         </CardContent>
       </Card>
 
+      {/* Create User Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Add a new user to the system
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="newUsername">Username *</Label>
+              <Input
+                id="newUsername"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                placeholder="johndoe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">Email *</Label>
+              <Input
+                id="newEmail"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Password *</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newFullName">Full Name</Label>
+              <Input
+                id="newFullName"
+                value={newFullName}
+                onChange={(e) => setNewFullName(e.target.value)}
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newRole">Role</Label>
+              <Select value={newRole} onValueChange={(v) => setNewRole(v as AppRole)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateUser} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Profile Dialog */}
       <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit User Profile</DialogTitle>
+            <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Update the user's display name
+              Update user profile information
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={editingUser?.email || ''} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editUsername">Username</Label>
+              <Input
+                id="editUsername"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                placeholder="Enter username"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
@@ -249,8 +461,8 @@ const UsersManager = () => {
             <Button variant="outline" onClick={() => setEditingUser(null)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveProfile} disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
+            <Button onClick={handleSaveProfile} disabled={isUpdating}>
+              {isUpdating ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -296,6 +508,29 @@ const UsersManager = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {userToDelete?.full_name || userToDelete?.email}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
