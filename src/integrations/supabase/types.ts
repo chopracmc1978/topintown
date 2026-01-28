@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      cheese_options: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean
+          is_default: boolean
+          name: string
+          price_extra: number
+          price_regular: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          is_default?: boolean
+          name: string
+          price_extra?: number
+          price_regular?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          is_default?: boolean
+          name?: string
+          price_extra?: number
+          price_regular?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      crust_options: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean
+          name: string
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name: string
+          price?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      free_toppings: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       item_default_toppings: {
         Row: {
           created_at: string
@@ -245,6 +329,35 @@ export type Database = {
           },
         ]
       }
+      size_crust_availability: {
+        Row: {
+          created_at: string
+          crust_id: string
+          id: string
+          size_name: string
+        }
+        Insert: {
+          created_at?: string
+          crust_id: string
+          id?: string
+          size_name: string
+        }
+        Update: {
+          created_at?: string
+          crust_id?: string
+          id?: string
+          size_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "size_crust_availability_crust_id_fkey"
+            columns: ["crust_id"]
+            isOneToOne: false
+            referencedRelation: "crust_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       toppings: {
         Row: {
           created_at: string
@@ -324,7 +437,9 @@ export type Database = {
     Enums: {
       app_role: "admin" | "staff" | "user"
       menu_category: "pizza" | "sides" | "drinks" | "desserts" | "dipping_sauce"
+      sauce_quantity: "regular" | "extra"
       spicy_level: "none" | "mild" | "medium" | "hot"
+      topping_quantity: "none" | "less" | "regular" | "extra"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -454,7 +569,9 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "staff", "user"],
       menu_category: ["pizza", "sides", "drinks", "desserts", "dipping_sauce"],
+      sauce_quantity: ["regular", "extra"],
       spicy_level: ["none", "mild", "medium", "hot"],
+      topping_quantity: ["none", "less", "regular", "extra"],
     },
   },
 } as const
