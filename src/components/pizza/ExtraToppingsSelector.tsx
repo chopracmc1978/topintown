@@ -1,25 +1,28 @@
-import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import type { Topping } from '@/hooks/useMenuItems';
-import type { SelectedTopping, ToppingQuantity } from '@/types/pizzaCustomization';
+import type { SelectedTopping } from '@/types/pizzaCustomization';
 
 interface ExtraToppingsSelectorProps {
   allToppings: Topping[];
   extraToppings: SelectedTopping[];
   defaultToppingIds: string[];
   selectedSize: string;
+  isGlutenFree: boolean;
   onAddTopping: (topping: SelectedTopping) => void;
-  onUpdateTopping: (id: string, quantity: ToppingQuantity) => void;
   onRemoveTopping: (id: string) => void;
 }
 
-const getToppingPrice = (topping: Topping, size: string): number => {
-  if (size.includes('Small')) return topping.price_small || topping.price;
-  if (size.includes('Medium')) return topping.price_medium || topping.price;
-  if (size.includes('Large')) return topping.price_large || topping.price;
-  return topping.price;
+// Get topping price based on size/crust - flat pricing, no regular/extra distinction
+const getToppingPrice = (size: string, isGlutenFree: boolean): number => {
+  const isSmall = size.includes('Small');
+  const isMedium = size.includes('Medium');
+  const isLarge = size.includes('Large');
+
+  if (isSmall) return 2;
+  if (isMedium || isGlutenFree) return 2.5;
+  if (isLarge) return 3;
+  return 2;
 };
 
 const ExtraToppingsSelector = ({
@@ -27,8 +30,8 @@ const ExtraToppingsSelector = ({
   extraToppings,
   defaultToppingIds,
   selectedSize,
+  isGlutenFree,
   onAddTopping,
-  onUpdateTopping,
   onRemoveTopping,
 }: ExtraToppingsSelectorProps) => {
   // Filter out default toppings and already added extras
@@ -39,20 +42,20 @@ const ExtraToppingsSelector = ({
   const vegToppings = availableToppings.filter(t => t.is_veg);
   const nonVegToppings = availableToppings.filter(t => !t.is_veg);
 
+  const toppingPrice = getToppingPrice(selectedSize, isGlutenFree);
+
   const addTopping = (topping: Topping) => {
-    const price = getToppingPrice(topping, selectedSize);
     onAddTopping({
       id: topping.id,
       name: topping.name,
-      quantity: 'regular',
-      price,
+      quantity: 'regular', // Flat quantity, no extra option
+      price: toppingPrice,
       isDefault: false,
       isVeg: topping.is_veg,
     });
   };
 
   const ToppingButton = ({ topping }: { topping: Topping }) => {
-    const price = getToppingPrice(topping, selectedSize);
     return (
       <button
         onClick={() => addTopping(topping)}
@@ -60,7 +63,7 @@ const ExtraToppingsSelector = ({
       >
         <Plus className="w-4 h-4 text-primary" />
         <span>{topping.name}</span>
-        <span className="text-primary font-medium">+${price.toFixed(2)}</span>
+        <span className="text-primary font-medium">+${toppingPrice.toFixed(2)}</span>
       </button>
     );
   };
@@ -87,33 +90,15 @@ const ExtraToppingsSelector = ({
                   )}>
                     {topping.isVeg ? 'Veg' : 'Non-Veg'}
                   </span>
-                  <span className="text-sm text-primary">+${topping.price.toFixed(2)}</span>
+                  <span className="text-sm text-primary font-medium">+${topping.price.toFixed(2)}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    {(['regular', 'extra'] as const).map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => onUpdateTopping(topping.id, q)}
-                        className={cn(
-                          "px-3 py-1 rounded-full text-xs border transition-all",
-                          topping.quantity === q
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border hover:border-primary/50"
-                        )}
-                      >
-                        {q === 'regular' ? 'Regular' : 'Extra (+50%)'}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => onRemoveTopping(topping.id)}
-                    className="p-1 rounded-full hover:bg-destructive/10 text-destructive transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => onRemoveTopping(topping.id)}
+                  className="p-1 rounded-full hover:bg-destructive/10 text-destructive transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
