@@ -1,21 +1,41 @@
-import { Minus, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SelectedTopping, ToppingQuantity } from '@/types/pizzaCustomization';
 
 interface DefaultToppingsSelectorProps {
   defaultToppings: SelectedTopping[];
-  onUpdateTopping: (id: string, quantity: ToppingQuantity) => void;
+  selectedSize: string;
+  isGlutenFree: boolean;
+  onUpdateTopping: (id: string, quantity: ToppingQuantity, price: number) => void;
 }
 
-const QUANTITY_OPTIONS: { value: ToppingQuantity; label: string }[] = [
+// Get extra topping price based on size/crust
+const getExtraToppingPrice = (size: string, isGlutenFree: boolean): number => {
+  const isSmall = size.includes('Small');
+  const isMedium = size.includes('Medium');
+  const isLarge = size.includes('Large');
+
+  if (isSmall) return 2;
+  if (isMedium || isGlutenFree) return 2.5;
+  if (isLarge) return 3;
+  return 2;
+};
+
+const QUANTITY_OPTIONS: { value: ToppingQuantity; label: string; hasExtraCharge?: boolean }[] = [
   { value: 'none', label: 'Remove' },
   { value: 'less', label: 'Less' },
   { value: 'regular', label: 'Regular' },
-  { value: 'extra', label: 'Extra' },
+  { value: 'extra', label: 'Extra', hasExtraCharge: true },
 ];
 
-const DefaultToppingsSelector = ({ defaultToppings, onUpdateTopping }: DefaultToppingsSelectorProps) => {
+const DefaultToppingsSelector = ({ 
+  defaultToppings, 
+  selectedSize, 
+  isGlutenFree, 
+  onUpdateTopping 
+}: DefaultToppingsSelectorProps) => {
   if (defaultToppings.length === 0) return null;
+
+  const extraPrice = getExtraToppingPrice(selectedSize, isGlutenFree);
 
   return (
     <div>
@@ -49,13 +69,19 @@ const DefaultToppingsSelector = ({ defaultToppings, onUpdateTopping }: DefaultTo
                   {topping.isVeg ? 'Veg' : 'Non-Veg'}
                 </span>
               )}
+              {topping.quantity === 'extra' && (
+                <span className="text-sm text-primary font-medium">+${extraPrice.toFixed(2)}</span>
+              )}
             </div>
 
             <div className="flex gap-1">
               {QUANTITY_OPTIONS.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => onUpdateTopping(topping.id, option.value)}
+                  onClick={() => {
+                    const price = option.value === 'extra' ? extraPrice : 0;
+                    onUpdateTopping(topping.id, option.value, price);
+                  }}
                   className={cn(
                     "px-3 py-1 rounded-full text-xs border transition-all",
                     topping.quantity === option.value
@@ -66,6 +92,7 @@ const DefaultToppingsSelector = ({ defaultToppings, onUpdateTopping }: DefaultTo
                   )}
                 >
                   {option.label}
+                  {option.hasExtraCharge && ` +$${extraPrice.toFixed(2)}`}
                 </button>
               ))}
             </div>

@@ -1,13 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
 import { useToppings, useSauceOptions } from '@/hooks/useMenuItems';
-import type { PizzaCustomization, SpicyLevel, ToppingQuantity, SauceQuantity, SelectedSauce, SelectedTopping } from '@/types/pizzaCustomization';
+import type { PizzaCustomization, SpicyLevel, ToppingQuantity, SelectedSauce, SelectedTopping } from '@/types/pizzaCustomization';
 import SizeSelector from './SizeSelector';
 import CrustSelector from './CrustSelector';
 import SauceSelector from './SauceSelector';
@@ -22,6 +21,9 @@ interface PizzaCustomizationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// Gluten Free crust price
+const GLUTEN_FREE_PRICE = 2.5;
 
 const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationModalProps) => {
   const { addToCart } = useCart();
@@ -50,6 +52,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
   const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>([]);
   const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>([]);
 
+  // Check if gluten free crust is selected
+  const isGlutenFree = selectedCrust?.name.toLowerCase().includes('gluten free') || false;
+
   // Initialize defaults when data loads
   useEffect(() => {
     if (defaultSize && !selectedSize) {
@@ -61,7 +66,8 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     if (selectedSize && sizeCrustAvailability && !selectedCrust) {
       const availableCrusts = getCrustsForSize(sizeCrustAvailability, selectedSize.name);
       if (availableCrusts.length > 0) {
-        setSelectedCrust({ id: availableCrusts[0].id, name: availableCrusts[0].name, price: availableCrusts[0].price });
+        const regularCrust = availableCrusts.find(c => c.name.toLowerCase() === 'regular') || availableCrusts[0];
+        setSelectedCrust({ id: regularCrust.id, name: regularCrust.name, price: 0 });
       }
     }
   }, [selectedSize, sizeCrustAvailability, selectedCrust]);
@@ -98,17 +104,29 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     if (selectedSize && availableCrusts.length > 0) {
       const currentCrustAvailable = availableCrusts.find(c => c.id === selectedCrust?.id);
       if (!currentCrustAvailable) {
-        setSelectedCrust({ id: availableCrusts[0].id, name: availableCrusts[0].name, price: availableCrusts[0].price });
+        const regularCrust = availableCrusts.find(c => c.name.toLowerCase() === 'regular') || availableCrusts[0];
+        setSelectedCrust({ id: regularCrust.id, name: regularCrust.name, price: 0 });
       }
     }
   }, [selectedSize, availableCrusts, selectedCrust?.id]);
 
+  // Handle crust selection with proper pricing
+  const handleCrustSelect = (crust: { id: string; name: string; price: number }) => {
+    const isGlutenFreeCrust = crust.name.toLowerCase().includes('gluten free');
+    setSelectedCrust({
+      ...crust,
+      price: isGlutenFreeCrust ? GLUTEN_FREE_PRICE : 0,
+    });
+  };
+
   // Calculate total price
   const totalPrice = useMemo(() => {
     let total = selectedSize?.price || 0;
+    
+    // Crust price (Gluten Free = $2.50)
     total += selectedCrust?.price || 0;
     
-    // Sauce prices
+    // Sauce prices - only charge for non-default sauces
     selectedSauces.forEach(sauce => {
       if (!sauce.isDefault) {
         total += sauce.price;
@@ -118,35 +136,23 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
       }
     });
 
-    // Cheese price
-    if (selectedCheese?.quantity === 'extra') {
-      const cheese = cheeseOptions?.find(c => c.id === selectedCheese.id);
-      total += cheese?.price_extra || 0;
-    }
+    // Cheese price (already calculated with size/crust logic)
+    total += selectedCheese?.price || 0;
 
-    // Extra toppings
-    extraToppings.forEach(topping => {
-      if (topping.quantity !== 'none') {
-        const toppingData = allToppings?.find(t => t.id === topping.id);
-        if (toppingData) {
-          let price = toppingData.price;
-          if (selectedSize?.name.includes('Small')) {
-            price = toppingData.price_small || toppingData.price;
-          } else if (selectedSize?.name.includes('Medium')) {
-            price = toppingData.price_medium || toppingData.price;
-          } else if (selectedSize?.name.includes('Large')) {
-            price = toppingData.price_large || toppingData.price;
-          }
-          if (topping.quantity === 'extra') {
-            price *= 1.5;
-          }
-          total += price;
-        }
+    // Default toppings extra charge
+    defaultToppings.forEach(topping => {
+      if (topping.quantity === 'extra') {
+        total += topping.price;
       }
     });
 
+    // Extra toppings (flat pricing based on size/crust)
+    extraToppings.forEach(topping => {
+      total += topping.price;
+    });
+
     return total;
-  }, [selectedSize, selectedCrust, selectedSauces, selectedCheese, extraToppings, cheeseOptions, allToppings]);
+  }, [selectedSize, selectedCrust, selectedSauces, selectedCheese, defaultToppings, extraToppings]);
 
   const handleAddToCart = () => {
     if (!selectedSize || !selectedCrust || !selectedCheese) return;
@@ -179,7 +185,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
               />
               <div>
                 <DialogTitle className="font-serif text-xl">{item.name}</DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                <DialogDescription className="text-sm text-muted-foreground mt-1">{item.description}</DialogDescription>
               </div>
             </div>
           </div>
@@ -198,7 +204,8 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             <CrustSelector
               crusts={availableCrusts}
               selectedCrust={selectedCrust}
-              onSelectCrust={setSelectedCrust}
+              onSelectCrust={handleCrustSelect}
+              glutenFreePrice={GLUTEN_FREE_PRICE}
             />
 
             {/* Sauce Selection */}
@@ -213,6 +220,8 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             <CheeseSelector
               cheeses={cheeseOptions || []}
               selectedCheese={selectedCheese}
+              selectedSize={selectedSize?.name || 'Medium'}
+              isGlutenFree={isGlutenFree}
               onSelectCheese={setSelectedCheese}
             />
 
@@ -236,9 +245,11 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             {/* Default Toppings */}
             <DefaultToppingsSelector
               defaultToppings={defaultToppings}
-              onUpdateTopping={(id, quantity) => {
+              selectedSize={selectedSize?.name || 'Medium'}
+              isGlutenFree={isGlutenFree}
+              onUpdateTopping={(id, quantity, price) => {
                 setDefaultToppings(prev => 
-                  prev.map(t => t.id === id ? { ...t, quantity } : t)
+                  prev.map(t => t.id === id ? { ...t, quantity, price } : t)
                 );
               }}
             />
@@ -249,17 +260,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
               extraToppings={extraToppings}
               defaultToppingIds={defaultToppings.map(t => t.id)}
               selectedSize={selectedSize?.name || 'Medium'}
+              isGlutenFree={isGlutenFree}
               onAddTopping={(topping) => {
                 setExtraToppings(prev => [...prev, topping]);
-              }}
-              onUpdateTopping={(id, quantity) => {
-                if (quantity === 'none') {
-                  setExtraToppings(prev => prev.filter(t => t.id !== id));
-                } else {
-                  setExtraToppings(prev => 
-                    prev.map(t => t.id === id ? { ...t, quantity } : t)
-                  );
-                }
               }}
               onRemoveTopping={(id) => {
                 setExtraToppings(prev => prev.filter(t => t.id !== id));

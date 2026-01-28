@@ -9,7 +9,6 @@ interface SpicyLevelSelectorProps {
 
 const SPICY_LEVELS: { value: SpicyLevel; label: string; flames: number }[] = [
   { value: 'none', label: 'No Spicy', flames: 0 },
-  { value: 'mild', label: 'Mild', flames: 1 },
   { value: 'medium', label: 'Medium', flames: 2 },
   { value: 'hot', label: 'Hot', flames: 3 },
 ];
