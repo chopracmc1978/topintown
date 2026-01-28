@@ -40,6 +40,7 @@ const ToppingsManager = () => {
   const [priceMedium, setPriceMedium] = useState('');
   const [priceLarge, setPriceLarge] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
+  const [isVeg, setIsVeg] = useState(true);
 
   const handleEdit = (topping: Topping) => {
     setEditingTopping(topping);
@@ -48,6 +49,7 @@ const ToppingsManager = () => {
     setPriceMedium((topping.price_medium ?? topping.price).toString());
     setPriceLarge((topping.price_large ?? topping.price).toString());
     setIsAvailable(topping.is_available);
+    setIsVeg(topping.is_veg);
     setDialogOpen(true);
   };
 
@@ -58,6 +60,7 @@ const ToppingsManager = () => {
     setPriceMedium('');
     setPriceLarge('');
     setIsAvailable(true);
+    setIsVeg(true);
     setDialogOpen(true);
   };
 
@@ -77,6 +80,7 @@ const ToppingsManager = () => {
       price_medium: parseFloat(priceMedium) || 0,
       price_large: parseFloat(priceLarge) || 0,
       is_available: isAvailable,
+      is_veg: isVeg,
       sort_order: 0,
     };
 
@@ -116,6 +120,7 @@ const ToppingsManager = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Small</TableHead>
                   <TableHead>Medium</TableHead>
                   <TableHead>Large</TableHead>
@@ -127,6 +132,17 @@ const ToppingsManager = () => {
                 {toppings.map((topping) => (
                   <TableRow key={topping.id}>
                     <TableCell className="font-medium">{topping.name}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          topping.is_veg
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {topping.is_veg ? 'Veg' : 'Non-Veg'}
+                      </span>
+                    </TableCell>
                     <TableCell>${(topping.price_small ?? topping.price).toFixed(2)}</TableCell>
                     <TableCell>${(topping.price_medium ?? topping.price).toFixed(2)}</TableCell>
                     <TableCell>${(topping.price_large ?? topping.price).toFixed(2)}</TableCell>
@@ -239,13 +255,23 @@ const ToppingsManager = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Switch
-                id="toppingAvailable"
-                checked={isAvailable}
-                onCheckedChange={setIsAvailable}
-              />
-              <Label htmlFor="toppingAvailable">Available</Label>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="toppingVeg"
+                  checked={isVeg}
+                  onCheckedChange={setIsVeg}
+                />
+                <Label htmlFor="toppingVeg">Vegetarian</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="toppingAvailable"
+                  checked={isAvailable}
+                  onCheckedChange={setIsAvailable}
+                />
+                <Label htmlFor="toppingAvailable">Available</Label>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

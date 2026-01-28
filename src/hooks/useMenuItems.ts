@@ -20,6 +20,7 @@ export interface Topping {
   price_medium?: number;
   price_large?: number;
   is_available: boolean;
+  is_veg: boolean;
   sort_order: number;
 }
 
