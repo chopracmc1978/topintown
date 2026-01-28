@@ -6,7 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useCheeseOptions, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
 import { useToppings, useSauceOptions } from '@/hooks/useMenuItems';
-import type { PizzaCustomization, SpicyLevel, ToppingQuantity, SelectedSauce, SelectedTopping } from '@/types/pizzaCustomization';
+import type { SideSpicyLevel, ToppingQuantity, SelectedSauce, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
 import SizeSelector from './SizeSelector';
 import CrustSelector from './CrustSelector';
 import SauceSelector from './SauceSelector';
@@ -48,7 +48,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
   const [selectedSauces, setSelectedSauces] = useState<SelectedSauce[]>([]);
   const [selectedCheese, setSelectedCheese] = useState<{ id: string; name: string; quantity: 'regular' | 'extra'; price: number } | null>(null);
   const [selectedFreeToppings, setSelectedFreeToppings] = useState<string[]>([]);
-  const [spicyLevel, setSpicyLevel] = useState<SpicyLevel>('none');
+  const [spicyLevel, setSpicyLevel] = useState<SideSpicyLevel>({ left: 'none', right: 'none' });
   const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>([]);
   const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>([]);
 
@@ -88,6 +88,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
         price: 0,
         isDefault: true,
         isVeg: dt.topping?.is_veg,
+        side: 'whole' as PizzaSide,
       }));
       setDefaultToppings(defaults);
     }
@@ -98,17 +99,17 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     if (!isOpen) return;
     if (!allSauces || defaultSauceIds.length === 0) return;
 
-    const defaultSauces = allSauces
-      .filter((sauce) => defaultSauceIds.includes(sauce.id))
-      .map((sauce) => ({
-        id: sauce.id,
-        name: sauce.name,
+    // Only select the first default sauce (single sauce selection)
+    const firstDefaultSauce = allSauces.find((sauce) => defaultSauceIds.includes(sauce.id));
+    if (firstDefaultSauce) {
+      setSelectedSauces([{
+        id: firstDefaultSauce.id,
+        name: firstDefaultSauce.name,
         quantity: 'regular' as const,
-        price: sauce.price,
+        price: firstDefaultSauce.price,
         isDefault: true,
-      }));
-
-    setSelectedSauces(defaultSauces);
+      }]);
+    }
   }, [isOpen, item.id, allSauces, defaultSauceIds]);
 
   // Available crusts based on selected size
@@ -190,6 +191,20 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     onClose();
   };
 
+  // Handle default topping update
+  const handleDefaultToppingUpdate = (id: string, quantity: ToppingQuantity, side: PizzaSide, price: number) => {
+    setDefaultToppings(prev => 
+      prev.map(t => t.id === id ? { ...t, quantity, side, price } : t)
+    );
+  };
+
+  // Handle extra topping update
+  const handleExtraToppingUpdate = (id: string, quantity: ToppingQuantity, side: PizzaSide, price: number) => {
+    setExtraToppings(prev => 
+      prev.map(t => t.id === id ? { ...t, quantity, side, price } : t)
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] p-0 bg-card">
@@ -257,7 +272,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
             {/* Spicy Level */}
             <SpicyLevelSelector
               spicyLevel={spicyLevel}
-              onSelectSpicyLevel={setSpicyLevel}
+              onUpdateSpicyLevel={setSpicyLevel}
             />
 
             {/* Default Toppings */}
@@ -265,11 +280,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
               defaultToppings={defaultToppings}
               selectedSize={selectedSize?.name || 'Medium'}
               isGlutenFree={isGlutenFree}
-              onUpdateTopping={(id, quantity, price) => {
-                setDefaultToppings(prev => 
-                  prev.map(t => t.id === id ? { ...t, quantity, price } : t)
-                );
-              }}
+              onUpdateTopping={handleDefaultToppingUpdate}
             />
 
             {/* Extra Toppings */}
@@ -285,6 +296,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
               onRemoveTopping={(id) => {
                 setExtraToppings(prev => prev.filter(t => t.id !== id));
               }}
+              onUpdateTopping={handleExtraToppingUpdate}
             />
           </div>
         </ScrollArea>
