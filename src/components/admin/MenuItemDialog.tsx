@@ -30,6 +30,17 @@ import {
   type MenuItem,
   type MenuCategory,
 } from '@/hooks/useMenuItems';
+import { useGlobalSauces } from '@/hooks/useGlobalSauces';
+
+export type PizzaSubcategory = 'vegetarian' | 'paneer' | 'chicken' | 'meat' | 'hawaiian';
+
+export const PIZZA_SUBCATEGORIES: { value: PizzaSubcategory; label: string }[] = [
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'paneer', label: 'Paneer' },
+  { value: 'chicken', label: 'Chicken' },
+  { value: 'meat', label: 'Meat' },
+  { value: 'hawaiian', label: 'Hawaiian' },
+];
 
 interface MenuItemDialogProps {
   open: boolean;
@@ -52,6 +63,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const { addDefaultSauce, removeDefaultSauce } = useManageDefaultSauces();
   const { data: allToppings } = useToppings();
   const { data: allSauces } = useSauceOptions();
+  const { data: globalSauces } = useGlobalSauces();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -65,6 +77,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const [newToppingId, setNewToppingId] = useState('');
   // This is only used as a temporary picker value (selecting a sauce immediately adds it)
   const [newSauceId, setNewSauceId] = useState<string | undefined>(undefined);
+  const [subcategory, setSubcategory] = useState<PizzaSubcategory | ''>('');
 
   useEffect(() => {
     if (item) {
@@ -87,6 +100,8 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
       setSelectedSauces(
         item.default_sauces?.map((s) => s.sauce_option_id) || []
       );
+      // Handle subcategory - cast from string stored in DB
+      setSubcategory((item as any).subcategory || '');
     } else {
       resetForm();
     }
@@ -104,12 +119,13 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setSelectedSauces([]);
     setNewToppingId('');
     setNewSauceId(undefined);
+    setSubcategory('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const data = {
+    const data: any = {
       name: name.trim(),
       description: description.trim() || null,
       base_price: parseFloat(basePrice) || 0,
@@ -118,6 +134,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
       is_available: isAvailable,
       is_popular: isPopular,
       sort_order: 0,
+      subcategory: isPizza && subcategory ? subcategory : null,
     };
 
     try {
@@ -341,6 +358,25 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
               <Label htmlFor="isPopular">Popular</Label>
             </div>
           </div>
+
+          {/* Subcategory Section - Pizza only */}
+          {isPizza && (
+            <div className="space-y-2">
+              <Label htmlFor="subcategory">Pizza Subcategory</Label>
+              <Select value={subcategory} onValueChange={(val) => setSubcategory(val as PizzaSubcategory)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a subcategory" />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  {PIZZA_SUBCATEGORIES.map((sub) => (
+                    <SelectItem key={sub.value} value={sub.value}>
+                      {sub.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Sizes Section */}
           {(isPizza || category === 'drinks') && (
