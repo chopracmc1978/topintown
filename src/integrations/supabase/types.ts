@@ -168,6 +168,7 @@ export type Database = {
           created_at: string
           id: string
           is_available: boolean
+          is_veg: boolean
           name: string
           price: number
           price_large: number
@@ -180,6 +181,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_available?: boolean
+          is_veg?: boolean
           name: string
           price?: number
           price_large?: number
@@ -192,6 +194,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_available?: boolean
+          is_veg?: boolean
           name?: string
           price?: number
           price_large?: number
