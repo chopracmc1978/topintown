@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Phone, User, FileText, Truck, Store } from 'lucide-react';
+import { MapPin, Phone, User, FileText, Truck, Store, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,18 +10,192 @@ import { useCart } from '@/contexts/CartContext';
 import { useOrders } from '@/contexts/OrderContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CartItem } from '@/types/menu';
+import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
+import { useMenuItems } from '@/hooks/useMenuItems';
+
+// Order item card with expandable details
+const OrderItemCard = ({ 
+  item, 
+  onEdit 
+}: { 
+  item: CartItem; 
+  onEdit: (item: CartItem) => void;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const customization = item.pizzaCustomization;
+
+  return (
+    <div className="p-4 bg-secondary/30 rounded-lg space-y-3">
+      <div className="flex items-center gap-4">
+        <img
+          src={item.image}
+          alt={item.name}
+          className="w-16 h-16 object-cover rounded-lg"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-foreground">{item.name}</h4>
+            {customization && (
+              <button
+                onClick={() => onEdit(item)}
+                className="text-primary hover:text-primary/80 transition-colors"
+                title="Edit customization"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {customization 
+              ? `${customization.size.name} • ${customization.crust.name} • Qty: ${item.quantity}`
+              : `${item.selectedSize ? `${item.selectedSize} • ` : ''}Qty: ${item.quantity}`
+            }
+          </p>
+        </div>
+        <span className="font-semibold">${item.totalPrice.toFixed(2)}</span>
+      </div>
+
+      {/* Expandable details for customized pizzas */}
+      {customization && (
+        <>
+          <button 
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+          >
+            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {expanded ? 'Hide details' : 'Show details'}
+          </button>
+
+          {expanded && (
+            <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
+              {/* Cheese */}
+              <div>
+                <span className="font-medium text-muted-foreground">Cheese: </span>
+                <span className="capitalize">{customization.cheeseType.replace('-', ' ')}</span>
+                {customization.cheeseSides.length > 0 && customization.cheeseType !== 'no-cheese' && (
+                  <span className="text-muted-foreground">
+                    {' '}({customization.cheeseSides.map(cs => `${cs.side}: ${cs.quantity}`).join(', ')})
+                  </span>
+                )}
+              </div>
+
+              {/* Sauce */}
+              {customization.sauceName && (
+                <div>
+                  <span className="font-medium text-muted-foreground">Sauce: </span>
+                  <span>{customization.sauceName}</span>
+                  {customization.sauceQuantity === 'extra' && (
+                    <span className="text-primary"> (Extra)</span>
+                  )}
+                </div>
+              )}
+
+              {/* Spicy Level */}
+              {(customization.spicyLevel.left !== 'none' || customization.spicyLevel.right !== 'none') && (
+                <div>
+                  <span className="font-medium text-muted-foreground">Spicy: </span>
+                  {customization.spicyLevel.left === customization.spicyLevel.right ? (
+                    <span className="capitalize">{customization.spicyLevel.left}</span>
+                  ) : (
+                    <span>
+                      L: {customization.spicyLevel.left === 'none' ? 'No Spicy' : customization.spicyLevel.left}, 
+                      R: {customization.spicyLevel.right === 'none' ? 'No Spicy' : customization.spicyLevel.right}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Free Toppings */}
+              {customization.freeToppings.length > 0 && (
+                <div>
+                  <span className="font-medium text-muted-foreground">Free Add-ons: </span>
+                  <span>{customization.freeToppings.join(', ')}</span>
+                </div>
+              )}
+
+              {/* Default Toppings */}
+              {customization.defaultToppings.length > 0 && (
+                <div>
+                  <span className="font-medium text-muted-foreground">Toppings: </span>
+                  <div className="mt-1 space-y-0.5">
+                    {customization.defaultToppings
+                      .filter(t => t.quantity !== 'none')
+                      .map(t => (
+                        <div key={t.id} className="flex justify-between text-muted-foreground">
+                          <span>{t.name}</span>
+                          <span>
+                            {t.quantity !== 'regular' && <span className="capitalize">{t.quantity}</span>}
+                            {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
+                          </span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+
+              {/* Removed Toppings */}
+              {customization.defaultToppings.some(t => t.quantity === 'none') && (
+                <div>
+                  <span className="font-medium text-destructive">Removed: </span>
+                  <span className="text-muted-foreground line-through">
+                    {customization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
+                  </span>
+                </div>
+              )}
+
+              {/* Extra Toppings */}
+              {customization.extraToppings.length > 0 && (
+                <div>
+                  <span className="font-medium text-primary">Extra Toppings: </span>
+                  <div className="mt-1 space-y-0.5">
+                    {customization.extraToppings.map(t => (
+                      <div key={t.id} className="flex justify-between text-muted-foreground">
+                        <span>{t.name}</span>
+                        <span>
+                          +${t.price.toFixed(2)}
+                          {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Note */}
+              {customization.note && (
+                <div className="border-t pt-2 mt-2">
+                  <span className="font-medium text-muted-foreground">Note: </span>
+                  <span className="italic">{customization.note}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, total, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { data: menuItems } = useMenuItems();
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     address: '',
     notes: '',
   });
+
+  // Find the original menu item for editing
+  const originalMenuItem = editingItem?.pizzaCustomization 
+    ? menuItems?.find(m => m.id === editingItem.pizzaCustomization?.originalItemId)
+    : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,25 +339,13 @@ const Checkout = () => {
             <div className="bg-card rounded-xl border border-border p-6">
               <h2 className="font-serif text-xl font-semibold mb-6">Order Summary</h2>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-6">
                 {items.map((item) => (
-                  <div
+                  <OrderItemCard
                     key={`${item.id}-${item.selectedSize}`}
-                    className="flex items-center gap-4"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">{item.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {item.selectedSize && `${item.selectedSize} • `}Qty: {item.quantity}
-                      </p>
-                    </div>
-                    <span className="font-semibold">${item.totalPrice.toFixed(2)}</span>
-                  </div>
+                    item={item}
+                    onEdit={setEditingItem}
+                  />
                 ))}
               </div>
 
@@ -206,6 +368,16 @@ const Checkout = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Edit Modal */}
+      {editingItem && originalMenuItem && (
+        <PizzaCustomizationModal
+          item={originalMenuItem}
+          isOpen={!!editingItem}
+          onClose={() => setEditingItem(null)}
+          editingCartItem={editingItem}
+        />
+      )}
     </div>
   );
 };
