@@ -24,9 +24,7 @@ import {
   useUpdateMenuItem,
   useManageItemSizes,
   useManageDefaultToppings,
-  useManageDefaultSauces,
   useToppings,
-  useSauceOptions,
   type MenuItem,
   type MenuCategory,
 } from '@/hooks/useMenuItems';
@@ -60,9 +58,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const updateItem = useUpdateMenuItem();
   const { addSize, deleteSize } = useManageItemSizes();
   const { addDefaultTopping, removeDefaultTopping } = useManageDefaultToppings();
-  const { addDefaultSauce, removeDefaultSauce } = useManageDefaultSauces();
   const { data: allToppings } = useToppings();
-  const { data: allSauces } = useSauceOptions();
   const { data: globalSauces } = useGlobalSauces();
 
   const [name, setName] = useState('');
@@ -277,7 +273,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     (t) => !selectedToppings.includes(t.id)
   );
 
-  const availableSauces = allSauces?.filter(
+  const availableSauces = globalSauces?.filter(
     (s) => !selectedSauces.includes(s.id)
   );
 
@@ -425,10 +421,10 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Select a sauce" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background">
                     {availableSauces?.map((sauce) => (
                       <SelectItem key={sauce.id} value={sauce.id}>
-                        {sauce.name} (${sauce.price.toFixed(2)})
+                        {sauce.name} {sauce.price > 0 ? `($${sauce.price.toFixed(2)})` : '(Free)'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -439,7 +435,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedSauces.map((sauceId) => {
-                  const sauce = allSauces?.find((s) => s.id === sauceId);
+                  const sauce = globalSauces?.find((s) => s.id === sauceId);
                   return sauce ? (
                     <Badge key={sauceId} variant="secondary" className="gap-1">
                       {sauce.name}
