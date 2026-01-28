@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 
 const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
-  { id: 'sides', name: 'Sides', dbCategory: 'sides' },
+  { id: 'chicken_wings', name: 'Chicken Wings', dbCategory: 'chicken_wings' },
+  { id: 'baked_lasagna', name: 'Baked Lasagna', dbCategory: 'baked_lasagna' },
   { id: 'drinks', name: 'Drinks', dbCategory: 'drinks' },
   { id: 'dipping_sauce', name: 'Dipping Sauces', dbCategory: 'dipping_sauce' },
 ];

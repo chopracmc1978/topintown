@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type MenuCategory = 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce';
+export type MenuCategory = 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce' | 'chicken_wings' | 'baked_lasagna';
 
 export interface MenuItemSize {
   id: string;
