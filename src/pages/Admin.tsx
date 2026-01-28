@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Cherry, GlassWater, Cake, Droplet, Layers } from 'lucide-react';
+import { LogOut, Pizza, Cherry, GlassWater, Cake, Droplet, Layers, Users } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
+import UsersManager from '@/components/admin/UsersManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -87,7 +88,7 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-6 w-full max-w-3xl">
+            <TabsList className="grid grid-cols-7 w-full max-w-4xl">
               {(Object.keys(categoryLabels) as MenuCategory[]).map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
@@ -97,6 +98,10 @@ const Admin = () => {
               <TabsTrigger value="toppings" className="gap-2">
                 <Layers className="w-4 h-4" />
                 <span className="hidden sm:inline">Toppings</span>
+              </TabsTrigger>
+              <TabsTrigger value="users" className="gap-2">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Users</span>
               </TabsTrigger>
             </TabsList>
 
@@ -108,6 +113,10 @@ const Admin = () => {
 
             <TabsContent value="toppings">
               <ToppingsManager />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UsersManager />
             </TabsContent>
           </Tabs>
         )}
