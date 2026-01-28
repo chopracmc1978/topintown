@@ -22,6 +22,9 @@ const getCheesePrice = (
     return 0;
   }
 
+  // Guard against undefined size
+  if (!size) return 2;
+
   // Dairy Free or Extra cheese pricing based on size/crust
   const isSmall = size.includes('Small');
   const isMedium = size.includes('Medium');
