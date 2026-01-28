@@ -15,6 +15,8 @@ interface ExtraToppingsSelectorProps {
 
 // Get topping price based on size/crust - flat pricing, no regular/extra distinction
 const getToppingPrice = (size: string, isGlutenFree: boolean): number => {
+  if (!size) return 2;
+  
   const isSmall = size.includes('Small');
   const isMedium = size.includes('Medium');
   const isLarge = size.includes('Large');
