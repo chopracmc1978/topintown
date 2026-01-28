@@ -9,7 +9,6 @@ const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] 
   { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
   { id: 'sides', name: 'Sides', dbCategory: 'sides' },
   { id: 'drinks', name: 'Drinks', dbCategory: 'drinks' },
-  { id: 'desserts', name: 'Desserts', dbCategory: 'desserts' },
   { id: 'dipping_sauce', name: 'Dipping Sauces', dbCategory: 'dipping_sauce' },
 ];
 
