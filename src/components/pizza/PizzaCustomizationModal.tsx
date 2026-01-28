@@ -93,6 +93,24 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose }: PizzaCustomizationMo
     }
   }, [item.default_toppings, defaultToppings.length]);
 
+  // Initialize default sauces - pre-select them when modal opens
+  useEffect(() => {
+    if (allSauces && defaultSauceIds.length > 0 && selectedSauces.length === 0) {
+      const defaultSauces = allSauces
+        .filter(sauce => defaultSauceIds.includes(sauce.id))
+        .map(sauce => ({
+          id: sauce.id,
+          name: sauce.name,
+          quantity: 'regular' as const,
+          price: sauce.price,
+          isDefault: true,
+        }));
+      if (defaultSauces.length > 0) {
+        setSelectedSauces(defaultSauces);
+      }
+    }
+  }, [allSauces, defaultSauceIds, selectedSauces.length]);
+
   // Available crusts based on selected size
   const availableCrusts = useMemo(() => {
     if (!selectedSize || !sizeCrustAvailability) return [];
