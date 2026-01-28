@@ -33,7 +33,7 @@ const Navbar = () => {
               <Pizza className="w-6 h-6 text-primary-foreground" />
             </div>
             <span className="font-serif text-xl font-bold text-foreground">
-              Top In Town Pizza    
+              Bella Pizza    
             </span>
           </Link>
 
