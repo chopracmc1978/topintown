@@ -78,6 +78,34 @@ Deno.serve(async (req) => {
       return json(400, { error: 'Invalid username/email or password' })
     }
 
+    // Best-effort: ensure a profiles row exists so future username logins can resolve username -> email.
+    // (Do not fail login if this step fails.)
+    try {
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+
+      const metadataUsername = (data.user?.user_metadata as any)?.username
+      const normalizedMetadataUsername = typeof metadataUsername === 'string'
+        ? metadataUsername.trim().toLowerCase()
+        : null
+
+      const usernameToStore = identifier.includes('@') ? normalizedMetadataUsername : identifier
+
+      await adminClient
+        .from('profiles')
+        .upsert(
+          {
+            user_id: data.user.id,
+            email,
+            username: usernameToStore,
+          },
+          { onConflict: 'user_id' }
+        )
+    } catch (profileUpsertError) {
+      console.error('username-login: profile upsert failed', profileUpsertError)
+    }
+
     return json(200, { session: data.session, user: data.user })
   } catch (err) {
     console.error('username-login error:', err)
