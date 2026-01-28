@@ -125,6 +125,42 @@ export type Database = {
         }
         Relationships: []
       }
+      item_default_global_sauces: {
+        Row: {
+          created_at: string
+          global_sauce_id: string
+          id: string
+          menu_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          global_sauce_id: string
+          id?: string
+          menu_item_id: string
+        }
+        Update: {
+          created_at?: string
+          global_sauce_id?: string
+          id?: string
+          menu_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_default_global_sauces_global_sauce_id_fkey"
+            columns: ["global_sauce_id"]
+            isOneToOne: false
+            referencedRelation: "global_sauces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_default_global_sauces_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_default_sauces: {
         Row: {
           created_at: string
