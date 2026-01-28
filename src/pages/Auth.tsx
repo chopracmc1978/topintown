@@ -8,17 +8,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
-const authSchema = z.object({
+const loginSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+const signupSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -40,13 +47,18 @@ const Auth = () => {
 
   const validateForm = () => {
     try {
-      authSchema.parse({ email, password });
+      if (isLogin) {
+        loginSchema.parse({ username, password });
+      } else {
+        signupSchema.parse({ username, email, password });
+      }
       setErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const fieldErrors: { email?: string; password?: string } = {};
+        const fieldErrors: { username?: string; email?: string; password?: string } = {};
         error.errors.forEach((err) => {
+          if (err.path[0] === 'username') fieldErrors.username = err.message;
           if (err.path[0] === 'email') fieldErrors.email = err.message;
           if (err.path[0] === 'password') fieldErrors.password = err.message;
         });
@@ -65,25 +77,61 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        // First, look up the email by username
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', username.trim().toLowerCase())
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        
+        if (!profile) {
+          throw new Error('Username not found. Please check your username or sign up.');
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
+          email: profile.email,
           password,
         });
         if (error) throw error;
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
       } else {
         const redirectUrl = `${window.location.origin}/admin`;
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { emailRedirectTo: redirectUrl },
+          options: { 
+            emailRedirectTo: redirectUrl,
+            data: {
+              username: username.trim().toLowerCase(),
+            }
+          },
         });
-        if (error) throw error;
+        if (signUpError) throw signUpError;
+
+        // Update the profile with the username
+        if (signUpData.user) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ username: username.trim().toLowerCase() })
+            .eq('user_id', signUpData.user.id);
+
+          if (updateError) {
+            // If username already exists, show friendly error
+            if (updateError.code === '23505') {
+              throw new Error('This username is already taken. Please choose another.');
+            }
+            throw updateError;
+          }
+        }
+
         toast({
           title: 'Account created!',
-          description: 'You can now log in with your credentials.',
+          description: 'You can now log in with your username.',
         });
         setIsLogin(true);
+        setPassword('');
       }
     } catch (error: any) {
       let message = error.message;
@@ -109,26 +157,42 @@ const Auth = () => {
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? 'Sign in to manage your restaurant menu'
+              ? 'Sign in with your username to manage the restaurant'
               : 'Create an admin account to get started'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="admin@restaurant.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="johndoe"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
+              {errors.username && (
+                <p className="text-sm text-destructive">{errors.username}</p>
               )}
             </div>
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@restaurant.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -150,7 +214,10 @@ const Auth = () => {
           <div className="mt-4 text-center">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setErrors({});
+              }}
               className="text-sm text-primary hover:underline"
             >
               {isLogin
