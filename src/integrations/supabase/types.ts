@@ -98,6 +98,42 @@ export type Database = {
         }
         Relationships: []
       }
+      item_default_sauces: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          sauce_option_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          sauce_option_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          sauce_option_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_default_sauces_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_default_sauces_sauce_option_id_fkey"
+            columns: ["sauce_option_id"]
+            isOneToOne: false
+            referencedRelation: "sauce_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_default_toppings: {
         Row: {
           created_at: string

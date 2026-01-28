@@ -33,17 +33,6 @@ export interface FreeTopping {
   sort_order: number;
 }
 
-export interface SauceOption {
-  id: string;
-  sauce_group_id: string;
-  name: string;
-  is_free: boolean;
-  price: number;
-  has_spicy_option: boolean;
-  is_available: boolean;
-  sort_order: number;
-}
-
 export const useCrustOptions = () => {
   return useQuery({
     queryKey: ['crust_options'],
@@ -106,20 +95,6 @@ export const useFreeToppings = () => {
   });
 };
 
-export const useAllSauces = () => {
-  return useQuery({
-    queryKey: ['all_sauces'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('sauce_options')
-        .select('*')
-        .order('sort_order', { ascending: true });
-
-      if (error) throw error;
-      return data as SauceOption[];
-    },
-  });
-};
 
 // Get available crusts for a specific size
 export const getCrustsForSize = (

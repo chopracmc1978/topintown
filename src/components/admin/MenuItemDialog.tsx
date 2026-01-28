@@ -24,7 +24,9 @@ import {
   useUpdateMenuItem,
   useManageItemSizes,
   useManageDefaultToppings,
+  useManageDefaultSauces,
   useToppings,
+  useSauceOptions,
   type MenuItem,
   type MenuCategory,
 } from '@/hooks/useMenuItems';
@@ -47,7 +49,9 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const updateItem = useUpdateMenuItem();
   const { addSize, deleteSize } = useManageItemSizes();
   const { addDefaultTopping, removeDefaultTopping } = useManageDefaultToppings();
+  const { addDefaultSauce, removeDefaultSauce } = useManageDefaultSauces();
   const { data: allToppings } = useToppings();
+  const { data: allSauces } = useSauceOptions();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -57,7 +61,9 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const [isPopular, setIsPopular] = useState(false);
   const [sizes, setSizes] = useState<SizeInput[]>([]);
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
   const [newToppingId, setNewToppingId] = useState('');
+  const [newSauceId, setNewSauceId] = useState('');
 
   useEffect(() => {
     if (item) {
@@ -77,6 +83,9 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
       setSelectedToppings(
         item.default_toppings?.map((t) => t.topping_id) || []
       );
+      setSelectedSauces(
+        item.default_sauces?.map((s) => s.sauce_option_id) || []
+      );
     } else {
       resetForm();
     }
@@ -91,7 +100,9 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setIsPopular(false);
     setSizes([]);
     setSelectedToppings([]);
+    setSelectedSauces([]);
     setNewToppingId('');
+    setNewSauceId('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,6 +164,25 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
             });
           }
         }
+
+        // Handle sauces
+        const existingSauceIds = item.default_sauces?.map((s) => s.sauce_option_id) || [];
+        
+        for (const sauceId of existingSauceIds) {
+          if (!selectedSauces.includes(sauceId)) {
+            const ds = item.default_sauces?.find((s) => s.sauce_option_id === sauceId);
+            if (ds) await removeDefaultSauce.mutateAsync(ds.id);
+          }
+        }
+
+        for (const sauceId of selectedSauces) {
+          if (!existingSauceIds.includes(sauceId)) {
+            await addDefaultSauce.mutateAsync({
+              menu_item_id: item.id,
+              sauce_option_id: sauceId,
+            });
+          }
+        }
       } else {
         const newItem = await createItem.mutateAsync(data);
 
@@ -171,6 +201,14 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
           await addDefaultTopping.mutateAsync({
             menu_item_id: newItem.id,
             topping_id: toppingId,
+          });
+        }
+
+        // Add sauces for new item
+        for (const sauceId of selectedSauces) {
+          await addDefaultSauce.mutateAsync({
+            menu_item_id: newItem.id,
+            sauce_option_id: sauceId,
           });
         }
       }
@@ -206,9 +244,26 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setSelectedToppings(selectedToppings.filter((id) => id !== toppingId));
   };
 
+  const addSauce = () => {
+    if (newSauceId && !selectedSauces.includes(newSauceId)) {
+      setSelectedSauces([...selectedSauces, newSauceId]);
+      setNewSauceId('');
+    }
+  };
+
+  const removeSauce = (sauceId: string) => {
+    setSelectedSauces(selectedSauces.filter((id) => id !== sauceId));
+  };
+
   const availableToppings = allToppings?.filter(
     (t) => !selectedToppings.includes(t.id)
   );
+
+  const availableSauces = allSauces?.filter(
+    (s) => !selectedSauces.includes(s.id)
+  );
+
+  const isPizza = category === 'pizza';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -287,7 +342,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
           </div>
 
           {/* Sizes Section */}
-          {(category === 'pizza' || category === 'drinks') && (
+          {(isPizza || category === 'drinks') && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Sizes</Label>
@@ -321,6 +376,52 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
                   </Button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Default Sauces Section - Pizza only */}
+          {isPizza && (
+            <div className="space-y-3">
+              <Label>Default Sauces (Free for this pizza)</Label>
+              <div className="flex gap-2">
+                <Select value={newSauceId} onValueChange={setNewSauceId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select a sauce" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSauces?.map((sauce) => (
+                      <SelectItem key={sauce.id} value={sauce.id}>
+                        {sauce.name} (${sauce.price.toFixed(2)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" onClick={addSauce} disabled={!newSauceId}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedSauces.map((sauceId) => {
+                  const sauce = allSauces?.find((s) => s.id === sauceId);
+                  return sauce ? (
+                    <Badge key={sauceId} variant="secondary" className="gap-1">
+                      {sauce.name}
+                      <button
+                        type="button"
+                        onClick={() => removeSauce(sauceId)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+              {selectedSauces.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No default sauces selected. Customer will be charged for any sauce they add.
+                </p>
+              )}
             </div>
           )}
 

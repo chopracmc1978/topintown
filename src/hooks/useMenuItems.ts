@@ -32,6 +32,24 @@ export interface ItemDefaultTopping {
   topping?: Topping;
 }
 
+export interface SauceOption {
+  id: string;
+  sauce_group_id: string;
+  name: string;
+  is_free: boolean;
+  price: number;
+  has_spicy_option: boolean;
+  is_available: boolean;
+  sort_order: number;
+}
+
+export interface ItemDefaultSauce {
+  id: string;
+  menu_item_id: string;
+  sauce_option_id: string;
+  sauce_option?: SauceOption;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -46,6 +64,7 @@ export interface MenuItem {
   updated_at: string;
   sizes?: MenuItemSize[];
   default_toppings?: ItemDefaultTopping[];
+  default_sauces?: ItemDefaultSauce[];
 }
 
 export const useMenuItems = (category?: MenuCategory) => {
@@ -57,7 +76,8 @@ export const useMenuItems = (category?: MenuCategory) => {
         .select(`
           *,
           sizes:item_sizes(*),
-          default_toppings:item_default_toppings(*, topping:toppings(*))
+          default_toppings:item_default_toppings(*, topping:toppings(*)),
+          default_sauces:item_default_sauces(*, sauce_option:sauce_options(*))
         `)
         .order('sort_order', { ascending: true });
 
@@ -68,6 +88,21 @@ export const useMenuItems = (category?: MenuCategory) => {
       const { data, error } = await query;
       if (error) throw error;
       return data as MenuItem[];
+    },
+  });
+};
+
+export const useSauceOptions = () => {
+  return useQuery({
+    queryKey: ['sauce_options'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sauce_options')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      return data as SauceOption[];
     },
   });
 };
@@ -323,4 +358,43 @@ export const useManageDefaultToppings = () => {
   });
 
   return { addDefaultTopping, removeDefaultTopping };
+};
+
+export const useManageDefaultSauces = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const addDefaultSauce = useMutation({
+    mutationFn: async (data: { menu_item_id: string; sauce_option_id: string }) => {
+      const { data: result, error } = await supabase
+        .from('item_default_sauces')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu_items'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const removeDefaultSauce = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('item_default_sauces').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu_items'] });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { addDefaultSauce, removeDefaultSauce };
 };
