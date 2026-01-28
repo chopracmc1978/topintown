@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Trash2, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,8 @@ import {
   type MenuCategory,
 } from '@/hooks/useMenuItems';
 import { useGlobalSauces, useManageDefaultGlobalSauces } from '@/hooks/useGlobalSauces';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export type PizzaSubcategory = 'vegetarian' | 'paneer' | 'chicken' | 'meat' | 'hawaiian';
 
@@ -61,6 +63,8 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   const { data: allToppings } = useToppings();
   const { data: globalSauces } = useGlobalSauces();
   const { addDefaultGlobalSauce, removeDefaultGlobalSauce } = useManageDefaultGlobalSauces();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -75,6 +79,7 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
   // This is only used as a temporary picker value (selecting a sauce immediately adds it)
   const [newSauceId, setNewSauceId] = useState<string | undefined>(undefined);
   const [subcategory, setSubcategory] = useState<PizzaSubcategory | ''>('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -118,6 +123,67 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
     setNewToppingId('');
     setNewSauceId(undefined);
     setSubcategory('');
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Error', description: 'Image must be less than 5MB', variant: 'destructive' });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `menu-items/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('menu-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('menu-images')
+        .getPublicUrl(filePath);
+
+      setImageUrl(publicUrl);
+      toast({ title: 'Success', description: 'Image uploaded successfully' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to upload image', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!imageUrl) return;
+
+    // Try to delete from storage if it's our bucket URL
+    if (imageUrl.includes('menu-images')) {
+      try {
+        const path = imageUrl.split('/menu-images/')[1];
+        if (path) {
+          await supabase.storage.from('menu-images').remove([path]);
+        }
+      } catch (error) {
+        // Ignore deletion errors - file might not exist
+      }
+    }
+
+    setImageUrl('');
+    toast({ title: 'Image removed' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -328,14 +394,63 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
             />
           </div>
 
+          {/* Image Upload Section */}
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+            <Label>Item Image</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
             />
+            
+            {imageUrl ? (
+              <div className="relative inline-block">
+                <img 
+                  src={imageUrl} 
+                  alt="Preview" 
+                  className="w-32 h-32 object-cover rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 w-6 h-6"
+                  onClick={handleRemoveImage}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-32 h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+              >
+                {uploading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                ) : (
+                  <>
+                    <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground">Click to upload</span>
+                  </>
+                )}
+              </div>
+            )}
+            
+            {!imageUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="mt-2"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Image'}
+              </Button>
+            )}
           </div>
 
           <div className="flex gap-6">
