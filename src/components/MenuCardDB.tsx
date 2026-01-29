@@ -50,7 +50,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   return (
     <>
       <Card className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card">
-        <div className="relative aspect-square overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={item.image_url || '/placeholder.svg'}
             alt={item.name}
@@ -66,7 +66,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
           <div className="flex items-start justify-between">
             <div>
               <h3 className="font-serif text-lg font-semibold text-foreground">{item.name}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
             </div>
           </div>
 
