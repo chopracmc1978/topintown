@@ -11,13 +11,20 @@ interface SauceSelectorProps {
 }
 
 const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces }: SauceSelectorProps) => {
+  // Track if "No Sauce" is selected (empty array with explicit selection)
+  const isNoSauceSelected = selectedSauces.length === 0;
+
+  const selectNoSauce = () => {
+    onUpdateSauces([]);
+  };
+
   // Only one sauce can be selected at a time
   const selectSauce = (sauce: SauceOption) => {
     const isDefault = defaultSauceIds.includes(sauce.id);
     const isCurrentlySelected = selectedSauces.some(s => s.id === sauce.id);
 
     if (isCurrentlySelected) {
-      // Clicking the same sauce deselects it
+      // Clicking the same sauce deselects it - select no sauce
       onUpdateSauces([]);
     } else {
       // Replace with single sauce
@@ -48,6 +55,30 @@ const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces
         </span>
       </h3>
       <div className="space-y-2">
+        {/* No Sauce Option */}
+        <div
+          className={cn(
+            "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
+            isNoSauceSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+          )}
+          onClick={selectNoSauce}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                isNoSauceSelected
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-muted-foreground"
+              )}
+            >
+              {isNoSauceSelected && <Check className="w-3 h-3" />}
+            </div>
+            <span className="font-medium">No Sauce</span>
+          </div>
+        </div>
+
+        {/* Sauce Options */}
         {sauces.map((sauce) => {
           const isSelected = selectedSauce?.id === sauce.id;
           const isDefault = defaultSauceIds.includes(sauce.id);
