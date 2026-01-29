@@ -65,6 +65,8 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
   const [sauceQuantity, setSauceQuantity] = useState<'normal' | 'extra'>(
     editCustomization?.sauceQuantity || 'normal'
   );
+  // Prevent default sauce auto-selection from overriding an explicit user choice (e.g. "No Sauce")
+  const [hasTouchedSauce, setHasTouchedSauce] = useState(false);
   const [selectedFreeToppings, setSelectedFreeToppings] = useState<string[]>(
     editCustomization?.freeToppings || []
   );
@@ -113,10 +115,18 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
     // In edit mode we keep the user's previous choice (including "No Sauce").
     if (editingCartItem) return;
     if (!isOpen || !allSauces || defaultSauceIds.length === 0) return;
+    // Once the user interacts with the sauce section, don't auto-apply defaults again.
+    if (hasTouchedSauce) return;
     if (selectedSauceId !== null) return;
     const sauce = allSauces.find(s => defaultSauceIds.includes(s.id));
     if (sauce) setSelectedSauceId(sauce.id);
-  }, [isOpen, item.id, allSauces, defaultSauceIds, editingCartItem, selectedSauceId]);
+  }, [isOpen, item.id, allSauces, defaultSauceIds, editingCartItem, selectedSauceId, hasTouchedSauce]);
+
+  // Reset "touched" state each time the modal opens (so defaults can apply for a fresh customization)
+  useEffect(() => {
+    if (!isOpen) return;
+    setHasTouchedSauce(false);
+  }, [isOpen, item.id, editingCartItem?.id]);
 
   // Update crust when size changes
   const availableCrusts = useMemo(() => {
@@ -456,6 +466,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                       name="sauce"
                       checked={selectedSauceId === null}
                       onChange={() => {
+                          setHasTouchedSauce(true);
                         setSelectedSauceId(null);
                         setSauceQuantity('normal');
                       }}
@@ -475,7 +486,10 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                           type="radio"
                           name="sauce"
                           checked={isSelected}
-                          onChange={() => setSelectedSauceId(sauce.id)}
+                          onChange={() => {
+                            setHasTouchedSauce(true);
+                            setSelectedSauceId(sauce.id);
+                          }}
                           className="w-4 h-4 text-primary"
                         />
                         <span>{sauce.name}{!isDefault && '*'}</span>
