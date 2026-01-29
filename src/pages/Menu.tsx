@@ -29,10 +29,10 @@ const Menu = () => {
   
   const { data: menuItems, isLoading } = useMenuItems(selectedCategory);
 
-  // Filter pizzas by sub-category based on name matching
+  // Filter pizzas by sub-category field
   const filteredItems = activePizzaSubCategory && activeCategory === 'pizza'
     ? menuItems?.filter(item => 
-        item.name.toLowerCase().includes(activePizzaSubCategory.toLowerCase())
+        item.subcategory?.toLowerCase() === activePizzaSubCategory.toLowerCase()
       )
     : menuItems;
 
