@@ -28,16 +28,16 @@ export interface CartPizzaCustomization {
   originalItemId: string; // Original menu item ID for re-editing
 }
 
+export interface CartWingsCustomization {
+  flavor: string;
+}
+
 export interface CartItem extends MenuItem {
   quantity: number;
   selectedSize?: string;
   totalPrice: number;
   pizzaCustomization?: CartPizzaCustomization;
   wingsCustomization?: CartWingsCustomization;
-}
-
-export interface CartWingsCustomization {
-  flavor: string;
 }
 
 export interface Order {
