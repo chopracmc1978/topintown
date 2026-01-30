@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CartItem, MenuItem, CartPizzaCustomization } from '@/types/menu';
+import { CartItem, MenuItem, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
 
 interface CartContextType {
   items: CartItem[];
   addToCart: (item: MenuItem, size?: string) => void;
   addCustomizedPizza: (item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
   updateCustomizedPizza: (cartItemId: string, item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
+  addWingsToCart: (item: MenuItem, flavor: string) => void;
   removeFromCart: (itemId: string, size?: string) => void;
   updateQuantity: (itemId: string, quantity: number, size?: string) => void;
   clearCart: () => void;
@@ -82,6 +83,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     ));
   };
 
+  const addWingsToCart = (item: MenuItem, flavor: string) => {
+    const cartItemId = `${item.id}-${flavor}-${Date.now()}`;
+    setItems((prev) => [
+      ...prev,
+      {
+        id: cartItemId,
+        name: item.name,
+        description: `Flavor: ${flavor}`,
+        price: item.price,
+        image: item.image,
+        category: item.category,
+        popular: item.popular,
+        quantity: 1,
+        totalPrice: item.price,
+        wingsCustomization: { flavor },
+      },
+    ]);
+  };
+
   const removeFromCart = (itemId: string, size?: string) => {
     setItems((prev) => prev.filter((i) => !(i.id === itemId && i.selectedSize === size)));
   };
@@ -112,7 +132,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, removeFromCart, updateQuantity, clearCart, total, itemCount }}
+      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, addWingsToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
     >
       {children}
     </CartContext.Provider>

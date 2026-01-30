@@ -6,7 +6,7 @@ export interface MenuItem {
   description: string;
   price: number;
   image: string;
-  category: 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce';
+  category: 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce' | 'chicken_wings' | 'baked_lasagna';
   sizes?: { name: string; price: number }[];
   popular?: boolean;
 }
@@ -33,6 +33,11 @@ export interface CartItem extends MenuItem {
   selectedSize?: string;
   totalPrice: number;
   pizzaCustomization?: CartPizzaCustomization;
+  wingsCustomization?: CartWingsCustomization;
+}
+
+export interface CartWingsCustomization {
+  flavor: string;
 }
 
 export interface Order {
