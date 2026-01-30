@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
+import type { CartItem } from '@/types/menu';
 
 interface WingsCustomizationModalProps {
   item: MenuItem;
   isOpen: boolean;
   onClose: () => void;
+  editingCartItem?: CartItem | null;
 }
 
 const FLAVOR_OPTIONS = [
@@ -20,9 +22,22 @@ const FLAVOR_OPTIONS = [
   { id: 'plain', name: 'Plain' },
 ];
 
-const WingsCustomizationModal = ({ item, isOpen, onClose }: WingsCustomizationModalProps) => {
+const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: WingsCustomizationModalProps) => {
   const [selectedFlavor, setSelectedFlavor] = useState<string>('plain');
-  const { addWingsToCart } = useCart();
+  const { addWingsToCart, updateWingsInCart } = useCart();
+  const isEditing = !!editingCartItem;
+
+  // Initialize flavor from editing item
+  useEffect(() => {
+    if (isOpen && editingCartItem?.wingsCustomization) {
+      const existingFlavor = FLAVOR_OPTIONS.find(
+        f => f.name === editingCartItem.wingsCustomization?.flavor
+      );
+      setSelectedFlavor(existingFlavor?.id || 'plain');
+    } else if (isOpen) {
+      setSelectedFlavor('plain');
+    }
+  }, [isOpen, editingCartItem]);
 
   const handleAddToCart = () => {
     const flavorName = FLAVOR_OPTIONS.find(f => f.id === selectedFlavor)?.name || 'Plain';
@@ -38,16 +53,23 @@ const WingsCustomizationModal = ({ item, isOpen, onClose }: WingsCustomizationMo
       popular: item.is_popular,
     };
     
-    addWingsToCart(cartItem, flavorName);
+    if (isEditing && editingCartItem) {
+      updateWingsInCart(editingCartItem.id, cartItem, flavorName);
+    } else {
+      addWingsToCart(cartItem, flavorName);
+    }
+    
     onClose();
-    setSelectedFlavor('plain'); // Reset for next time
+    setSelectedFlavor('plain');
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl">{item.name}</DialogTitle>
+          <DialogTitle className="font-serif text-xl">
+            {isEditing ? `Edit ${item.name}` : item.name}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -60,8 +82,8 @@ const WingsCustomizationModal = ({ item, isOpen, onClose }: WingsCustomizationMo
             <RadioGroup value={selectedFlavor} onValueChange={setSelectedFlavor}>
               {FLAVOR_OPTIONS.map((flavor) => (
                 <div key={flavor.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value={flavor.id} id={flavor.id} />
-                  <Label htmlFor={flavor.id} className="flex-1 cursor-pointer text-sm">
+                  <RadioGroupItem value={flavor.id} id={`${flavor.id}-${item.id}`} />
+                  <Label htmlFor={`${flavor.id}-${item.id}`} className="flex-1 cursor-pointer text-sm">
                     {flavor.name}
                   </Label>
                 </div>
@@ -80,7 +102,7 @@ const WingsCustomizationModal = ({ item, isOpen, onClose }: WingsCustomizationMo
                 Cancel
               </Button>
               <Button variant="pizza" onClick={handleAddToCart}>
-                Add to Cart
+                {isEditing ? 'Update' : 'Add to Cart'}
               </Button>
             </div>
           </div>

@@ -30,6 +30,7 @@ export interface CartPizzaCustomization {
 
 export interface CartWingsCustomization {
   flavor: string;
+  originalItemId: string;
 }
 
 export interface CartItem extends MenuItem {
