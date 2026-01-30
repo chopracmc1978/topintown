@@ -7,6 +7,7 @@ interface CartContextType {
   addCustomizedPizza: (item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
   updateCustomizedPizza: (cartItemId: string, item: MenuItem, customization: CartPizzaCustomization, totalPrice: number) => void;
   addWingsToCart: (item: MenuItem, flavor: string) => void;
+  updateWingsInCart: (cartItemId: string, item: MenuItem, flavor: string) => void;
   removeFromCart: (itemId: string, size?: string) => void;
   updateQuantity: (itemId: string, quantity: number, size?: string) => void;
   clearCart: () => void;
@@ -97,9 +98,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         popular: item.popular,
         quantity: 1,
         totalPrice: item.price,
-        wingsCustomization: { flavor },
+        wingsCustomization: { flavor, originalItemId: item.id },
       },
     ]);
+  };
+
+  const updateWingsInCart = (cartItemId: string, item: MenuItem, flavor: string) => {
+    setItems((prev) => prev.map((i) => 
+      i.id === cartItemId 
+        ? {
+            ...i,
+            name: item.name,
+            description: `Flavor: ${flavor}`,
+            wingsCustomization: { flavor, originalItemId: item.id },
+          }
+        : i
+    ));
   };
 
   const removeFromCart = (itemId: string, size?: string) => {
@@ -132,7 +146,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, addWingsToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
+      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, addWingsToCart, updateWingsInCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
     >
       {children}
     </CartContext.Provider>

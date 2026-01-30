@@ -5,17 +5,21 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { CartItem } from '@/types/menu';
 import PizzaCustomizationModal from './pizza/PizzaCustomizationModal';
+import WingsCustomizationModal from './wings/WingsCustomizationModal';
 import { useMenuItems } from '@/hooks/useMenuItems';
 
 interface CartItemCardProps {
   item: CartItem;
-  onEdit: (item: CartItem) => void;
+  onEditPizza: (item: CartItem) => void;
+  onEditWings: (item: CartItem) => void;
 }
 
-const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
+const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => {
   const { updateQuantity, removeFromCart } = useCart();
   const [expanded, setExpanded] = useState(false);
-  const customization = item.pizzaCustomization;
+  const pizzaCustomization = item.pizzaCustomization;
+  const wingsCustomization = item.wingsCustomization;
+  const hasCustomization = pizzaCustomization || wingsCustomization;
 
   return (
     <div className="p-4 bg-secondary/50 rounded-lg space-y-3">
@@ -27,9 +31,13 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
         />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-foreground truncate">{item.name}</h4>
-          {customization ? (
+          {pizzaCustomization ? (
             <p className="text-sm text-muted-foreground">
-              {customization.size.name} • {customization.crust.name}
+              {pizzaCustomization.size.name} • {pizzaCustomization.crust.name}
+            </p>
+          ) : wingsCustomization ? (
+            <p className="text-sm text-muted-foreground">
+              Flavor: {wingsCustomization.flavor}
             </p>
           ) : item.selectedSize && (
             <p className="text-sm text-muted-foreground">{item.selectedSize}</p>
@@ -51,11 +59,20 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
               </button>
             </div>
             <div className="flex items-center gap-2">
-              {customization && (
+              {pizzaCustomization && (
                 <button
-                  onClick={() => onEdit(item)}
+                  onClick={() => onEditPizza(item)}
                   className="text-primary hover:text-primary/80 transition-colors"
                   title="Edit customization"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+              {wingsCustomization && (
+                <button
+                  onClick={() => onEditWings(item)}
+                  className="text-primary hover:text-primary/80 transition-colors"
+                  title="Edit flavor"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -72,8 +89,8 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
         </div>
       </div>
 
-      {/* Expandable details for customized pizzas */}
-      {customization && (
+      {/* Expandable details for customized items */}
+      {hasCustomization && (
         <>
           <button 
             onClick={() => setExpanded(!expanded)}
@@ -83,59 +100,59 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
             {expanded ? 'Hide details' : 'Show details'}
           </button>
 
-          {expanded && (
+          {expanded && pizzaCustomization && (
             <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
               {/* Cheese */}
               <div>
                 <span className="font-medium text-muted-foreground">Cheese: </span>
-                <span className="capitalize">{customization.cheeseType.replace('-', ' ')}</span>
-                {customization.cheeseSides.length > 0 && customization.cheeseType !== 'no-cheese' && (
+                <span className="capitalize">{pizzaCustomization.cheeseType.replace('-', ' ')}</span>
+                {pizzaCustomization.cheeseSides.length > 0 && pizzaCustomization.cheeseType !== 'no-cheese' && (
                   <span className="text-muted-foreground">
-                    {' '}({customization.cheeseSides.map(cs => `${cs.side}: ${cs.quantity}`).join(', ')})
+                    {' '}({pizzaCustomization.cheeseSides.map(cs => `${cs.side}: ${cs.quantity}`).join(', ')})
                   </span>
                 )}
               </div>
 
               {/* Sauce */}
-              {customization.sauceName && (
+              {pizzaCustomization.sauceName && (
                 <div>
                   <span className="font-medium text-muted-foreground">Sauce: </span>
-                  <span>{customization.sauceName}</span>
-                  {customization.sauceQuantity === 'extra' && (
+                  <span>{pizzaCustomization.sauceName}</span>
+                  {pizzaCustomization.sauceQuantity === 'extra' && (
                     <span className="text-primary"> (Extra)</span>
                   )}
                 </div>
               )}
 
               {/* Spicy Level */}
-              {(customization.spicyLevel.left !== 'none' || customization.spicyLevel.right !== 'none') && (
+              {(pizzaCustomization.spicyLevel.left !== 'none' || pizzaCustomization.spicyLevel.right !== 'none') && (
                 <div>
                   <span className="font-medium text-muted-foreground">Spicy: </span>
-                  {customization.spicyLevel.left === customization.spicyLevel.right ? (
-                    <span className="capitalize">{customization.spicyLevel.left}</span>
+                  {pizzaCustomization.spicyLevel.left === pizzaCustomization.spicyLevel.right ? (
+                    <span className="capitalize">{pizzaCustomization.spicyLevel.left}</span>
                   ) : (
                     <span>
-                      L: {customization.spicyLevel.left === 'none' ? 'No Spicy' : customization.spicyLevel.left}, 
-                      R: {customization.spicyLevel.right === 'none' ? 'No Spicy' : customization.spicyLevel.right}
+                      L: {pizzaCustomization.spicyLevel.left === 'none' ? 'No Spicy' : pizzaCustomization.spicyLevel.left}, 
+                      R: {pizzaCustomization.spicyLevel.right === 'none' ? 'No Spicy' : pizzaCustomization.spicyLevel.right}
                     </span>
                   )}
                 </div>
               )}
 
               {/* Free Toppings */}
-              {customization.freeToppings.length > 0 && (
+              {pizzaCustomization.freeToppings.length > 0 && (
                 <div>
                   <span className="font-medium text-muted-foreground">Free Add-ons: </span>
-                  <span>{customization.freeToppings.join(', ')}</span>
+                  <span>{pizzaCustomization.freeToppings.join(', ')}</span>
                 </div>
               )}
 
               {/* Default Toppings */}
-              {customization.defaultToppings.length > 0 && (
+              {pizzaCustomization.defaultToppings.length > 0 && (
                 <div>
                   <span className="font-medium text-muted-foreground">Toppings: </span>
                   <div className="mt-1 space-y-0.5">
-                    {customization.defaultToppings
+                    {pizzaCustomization.defaultToppings
                       .filter(t => t.quantity !== 'none')
                       .map(t => (
                         <div key={t.id} className="flex justify-between text-muted-foreground">
@@ -152,21 +169,21 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
               )}
 
               {/* Removed Toppings */}
-              {customization.defaultToppings.some(t => t.quantity === 'none') && (
+              {pizzaCustomization.defaultToppings.some(t => t.quantity === 'none') && (
                 <div>
                   <span className="font-medium text-destructive">Removed: </span>
                   <span className="text-muted-foreground line-through">
-                    {customization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
+                    {pizzaCustomization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
                   </span>
                 </div>
               )}
 
               {/* Extra Toppings */}
-              {customization.extraToppings.length > 0 && (
+              {pizzaCustomization.extraToppings.length > 0 && (
                 <div>
                   <span className="font-medium text-primary">Extra Toppings: </span>
                   <div className="mt-1 space-y-0.5">
-                    {customization.extraToppings.map(t => (
+                    {pizzaCustomization.extraToppings.map(t => (
                       <div key={t.id} className="flex justify-between text-muted-foreground">
                         <span>{t.name}</span>
                         <span>
@@ -180,12 +197,21 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
               )}
 
               {/* Note */}
-              {customization.note && (
+              {pizzaCustomization.note && (
                 <div className="border-t pt-2 mt-2">
                   <span className="font-medium text-muted-foreground">Note: </span>
-                  <span className="italic">{customization.note}</span>
+                  <span className="italic">{pizzaCustomization.note}</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {expanded && wingsCustomization && (
+            <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
+              <div>
+                <span className="font-medium text-muted-foreground">Flavor: </span>
+                <span>{wingsCustomization.flavor}</span>
+              </div>
             </div>
           )}
         </>
@@ -197,11 +223,17 @@ const CartItemCard = ({ item, onEdit }: CartItemCardProps) => {
 const CartSidebar = () => {
   const { items, total } = useCart();
   const { data: menuItems } = useMenuItems();
-  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
+  const [editingPizzaItem, setEditingPizzaItem] = useState<CartItem | null>(null);
+  const [editingWingsItem, setEditingWingsItem] = useState<CartItem | null>(null);
 
-  // Find the original menu item for editing
-  const originalMenuItem = editingItem?.pizzaCustomization 
-    ? menuItems?.find(m => m.id === editingItem.pizzaCustomization?.originalItemId)
+  // Find the original menu item for editing pizza
+  const originalPizzaMenuItem = editingPizzaItem?.pizzaCustomization 
+    ? menuItems?.find(m => m.id === editingPizzaItem.pizzaCustomization?.originalItemId)
+    : null;
+
+  // Find the original menu item for editing wings
+  const originalWingsMenuItem = editingWingsItem?.wingsCustomization 
+    ? menuItems?.find(m => m.id === editingWingsItem.wingsCustomization?.originalItemId)
     : null;
 
   if (items.length === 0) {
@@ -224,7 +256,8 @@ const CartSidebar = () => {
           <CartItemCard 
             key={`${item.id}-${item.selectedSize}`} 
             item={item} 
-            onEdit={setEditingItem}
+            onEditPizza={setEditingPizzaItem}
+            onEditWings={setEditingWingsItem}
           />
         ))}
       </div>
@@ -241,13 +274,23 @@ const CartSidebar = () => {
         </Link>
       </div>
 
-      {/* Edit Modal */}
-      {editingItem && originalMenuItem && (
+      {/* Pizza Edit Modal */}
+      {editingPizzaItem && originalPizzaMenuItem && (
         <PizzaCustomizationModal
-          item={originalMenuItem}
-          isOpen={!!editingItem}
-          onClose={() => setEditingItem(null)}
-          editingCartItem={editingItem}
+          item={originalPizzaMenuItem}
+          isOpen={!!editingPizzaItem}
+          onClose={() => setEditingPizzaItem(null)}
+          editingCartItem={editingPizzaItem}
+        />
+      )}
+
+      {/* Wings Edit Modal */}
+      {editingWingsItem && originalWingsMenuItem && (
+        <WingsCustomizationModal
+          item={originalWingsMenuItem}
+          isOpen={!!editingWingsItem}
+          onClose={() => setEditingWingsItem(null)}
+          editingCartItem={editingWingsItem}
         />
       )}
     </div>
