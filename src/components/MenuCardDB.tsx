@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
+import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
 
 interface MenuCardDBProps {
   item: MenuItem;
@@ -16,6 +17,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   const [selectedSize, setSelectedSize] = useState(defaultSize);
   const [isAdded, setIsAdded] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [isCustomizingWings, setIsCustomizingWings] = useState(false);
   const { addToCart } = useCart();
 
   const currentPrice = item.sizes && selectedSize
@@ -23,10 +25,16 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
     : item.base_price;
 
   const isPizza = item.category === 'pizza';
+  const isWings = item.category === 'chicken_wings';
 
   const handleAddToCart = () => {
     if (isPizza) {
       setIsCustomizing(true);
+      return;
+    }
+
+    if (isWings) {
+      setIsCustomizingWings(true);
       return;
     }
 
@@ -113,7 +121,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
                 </>
               ) : (
                 <>
-                  <Plus className="w-4 h-4" /> {isPizza ? 'Customize' : 'Add'}
+                  <Plus className="w-4 h-4" /> {isPizza || isWings ? 'Customize' : 'Add'}
                 </>
               )}
             </Button>
@@ -126,6 +134,14 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
           item={item}
           isOpen={isCustomizing}
           onClose={() => setIsCustomizing(false)}
+        />
+      )}
+
+      {isWings && (
+        <WingsCustomizationModal
+          item={item}
+          isOpen={isCustomizingWings}
+          onClose={() => setIsCustomizingWings(false)}
         />
       )}
     </>
