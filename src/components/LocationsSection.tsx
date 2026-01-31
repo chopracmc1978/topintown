@@ -10,7 +10,7 @@ const locations = [
   },
   {
     name: 'CHESTERMERE LOCATION',
-    address: '272 Kinniburgh Blvd unit 103, Chestermere, AB T1X 0V8, Canada',
+    address: '272 Kinniburgh Blvd unit 103, Chestermere, AB T1X 0V8',
     phone: '(403) 280-7373 ext 2',
     orderLink: '/menu',
   },
