@@ -671,26 +671,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
                   />
                 </div>
+                {/* Price + Buttons - right after Notes */}
+                <div className="flex items-center justify-between mt-2 pt-2 border-t">
+                  <span className="text-base font-bold text-primary">
+                    ${totalPrice.toFixed(2)}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+                    <Button 
+                      variant="pizza" 
+                      size="sm"
+                      onClick={handleAddToOrder}
+                      disabled={!selectedSize || !selectedCrust}
+                    >
+                      {editingItem ? 'Update' : 'Add to Order'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-
-          {/* Footer - Price + Buttons on separate line after Notes */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-base font-bold text-primary">
-              ${totalPrice.toFixed(2)}
-            </span>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-              <Button 
-                variant="pizza" 
-                size="sm"
-                onClick={handleAddToOrder}
-                disabled={!selectedSize || !selectedCrust}
-              >
-                {editingItem ? 'Update' : 'Add to Order'}
-              </Button>
-            </div>
           </div>
         </div>
       </DialogContent>
