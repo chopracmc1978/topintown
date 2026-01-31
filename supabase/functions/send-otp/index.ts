@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import twilio from "https://esm.sh/twilio@4.23.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -56,21 +55,38 @@ async function sendSmsWithTwilio(to: string, code: string): Promise<void> {
     throw new Error("Twilio credentials are not configured");
   }
 
-  const client = twilio(accountSid, authToken);
-
   // Format phone number to E.164 format if needed
   let formattedPhone = to;
   if (!to.startsWith("+")) {
     formattedPhone = "+1" + to.replace(/\D/g, ""); // Default to US/Canada
   }
 
-  const message = await client.messages.create({
-    body: `Your Top In Town Pizza verification code is: ${code}. This code expires in 10 minutes.`,
-    from: twilioPhone,
-    to: formattedPhone,
+  // Use Twilio REST API directly instead of SDK (better Deno compatibility)
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+  
+  const body = new URLSearchParams({
+    To: formattedPhone,
+    From: twilioPhone,
+    Body: `Your Top In Town Pizza verification code is: ${code}. This code expires in 10 minutes.`,
   });
 
-  console.log("Twilio SMS sent successfully, SID:", message.sid);
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Twilio API error:", errorData);
+    throw new Error(`Twilio API error: ${errorData.message || response.statusText}`);
+  }
+
+  const result = await response.json();
+  console.log("Twilio SMS sent successfully, SID:", result.sid);
 }
 
 const handler = async (req: Request): Promise<Response> => {
