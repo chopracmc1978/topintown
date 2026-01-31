@@ -272,25 +272,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
               ))}
             </div>
 
-            {/* Pizza Subcategory Tabs */}
-            {activeCategory === 'pizza' && (
-              <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
-                {pizzaSubcategories.map(sub => (
-                  <button
-                    key={sub.id}
-                    onClick={() => setActiveSubcategory(sub.id)}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                      activeSubcategory === sub.id
-                        ? "bg-primary/80 text-primary-foreground"
-                        : "bg-card text-foreground border border-border hover:bg-secondary"
-                    )}
-                  >
-                    {sub.label}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Menu Items Grid */}
             <ScrollArea className="flex-1 p-3">
