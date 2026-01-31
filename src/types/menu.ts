@@ -41,15 +41,29 @@ export interface CartItem extends MenuItem {
   wingsCustomization?: CartWingsCustomization;
 }
 
+export type OrderType = 'pickup' | 'delivery' | 'dine-in';
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+export type PaymentStatus = 'unpaid' | 'paid' | 'refunded';
+export type PaymentMethod = 'cash' | 'card' | 'online';
+export type OrderSource = 'online' | 'phone' | 'walk-in';
+
 export interface Order {
   id: string;
   items: CartItem[];
   customerName: string;
   customerPhone: string;
   customerAddress: string;
-  orderType: 'delivery' | 'pickup';
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  orderType: OrderType;
+  status: OrderStatus;
   total: number;
+  subtotal: number;
+  tax: number;
   createdAt: Date;
   notes?: string;
+  // New POS fields
+  source: OrderSource;
+  paymentStatus: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  tableNumber?: string;
+  estimatedReadyTime?: Date;
 }
