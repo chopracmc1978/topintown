@@ -34,9 +34,19 @@ const categories = [
   { id: 'dipping_sauce', label: 'Dipping Sauces' },
 ] as const;
 
+const pizzaSubcategories = [
+  { id: 'all', label: 'All' },
+  { id: 'Vegetarian', label: 'Vegetarian' },
+  { id: 'Paneer', label: 'Paneer' },
+  { id: 'Chicken', label: 'Chicken' },
+  { id: 'Meat Pizza', label: 'Meat Pizza' },
+  { id: 'Hawaiian', label: 'Hawaiian' },
+] as const;
+
 export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelProps) => {
   const { data: menuItems = [], isLoading } = useMenuItems();
   const [activeCategory, setActiveCategory] = useState<string>('pizza');
+  const [activeSubcategory, setActiveSubcategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   
@@ -51,10 +61,18 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
 
   const filteredItems = menuItems.filter(item => {
     const matchesCategory = item.category === activeCategory;
+    const matchesSubcategory = activeCategory !== 'pizza' || 
+      activeSubcategory === 'all' || 
+      item.subcategory === activeSubcategory;
     const matchesSearch = searchQuery === '' || 
       item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch && item.is_available;
+    return matchesCategory && matchesSubcategory && matchesSearch && item.is_available;
   });
+
+  const handleCategoryChange = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    setActiveSubcategory('all');
+  };
 
   const addToCart = (menuItem: MenuItem) => {
     const basePrice = menuItem.sizes?.[0]?.price ?? menuItem.base_price;
@@ -161,7 +179,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
             {categories.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => handleCategoryChange(cat.id)}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
                   activeCategory === cat.id
@@ -173,6 +191,26 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
               </button>
             ))}
           </div>
+
+          {/* Pizza Subcategory Tabs */}
+          {activeCategory === 'pizza' && (
+            <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
+              {pizzaSubcategories.map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveSubcategory(sub.id)}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                    activeSubcategory === sub.id
+                      ? "bg-primary/80 text-primary-foreground"
+                      : "bg-card text-foreground border border-border hover:bg-secondary"
+                  )}
+                >
+                  {sub.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Menu Items Grid */}
           <ScrollArea className="flex-1 p-3">
