@@ -616,7 +616,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <h3 className="font-medium text-xs mb-1">
                   Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
                 </h3>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-3 gap-1">
                   {availableExtraToppings.map(topping => {
                     const selected = extraToppings.find(t => t.id === topping.id);
                     const isSelected = !!selected;
