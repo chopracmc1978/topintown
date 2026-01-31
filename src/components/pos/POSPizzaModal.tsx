@@ -496,64 +496,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Free Add-ons - full width with Left/Whole/Right */}
-          {freeToppings.length > 0 && (
-            <div>
-              <h3 className="font-medium text-xs mb-1">Free Add-ons</h3>
-              <div className="flex gap-3">
-                {freeToppings.map(topping => {
-                  const selection = freeToppingSelections.find(f => f.name === topping.name);
-                  const isSelected = !!selection;
-                  return (
-                    <div key={topping.id} className="flex items-center gap-1">
-                      <button
-                        onClick={() => toggleFreeTopping(topping.name)}
-                        className={cn(btnSmall, "min-w-[90px]", isSelected ? btnActive : btnInactive)}
-                      >
-                        {topping.name}
-                      </button>
-                      {isLargePizza ? (
-                        <div className="flex gap-0.5">
-                          {(['left', 'whole', 'right'] as const).map(side => (
-                            <button
-                              key={side}
-                              onClick={() => {
-                                if (!isSelected) {
-                                  toggleFreeTopping(topping.name);
-                                }
-                                updateFreeToppingSide(topping.name, side);
-                              }}
-                              className={cn(
-                                "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
-                                isSelected && selection?.side === side ? btnActive : btnInactive
-                              )}
-                            >
-                              {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            if (!isSelected) {
-                              toggleFreeTopping(topping.name);
-                            }
-                          }}
-                          className={cn(
-                            "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
-                            isSelected ? btnActive : btnInactive
-                          )}
-                        >
-                          Whole
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           {/* Sauce Selection - 2 rows with 5 columns */}
           <div>
             <h3 className="font-medium text-xs mb-1">Sauce</h3>
