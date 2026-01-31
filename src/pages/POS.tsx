@@ -1,201 +1,249 @@
 import { useState } from 'react';
-import { Clock, CheckCircle, XCircle, ChefHat, Truck, Package } from 'lucide-react';
+import { ChefHat, Plus, Clock, CheckCircle, Package, Truck, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useOrders } from '@/contexts/OrderContext';
-import { Order } from '@/types/menu';
+import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
+import { POSOrderCard } from '@/components/pos/POSOrderCard';
+import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
+import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
+import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const statusConfig = {
-  pending: { label: 'New', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  preparing: { label: 'Preparing', icon: ChefHat, color: 'bg-blue-100 text-blue-800' },
-  ready: { label: 'Ready', icon: Package, color: 'bg-green-100 text-green-800' },
-  delivered: { label: 'Complete', icon: CheckCircle, color: 'bg-gray-100 text-gray-800' },
-  cancelled: { label: 'Cancelled', icon: XCircle, color: 'bg-red-100 text-red-800' },
-};
+const statusTabs = [
+  { id: 'all', label: 'All', icon: Package },
+  { id: 'pending', label: 'New', icon: Clock },
+  { id: 'preparing', label: 'Preparing', icon: ChefHat },
+  { id: 'ready', label: 'Ready', icon: CheckCircle },
+] as const;
 
 const POS = () => {
-  const { orders, updateOrderStatus } = useOrders();
-  const [filter, setFilter] = useState<Order['status'] | 'all'>('all');
+  const { orders, addOrder, updateOrderStatus } = useOrders();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showNewOrder, setShowNewOrder] = useState(false);
+  const [cashModalOpen, setCashModalOpen] = useState(false);
+  const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
 
-  const filteredOrders = filter === 'all'
-    ? orders
-    : orders.filter((order) => order.status === filter);
+  // Filter orders
+  const filteredOrders = activeTab === 'all'
+    ? orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled')
+    : orders.filter(o => o.status === activeTab);
 
-  const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
-    const statusFlow: Record<Order['status'], Order['status'] | null> = {
-      pending: 'preparing',
-      preparing: 'ready',
-      ready: 'delivered',
-      delivered: null,
-      cancelled: null,
-    };
-    return statusFlow[currentStatus];
+  const selectedOrder = selectedOrderId 
+    ? orders.find(o => o.id === selectedOrderId) 
+    : null;
+
+  // Counts
+  const counts = {
+    all: orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length,
+    pending: orders.filter(o => o.status === 'pending').length,
+    preparing: orders.filter(o => o.status === 'preparing').length,
+    ready: orders.filter(o => o.status === 'ready').length,
   };
 
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
+  const handleCreateOrder = (orderData: {
+    items: CartItem[];
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    orderType: OrderType;
+    source: OrderSource;
+    tableNumber?: string;
+    notes?: string;
+  }) => {
+    const subtotal = orderData.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    const tax = subtotal * 0.08;
+    const total = subtotal + tax;
+
+    const newOrder = addOrder({
+      ...orderData,
+      subtotal,
+      tax,
+      total,
+      status: 'pending',
+      paymentStatus: 'unpaid',
+    });
+
+    setShowNewOrder(false);
+    setSelectedOrderId(newOrder.id);
+    toast({
+      title: 'Order Created',
+      description: `Order ${newOrder.id} has been created`,
+    });
+  };
+
+  const handleUpdateStatus = (status: OrderStatus) => {
+    if (!selectedOrderId) return;
+    updateOrderStatus(selectedOrderId, status);
+    
+    if (status === 'delivered' || status === 'cancelled') {
+      setSelectedOrderId(null);
+    }
+
+    toast({
+      title: 'Order Updated',
+      description: `Order status changed to ${status}`,
+    });
+  };
+
+  const handlePayment = (method: 'cash' | 'card') => {
+    if (!selectedOrderId) return;
+
+    if (method === 'cash') {
+      setPendingPaymentOrderId(selectedOrderId);
+      setCashModalOpen(true);
+    } else {
+      // Card payment - mark as paid directly (terminal handles it)
+      handlePaymentComplete();
+      toast({
+        title: 'Process on Terminal',
+        description: 'Complete the card payment on your terminal',
+      });
+    }
+  };
+
+  const handlePaymentComplete = () => {
+    // In a real app, update payment status in state/database
+    setCashModalOpen(false);
+    setPendingPaymentOrderId(null);
+    toast({
+      title: 'Payment Complete',
+      description: 'Order has been marked as paid',
+    });
+  };
+
+  const handlePrintTicket = () => {
+    toast({
+      title: 'Printing...',
+      description: 'Kitchen ticket sent to printer',
     });
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground py-4 px-6 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-primary text-primary-foreground py-3 px-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ChefHat className="w-8 h-8" />
+            <ChefHat className="w-7 h-7" />
             <div>
-              <h1 className="font-serif text-xl font-bold">Bella Pizza POS</h1>
-              <p className="text-sm text-primary-foreground/70">Order Management System</p>
+              <h1 className="font-serif text-lg font-bold">Bella Pizza POS</h1>
+              <p className="text-xs text-primary-foreground/70">Order Management</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-primary-foreground/70">Active Orders</p>
-            <p className="text-2xl font-bold">
-              {orders.filter((o) => !['delivered', 'cancelled'].includes(o.status)).length}
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-xs text-primary-foreground/70">Active</p>
+              <p className="text-xl font-bold">{counts.all}</p>
+            </div>
+            <Button 
+              onClick={() => {
+                setShowNewOrder(true);
+                setSelectedOrderId(null);
+              }}
+              className="bg-white text-primary hover:bg-white/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Order
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6">
-        {/* Status Filter */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <button
-            onClick={() => setFilter('all')}
-            className={cn(
-              "px-4 py-2 rounded-lg font-medium transition-all",
-              filter === 'all'
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            )}
-          >
-            All Orders ({orders.length})
-          </button>
-          {(Object.keys(statusConfig) as Order['status'][]).map((status) => {
-            const config = statusConfig[status];
-            const count = orders.filter((o) => o.status === status).length;
-            return (
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Order List */}
+        <div className="w-96 border-r border-border flex flex-col bg-secondary/20">
+          {/* Status Tabs */}
+          <div className="flex gap-1 p-2 border-b border-border">
+            {statusTabs.map(tab => (
               <button
-                key={status}
-                onClick={() => setFilter(status)}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2",
-                  filter === status
+                  "flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium transition-colors",
+                  activeTab === tab.id
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    : "bg-card text-foreground hover:bg-secondary"
                 )}
               >
-                <config.icon className="w-4 h-4" />
-                {config.label} ({count})
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+                <span className={cn(
+                  "ml-1 text-xs px-1.5 py-0.5 rounded-full",
+                  activeTab === tab.id
+                    ? "bg-primary-foreground/20"
+                    : "bg-secondary"
+                )}>
+                  {counts[tab.id as keyof typeof counts]}
+                </span>
               </button>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Order List */}
+          <ScrollArea className="flex-1 p-3">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No orders</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredOrders.map(order => (
+                  <POSOrderCard
+                    key={order.id}
+                    order={order}
+                    isSelected={selectedOrderId === order.id}
+                    onClick={() => {
+                      setSelectedOrderId(order.id);
+                      setShowNewOrder(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </div>
 
-        {/* Orders Grid */}
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-            <h3 className="font-serif text-xl font-semibold text-foreground mb-2">
-              No orders yet
-            </h3>
-            <p className="text-muted-foreground">
-              Orders will appear here when customers place them.
-            </p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.map((order) => {
-              const config = statusConfig[order.status];
-              const nextStatus = getNextStatus(order.status);
+        {/* Right Panel - Detail or New Order */}
+        <div className="flex-1 p-4 overflow-auto">
+          {showNewOrder ? (
+            <POSNewOrderPanel
+              onCreateOrder={handleCreateOrder}
+              onCancel={() => setShowNewOrder(false)}
+            />
+          ) : selectedOrder ? (
+            <POSOrderDetail
+              order={selectedOrder}
+              onUpdateStatus={handleUpdateStatus}
+              onPayment={handlePayment}
+              onPrintTicket={handlePrintTicket}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Select an order or create a new one</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-              return (
-                <div
-                  key={order.id}
-                  className="bg-card rounded-xl border border-border overflow-hidden shadow-card"
-                >
-                  {/* Order Header */}
-                  <div className="bg-secondary/50 p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-mono font-bold text-foreground">{order.id}</p>
-                      <p className="text-sm text-muted-foreground">{formatTime(order.createdAt)}</p>
-                    </div>
-                    <div className={cn("px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1", config.color)}>
-                      <config.icon className="w-4 h-4" />
-                      {config.label}
-                    </div>
-                  </div>
-
-                  {/* Customer Info */}
-                  <div className="p-4 border-b border-border">
-                    <p className="font-medium text-foreground">{order.customerName}</p>
-                    <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      {order.orderType === 'delivery' ? (
-                        <Truck className="w-4 h-4 text-primary" />
-                      ) : (
-                        <Package className="w-4 h-4 text-primary" />
-                      )}
-                      <span className="text-sm">
-                        {order.orderType === 'delivery' ? order.customerAddress : 'Pickup'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Order Items */}
-                  <div className="p-4 space-y-2">
-                    {order.items.map((item) => (
-                      <div key={`${item.id}-${item.selectedSize}`} className="flex justify-between text-sm">
-                        <span>
-                          <span className="font-medium">{item.quantity}x</span> {item.name}
-                          {item.selectedSize && (
-                            <span className="text-muted-foreground"> ({item.selectedSize})</span>
-                          )}
-                        </span>
-                        <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
-                      </div>
-                    ))}
-                    {order.notes && (
-                      <p className="text-sm text-muted-foreground italic pt-2 border-t border-border">
-                        Note: {order.notes}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Order Footer */}
-                  <div className="p-4 bg-secondary/30 flex items-center justify-between">
-                    <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
-                    <div className="flex gap-2">
-                      {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                      {nextStatus && (
-                        <Button
-                          variant="pizza"
-                          size="sm"
-                          onClick={() => updateOrderStatus(order.id, nextStatus)}
-                        >
-                          Mark {statusConfig[nextStatus].label}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
+      {/* Cash Payment Modal */}
+      <POSCashPaymentModal
+        open={cashModalOpen}
+        onClose={() => {
+          setCashModalOpen(false);
+          setPendingPaymentOrderId(null);
+        }}
+        total={selectedOrder?.total || 0}
+        onConfirm={handlePaymentComplete}
+      />
     </div>
   );
 };
