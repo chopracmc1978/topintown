@@ -23,7 +23,6 @@ type SpicyLevel = 'none' | 'medium' | 'hot';
 type Side = 'left' | 'whole' | 'right';
 
 const QUANTITY_OPTIONS: { value: ToppingQuantity; label: string }[] = [
-  { value: 'none', label: 'None' },
   { value: 'less', label: 'Less' },
   { value: 'regular', label: 'Reg' },
   { value: 'extra', label: 'Extra' },
@@ -504,45 +503,66 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div>
               <h3 className="font-medium text-xs mb-1.5">Default Toppings</h3>
               <div className="space-y-1">
-                {defaultToppings.map(topping => (
-                  <div key={topping.id} className="flex items-center gap-2 bg-secondary/30 rounded px-2 py-1">
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                      topping.isVeg ? "bg-green-500" : "bg-red-500"
-                    )} />
-                    <span className="text-xs flex-1 truncate">{topping.name}</span>
-                    <div className="flex gap-0.5">
-                      {QUANTITY_OPTIONS.map(opt => (
-                        <button
-                          key={opt.value}
-                          onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
-                          className={cn(
-                            "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
-                            topping.quantity === opt.value ? btnActive : btnInactive
+                {defaultToppings.map(topping => {
+                  const isRemoved = topping.quantity === 'none';
+                  return (
+                    <div key={topping.id} className={cn(
+                      "flex items-center gap-2 rounded px-2 py-1",
+                      isRemoved ? "bg-destructive/10" : "bg-secondary/30"
+                    )}>
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                        topping.isVeg ? "bg-green-500" : "bg-red-500"
+                      )} />
+                      <button
+                        onClick={() => updateDefaultToppingQuantity(
+                          topping.id, 
+                          isRemoved ? 'regular' : 'none'
+                        )}
+                        className={cn(
+                          "text-xs flex-1 text-left truncate transition-colors",
+                          isRemoved && "line-through text-muted-foreground"
+                        )}
+                      >
+                        {topping.name}
+                      </button>
+                      {!isRemoved && (
+                        <>
+                          <div className="flex gap-0.5">
+                            {QUANTITY_OPTIONS.map(opt => (
+                              <button
+                                key={opt.value}
+                                onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
+                                className={cn(
+                                  "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                  topping.quantity === opt.value ? btnActive : btnInactive
+                                )}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                          {isLargePizza && (
+                            <div className="flex gap-0.5 ml-1">
+                              {SIDE_OPTIONS.map(side => (
+                                <button
+                                  key={side.value}
+                                  onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                                  className={cn(
+                                    "w-5 h-5 text-[10px] rounded border font-medium transition-colors",
+                                    topping.side === side.value ? btnActive : btnInactive
+                                  )}
+                                >
+                                  {side.label}
+                                </button>
+                              ))}
+                            </div>
                           )}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                        </>
+                      )}
                     </div>
-                    {isLargePizza && topping.quantity !== 'none' && (
-                      <div className="flex gap-0.5 ml-1">
-                        {SIDE_OPTIONS.map(side => (
-                          <button
-                            key={side.value}
-                            onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
-                            className={cn(
-                              "w-5 h-5 text-[10px] rounded border font-medium transition-colors",
-                              topping.side === side.value ? btnActive : btnInactive
-                            )}
-                          >
-                            {side.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
