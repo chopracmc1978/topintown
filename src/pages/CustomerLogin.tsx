@@ -56,7 +56,8 @@ const CustomerLogin = () => {
         navigate('/my-orders');
       } else {
         // Show user-friendly error for wrong password
-        if (result.error?.toLowerCase().includes('invalid') || result.error?.toLowerCase().includes('password')) {
+        const errText = (result.error ?? '').toLowerCase();
+        if (errText.includes('invalid') || errText.includes('password')) {
           toast.error('Wrong password. Try again or use forgot password.', {
             action: {
               label: 'Forgot password?',
