@@ -613,7 +613,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <h3 className="font-medium text-xs mb-1.5">
                   Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
                 </h3>
-                <div className="space-y-0.5">
+                <div className="grid grid-cols-2 gap-1">
                   {availableExtraToppings.map(topping => {
                     const selected = extraToppings.find(t => t.id === topping.id);
                     const isSelected = !!selected;
@@ -626,8 +626,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <button
                           onClick={() => toggleExtraTopping(topping)}
                           className={cn(
-                            "text-[11px] flex-1 text-left truncate min-w-0 px-1 py-0.5 rounded transition-colors",
-                            isSelected ? "bg-primary/10 text-primary" : "hover:bg-secondary"
+                            "text-xs flex-1 text-left truncate min-w-0 px-2 py-1.5 rounded border transition-colors",
+                            isSelected ? btnActive : btnInactive
                           )}
                         >
                           {topping.name}
@@ -639,7 +639,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 key={side.value}
                                 onClick={() => updateExtraToppingSide(topping.id, side.value as PizzaSide)}
                                 className={cn(
-                                  "w-4 h-4 text-[9px] rounded border font-medium transition-colors",
+                                  "w-7 h-7 text-xs rounded border font-medium transition-colors",
                                   selected?.side === side.value ? btnActive : btnInactive
                                 )}
                               >
