@@ -26,6 +26,16 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+
+  const invalidCredentials = () =>
+    // Return 200 so the client can show a friendly error without triggering a runtime overlay.
+    json(200, { success: false, error: "Invalid email or password" });
+
   try {
     const { email, password }: LoginRequest = await req.json();
     console.log("Customer login request for:", email);
@@ -44,23 +54,29 @@ const handler = async (req: Request): Promise<Response> => {
       .from("customers")
       .select("*")
       .eq("email", email.toLowerCase().trim())
-      .single();
+      .maybeSingle();
 
-    if (customerError || !customer) {
+    if (customerError) {
+      console.error("Error fetching customer:", customerError);
+      throw new Error("Failed to validate credentials");
+    }
+
+    if (!customer) {
       console.log("Customer not found:", email);
-      throw new Error("Invalid email or password");
+      return invalidCredentials();
     }
 
     // Check if customer has a password set
     if (!customer.password_hash) {
-      throw new Error("Please set up a password first by checking out");
+      // Treat as invalid credentials to avoid leaking account state.
+      return invalidCredentials();
     }
 
     // Verify password
     const hashedPassword = await hashPassword(password);
     if (hashedPassword !== customer.password_hash) {
       console.log("Password mismatch for:", email);
-      throw new Error("Invalid email or password");
+      return invalidCredentials();
     }
 
     // Generate a simple session token (in production, use JWT)
@@ -68,33 +84,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Customer login successful:", email);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        customer: {
-          id: customer.id,
-          email: customer.email,
-          phone: customer.phone,
-          fullName: customer.full_name,
-          emailVerified: customer.email_verified,
-          phoneVerified: customer.phone_verified,
-        },
-        sessionToken,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(200, {
+      success: true,
+      customer: {
+        id: customer.id,
+        email: customer.email,
+        phone: customer.phone,
+        fullName: customer.full_name,
+        emailVerified: customer.email_verified,
+        phoneVerified: customer.phone_verified,
+      },
+      sessionToken,
+    });
   } catch (error: any) {
     console.error("Error in customer-login:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(400, { error: error.message });
   }
 };
 
