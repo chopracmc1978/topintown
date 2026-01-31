@@ -74,6 +74,42 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          created_at: string
+          email: string
+          email_verified: boolean
+          full_name: string | null
+          id: string
+          password_hash: string | null
+          phone: string
+          phone_verified: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_verified?: boolean
+          full_name?: string | null
+          id?: string
+          password_hash?: string | null
+          phone: string
+          phone_verified?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_verified?: boolean
+          full_name?: string | null
+          id?: string
+          password_hash?: string | null
+          phone?: string
+          phone_verified?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       free_toppings: {
         Row: {
           created_at: string
@@ -315,6 +351,151 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          customizations: Json | null
+          id: string
+          menu_item_id: string | null
+          name: string
+          order_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          customizations?: Json | null
+          id?: string
+          menu_item_id?: string | null
+          name: string
+          order_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          customizations?: Json | null
+          id?: string
+          menu_item_id?: string | null
+          name?: string
+          order_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          location_id: string
+          notes: string | null
+          order_number: string
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          location_id: string
+          notes?: string | null
+          order_number: string
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          location_id?: string
+          notes?: string | null
+          order_number?: string
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      otp_codes: {
+        Row: {
+          code: string
+          created_at: string
+          customer_id: string | null
+          email: string | null
+          expires_at: string
+          id: string
+          phone: string | null
+          type: string
+          used: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          customer_id?: string | null
+          email?: string | null
+          expires_at: string
+          id?: string
+          phone?: string | null
+          type: string
+          used?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          customer_id?: string | null
+          email?: string | null
+          expires_at?: string
+          id?: string
+          phone?: string | null
+          type?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_codes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
