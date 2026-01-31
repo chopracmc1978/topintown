@@ -400,6 +400,45 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
+          {/* Free Add-ons - moved here after Spicy Level */}
+          {freeToppings.length > 0 && (
+            <div>
+              <h3 className="font-medium text-xs mb-1.5">Free Add-ons</h3>
+              <div className="flex flex-wrap gap-1">
+                {freeToppings.map(topping => {
+                  const selection = freeToppingSelections.find(f => f.name === topping.name);
+                  const isSelected = !!selection;
+                  return (
+                    <div key={topping.id} className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => toggleFreeTopping(topping.name)}
+                        className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
+                      >
+                        {topping.name}
+                      </button>
+                      {isLargePizza && isSelected && (
+                        <div className="flex gap-0.5">
+                          {SIDE_OPTIONS.map(side => (
+                            <button
+                              key={side.value}
+                              onClick={() => updateFreeToppingSide(topping.name, side.value)}
+                              className={cn(
+                                "w-5 h-5 text-[10px] rounded border font-medium transition-colors",
+                                selection?.side === side.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {side.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Sauce Selection - Grid 3 columns */}
           <div>
             <h3 className="font-medium text-xs mb-1.5">Sauce</h3>
@@ -466,45 +505,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     )}
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Free Toppings */}
-          {freeToppings.length > 0 && (
-            <div>
-              <h3 className="font-medium text-xs mb-1.5">Free Add-ons</h3>
-              <div className="flex flex-wrap gap-1">
-                {freeToppings.map(topping => {
-                  const selection = freeToppingSelections.find(f => f.name === topping.name);
-                  const isSelected = !!selection;
-                  return (
-                    <div key={topping.id} className="flex items-center gap-0.5">
-                      <button
-                        onClick={() => toggleFreeTopping(topping.name)}
-                        className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
-                      >
-                        {topping.name}
-                      </button>
-                      {isLargePizza && isSelected && (
-                        <div className="flex gap-0.5">
-                          {SIDE_OPTIONS.map(side => (
-                            <button
-                              key={side.value}
-                              onClick={() => updateFreeToppingSide(topping.name, side.value)}
-                              className={cn(
-                                "w-5 h-5 text-[10px] rounded border font-medium transition-colors",
-                                selection?.side === side.value ? btnActive : btnInactive
-                              )}
-                            >
-                              {side.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
               </div>
             </div>
           )}
