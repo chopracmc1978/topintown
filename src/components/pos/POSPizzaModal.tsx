@@ -160,9 +160,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // Available sauces
   const availableSauces = allSauces?.filter(s => s.is_available) || [];
   
-  // Available extra toppings (sorted: veg first, then non-veg)
+  // Available extra toppings (sorted: veg first, then non-veg, excluding Cheese)
   const availableExtraToppings = useMemo(() => {
-    const toppings = allToppings?.filter(t => t.is_available) || [];
+    const toppings = allToppings?.filter(t => 
+      t.is_available && t.name.toLowerCase() !== 'cheese'
+    ) || [];
     return [...toppings].sort((a, b) => {
       if (a.is_veg === b.is_veg) return a.sort_order - b.sort_order;
       return a.is_veg ? -1 : 1;
