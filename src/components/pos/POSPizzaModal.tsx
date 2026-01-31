@@ -75,9 +75,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const [note, setNote] = useState<string>(editCustomization?.note || '');
   const [extraAmount, setExtraAmount] = useState<number>(editCustomization?.extraAmount || 0);
   
-  // Spicy state
-  const [spicyLevel, setSpicyLevel] = useState<SpicyLevel>('none');
-  const [spicySide, setSpicySide] = useState<Side>('whole');
+  // Spicy state - supports side-specific levels for large pizzas
+  const [leftSpicy, setLeftSpicy] = useState<SpicyLevel>('none');
+  const [rightSpicy, setRightSpicy] = useState<SpicyLevel>('none');
   
   // Default toppings state (from pizza's default_toppings)
   const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>(editCustomization?.defaultToppings || []);
@@ -114,8 +114,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       setCheeseQuantity('normal');
       setNote('');
       setExtraAmount(0);
-      setSpicyLevel('none');
-      setSpicySide('whole');
+      setLeftSpicy('none');
+      setRightSpicy('none');
       setSauceQuantity('normal');
       setExtraToppings([]);
       setFreeToppingSelections([]);
@@ -151,7 +151,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // Reset sides when size changes (only large allows L/W/R)
   useEffect(() => {
     if (!isLargePizza) {
-      setSpicySide('whole');
+      // Reset spicy to whole (both sides same)
+      setLeftSpicy('none');
+      setRightSpicy('none');
       // Reset all topping sides to whole
       setDefaultToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
       setExtraToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
@@ -282,10 +284,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
     const sauceName = allSauces?.find(s => s.id === selectedSauceId)?.name || 'No Sauce';
 
-    // Build spicy level object
+    // Build spicy level object from left/right state
     const spicyLevelObj = {
-      left: (spicySide === 'left' || spicySide === 'whole') ? spicyLevel : 'none' as SpicyLevel,
-      right: (spicySide === 'right' || spicySide === 'whole') ? spicyLevel : 'none' as SpicyLevel,
+      left: leftSpicy,
+      right: rightSpicy,
     };
 
     const cartItem: CartItem = {
@@ -475,31 +477,93 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Row 2: Spicy Level */}
           <div>
             <h3 className="font-medium text-xs mb-1">Spicy Level</h3>
-            <div className="flex gap-1">
-              {(['none', 'medium', 'hot'] as SpicyLevel[]).map(level => (
-                <button
-                  key={level}
-                  onClick={() => setSpicyLevel(level)}
-                  className={cn(btnSmall, "min-w-[80px]", spicyLevel === level ? btnActive : btnInactive)}
-                >
-                  {level === 'none' ? 'None' : level === 'medium' ? 'Med' : 'Hot'}
-                </button>
-              ))}
-              {isLargePizza && spicyLevel !== 'none' && (
-                <>
-                  <div className="w-px bg-border" />
-                  {SIDE_OPTIONS.map(side => (
-                    <button
-                      key={side.value}
-                      onClick={() => setSpicySide(side.value)}
-                      className={cn(btnSmall, "w-7", spicySide === side.value ? btnActive : btnInactive)}
-                    >
-                      {side.label}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
+            {isLargePizza ? (
+              // Large pizza: side-specific spicy selection
+              <div className="flex items-center gap-2">
+                {/* Left side spicy */}
+                <div className="flex gap-0.5 items-center">
+                  {(['none', 'medium', 'hot'] as SpicyLevel[]).map(level => {
+                    // Disable logic: if right side has medium/hot selected, disable other non-none levels
+                    const isDisabled = rightSpicy !== 'none' && level !== 'none' && level !== rightSpicy;
+                    return (
+                      <button
+                        key={level}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          setLeftSpicy(level);
+                          // If selecting medium/hot on left, auto-set right to none
+                          if (level !== 'none') {
+                            setRightSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          btnSmall, 
+                          "min-w-[52px]",
+                          leftSpicy === level ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {level === 'none' ? 'None' : level === 'medium' ? 'Med' : 'Hot'}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Side labels */}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mx-2">
+                  <span className="font-medium">Left</span>
+                  <span>/</span>
+                  <span className="font-medium">Whole</span>
+                  <span>/</span>
+                  <span className="font-medium">Right</span>
+                </div>
+                
+                {/* Right side spicy */}
+                <div className="flex gap-0.5 items-center">
+                  {(['none', 'medium', 'hot'] as SpicyLevel[]).map(level => {
+                    // Disable logic: if left side has medium/hot selected, disable other non-none levels
+                    const isDisabled = leftSpicy !== 'none' && level !== 'none' && level !== leftSpicy;
+                    return (
+                      <button
+                        key={level}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          setRightSpicy(level);
+                          // If selecting medium/hot on right, auto-set left to none
+                          if (level !== 'none') {
+                            setLeftSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          btnSmall, 
+                          "min-w-[52px]",
+                          rightSpicy === level ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {level === 'none' ? 'None' : level === 'medium' ? 'Med' : 'Hot'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              // Small/Medium pizza: single spicy selection (applies to whole)
+              <div className="flex gap-1">
+                {(['none', 'medium', 'hot'] as SpicyLevel[]).map(level => (
+                  <button
+                    key={level}
+                    onClick={() => {
+                      setLeftSpicy(level);
+                      setRightSpicy(level);
+                    }}
+                    className={cn(btnSmall, "min-w-[80px]", leftSpicy === level ? btnActive : btnInactive)}
+                  >
+                    {level === 'none' ? 'None' : level === 'medium' ? 'Med' : 'Hot'}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sauce Selection - 2 rows with 5 columns */}
