@@ -584,8 +584,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           ))}
                         </div>
                       )}
-                      {/* Side: L/W/R */}
-                      {!isRemoved && (
+                      {/* Side: L/W/R (Large only) */}
+                      {!isRemoved && isLargePizza && (
                         <div className="flex gap-0.5">
                           {SIDE_OPTIONS.map(side => (
                             <button
@@ -619,20 +619,40 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
                   return (
-                    <button
-                      key={topping.id}
-                      onClick={() => toggleExtraTopping(topping)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-2 py-1 text-xs rounded border transition-colors text-left",
-                        isSelected ? btnActive : btnInactive
+                    <div key={topping.id} className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => toggleExtraTopping(topping)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-2 py-1 text-xs rounded border transition-colors text-left",
+                          isSelected ? btnActive : btnInactive
+                        )}
+                      >
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                          topping.is_veg ? "bg-green-500" : "bg-red-500"
+                        )} />
+                        <span className="truncate">{topping.name}</span>
+                      </button>
+
+                      {/* Side selection (Large only, when selected) */}
+                      {isLargePizza && isSelected && (
+                        <div className="flex gap-0.5">
+                          {SIDE_OPTIONS.map(side => (
+                            <button
+                              key={side.value}
+                              type="button"
+                              onClick={() => updateExtraToppingSide(topping.id, side.value as PizzaSide)}
+                              className={cn(
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                (selected?.side || 'whole') === side.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {side.label}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    >
-                      <span className={cn(
-                        "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                        topping.is_veg ? "bg-green-500" : "bg-red-500"
-                      )} />
-                      <span className="truncate">{topping.name}</span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
