@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MenuCardDB from '@/components/MenuCardDB';
@@ -22,8 +23,30 @@ const pizzaSubCategories = [
 ];
 
 const Menu = () => {
-  const [activeCategory, setActiveCategory] = useState('pizza');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  
+  const [activeCategory, setActiveCategory] = useState(() => {
+    // Initialize from URL or default to 'pizza'
+    const validCategories = mainCategories.map(c => c.id);
+    return categoryFromUrl && validCategories.includes(categoryFromUrl) 
+      ? categoryFromUrl 
+      : 'pizza';
+  });
   const [activePizzaSubCategory, setActivePizzaSubCategory] = useState<string | null>(null);
+
+  // Sync state when URL changes
+  useEffect(() => {
+    if (categoryFromUrl) {
+      const validCategories = mainCategories.map(c => c.id);
+      if (validCategories.includes(categoryFromUrl)) {
+        setActiveCategory(categoryFromUrl);
+        if (categoryFromUrl !== 'pizza') {
+          setActivePizzaSubCategory(null);
+        }
+      }
+    }
+  }, [categoryFromUrl]);
   
   const selectedCategory = activeCategory as MenuCategory;
   
@@ -38,6 +61,7 @@ const Menu = () => {
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
+    setSearchParams({ category: categoryId });
     // Reset pizza sub-category when switching categories
     if (categoryId !== 'pizza') {
       setActivePizzaSubCategory(null);
