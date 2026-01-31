@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import twilio from "https://esm.sh/twilio@4.23.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -44,6 +45,32 @@ async function sendEmailWithResend(to: string, code: string): Promise<void> {
     console.error("Resend error:", error);
     throw new Error(`Resend API error: ${error.message}`);
   }
+}
+
+async function sendSmsWithTwilio(to: string, code: string): Promise<void> {
+  const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER");
+
+  if (!accountSid || !authToken || !twilioPhone) {
+    throw new Error("Twilio credentials are not configured");
+  }
+
+  const client = twilio(accountSid, authToken);
+
+  // Format phone number to E.164 format if needed
+  let formattedPhone = to;
+  if (!to.startsWith("+")) {
+    formattedPhone = "+1" + to.replace(/\D/g, ""); // Default to US/Canada
+  }
+
+  const message = await client.messages.create({
+    body: `Your Top In Town Pizza verification code is: ${code}. This code expires in 10 minutes.`,
+    from: twilioPhone,
+    to: formattedPhone,
+  });
+
+  console.log("Twilio SMS sent successfully, SID:", message.sid);
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -106,15 +133,16 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Failed to generate OTP");
     }
 
-    // Send OTP via email using SendGrid
+    // Send OTP via email using Resend
     if (type === "email" && email) {
       await sendEmailWithResend(email, code);
-      console.log("Email OTP sent successfully via SendGrid to:", email);
+      console.log("Email OTP sent successfully via Resend to:", email);
     }
 
-    // For phone OTP - we'll just log for now (would need Twilio integration)
+    // Send OTP via SMS using Twilio
     if (type === "phone" && phone) {
-      console.log(`Phone OTP ${code} would be sent to ${phone} (SMS not implemented)`);
+      await sendSmsWithTwilio(phone, code);
+      console.log("Phone OTP sent successfully via Twilio to:", phone);
     }
 
     return new Response(
