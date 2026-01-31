@@ -23,6 +23,7 @@ const CustomerLogin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Forgot password state
   const [viewMode, setViewMode] = useState<ViewMode>('login');
@@ -41,6 +42,7 @@ const CustomerLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     
     if (!email || !password) {
       toast.error('Please enter email and password');
@@ -55,21 +57,26 @@ const CustomerLogin = () => {
         toast.success('Welcome back!');
         navigate('/my-orders');
       } else {
-        // Show user-friendly error for wrong password
+        // Don't show raw backend errors to customers.
         const errText = (result.error ?? '').toLowerCase();
-        if (errText.includes('invalid') || errText.includes('password')) {
-          toast.error('Wrong password. Try again or use forgot password.', {
-            action: {
-              label: 'Forgot password?',
-              onClick: () => setViewMode('forgot-email'),
-            },
-          });
+        const statusMatch = errText.match(/returned\s+(\d+)/);
+        const status = statusMatch ? Number(statusMatch[1]) : null;
+
+        const looksLikeInvalidCredentials =
+          status === 400 ||
+          status === 401 ||
+          errText.includes('invalid') ||
+          errText.includes('password') ||
+          errText.includes('non-2xx');
+
+        if (looksLikeInvalidCredentials) {
+          setLoginError('Wrong email or password. Try again or reset it.');
         } else {
-          toast.error(result.error || 'Login failed');
+          toast.error('Login failed. Please try again.');
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Login failed');
+      toast.error('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -173,10 +180,26 @@ const CustomerLogin = () => {
     setOtp('');
     setNewPassword('');
     setConfirmPassword('');
+    setLoginError(null);
   };
 
   const renderLoginForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {loginError && (
+        <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+          <div className="text-foreground">{loginError}</div>
+          <button
+            type="button"
+            onClick={() => {
+              setLoginError(null);
+              setViewMode('forgot-email');
+            }}
+            className="mt-1 text-primary hover:underline"
+          >
+            Forgot password?
+          </button>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <div className="relative">
