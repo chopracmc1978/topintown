@@ -35,7 +35,6 @@ const categories = [
 ] as const;
 
 const pizzaSubcategories = [
-  { id: 'all', label: 'All' },
   { id: 'vegetarian', label: 'Vegetarian' },
   { id: 'paneer', label: 'Paneer' },
   { id: 'chicken', label: 'Chicken' },
@@ -49,7 +48,7 @@ const CUSTOMIZABLE_CATEGORIES = ['pizza', 'chicken_wings'];
 export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelProps) => {
   const { data: menuItems = [], isLoading } = useMenuItems();
   const [activeCategory, setActiveCategory] = useState<string>('pizza');
-  const [activeSubcategory, setActiveSubcategory] = useState<string>('all');
+  const [activeSubcategory, setActiveSubcategory] = useState<string>('vegetarian');
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   
@@ -70,7 +69,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
   const filteredItems = menuItems.filter(item => {
     const matchesCategory = item.category === activeCategory;
     const matchesSubcategory = activeCategory !== 'pizza' || 
-      activeSubcategory === 'all' || 
       item.subcategory === activeSubcategory;
     const matchesSearch = searchQuery === '' || 
       item.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -79,7 +77,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
 
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
-    setActiveSubcategory('all');
+    setActiveSubcategory('vegetarian');
   };
 
   const handleItemClick = (menuItem: MenuItem) => {
@@ -272,6 +270,25 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
               ))}
             </div>
 
+            {/* Pizza Subcategory Tabs */}
+            {activeCategory === 'pizza' && (
+              <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
+                {pizzaSubcategories.map(sub => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setActiveSubcategory(sub.id)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                      activeSubcategory === sub.id
+                        ? "bg-primary/80 text-primary-foreground"
+                        : "bg-card text-foreground border border-border hover:bg-secondary"
+                    )}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Menu Items Grid */}
             <ScrollArea className="flex-1 p-3">
