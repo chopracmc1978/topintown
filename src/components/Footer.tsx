@@ -63,11 +63,15 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-background/70">
                 <MapPin className="w-4 h-4 mt-0.5 text-primary" />
-                <span>123 Pizza Street, Little Italy<br />New York, NY 10012</span>
+                <span>3250 60 ST NE<br />Calgary, AB T1Y 3T5</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-background/70">
+                <MapPin className="w-4 h-4 mt-0.5 text-primary" />
+                <span>272 Kinniburgh Blvd unit 103<br />Chestermere, AB T1X 0V8</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Phone className="w-4 h-4 text-primary" />
-                <span>(555) 123-4567</span>
+                <span>(403) 555-0123</span>
               </li>
             </ul>
           </div>
@@ -87,7 +91,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-background/20 mt-8 pt-8 text-center text-sm text-background/50">
-          <p>&copy; {new Date().getFullYear()} Bella Pizza. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Top In Town Pizza. All rights reserved.</p>
         </div>
       </div>
     </footer>

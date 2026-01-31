@@ -6,53 +6,53 @@
 
 @layer base {
   :root {
-    --background: 30 25% 97%;
-    --foreground: 20 20% 15%;
+    --background: 210 20% 98%;
+    --foreground: 210 40% 15%;
 
-    --card: 30 30% 99%;
-    --card-foreground: 20 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 40% 15%;
 
-    --popover: 30 30% 99%;
-    --popover-foreground: 20 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 40% 15%;
 
-    --primary: 8 75% 45%;
-    --primary-foreground: 30 25% 98%;
+    --primary: 203 85% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 40% 92%;
-    --secondary-foreground: 20 20% 20%;
+    --secondary: 203 30% 92%;
+    --secondary-foreground: 210 40% 20%;
 
-    --muted: 30 20% 94%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 210 15% 45%;
 
-    --accent: 38 90% 55%;
-    --accent-foreground: 20 20% 15%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 210 40% 15%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 8 75% 45%;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 203 85% 45%;
 
     --radius: 0.75rem;
 
-    /* Custom pizza theme tokens */
-    --pizza-red: 8 75% 45%;
-    --pizza-red-dark: 8 80% 35%;
-    --pizza-cream: 35 40% 95%;
-    --pizza-gold: 38 90% 55%;
-    --pizza-brown: 25 30% 25%;
-    --pizza-olive: 80 30% 35%;
+    /* Custom Top In Town theme tokens */
+    --brand-blue: 203 85% 45%;
+    --brand-blue-dark: 210 70% 25%;
+    --brand-blue-light: 200 80% 55%;
+    --brand-teal: 185 65% 45%;
+    --brand-cream: 45 30% 95%;
+    --brand-gold: 45 100% 50%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(8 75% 45% / 0.95), hsl(8 80% 35% / 0.98));
-    --gradient-warm: linear-gradient(180deg, hsl(35 40% 95%), hsl(30 25% 97%));
-    --gradient-gold: linear-gradient(135deg, hsl(38 90% 55%), hsl(35 85% 50%));
+    --gradient-hero: linear-gradient(135deg, hsl(203 85% 45%), hsl(185 65% 45%));
+    --gradient-warm: linear-gradient(180deg, hsl(200 30% 95%), hsl(210 20% 98%));
+    --gradient-brand: linear-gradient(135deg, hsl(203 85% 45%), hsl(210 70% 35%));
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(20 20% 15% / 0.1);
-    --shadow-warm: 0 8px 30px -8px hsl(8 75% 45% / 0.2);
-    --shadow-card: 0 2px 12px -2px hsl(20 20% 15% / 0.08);
+    --shadow-soft: 0 4px 20px -4px hsl(210 40% 15% / 0.1);
+    --shadow-warm: 0 8px 30px -8px hsl(203 85% 45% / 0.25);
+    --shadow-card: 0 2px 12px -2px hsl(210 40% 15% / 0.08);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -65,33 +65,33 @@
   }
 
   .dark {
-    --background: 20 15% 8%;
-    --foreground: 30 25% 95%;
+    --background: 210 25% 8%;
+    --foreground: 210 20% 95%;
 
-    --card: 20 15% 12%;
-    --card-foreground: 30 25% 95%;
+    --card: 210 25% 12%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 20 15% 12%;
-    --popover-foreground: 30 25% 95%;
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 8 70% 50%;
-    --primary-foreground: 30 25% 98%;
+    --primary: 203 80% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 15% 18%;
-    --secondary-foreground: 30 25% 90%;
+    --secondary: 210 25% 18%;
+    --secondary-foreground: 210 20% 90%;
 
-    --muted: 20 15% 18%;
-    --muted-foreground: 30 15% 60%;
+    --muted: 210 25% 18%;
+    --muted-foreground: 210 15% 60%;
 
-    --accent: 38 85% 50%;
-    --accent-foreground: 20 20% 10%;
+    --accent: 45 90% 50%;
+    --accent-foreground: 210 40% 10%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 20 15% 20%;
-    --input: 20 15% 20%;
-    --ring: 8 70% 50%;
+    --border: 210 25% 20%;
+    --input: 210 25% 20%;
+    --ring: 203 80% 50%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
