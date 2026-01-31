@@ -27,11 +27,11 @@ interface POSNewOrderPanelProps {
 }
 
 const categories = [
-  { id: 'pizza', label: 'Pizza' },
-  { id: 'chicken_wings', label: 'Wings' },
-  { id: 'sides', label: 'Sides' },
+  { id: 'pizza', label: 'Pizzas' },
+  { id: 'chicken_wings', label: 'Chicken Wings' },
+  { id: 'baked_lasagna', label: 'Baked Lasagna' },
   { id: 'drinks', label: 'Drinks' },
-  { id: 'desserts', label: 'Desserts' },
+  { id: 'dipping_sauce', label: 'Dipping Sauces' },
 ] as const;
 
 export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelProps) => {
