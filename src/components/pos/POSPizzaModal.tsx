@@ -660,36 +660,39 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     );
                   })}
                 </div>
-                {/* Notes - inside extra toppings area */}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
-                  <input
-                    type="text"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Special requests..."
-                    className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
-                  />
-                </div>
               </div>
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-base font-bold text-primary">
-              ${totalPrice.toFixed(2)}
-            </span>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-              <Button 
-                variant="pizza" 
-                size="sm"
-                onClick={handleAddToOrder}
-                disabled={!selectedSize || !selectedCrust}
-              >
-                {editingItem ? 'Update' : 'Add to Order'}
-              </Button>
+          {/* Notes + Price/Buttons Row */}
+          <div className="pt-2 border-t space-y-2">
+            {/* Notes Row */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Special requests..."
+                className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
+              />
+            </div>
+            {/* Price + Buttons Row */}
+            <div className="flex items-center justify-between">
+              <span className="text-base font-bold text-primary">
+                ${totalPrice.toFixed(2)}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+                <Button 
+                  variant="pizza" 
+                  size="sm"
+                  onClick={handleAddToOrder}
+                  disabled={!selectedSize || !selectedCrust}
+                >
+                  {editingItem ? 'Update' : 'Add to Order'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
