@@ -655,21 +655,23 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     );
                   })}
                 </div>
+                {/* Notes - inside extra toppings area */}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
+                  <input
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Special requests..."
+                    className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
+                  />
+                </div>
               </div>
             )}
           </div>
 
-          {/* Notes - inline with footer */}
-          <div className="flex items-center gap-3 pt-2 border-t">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Special requests..."
-              className="flex-1 px-2 py-1 text-xs border rounded bg-background"
-            />
-
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t">
             <span className="text-base font-bold text-primary">
               ${totalPrice.toFixed(2)}
             </span>
