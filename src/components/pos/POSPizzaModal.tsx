@@ -397,11 +397,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           key={qty}
                           onClick={() => setCheeseQuantity(qty)}
                           className={cn(
-                            "px-1.5 py-1 text-[10px] rounded border font-medium transition-colors",
+                            "px-3 py-1 text-xs rounded border font-medium transition-colors",
                             cheeseQuantity === qty ? btnActive : btnInactive
                           )}
                         >
-                          {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : `Extra +$${extraPrice}`}
+                          {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
+                          {qty === 'extra' && <span className="text-primary ml-1">+${extraPrice}</span>}
                         </button>
                       );
                     })}
