@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { Plus, Minus, Search, X, User, Phone, MapPin, Utensils, Package, Truck } from 'lucide-react';
+import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
 import { CartItem, OrderType, OrderSource } from '@/types/menu';
 import { cn } from '@/lib/utils';
+import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
+import { POSWingsModal } from '@/components/pos/POSWingsModal';
 
 interface POSNewOrderPanelProps {
   onCreateOrder: (orderData: {
@@ -36,12 +36,15 @@ const categories = [
 
 const pizzaSubcategories = [
   { id: 'all', label: 'All' },
-  { id: 'Vegetarian', label: 'Vegetarian' },
-  { id: 'Paneer', label: 'Paneer' },
-  { id: 'Chicken', label: 'Chicken' },
-  { id: 'Meat Pizza', label: 'Meat Pizza' },
-  { id: 'Hawaiian', label: 'Hawaiian' },
+  { id: 'vegetarian', label: 'Vegetarian' },
+  { id: 'paneer', label: 'Paneer' },
+  { id: 'chicken', label: 'Chicken' },
+  { id: 'meat', label: 'Meat Pizza' },
+  { id: 'hawaiian', label: 'Hawaiian' },
 ] as const;
+
+// Items that require customization
+const CUSTOMIZABLE_CATEGORIES = ['pizza', 'chicken_wings'];
 
 export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelProps) => {
   const { data: menuItems = [], isLoading } = useMenuItems();
@@ -50,12 +53,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   
+  // Customization modal state
+  const [selectedPizzaItem, setSelectedPizzaItem] = useState<MenuItem | null>(null);
+  const [selectedWingsItem, setSelectedWingsItem] = useState<MenuItem | null>(null);
+  const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
+  const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
+  
   // Customer info
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [orderType, setOrderType] = useState<OrderType>('pickup');
-  const [source, setSource] = useState<OrderSource>('walk-in');
   const [tableNumber, setTableNumber] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -74,13 +82,32 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
     setActiveSubcategory('all');
   };
 
-  const addToCart = (menuItem: MenuItem) => {
+  const handleItemClick = (menuItem: MenuItem) => {
+    // Open customization modal for pizza and wings
+    if (menuItem.category === 'pizza') {
+      setSelectedPizzaItem(menuItem);
+      setEditingCartItem(null);
+      setEditingCartIndex(null);
+    } else if (menuItem.category === 'chicken_wings') {
+      setSelectedWingsItem(menuItem);
+      setEditingCartItem(null);
+      setEditingCartIndex(null);
+    } else {
+      // Direct add for non-customizable items
+      addSimpleItem(menuItem);
+    }
+  };
+
+  const addSimpleItem = (menuItem: MenuItem) => {
     const basePrice = menuItem.sizes?.[0]?.price ?? menuItem.base_price;
     const sizeName = menuItem.sizes?.[0]?.name;
 
     setCartItems(prev => {
       const existingIndex = prev.findIndex(
-        item => item.id === menuItem.id && item.selectedSize === sizeName
+        item => item.id === menuItem.id && 
+          item.selectedSize === sizeName && 
+          !item.pizzaCustomization && 
+          !item.wingsCustomization
       );
 
       if (existingIndex >= 0) {
@@ -107,6 +134,58 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
     });
   };
 
+  // Handle pizza added from modal
+  const handlePizzaAdded = (pizzaItem: CartItem) => {
+    if (editingCartIndex !== null) {
+      // Update existing item
+      setCartItems(prev => {
+        const updated = [...prev];
+        updated[editingCartIndex] = pizzaItem;
+        return updated;
+      });
+    } else {
+      // Add new item
+      setCartItems(prev => [...prev, pizzaItem]);
+    }
+    setSelectedPizzaItem(null);
+    setEditingCartItem(null);
+    setEditingCartIndex(null);
+  };
+
+  // Handle wings added from modal  
+  const handleWingsAdded = (wingsItem: CartItem) => {
+    if (editingCartIndex !== null) {
+      setCartItems(prev => {
+        const updated = [...prev];
+        updated[editingCartIndex] = wingsItem;
+        return updated;
+      });
+    } else {
+      setCartItems(prev => [...prev, wingsItem]);
+    }
+    setSelectedWingsItem(null);
+    setEditingCartItem(null);
+    setEditingCartIndex(null);
+  };
+
+  const handleEditItem = (item: CartItem, index: number) => {
+    if (item.pizzaCustomization) {
+      const originalItem = menuItems.find(m => m.id === item.pizzaCustomization?.originalItemId);
+      if (originalItem) {
+        setSelectedPizzaItem(originalItem);
+        setEditingCartItem(item);
+        setEditingCartIndex(index);
+      }
+    } else if (item.wingsCustomization) {
+      const originalItem = menuItems.find(m => m.id === item.wingsCustomization?.originalItemId);
+      if (originalItem) {
+        setSelectedWingsItem(originalItem);
+        setEditingCartItem(item);
+        setEditingCartIndex(index);
+      }
+    }
+  };
+
   const updateQuantity = (index: number, delta: number) => {
     setCartItems(prev => {
       const updated = [...prev];
@@ -119,7 +198,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
       updated[index] = {
         ...updated[index],
         quantity: newQty,
-        totalPrice: newQty * updated[index].price,
+        totalPrice: newQty * (updated[index].totalPrice / updated[index].quantity),
       };
       return updated;
     });
@@ -142,250 +221,337 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
       customerPhone,
       customerAddress,
       orderType,
-      source,
+      source: 'walk-in',
       tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
       notes: notes || undefined,
     });
   };
 
   return (
-    <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
-      {/* Header */}
-      <div className="bg-secondary/50 p-4 border-b border-border flex items-center justify-between">
-        <h2 className="text-xl font-bold">New Order</h2>
-        <Button variant="ghost" size="icon" onClick={onCancel}>
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
+    <>
+      <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
+        {/* Header */}
+        <div className="bg-secondary/50 p-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-xl font-bold">New Order</h2>
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Menu Selection */}
-        <div className="flex-1 flex flex-col border-r border-border">
-          {/* Search */}
-          <div className="p-3 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search menu..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+        <div className="flex-1 flex overflow-hidden">
+          {/* Menu Selection */}
+          <div className="flex-1 flex flex-col border-r border-border">
+            {/* Search */}
+            <div className="p-3 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search menu..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Category Tabs */}
-          <div className="flex gap-1 p-2 border-b border-border overflow-x-auto">
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => handleCategoryChange(cat.id)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
-                  activeCategory === cat.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                )}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Pizza Subcategory Tabs */}
-          {activeCategory === 'pizza' && (
-            <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
-              {pizzaSubcategories.map(sub => (
+            {/* Category Tabs */}
+            <div className="flex gap-1 p-2 border-b border-border overflow-x-auto">
+              {categories.map(cat => (
                 <button
-                  key={sub.id}
-                  onClick={() => setActiveSubcategory(sub.id)}
+                  key={cat.id}
+                  onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
-                    "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
-                    activeSubcategory === sub.id
-                      ? "bg-primary/80 text-primary-foreground"
-                      : "bg-card text-foreground border border-border hover:bg-secondary"
+                    "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+                    activeCategory === cat.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   )}
                 >
-                  {sub.label}
+                  {cat.label}
                 </button>
               ))}
             </div>
-          )}
 
-          {/* Menu Items Grid */}
-          <ScrollArea className="flex-1 p-3">
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading menu...</div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {filteredItems.map(item => (
+            {/* Pizza Subcategory Tabs */}
+            {activeCategory === 'pizza' && (
+              <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
+                {pizzaSubcategories.map(sub => (
                   <button
-                    key={item.id}
-                    onClick={() => addToCart(item)}
-                    className="p-3 bg-secondary/50 rounded-lg text-left hover:bg-secondary transition-colors"
-                  >
-                    <p className="font-medium text-sm truncate">{item.name}</p>
-                    <p className="text-sm text-primary font-bold">
-                      ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-
-        {/* Order Summary */}
-        <div className="w-80 flex flex-col">
-          {/* Cart Items */}
-          <ScrollArea className="flex-1 p-3">
-            {cartItems.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Tap items to add to order
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {cartItems.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="flex items-center gap-2 p-2 bg-secondary/30 rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.name}</p>
-                      {item.selectedSize && (
-                        <p className="text-xs text-muted-foreground">{item.selectedSize}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => updateQuantity(index, -1)}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => updateQuantity(index, 1)}
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <span className="text-sm font-medium w-16 text-right">
-                      ${item.totalPrice.toFixed(2)}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-destructive"
-                      onClick={() => removeItem(index)}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-
-          <Separator />
-
-          {/* Customer & Order Type */}
-          <div className="p-3 space-y-3 border-t border-border">
-            {/* Order Type */}
-            <div>
-              <Label className="text-xs text-muted-foreground">Order Type</Label>
-              <div className="flex gap-1 mt-1">
-                {[
-                  { value: 'pickup', icon: Package, label: 'Pickup' },
-                  { value: 'delivery', icon: Truck, label: 'Delivery' },
-                  { value: 'dine-in', icon: Utensils, label: 'Dine-in' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setOrderType(opt.value as OrderType)}
+                    key={sub.id}
+                    onClick={() => setActiveSubcategory(sub.id)}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-colors",
-                      orderType === opt.value
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground"
+                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                      activeSubcategory === sub.id
+                        ? "bg-primary/80 text-primary-foreground"
+                        : "bg-card text-foreground border border-border hover:bg-secondary"
                     )}
                   >
-                    <opt.icon className="w-3 h-3" />
-                    {opt.label}
+                    {sub.label}
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Table Number for Dine-in */}
-            {orderType === 'dine-in' && (
-              <Input
-                placeholder="Table #"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                className="h-8 text-sm"
-              />
             )}
 
-            {/* Customer Info */}
-            <Input
-              placeholder="Customer name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="h-8 text-sm"
-            />
-            <Input
-              placeholder="Phone number"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              className="h-8 text-sm"
-            />
-            
-            {orderType === 'delivery' && (
-              <Input
-                placeholder="Delivery address"
-                value={customerAddress}
-                onChange={(e) => setCustomerAddress(e.target.value)}
-                className="h-8 text-sm"
-              />
-            )}
-
-            <Textarea
-              placeholder="Order notes..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="text-sm resize-none h-16"
-            />
+            {/* Menu Items Grid */}
+            <ScrollArea className="flex-1 p-3">
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading menu...</div>
+              ) : filteredItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No items found</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {filteredItems.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleItemClick(item)}
+                      className="p-3 bg-secondary/50 rounded-lg text-left hover:bg-secondary transition-colors"
+                    >
+                      <p className="font-medium text-sm truncate">{item.name}</p>
+                      <p className="text-sm text-primary font-bold">
+                        ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
+                        {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
+                          <span className="text-xs text-muted-foreground font-normal ml-1">+</span>
+                        )}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </div>
 
-          {/* Totals & Submit */}
-          <div className="p-3 border-t border-border bg-secondary/30 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+          {/* Order Summary */}
+          <div className="w-80 flex flex-col">
+            {/* Cart Items */}
+            <ScrollArea className="flex-1 p-3">
+              {cartItems.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Tap items to add to order
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {cartItems.map((item, index) => (
+                    <div key={`${item.id}-${index}`} className="p-2 bg-secondary/30 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{item.name}</p>
+                          {item.selectedSize && (
+                            <p className="text-xs text-muted-foreground">{item.selectedSize}</p>
+                          )}
+                          {item.pizzaCustomization && (
+                            <p className="text-xs text-muted-foreground">
+                              {item.pizzaCustomization.crust.name} • {item.pizzaCustomization.cheeseType}
+                            </p>
+                          )}
+                          {item.wingsCustomization && (
+                            <p className="text-xs text-muted-foreground">
+                              {item.wingsCustomization.flavor}
+                            </p>
+                          )}
+                        </div>
+                        {(item.pizzaCustomization || item.wingsCustomization) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleEditItem(item, index)}
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => updateQuantity(index, -1)}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => updateQuantity(index, 1)}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <span className="text-sm font-medium">
+                          ${item.totalPrice.toFixed(2)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive"
+                          onClick={() => removeItem(index)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+
+            <Separator />
+
+            {/* Customer & Order Type */}
+            <div className="p-3 space-y-3 border-t border-border">
+              {/* Order Type */}
+              <div>
+                <Label className="text-xs text-muted-foreground">Order Type</Label>
+                <div className="flex gap-1 mt-1">
+                  {[
+                    { value: 'pickup', icon: Package, label: 'Pickup' },
+                    { value: 'delivery', icon: Truck, label: 'Delivery' },
+                    { value: 'dine-in', icon: Utensils, label: 'Dine-in' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setOrderType(opt.value as OrderType)}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-colors",
+                        orderType === opt.value
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-secondary-foreground"
+                      )}
+                    >
+                      <opt.icon className="w-3 h-3" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Table Number for Dine-in */}
+              {orderType === 'dine-in' && (
+                <Input
+                  placeholder="Table #"
+                  value={tableNumber}
+                  onChange={(e) => setTableNumber(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              )}
+
+              {/* Customer Info */}
+              <Input
+                placeholder="Customer name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="h-8 text-sm"
+              />
+              <Input
+                placeholder="Phone number"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="h-8 text-sm"
+              />
+              
+              {orderType === 'delivery' && (
+                <Input
+                  placeholder="Delivery address"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              )}
+
+              <Textarea
+                placeholder="Order notes..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="text-sm resize-none h-16"
+              />
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax</span>
-              <span>${tax.toFixed(2)}</span>
+
+            {/* Totals & Submit */}
+            <div className="p-3 border-t border-border bg-secondary/30 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span className="text-primary">${total.toFixed(2)}</span>
+              </div>
+              
+              <Button 
+                variant="pizza" 
+                className="w-full mt-2"
+                disabled={cartItems.length === 0}
+                onClick={handleSubmit}
+              >
+                Create Order
+              </Button>
             </div>
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span className="text-primary">${total.toFixed(2)}</span>
-            </div>
-            
-            <Button 
-              variant="pizza" 
-              className="w-full mt-2"
-              disabled={cartItems.length === 0}
-              onClick={handleSubmit}
-            >
-              Create Order
-            </Button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Pizza Customization Modal */}
+      {selectedPizzaItem && (
+        <POSPizzaModal
+          item={selectedPizzaItem}
+          isOpen={!!selectedPizzaItem}
+          onClose={() => {
+            setSelectedPizzaItem(null);
+            setEditingCartItem(null);
+            setEditingCartIndex(null);
+          }}
+          onAddToOrder={(item) => {
+            if (editingCartIndex !== null) {
+              setCartItems(prev => {
+                const updated = [...prev];
+                updated[editingCartIndex] = item;
+                return updated;
+              });
+            } else {
+              setCartItems(prev => [...prev, item]);
+            }
+            setSelectedPizzaItem(null);
+            setEditingCartItem(null);
+            setEditingCartIndex(null);
+          }}
+          editingItem={editingCartItem}
+        />
+      )}
+
+      {/* Wings Customization Modal */}
+      {selectedWingsItem && (
+        <POSWingsModal
+          item={selectedWingsItem}
+          isOpen={!!selectedWingsItem}
+          onClose={() => {
+            setSelectedWingsItem(null);
+            setEditingCartItem(null);
+            setEditingCartIndex(null);
+          }}
+          onAddToOrder={(item) => {
+            if (editingCartIndex !== null) {
+              setCartItems(prev => {
+                const updated = [...prev];
+                updated[editingCartIndex] = item;
+                return updated;
+              });
+            } else {
+              setCartItems(prev => [...prev, item]);
+            }
+            setSelectedWingsItem(null);
+            setEditingCartItem(null);
+            setEditingCartIndex(null);
+          }}
+          editingItem={editingCartItem}
+        />
+      )}
+    </>
   );
 };
