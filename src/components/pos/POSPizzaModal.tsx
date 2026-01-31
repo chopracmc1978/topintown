@@ -69,6 +69,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   );
   const [selectedCheese, setSelectedCheese] = useState<string>(editCustomization?.cheeseType || 'Mozzarella');
   const [selectedSauceId, setSelectedSauceId] = useState<string | null>(editCustomization?.sauceId || null);
+  const [sauceQuantity, setSauceQuantity] = useState<'less' | 'normal' | 'extra'>(
+    editCustomization?.sauceQuantity === 'extra' ? 'extra' : 'normal'
+  );
   const [note, setNote] = useState<string>(editCustomization?.note || '');
   
   // Spicy state
@@ -110,6 +113,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       setNote('');
       setSpicyLevel('none');
       setSpicySide('whole');
+      setSauceQuantity('normal');
       setExtraToppings([]);
       setFreeToppingSelections([]);
       
@@ -282,7 +286,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         cheeseSides: [{ side: 'whole', quantity: 'normal' }],
         sauceId: selectedSauceId,
         sauceName,
-        sauceQuantity: 'normal',
+        sauceQuantity: sauceQuantity === 'extra' ? 'extra' : 'normal',
         freeToppings: freeToppingSelections.map(f => `${f.name}${isLargePizza && f.side !== 'whole' ? ` (${f.side})` : ''}`),
         spicyLevel: spicyLevelObj,
         defaultToppings,
@@ -458,6 +462,21 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   {sauce.name}
                 </button>
               ))}
+              {/* Sauce Quantity - fills the empty space */}
+              <div className="flex gap-0.5 items-center justify-end">
+                {(['less', 'normal', 'extra'] as const).map(qty => (
+                  <button
+                    key={qty}
+                    onClick={() => setSauceQuantity(qty)}
+                    className={cn(
+                      "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                      sauceQuantity === qty ? btnActive : btnInactive
+                    )}
+                  >
+                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
