@@ -1,7 +1,10 @@
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
-import FeaturedPizzas from '@/components/FeaturedPizzas';
+import LocationsSection from '@/components/LocationsSection';
+import FoodCategories from '@/components/FoodCategories';
 import AboutSection from '@/components/AboutSection';
+import DiscoverSection from '@/components/DiscoverSection';
+import FeaturedPizzas from '@/components/FeaturedPizzas';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -10,8 +13,11 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
-        <FeaturedPizzas />
+        <LocationsSection />
+        <FoodCategories />
         <AboutSection />
+        <DiscoverSection />
+        <FeaturedPizzas />
       </main>
       <Footer />
     </div>

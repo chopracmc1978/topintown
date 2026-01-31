@@ -51,13 +51,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        pizza: {
-          red: "hsl(var(--pizza-red))",
-          "red-dark": "hsl(var(--pizza-red-dark))",
-          cream: "hsl(var(--pizza-cream))",
-          gold: "hsl(var(--pizza-gold))",
-          brown: "hsl(var(--pizza-brown))",
-          olive: "hsl(var(--pizza-olive))",
+        brand: {
+          blue: "hsl(var(--brand-blue))",
+          "blue-dark": "hsl(var(--brand-blue-dark))",
+          "blue-light": "hsl(var(--brand-blue-light))",
+          teal: "hsl(var(--brand-teal))",
+          cream: "hsl(var(--brand-cream))",
+          gold: "hsl(var(--brand-gold))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
