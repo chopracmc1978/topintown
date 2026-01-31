@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo.png';
+import LocationSelector from '@/components/LocationSelector';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,8 +46,9 @@ const Navbar = () => {
               </Link>)}
           </div>
 
-          {/* Cart & Order Button */}
+          {/* Location Selector, Cart & Order Button */}
           <div className="hidden md:flex items-center gap-4">
+            <LocationSelector />
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="w-5 h-5" />
@@ -79,6 +81,7 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isOpen && <div className="md:hidden py-4 border-t border-border animate-slide-up">
             <div className="flex flex-col gap-4">
+              <LocationSelector className="w-full justify-between" />
               {navLinks.map(link => <Link key={link.path} to={link.path} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors", isActive(link.path) ? "text-primary" : "text-muted-foreground")}>
                   {link.name}
                 </Link>)}
