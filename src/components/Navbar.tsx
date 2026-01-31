@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Menu, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
+import { useCustomer } from '@/contexts/CustomerContext';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo.png';
 import LocationSelector from '@/components/LocationSelector';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    itemCount
-  } = useCart();
+  const { itemCount } = useCart();
+  const { customer } = useCustomer();
   const location = useLocation();
   const navLinks = [{
     name: 'Home',
@@ -46,9 +46,14 @@ const Navbar = () => {
               </Link>)}
           </div>
 
-          {/* Location Selector, Cart & Order Button */}
+          {/* Location Selector, Account, Cart & Order Button */}
           <div className="hidden md:flex items-center gap-4">
             <LocationSelector />
+            <Link to={customer ? "/my-orders" : "/customer-login"}>
+              <Button variant="ghost" size="icon" title={customer ? "My Orders" : "Login"}>
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="w-5 h-5" />
@@ -85,6 +90,10 @@ const Navbar = () => {
               {navLinks.map(link => <Link key={link.path} to={link.path} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors", isActive(link.path) ? "text-primary" : "text-muted-foreground")}>
                   {link.name}
                 </Link>)}
+              <Link to={customer ? "/my-orders" : "/customer-login"} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors flex items-center gap-2", isActive('/my-orders') || isActive('/customer-login') ? "text-primary" : "text-muted-foreground")}>
+                <User className="w-4 h-4" />
+                {customer ? "My Orders" : "Login"}
+              </Link>
               <Link to="/menu" onClick={() => setIsOpen(false)}>
                 <Button variant="pizza" className="w-full">Order Now</Button>
               </Link>
