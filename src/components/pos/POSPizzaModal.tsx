@@ -501,10 +501,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Sauce Selection - Grid 3 columns */}
+          {/* Sauce Selection - 2 rows */}
           <div>
             <h3 className="font-medium text-xs mb-1">Sauce</h3>
-            <div className="grid grid-cols-4 gap-1">
+            {/* Row 1: Sauce options */}
+            <div className="grid grid-cols-4 gap-1 mb-1">
               <button
                 onClick={() => setSelectedSauceId(null)}
                 className={cn(btnSmall, selectedSauceId === null ? btnActive : btnInactive)}
@@ -520,21 +521,24 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   {sauce.name}
                 </button>
               ))}
-              {/* Sauce Quantity - fills the grid cell */}
-              <div className="flex gap-1 items-center">
-                {(['less', 'normal', 'extra'] as const).map(qty => (
-                  <button
-                    key={qty}
-                    onClick={() => setSauceQuantity(qty)}
-                    className={cn(
-                      "flex-1 px-2 py-1 text-xs rounded border font-medium transition-colors",
-                      sauceQuantity === qty ? btnActive : btnInactive
-                    )}
-                  >
-                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
-                  </button>
-                ))}
-              </div>
+            </div>
+            {/* Row 2: Quantity buttons (only active when sauce is selected) */}
+            <div className="flex gap-1 items-center">
+              {(['less', 'normal', 'extra'] as const).map(qty => (
+                <button
+                  key={qty}
+                  onClick={() => selectedSauceId && setSauceQuantity(qty)}
+                  disabled={!selectedSauceId}
+                  className={cn(
+                    "px-3 py-1 text-xs rounded border font-medium transition-colors",
+                    !selectedSauceId 
+                      ? "opacity-50 cursor-not-allowed border-border text-muted-foreground"
+                      : sauceQuantity === qty ? btnActive : btnInactive
+                  )}
+                >
+                  {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
+                </button>
+              ))}
             </div>
           </div>
 
