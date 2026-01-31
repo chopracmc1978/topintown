@@ -474,34 +474,58 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             )}
           </div>
 
-          {/* Row 2: Spicy Level - like Free Add-ons style */}
+          {/* Row 2: Spicy Level */}
           <div>
             <h3 className="font-medium text-xs mb-1">Spicy Level</h3>
-            <div className="flex items-center gap-3">
-              {/* None button */}
-              <button
-                onClick={() => {
-                  setLeftSpicy('none');
-                  setRightSpicy('none');
-                }}
-                className={cn(btnSmall, leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive)}
-              >
-                None
-              </button>
+            <div className="flex items-center gap-2">
+              {/* None button - disabled when a side has heat selected */}
+              {(() => {
+                const isNoneActive = leftSpicy === 'none' && rightSpicy === 'none';
+                const isNoneDisabled = (leftSpicy !== 'none' || rightSpicy !== 'none');
+                return (
+                  <button
+                    disabled={isNoneDisabled}
+                    onClick={() => {
+                      setLeftSpicy('none');
+                      setRightSpicy('none');
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[50px]",
+                      isNoneActive ? btnActive : btnInactive,
+                      isNoneDisabled && "opacity-40 cursor-not-allowed"
+                    )}
+                  >
+                    None
+                  </button>
+                );
+              })()}
 
-              {/* Medium with L/W/R */}
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Med</span>
-                {isLargePizza ? (
+              {/* Medium button with L/W/R for large pizza */}
+              {isLargePizza ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-foreground min-w-[50px]">Medium</span>
                   <div className="flex gap-0.5">
                     {(['left', 'whole', 'right'] as Side[]).map(side => {
+                      // Active states
                       const isActive = side === 'whole' 
                         ? leftSpicy === 'medium' && rightSpicy === 'medium'
                         : side === 'left' 
-                          ? leftSpicy === 'medium' && rightSpicy === 'none'
-                          : rightSpicy === 'medium' && leftSpicy === 'none';
-                      // Disable if Hot is selected on any side
-                      const isDisabled = leftSpicy === 'hot' || rightSpicy === 'hot';
+                          ? leftSpicy === 'medium'
+                          : rightSpicy === 'medium';
+                      
+                      // Disable logic:
+                      // - If whole Medium is active, disable L/R for Medium
+                      // - If Hot is on same side, disable Medium for that side
+                      // - If Hot Whole is active, disable all Medium
+                      const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
+                      const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
+                      
+                      let isDisabled = false;
+                      if (hotWhole) isDisabled = true;
+                      if (side === 'left' && leftSpicy === 'hot') isDisabled = true;
+                      if (side === 'right' && rightSpicy === 'hot') isDisabled = true;
+                      if (side === 'whole' && (leftSpicy === 'hot' || rightSpicy === 'hot')) isDisabled = true;
+                      
                       return (
                         <button
                           key={side}
@@ -512,14 +536,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               setRightSpicy('medium');
                             } else if (side === 'left') {
                               setLeftSpicy('medium');
-                              setRightSpicy('none');
+                              if (rightSpicy !== 'hot') setRightSpicy('none');
                             } else {
                               setRightSpicy('medium');
-                              setLeftSpicy('none');
+                              if (leftSpicy !== 'hot') setLeftSpicy('none');
                             }
                           }}
                           className={cn(
-                            "px-1.5 py-1 text-[10px] rounded border font-medium transition-colors",
+                            "px-2.5 py-1.5 text-xs rounded border font-medium transition-colors min-w-[45px]",
                             isActive ? btnActive : btnInactive,
                             isDisabled && "opacity-40 cursor-not-allowed"
                           )}
@@ -529,35 +553,48 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       );
                     })}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setLeftSpicy('medium');
-                      setRightSpicy('medium');
-                    }}
-                    className={cn(
-                      "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
-                      leftSpicy === 'medium' ? btnActive : btnInactive
-                    )}
-                  >
-                    Whole
-                  </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setLeftSpicy('medium');
+                    setRightSpicy('medium');
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[70px]",
+                    leftSpicy === 'medium' ? btnActive : btnInactive
+                  )}
+                >
+                  Medium
+                </button>
+              )}
 
-              {/* Hot with L/W/R */}
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Hot</span>
-                {isLargePizza ? (
+              {/* Hot button with L/W/R for large pizza */}
+              {isLargePizza ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-foreground min-w-[30px]">Hot</span>
                   <div className="flex gap-0.5">
                     {(['left', 'whole', 'right'] as Side[]).map(side => {
+                      // Active states
                       const isActive = side === 'whole' 
                         ? leftSpicy === 'hot' && rightSpicy === 'hot'
                         : side === 'left' 
-                          ? leftSpicy === 'hot' && rightSpicy === 'none'
-                          : rightSpicy === 'hot' && leftSpicy === 'none';
-                      // Disable if Medium is selected on any side
-                      const isDisabled = leftSpicy === 'medium' || rightSpicy === 'medium';
+                          ? leftSpicy === 'hot'
+                          : rightSpicy === 'hot';
+                      
+                      // Disable logic:
+                      // - If whole Hot is active, disable L/R for Hot
+                      // - If Medium is on same side, disable Hot for that side
+                      // - If Medium Whole is active, disable all Hot
+                      const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
+                      const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
+                      
+                      let isDisabled = false;
+                      if (medWhole) isDisabled = true;
+                      if (side === 'left' && leftSpicy === 'medium') isDisabled = true;
+                      if (side === 'right' && rightSpicy === 'medium') isDisabled = true;
+                      if (side === 'whole' && (leftSpicy === 'medium' || rightSpicy === 'medium')) isDisabled = true;
+                      
                       return (
                         <button
                           key={side}
@@ -568,14 +605,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               setRightSpicy('hot');
                             } else if (side === 'left') {
                               setLeftSpicy('hot');
-                              setRightSpicy('none');
+                              if (rightSpicy !== 'medium') setRightSpicy('none');
                             } else {
                               setRightSpicy('hot');
-                              setLeftSpicy('none');
+                              if (leftSpicy !== 'medium') setLeftSpicy('none');
                             }
                           }}
                           className={cn(
-                            "px-1.5 py-1 text-[10px] rounded border font-medium transition-colors",
+                            "px-2.5 py-1.5 text-xs rounded border font-medium transition-colors min-w-[45px]",
                             isActive ? btnActive : btnInactive,
                             isDisabled && "opacity-40 cursor-not-allowed"
                           )}
@@ -585,21 +622,21 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       );
                     })}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setLeftSpicy('hot');
-                      setRightSpicy('hot');
-                    }}
-                    className={cn(
-                      "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
-                      leftSpicy === 'hot' ? btnActive : btnInactive
-                    )}
-                  >
-                    Whole
-                  </button>
-                )}
-              </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setLeftSpicy('hot');
+                    setRightSpicy('hot');
+                  }}
+                  className={cn(
+                    "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[50px]",
+                    leftSpicy === 'hot' ? btnActive : btnInactive
+                  )}
+                >
+                  Hot
+                </button>
+              )}
             </div>
           </div>
 
