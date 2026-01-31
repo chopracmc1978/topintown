@@ -404,38 +404,41 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Free Add-ons - moved here after Spicy Level */}
+          {/* Free Add-ons - full width with L/W/R always visible */}
           {freeToppings.length > 0 && (
             <div>
               <h3 className="font-medium text-xs mb-1.5">Free Add-ons</h3>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex gap-4">
                 {freeToppings.map(topping => {
                   const selection = freeToppingSelections.find(f => f.name === topping.name);
                   const isSelected = !!selection;
                   return (
-                    <div key={topping.id} className="flex items-center gap-0.5">
+                    <div key={topping.id} className="flex items-center gap-1">
                       <button
                         onClick={() => toggleFreeTopping(topping.name)}
-                        className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
+                        className={cn(btnSmall, "min-w-[90px]", isSelected ? btnActive : btnInactive)}
                       >
                         {topping.name}
                       </button>
-                      {isLargePizza && isSelected && (
-                        <div className="flex gap-0.5">
-                          {SIDE_OPTIONS.map(side => (
-                            <button
-                              key={side.value}
-                              onClick={() => updateFreeToppingSide(topping.name, side.value)}
-                              className={cn(
-                                "w-5 h-5 text-[10px] rounded border font-medium transition-colors",
-                                selection?.side === side.value ? btnActive : btnInactive
-                              )}
-                            >
-                              {side.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex gap-0.5">
+                        {SIDE_OPTIONS.map(side => (
+                          <button
+                            key={side.value}
+                            onClick={() => {
+                              if (!isSelected) {
+                                toggleFreeTopping(topping.name);
+                              }
+                              updateFreeToppingSide(topping.name, side.value);
+                            }}
+                            className={cn(
+                              "w-6 h-6 text-[10px] rounded border font-medium transition-colors",
+                              isSelected && selection?.side === side.value ? btnActive : btnInactive
+                            )}
+                          >
+                            {side.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   );
                 })}
