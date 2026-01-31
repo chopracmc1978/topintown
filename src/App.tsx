@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { CustomerProvider } from "@/contexts/CustomerContext";
 import Index from "./pages/Index";
 import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
@@ -14,6 +15,8 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import POS from "./pages/POS";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import CustomerLogin from "./pages/CustomerLogin";
+import MyOrders from "./pages/MyOrders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,26 +25,30 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <LocationProvider>
-        <CartProvider>
-          <OrderProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/menu" element={<Menu />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-                <Route path="/pos" element={<POS />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<Admin />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </OrderProvider>
-        </CartProvider>
+        <CustomerProvider>
+          <CartProvider>
+            <OrderProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/menu" element={<Menu />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                  <Route path="/pos" element={<POS />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/customer-login" element={<CustomerLogin />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </OrderProvider>
+          </CartProvider>
+        </CustomerProvider>
       </LocationProvider>
     </TooltipProvider>
   </QueryClientProvider>
