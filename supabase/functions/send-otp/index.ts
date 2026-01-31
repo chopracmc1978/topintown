@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,47 +20,29 @@ function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendEmailWithSendGrid(to: string, code: string): Promise<void> {
-  const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");
-  if (!SENDGRID_API_KEY) {
-    throw new Error("SENDGRID_API_KEY is not configured");
-  }
-
-  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${SENDGRID_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email: to }] }],
-      from: { email: "noreply@topintownpizza.ca", name: "Top In Town Pizza" },
-      subject: "Your Verification Code - Top In Town",
-      content: [
-        {
-          type: "text/html",
-          value: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #e53935; text-align: center;">Top In Town Pizza</h1>
-              <div style="background-color: #f5f5f5; padding: 30px; border-radius: 10px; text-align: center;">
-                <h2 style="margin-bottom: 20px;">Your Verification Code</h2>
-                <div style="font-size: 36px; font-weight: bold; color: #e53935; letter-spacing: 8px; padding: 20px; background: white; border-radius: 8px; display: inline-block;">
-                  ${code}
-                </div>
-                <p style="color: #666; margin-top: 20px;">This code expires in 10 minutes.</p>
-                <p style="color: #999; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
-              </div>
-            </div>
-          `,
-        },
-      ],
-    }),
+async function sendEmailWithResend(to: string, code: string): Promise<void> {
+  const { error } = await resend.emails.send({
+    from: "Top In Town Pizza <noreply@topintownpizza.ca>",
+    to: [to],
+    subject: "Your Verification Code - Top In Town",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #e53935; text-align: center;">Top In Town Pizza</h1>
+        <div style="background-color: #f5f5f5; padding: 30px; border-radius: 10px; text-align: center;">
+          <h2 style="margin-bottom: 20px;">Your Verification Code</h2>
+          <div style="font-size: 36px; font-weight: bold; color: #e53935; letter-spacing: 8px; padding: 20px; background: white; border-radius: 8px; display: inline-block;">
+            ${code}
+          </div>
+          <p style="color: #666; margin-top: 20px;">This code expires in 10 minutes.</p>
+          <p style="color: #999; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
+        </div>
+      </div>
+    `,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("SendGrid error:", response.status, errorText);
-    throw new Error(`SendGrid API error: ${response.status}`);
+  if (error) {
+    console.error("Resend error:", error);
+    throw new Error(`Resend API error: ${error.message}`);
   }
 }
 
@@ -123,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send OTP via email using SendGrid
     if (type === "email" && email) {
-      await sendEmailWithSendGrid(email, code);
+      await sendEmailWithResend(email, code);
       console.log("Email OTP sent successfully via SendGrid to:", email);
     }
 
