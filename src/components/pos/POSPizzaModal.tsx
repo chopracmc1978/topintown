@@ -404,7 +404,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Free Add-ons - full width with L/W/R always visible */}
+          {/* Free Add-ons - full width with Left/Whole/Right */}
           {freeToppings.length > 0 && (
             <div>
               <h3 className="font-medium text-xs mb-1.5">Free Add-ons</h3>
@@ -420,25 +420,41 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       >
                         {topping.name}
                       </button>
-                      <div className="flex gap-0.5">
-                        {SIDE_OPTIONS.map(side => (
-                          <button
-                            key={side.value}
-                            onClick={() => {
-                              if (!isSelected) {
-                                toggleFreeTopping(topping.name);
-                              }
-                              updateFreeToppingSide(topping.name, side.value);
-                            }}
-                            className={cn(
-                              "w-6 h-6 text-[10px] rounded border font-medium transition-colors",
-                              isSelected && selection?.side === side.value ? btnActive : btnInactive
-                            )}
-                          >
-                            {side.label}
-                          </button>
-                        ))}
-                      </div>
+                      {isLargePizza ? (
+                        <div className="flex gap-0.5">
+                          {(['left', 'whole', 'right'] as const).map(side => (
+                            <button
+                              key={side}
+                              onClick={() => {
+                                if (!isSelected) {
+                                  toggleFreeTopping(topping.name);
+                                }
+                                updateFreeToppingSide(topping.name, side);
+                              }}
+                              className={cn(
+                                "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
+                                isSelected && selection?.side === side ? btnActive : btnInactive
+                              )}
+                            >
+                              {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (!isSelected) {
+                              toggleFreeTopping(topping.name);
+                            }
+                          }}
+                          className={cn(
+                            "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
+                            isSelected ? btnActive : btnInactive
+                          )}
+                        >
+                          Whole
+                        </button>
+                      )}
                     </div>
                   );
                 })}
