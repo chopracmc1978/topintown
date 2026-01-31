@@ -568,13 +568,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         </button>
                         {!isRemoved && (
                           <>
-                            <div className="flex gap-0.5">
+                            <div className="flex gap-1">
                               {QUANTITY_OPTIONS.map(opt => (
                                 <button
                                   key={opt.value}
                                   onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
                                   className={cn(
-                                    "px-2 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                    "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[40px]",
                                     topping.quantity === opt.value ? btnActive : btnInactive
                                   )}
                                 >
@@ -583,13 +583,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               ))}
                             </div>
                             {isLargePizza && (
-                              <div className="flex gap-0.5">
+                              <div className="flex gap-1">
                                 {SIDE_OPTIONS.map(side => (
                                   <button
                                     key={side.value}
                                     onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
                                     className={cn(
-                                      "w-4 h-4 text-[9px] rounded border font-medium transition-colors",
+                                      "w-7 h-7 text-xs rounded border font-medium transition-colors",
                                       topping.side === side.value ? btnActive : btnInactive
                                     )}
                                   >
