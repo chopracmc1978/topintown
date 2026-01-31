@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Pizza, MapPin, Phone, Clock, Instagram, Facebook, Twitter } from 'lucide-react';
+import { MapPin, Phone, Clock, Instagram, Facebook, Twitter } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Footer = () => {
   return (
@@ -8,12 +9,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <Pizza className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="font-serif text-xl font-bold">Bella Pizza</span>
-            </div>
+            <img 
+              src={logo} 
+              alt="Top In Town Pizza" 
+              className="h-16 w-auto"
+            />
             <p className="text-sm text-background/70">
               Authentic Italian pizza made with love, fresh ingredients, and generations of tradition.
             </p>

@@ -23,8 +23,8 @@ const HeroSection = () => {
           </div>
 
           <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight mb-6">
-            Authentic Italian
-            <span className="block text-accent">Pizza Perfection</span>
+            Top In Town
+            <span className="block text-accent">Pizza</span>
           </h1>
 
           <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 max-w-lg">
