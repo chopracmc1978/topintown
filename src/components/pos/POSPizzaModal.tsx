@@ -481,14 +481,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   {sauce.name}
                 </button>
               ))}
-              {/* Sauce Quantity - fills the empty space */}
-              <div className="flex gap-0.5 items-center justify-end">
+              {/* Sauce Quantity - fills the grid cell */}
+              <div className="flex gap-1 items-center">
                 {(['less', 'normal', 'extra'] as const).map(qty => (
                   <button
                     key={qty}
                     onClick={() => setSauceQuantity(qty)}
                     className={cn(
-                      "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                      "flex-1 px-2 py-1 text-xs rounded border font-medium transition-colors",
                       sauceQuantity === qty ? btnActive : btnInactive
                     )}
                   >
