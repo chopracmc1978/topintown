@@ -55,7 +55,17 @@ const CustomerLogin = () => {
         toast.success('Welcome back!');
         navigate('/my-orders');
       } else {
-        toast.error(result.error || 'Login failed');
+        // Show user-friendly error for wrong password
+        if (result.error?.toLowerCase().includes('invalid') || result.error?.toLowerCase().includes('password')) {
+          toast.error('Wrong password. Try again or use forgot password.', {
+            action: {
+              label: 'Forgot password?',
+              onClick: () => setViewMode('forgot-email'),
+            },
+          });
+        } else {
+          toast.error(result.error || 'Login failed');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
