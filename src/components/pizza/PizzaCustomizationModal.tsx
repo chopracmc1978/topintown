@@ -12,7 +12,8 @@ import { useGlobalSauces } from '@/hooks/useGlobalSauces';
 import type { SideSpicyLevel, ToppingQuantity, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
 import type { CartItem } from '@/types/menu';
 import { cn } from '@/lib/utils';
-import { Flame } from 'lucide-react';
+import { Flame, ArrowRight } from 'lucide-react';
+import UpsellModal from '@/components/upsell/UpsellModal';
 
 interface PizzaCustomizationModalProps {
   item: MenuItem;
@@ -31,12 +32,20 @@ interface CheeseSideSelection {
 const GLUTEN_FREE_PRICE = 2.5;
 
 const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: PizzaCustomizationModalProps) => {
-  const { addCustomizedPizza, updateCustomizedPizza } = useCart();
+  const { addCustomizedPizza, updateCustomizedPizza, addToCart } = useCart();
   const { data: sizeCrustAvailability } = useSizeCrustAvailability();
   const { data: cheeseOptions } = useCheeseOptions();
   const { data: freeToppingsData } = useFreeToppings();
   const { data: allSauces } = useGlobalSauces();
   const { data: allToppings } = useToppings();
+  
+  // Upsell modal state
+  const [showUpsell, setShowUpsell] = useState(false);
+  const [pendingPizzaData, setPendingPizzaData] = useState<{
+    menuItem: any;
+    customization: any;
+    totalPrice: number;
+  } | null>(null);
 
   const defaultSauceIds = useMemo(
     () => item.default_global_sauces?.map(ds => ds.global_sauce_id) || [],
@@ -173,7 +182,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
     return t;
   }, [selectedSize, selectedCrust, cheeseSides, selectedSauceId, sauceQuantity, allSauces, defaultSauceIds, defaultToppings, extraToppings, toppingPrice]);
 
-  const handleAddToCart = () => {
+  const handleNext = () => {
     if (!selectedSize || !selectedCrust) return;
     
     const sauceName = selectedSauceId && allSauces 
@@ -196,27 +205,60 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
       originalItemId: item.id,
     };
     
+    const menuItem = {
+      id: item.id,
+      name: item.name,
+      description: item.description || '',
+      price: totalPrice,
+      image: item.image_url || '/placeholder.svg',
+      category: 'pizza' as const,
+      popular: item.is_popular,
+    };
+    
     if (editingCartItem) {
-      updateCustomizedPizza(editingCartItem.id, {
-        id: item.id,
-        name: item.name,
-        description: item.description || '',
-        price: totalPrice,
-        image: item.image_url || '/placeholder.svg',
-        category: 'pizza',
-        popular: item.is_popular,
-      }, customization, totalPrice);
+      // For editing, update directly without upsell
+      updateCustomizedPizza(editingCartItem.id, menuItem, customization, totalPrice);
+      onClose();
     } else {
-      addCustomizedPizza({
-        id: item.id,
-        name: item.name,
-        description: item.description || '',
-        price: totalPrice,
-        image: item.image_url || '/placeholder.svg',
-        category: 'pizza',
-        popular: item.is_popular,
-      }, customization, totalPrice);
+      // For new pizza, show upsell flow
+      setPendingPizzaData({ menuItem, customization, totalPrice });
+      setShowUpsell(true);
     }
+  };
+
+  const handleUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number }[]) => {
+    // First add the pizza
+    if (pendingPizzaData) {
+      addCustomizedPizza(pendingPizzaData.menuItem, pendingPizzaData.customization, pendingPizzaData.totalPrice);
+    }
+    
+    // Then add all upsell items
+    upsellItems.forEach(item => {
+      for (let i = 0; i < item.quantity; i++) {
+        addToCart({
+          id: item.id,
+          name: item.name,
+          description: '',
+          price: item.price,
+          image: item.image_url || '/placeholder.svg',
+          category: 'sides',
+        });
+      }
+    });
+    
+    // Reset and close
+    setPendingPizzaData(null);
+    setShowUpsell(false);
+    onClose();
+  };
+
+  const handleUpsellClose = () => {
+    // If upsell is closed without completing, still add the pizza
+    if (pendingPizzaData) {
+      addCustomizedPizza(pendingPizzaData.menuItem, pendingPizzaData.customization, pendingPizzaData.totalPrice);
+    }
+    setPendingPizzaData(null);
+    setShowUpsell(false);
     onClose();
   };
 
@@ -293,7 +335,8 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+    <Dialog open={isOpen && !showUpsell} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-card z-10">
@@ -301,9 +344,16 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
             <img src={item.image_url || '/placeholder.svg'} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
             <h2 className="font-serif text-lg font-bold">{item.name}</h2>
           </div>
-          <Button variant="pizza" onClick={handleAddToCart}>
-            {editingCartItem ? 'Update Cart' : 'Add to Cart'} - ${totalPrice.toFixed(2)}
-          </Button>
+          {editingCartItem ? (
+            <Button variant="pizza" onClick={handleNext}>
+              Update Cart - ${totalPrice.toFixed(2)}
+            </Button>
+          ) : (
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Total</p>
+              <p className="font-bold text-lg text-primary">${totalPrice.toFixed(2)}</p>
+            </div>
+          )}
         </div>
 
         <div className="px-4 py-3 space-y-4">
@@ -768,9 +818,31 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
               className="h-16 text-sm resize-none"
             />
           </div>
+
+          {/* Next Button at Bottom - Only for new pizza */}
+          {!editingCartItem && (
+            <div className="sticky bottom-0 bg-card border-t pt-4 pb-2 -mx-4 px-4">
+              <Button 
+                variant="pizza" 
+                size="lg" 
+                className="w-full gap-2"
+                onClick={handleNext}
+              >
+                Next <ArrowRight className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Upsell Modal */}
+    <UpsellModal 
+      isOpen={showUpsell} 
+      onClose={handleUpsellClose}
+      onComplete={handleUpsellComplete}
+    />
+    </>
   );
 };
 
