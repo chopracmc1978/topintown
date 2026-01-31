@@ -1,15 +1,17 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const locations = [
   {
     name: 'CALGARY LOCATION',
     address: '3250 60 ST NE, CALGARY, AB T1Y 3T5',
+    phone: '(403) 280-7373 ext 1',
     orderLink: '/menu',
   },
   {
     name: 'CHESTERMERE LOCATION',
     address: '272 Kinniburgh Blvd unit 103, Chestermere, AB T1X 0V8, Canada',
+    phone: '(403) 280-7373 ext 2',
     orderLink: '/menu',
   },
 ];
@@ -37,7 +39,11 @@ const LocationsSection = () => {
                 <MapPin className="w-8 h-8 text-primary-foreground" />
               </div>
               <h3 className="font-serif text-xl font-bold mb-3">{location.name}</h3>
-              <p className="text-white/80 mb-6">{location.address}</p>
+              <p className="text-white/80 mb-2">{location.address}</p>
+              <p className="text-white/80 mb-6 flex items-center justify-center gap-2">
+                <Phone className="w-4 h-4" />
+                {location.phone}
+              </p>
               <Button 
                 variant="default"
                 className="bg-primary hover:bg-primary/90"
