@@ -536,155 +536,135 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Toppings - Side by Side Layout */}
-          <div className="grid grid-cols-[auto_1fr] gap-4">
-            {/* Default Toppings - Left (Stacked Layout) */}
-            {pizzaDefaultToppings.length > 0 && (
-              <div className="w-[160px]">
-                <h3 className="font-medium text-xs mb-1">Default Toppings</h3>
-                <div className="space-y-1">
-                  {defaultToppings.map(topping => {
-                    const isRemoved = topping.quantity === 'none';
-                    return (
-                      <div key={topping.id} className={cn(
-                        "rounded p-1.5",
-                        isRemoved ? "bg-destructive/10" : "bg-secondary/30"
-                      )}>
-                        {/* Topping Name Row */}
-                        <div className="flex items-center gap-1 mb-1">
-                          <span className={cn(
-                            "w-2 h-2 rounded-full flex-shrink-0",
-                            topping.isVeg ? "bg-green-500" : "bg-red-500"
-                          )} />
-                          <button
-                            onClick={() => updateDefaultToppingQuantity(
-                              topping.id, 
-                              isRemoved ? 'regular' : 'none'
-                            )}
-                            className={cn(
-                              "text-xs font-medium text-left",
-                              isRemoved && "line-through text-muted-foreground"
-                            )}
-                          >
-                            {topping.name}
-                          </button>
-                        </div>
-                        {/* Quantity Buttons Row */}
-                        {!isRemoved && (
-                          <div className="flex gap-1">
-                            {QUANTITY_OPTIONS.map(opt => (
-                              <button
-                                key={opt.value}
-                                onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
-                                className={cn(
-                                  "flex-1 px-2 py-1.5 text-xs rounded border font-medium transition-colors",
-                                  topping.quantity === opt.value ? btnActive : btnInactive
-                                )}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                        {/* L/W/R for Large pizzas */}
-                        {!isRemoved && isLargePizza && (
-                          <div className="flex gap-1 mt-1">
-                            {SIDE_OPTIONS.map(side => (
-                              <button
-                                key={side.value}
-                                onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
-                                className={cn(
-                                  "flex-1 px-2 py-1 text-xs rounded border font-medium transition-colors",
-                                  topping.side === side.value ? btnActive : btnInactive
-                                )}
-                              >
-                                {side.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Extra Toppings - Right */}
-            {availableExtraToppings.length > 0 && (
-              <div>
-                <h3 className="font-medium text-xs mb-1">
-                  Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
-                </h3>
-                <div className="grid grid-cols-3 gap-1">
-                  {availableExtraToppings.map(topping => {
-                    const selected = extraToppings.find(t => t.id === topping.id);
-                    const isSelected = !!selected;
-                    return (
-                      <div key={topping.id} className="flex items-center gap-1">
+          {/* Default Toppings - 5 column grid */}
+          {pizzaDefaultToppings.length > 0 && (
+            <div>
+              <h3 className="font-medium text-xs mb-1">Default Toppings</h3>
+              <div className="grid grid-cols-5 gap-1">
+                {defaultToppings.map(topping => {
+                  const isRemoved = topping.quantity === 'none';
+                  return (
+                    <div key={topping.id} className={cn(
+                      "rounded p-1 border",
+                      isRemoved ? "border-destructive/30 bg-destructive/5" : "border-border"
+                    )}>
+                      {/* Name with veg indicator */}
+                      <div className="flex items-center gap-1 mb-1">
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                          topping.is_veg ? "bg-green-500" : "bg-red-500"
+                          topping.isVeg ? "bg-green-500" : "bg-red-500"
                         )} />
                         <button
-                          onClick={() => toggleExtraTopping(topping)}
+                          onClick={() => updateDefaultToppingQuantity(
+                            topping.id, 
+                            isRemoved ? 'regular' : 'none'
+                          )}
                           className={cn(
-                            "text-xs flex-1 text-left truncate min-w-0 px-2 py-1.5 rounded border transition-colors",
-                            isSelected ? btnActive : btnInactive
+                            "text-[10px] font-medium text-left truncate",
+                            isRemoved && "line-through text-muted-foreground"
                           )}
                         >
                           {topping.name}
                         </button>
-                        {isLargePizza && isSelected && (
-                          <div className="flex gap-0.5">
-                            {SIDE_OPTIONS.map(side => (
-                              <button
-                                key={side.value}
-                                onClick={() => updateExtraToppingSide(topping.id, side.value as PizzaSide)}
-                                className={cn(
-                                  "w-7 h-7 text-xs rounded border font-medium transition-colors",
-                                  selected?.side === side.value ? btnActive : btnInactive
-                                )}
-                              >
-                                {side.label}
-                              </button>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    );
-                  })}
-                </div>
-                {/* Notes - inside extra toppings area */}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
-                  <input
-                    type="text"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Special requests..."
-                    className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
-                  />
-                </div>
-                {/* Price + Buttons - right after Notes */}
-                <div className="flex items-center justify-between mt-2 pt-2 border-t">
-                  <span className="text-base font-bold text-primary">
-                    ${totalPrice.toFixed(2)}
-                  </span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-                    <Button 
-                      variant="pizza" 
-                      size="sm"
-                      onClick={handleAddToOrder}
-                      disabled={!selectedSize || !selectedCrust}
-                    >
-                      {editingItem ? 'Update' : 'Add to Order'}
-                    </Button>
-                  </div>
-                </div>
+                      {/* Quantity: Less/Reg/Extra */}
+                      {!isRemoved && (
+                        <div className="flex gap-0.5 mb-0.5">
+                          {QUANTITY_OPTIONS.map(opt => (
+                            <button
+                              key={opt.value}
+                              onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
+                              className={cn(
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                topping.quantity === opt.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {/* Side: L/W/R */}
+                      {!isRemoved && (
+                        <div className="flex gap-0.5">
+                          {SIDE_OPTIONS.map(side => (
+                            <button
+                              key={side.value}
+                              onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                              className={cn(
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                topping.side === side.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {side.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Extra Toppings - 3 column grid */}
+          {availableExtraToppings.length > 0 && (
+            <div>
+              <h3 className="font-medium text-xs mb-1">
+                Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
+              </h3>
+              <div className="grid grid-cols-3 gap-1">
+                {availableExtraToppings.map(topping => {
+                  const selected = extraToppings.find(t => t.id === topping.id);
+                  const isSelected = !!selected;
+                  return (
+                    <button
+                      key={topping.id}
+                      onClick={() => toggleExtraTopping(topping)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2 py-1 text-xs rounded border transition-colors text-left",
+                        isSelected ? btnActive : btnInactive
+                      )}
+                    >
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                        topping.is_veg ? "bg-green-500" : "bg-red-500"
+                      )} />
+                      <span className="truncate">{topping.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Notes + Price + Buttons - Bottom row */}
+          <div className="flex items-center justify-between pt-2 border-t mt-1">
+            <div className="flex items-center gap-2 flex-1 mr-4">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Special requests..."
+                className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
+              />
+            </div>
+            <span className="text-base font-bold text-primary mr-4">
+              ${totalPrice.toFixed(2)}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+              <Button 
+                variant="pizza" 
+                size="sm"
+                onClick={handleAddToOrder}
+                disabled={!selectedSize || !selectedCrust}
+              >
+                {editingItem ? 'Update' : 'Add to Order'}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
