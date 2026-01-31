@@ -73,6 +73,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     editCustomization?.sauceQuantity === 'extra' ? 'extra' : 'normal'
   );
   const [note, setNote] = useState<string>(editCustomization?.note || '');
+  const [extraAmount, setExtraAmount] = useState<number>(editCustomization?.extraAmount || 0);
   
   // Spicy state
   const [spicyLevel, setSpicyLevel] = useState<SpicyLevel>('none');
@@ -112,6 +113,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       setSelectedCheese('Mozzarella');
       setCheeseQuantity('normal');
       setNote('');
+      setExtraAmount(0);
       setSpicyLevel('none');
       setSpicySide('whole');
       setSauceQuantity('normal');
@@ -267,6 +269,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     // Extra toppings price
     price += extraToppings.length * toppingPrice;
     
+    // Extra amount for special requests
+    price += extraAmount;
+    
     return price;
   };
 
@@ -306,6 +311,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         defaultToppings,
         extraToppings,
         note,
+        extraAmount: extraAmount > 0 ? extraAmount : undefined,
         originalItemId: item.id,
       },
     };
@@ -659,7 +665,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Notes + Price + Buttons - Bottom row */}
+          {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
           <div className="flex items-center justify-between pt-2 border-t mt-1">
             <div className="flex items-center gap-2 flex-1 mr-4">
               <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
@@ -669,6 +675,18 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Special requests..."
                 className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
+              />
+            </div>
+            <div className="flex items-center gap-1 mr-4">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={extraAmount || ''}
+                onChange={(e) => setExtraAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+                className="w-16 px-2 py-1.5 text-xs border rounded bg-background text-center"
               />
             </div>
             <span className="text-base font-bold text-primary mr-4">

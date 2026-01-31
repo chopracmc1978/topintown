@@ -25,6 +25,7 @@ export interface CartPizzaCustomization {
   defaultToppings: SelectedTopping[];
   extraToppings: SelectedTopping[];
   note: string;
+  extraAmount?: number; // Extra charge for special requests
   originalItemId: string; // Original menu item ID for re-editing
 }
 
