@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Pizza, Utensils, Drumstick, Coffee, UtensilsCrossed } from 'lucide-react';
+import { Pizza, Utensils, Drumstick, Coffee, Droplets } from 'lucide-react';
 
 const categories = [
   {
@@ -10,7 +10,7 @@ const categories = [
   {
     name: 'Pasta',
     icon: Utensils,
-    link: '/menu?category=sides',
+    link: '/menu?category=baked_lasagna',
   },
   {
     name: 'Wings',
@@ -23,9 +23,9 @@ const categories = [
     link: '/menu?category=drinks',
   },
   {
-    name: 'Side Orders',
-    icon: UtensilsCrossed,
-    link: '/menu?category=sides',
+    name: 'Dipping Sauces',
+    icon: Droplets,
+    link: '/menu?category=dipping_sauce',
   },
 ];
 
