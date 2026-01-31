@@ -26,7 +26,7 @@ const UPSELL_STEPS: { step: UpsellStep; title: string; subtitle: string; categor
   { step: 'drinks', title: 'Add a Drink?', subtitle: 'Refresh your meal with a cold beverage', category: 'drinks' },
   { step: 'dipping_sauce', title: 'Add Dipping Sauce?', subtitle: 'Perfect for dipping your pizza crust', category: 'dipping_sauce' },
   { step: 'wings', title: 'Add Wings?', subtitle: 'Crispy, juicy wings to complete your order', category: 'chicken_wings' },
-  { step: 'garlic_toast', title: 'Add Garlic Toast?', subtitle: 'Fresh garlic bread on the side', category: 'sides' },
+  { step: 'garlic_toast', title: 'Add Garlic Toast?', subtitle: 'Fresh garlic bread on the side', category: 'baked_lasagna' },
 ];
 
 const UpsellModal = ({ isOpen, onClose, onComplete }: UpsellModalProps) => {
@@ -41,7 +41,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete }: UpsellModalProps) => {
   const { data: drinks } = useMenuItems('drinks');
   const { data: dippingSauces } = useMenuItems('dipping_sauce');
   const { data: wings } = useMenuItems('chicken_wings');
-  const { data: sides } = useMenuItems('sides');
+  const { data: bakedLasagna } = useMenuItems('baked_lasagna');
 
   const currentItems = useMemo(() => {
     switch (currentStep?.category) {
@@ -51,17 +51,16 @@ const UpsellModal = ({ isOpen, onClose, onComplete }: UpsellModalProps) => {
         return dippingSauces || [];
       case 'chicken_wings':
         return wings || [];
-      case 'sides':
-        // Filter for garlic toast items
-        return (sides || []).filter(item => 
+      case 'baked_lasagna':
+        // Filter for garlic toast items from baked lasagna category
+        return (bakedLasagna || []).filter(item => 
           item.name.toLowerCase().includes('garlic') || 
-          item.name.toLowerCase().includes('toast') ||
-          item.name.toLowerCase().includes('bread')
+          item.name.toLowerCase().includes('toast')
         );
       default:
         return [];
     }
-  }, [currentStep?.category, drinks, dippingSauces, wings, sides]);
+  }, [currentStep?.category, drinks, dippingSauces, wings, bakedLasagna]);
 
   const getItemQuantity = (itemId: string) => {
     return selectedItems.find(i => i.id === itemId)?.quantity || 0;
