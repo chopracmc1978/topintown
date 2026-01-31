@@ -680,13 +680,15 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div className="flex items-center gap-1 mr-4">
               <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
               <input
-                type="number"
-                min="0"
-                step="0.5"
+                type="text"
+                inputMode="decimal"
                 value={extraAmount || ''}
-                onChange={(e) => setExtraAmount(parseFloat(e.target.value) || 0)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  setExtraAmount(parseFloat(val) || 0);
+                }}
                 placeholder="0"
-                className="w-16 px-2 py-1.5 text-xs border rounded bg-background text-center"
+                className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
               />
             </div>
             <span className="text-base font-bold text-primary mr-4">
