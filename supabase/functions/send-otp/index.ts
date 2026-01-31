@@ -31,7 +31,7 @@ async function sendEmailWithSendGrid(to: string, code: string): Promise<void> {
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: to }] }],
-      from: { email: "noreply@topintown.ca", name: "Top In Town" },
+      from: { email: "noreply@topintownpizza.ca", name: "Top In Town Pizza" },
       subject: "Your Verification Code - Top In Town",
       content: [
         {
