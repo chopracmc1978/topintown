@@ -400,45 +400,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
 
             <Separator />
 
-            {/* Customer & Order Type */}
+            {/* Customer Info */}
             <div className="p-3 space-y-3 border-t border-border">
-              {/* Order Type */}
-              <div>
-                <Label className="text-xs text-muted-foreground">Order Type</Label>
-                <div className="flex gap-1 mt-1">
-                  {[
-                    { value: 'pickup', icon: Package, label: 'Pickup' },
-                    { value: 'delivery', icon: Truck, label: 'Delivery' },
-                    { value: 'dine-in', icon: Utensils, label: 'Dine-in' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setOrderType(opt.value as OrderType)}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-colors",
-                        orderType === opt.value
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
-                      )}
-                    >
-                      <opt.icon className="w-3 h-3" />
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Table Number for Dine-in */}
-              {orderType === 'dine-in' && (
-                <Input
-                  placeholder="Table #"
-                  value={tableNumber}
-                  onChange={(e) => setTableNumber(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              )}
-
-              {/* Customer Info */}
               <Input
                 placeholder="Customer name"
                 value={customerName}
@@ -451,15 +414,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="h-8 text-sm"
               />
-              
-              {orderType === 'delivery' && (
-                <Input
-                  placeholder="Delivery address"
-                  value={customerAddress}
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              )}
 
               <Textarea
                 placeholder="Order notes..."
