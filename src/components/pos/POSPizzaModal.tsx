@@ -331,7 +331,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-4">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-4 pb-2 border-b">
+        <div className="flex items-center gap-4 pb-2 border-b pr-6">
           <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
