@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Pizza } from 'lucide-react';
+import { ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { cn } from '@/lib/utils';
+import logo from '@/assets/logo.png';
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const {
@@ -29,12 +31,11 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Pizza className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="font-serif text-xl font-bold text-foreground">
-              Bella Pizza    
-            </span>
+            <img 
+              src={logo} 
+              alt="Top In Town Pizza" 
+              className="h-12 w-auto group-hover:scale-105 transition-transform"
+            />
           </Link>
 
           {/* Desktop Navigation */}
