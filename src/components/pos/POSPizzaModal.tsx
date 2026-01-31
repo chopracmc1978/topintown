@@ -574,7 +574,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   key={opt.value}
                                   onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
                                   className={cn(
-                                    "px-1 py-0.5 text-[9px] rounded border font-medium transition-colors",
+                                    "px-2 py-0.5 text-[10px] rounded border font-medium transition-colors",
                                     topping.quantity === opt.value ? btnActive : btnInactive
                                   )}
                                 >
