@@ -290,21 +290,21 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
               </div>
             )}
 
-            {/* Menu Items Grid */}
-            <ScrollArea className="flex-1 p-3">
+            {/* Menu Items Grid - 3 columns, no scroll */}
+            <div className="flex-1 p-3 overflow-hidden">
               {isLoading ? (
                 <div className="text-center py-8 text-muted-foreground">Loading menu...</div>
               ) : filteredItems.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">No items found</div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-3 bg-secondary/50 rounded-lg text-left hover:bg-secondary transition-colors"
+                      className="p-2 bg-secondary/30 rounded-lg text-left hover:bg-secondary transition-colors border-l-4 border-primary/30"
                     >
-                      <p className="font-medium text-sm truncate">{item.name}</p>
+                      <p className="font-medium text-sm truncate uppercase">{item.name}</p>
                       <p className="text-sm text-primary font-bold">
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
@@ -315,7 +315,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Order Summary */}
