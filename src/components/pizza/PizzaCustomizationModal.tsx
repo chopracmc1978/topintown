@@ -159,11 +159,19 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
 
   const toppingPrice = selectedSize?.name.includes('Small') ? 2 : selectedSize?.name.includes('Large') ? 3 : 2.5;
 
+  // Dairy Free cheese pricing: Small/Medium/GlutenFree = $2, Large = $3
+  const dairyFreePrice = isLarge ? 3 : 2;
+
   // Calculate total price
   const totalPrice = useMemo(() => {
     let t = (selectedSize?.price || 0) + (selectedCrust?.price || 0);
     
     // Cheese pricing
+    // Dairy Free cheese adds extra charge
+    if (selectedCheeseType === 'dairy-free') {
+      t += dairyFreePrice;
+    }
+    // Extra cheese quantity
     cheeseSides.forEach(cs => {
       if (cs.quantity === 'extra') t += toppingPrice;
     });
@@ -180,7 +188,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
     extraToppings.forEach(tp => t += tp.price);
     
     return t;
-  }, [selectedSize, selectedCrust, cheeseSides, selectedSauceId, sauceQuantity, allSauces, defaultSauceIds, defaultToppings, extraToppings, toppingPrice]);
+  }, [selectedSize, selectedCrust, selectedCheeseType, dairyFreePrice, cheeseSides, selectedSauceId, sauceQuantity, allSauces, defaultSauceIds, defaultToppings, extraToppings, toppingPrice]);
 
   const handleNext = () => {
     if (!selectedSize || !selectedCrust) return;
@@ -429,7 +437,10 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                       onChange={() => setSelectedCheeseType(type)}
                       className="w-4 h-4 text-primary"
                     />
-                    <span className="capitalize">{type.replace('-', ' ')}</span>
+                    <span className="capitalize">
+                      {type.replace('-', ' ')}
+                      {type === 'dairy-free' && <span className="text-sm ml-1">+${dairyFreePrice}</span>}
+                    </span>
                   </label>
                 ))}
               </div>
