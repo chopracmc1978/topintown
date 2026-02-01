@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
+import { usePOSNotificationSound } from '@/hooks/usePOSNotificationSound';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
 import { POSOrderCard } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
@@ -31,6 +32,9 @@ const LOCATION_NAMES: Record<string, string> = {
 const POS = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
+  
+  // Notification sound for new web/app orders
+  const { hasPendingRemoteOrders, pendingCount } = usePOSNotificationSound(orders);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -185,7 +189,10 @@ const POS = () => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-border py-2 px-4 flex-shrink-0 shadow-sm">
+      <header className={cn(
+        "border-b border-border py-2 px-4 flex-shrink-0 shadow-sm transition-colors",
+        hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : "bg-white"
+      )}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Top In Town Pizza" className="w-10 h-10 object-contain" />
@@ -196,6 +203,12 @@ const POS = () => {
                 <span>{LOCATION_NAMES[currentLocationId] || currentLocationId}</span>
               </div>
             </div>
+            {hasPendingRemoteOrders && (
+              <div className="flex items-center gap-2 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce">
+                <Bell className="w-4 h-4" />
+                <span className="font-semibold text-sm">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
+              </div>
+            )}
           </div>
           
           {/* Status Tabs in Header */}
