@@ -54,6 +54,7 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  customerId?: string; // For linking to verified customer record
   orderType: OrderType;
   status: OrderStatus;
   total: number;

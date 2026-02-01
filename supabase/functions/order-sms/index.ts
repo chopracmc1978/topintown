@@ -8,7 +8,8 @@ const corsHeaders = {
 
 interface OrderSmsRequest {
   orderNumber: string;
-  phone: string;
+  phone?: string;
+  customerId?: string;
   type: "preparing" | "ready" | "complete";
   prepTime?: number; // in minutes, only for "preparing" type
 }
@@ -27,6 +28,8 @@ async function sendSmsWithTwilio(to: string, message: string): Promise<void> {
   if (!to.startsWith("+")) {
     formattedPhone = "+1" + to.replace(/\D/g, "");
   }
+
+  console.log(`Sending SMS to ${formattedPhone}`);
 
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
   
@@ -61,11 +64,65 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orderNumber, phone, type, prepTime }: OrderSmsRequest = await req.json();
-    console.log("Order SMS request:", { orderNumber, phone, type, prepTime });
+    const { orderNumber, phone, customerId, type, prepTime }: OrderSmsRequest = await req.json();
+    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime });
 
-    if (!phone) {
-      console.log("No phone number provided, skipping SMS");
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Try to find customer - first by customerId, then by phone
+    let customer: { id: string; phone: string; phone_verified: boolean } | null = null;
+
+    if (customerId) {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, phone, phone_verified")
+        .eq("id", customerId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error looking up customer by ID:", error);
+      } else {
+        customer = data;
+      }
+    }
+
+    // If no customer found by ID, try by phone
+    if (!customer && phone) {
+      const normalizedPhone = phone.replace(/\D/g, "");
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, phone, phone_verified")
+        .eq("phone", normalizedPhone)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error looking up customer by phone:", error);
+      } else {
+        customer = data;
+      }
+    }
+
+    if (!customer) {
+      console.log("No customer found, skipping SMS");
+      return new Response(
+        JSON.stringify({ success: true, message: "Customer not found, SMS skipped" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!customer.phone_verified) {
+      console.log(`Customer phone not verified, skipping SMS`);
+      return new Response(
+        JSON.stringify({ success: true, message: "Phone not verified, SMS skipped" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!customer.phone) {
+      console.log("Customer has no phone, skipping SMS");
       return new Response(
         JSON.stringify({ success: true, message: "No phone number, SMS skipped" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -88,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error("Invalid SMS type");
     }
 
-    await sendSmsWithTwilio(phone, message);
+    await sendSmsWithTwilio(customer.phone, message);
 
     return new Response(
       JSON.stringify({ success: true, message: `SMS sent for ${type}` }),
