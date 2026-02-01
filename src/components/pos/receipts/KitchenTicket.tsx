@@ -10,8 +10,12 @@ interface KitchenTicketProps {
 const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => {
   const details: string[] = [];
   
-  // Size and Crust (always show)
-  details.push(`${customization.size.name}, ${customization.crust.name}`);
+  // Size and Crust (always show) - handle both object and string formats
+  const sizeName = typeof customization.size === 'object' ? customization.size?.name : customization.size;
+  const crustName = typeof customization.crust === 'object' ? customization.crust?.name : customization.crust;
+  if (sizeName || crustName) {
+    details.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
+  }
   
   // Cheese - only show if NOT regular/normal
   if (customization.cheeseType) {
