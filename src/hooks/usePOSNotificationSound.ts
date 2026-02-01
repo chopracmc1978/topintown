@@ -191,15 +191,19 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     }
   }, [pendingRemoteOrders.length, isAudioEnabled, startSound, stopSound]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - use empty deps to only run on unmount
   useEffect(() => {
     return () => {
-      stopSound();
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
+        audioContextRef.current = null;
       }
     };
-  }, [stopSound]);
+  }, []);
 
   return {
     hasPendingRemoteOrders: pendingRemoteOrders.length > 0,
