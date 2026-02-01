@@ -179,9 +179,10 @@ const Auth = () => {
               <Input
                 id="username"
                 type="text"
-                placeholder="cmchopra or admin@restaurant.com"
+                placeholder="Enter username or email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
                 required
               />
               {errors.username && (
@@ -212,6 +213,7 @@ const Auth = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
               {errors.password && (
