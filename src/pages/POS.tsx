@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -11,6 +11,7 @@ import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { useAuth } from '@/hooks/useAuth';
+import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
 
@@ -184,13 +185,13 @@ const POS = () => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground py-2 px-4 flex-shrink-0">
+      <header className="bg-white border-b border-border py-2 px-4 flex-shrink-0 shadow-sm">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
-            <ChefHat className="w-7 h-7" />
+            <img src={logo} alt="Top In Town Pizza" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="font-serif text-lg font-bold">Bella Pizza POS</h1>
-              <div className="flex items-center gap-1 text-xs text-primary-foreground/70">
+              <h1 className="font-serif text-lg font-bold text-foreground">Top In Town Pizza</h1>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3" />
                 <span>{LOCATION_NAMES[currentLocationId] || currentLocationId}</span>
               </div>
@@ -206,8 +207,8 @@ const POS = () => {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeTab === tab.id
-                    ? "bg-white text-primary"
-                    : "bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
                 <tab.icon className="w-4 h-4" />
@@ -215,8 +216,8 @@ const POS = () => {
                 <span className={cn(
                   "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
                   activeTab === tab.id
-                    ? "bg-primary text-white"
-                    : "bg-primary-foreground/20"
+                    ? "bg-primary-foreground text-primary"
+                    : "bg-background"
                 )}>
                   {counts[tab.id as keyof typeof counts]}
                 </span>
@@ -229,7 +230,6 @@ const POS = () => {
               setShowNewOrder(true);
               setSelectedOrderId(null);
             }}
-            className="bg-white text-primary hover:bg-white/90"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Order
@@ -242,7 +242,7 @@ const POS = () => {
               localStorage.removeItem('pos_location_id');
               signOut();
             }}
-            className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-muted-foreground hover:text-foreground"
           >
             <LogOut className="w-4 h-4" />
           </Button>
