@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { CartItem, MenuItem, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
 
 interface CartContextType {
@@ -11,6 +11,7 @@ interface CartContextType {
   removeFromCart: (itemId: string, size?: string) => void;
   updateQuantity: (itemId: string, quantity: number, size?: string) => void;
   clearCart: () => void;
+  setCartItems: (items: CartItem[]) => void;
   total: number;
   itemCount: number;
 }
@@ -20,8 +21,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Check for repeat order items on mount
-  useEffect(() => {
+  // Check for repeat order items on mount and on storage events
+  const checkRepeatOrderItems = useCallback(() => {
     const repeatOrderItems = localStorage.getItem('repeat_order_items');
     if (repeatOrderItems) {
       try {
@@ -34,6 +35,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, []);
+
+  useEffect(() => {
+    checkRepeatOrderItems();
+
+    // Also check when the component receives focus (navigating back)
+    const handleFocus = () => {
+      checkRepeatOrderItems();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [checkRepeatOrderItems]);
+
+  // Also check periodically for repeat order items (for navigation within same tab)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const repeatOrderItems = localStorage.getItem('repeat_order_items');
+      if (repeatOrderItems) {
+        checkRepeatOrderItems();
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [checkRepeatOrderItems]);
 
   const addToCart = (item: MenuItem, size?: string) => {
     setItems((prev) => {
@@ -155,13 +180,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearCart = () => setItems([]);
+  
+  const setCartItems = (newItems: CartItem[]) => setItems(newItems);
 
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, addWingsToCart, updateWingsInCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
+      value={{ items, addToCart, addCustomizedPizza, updateCustomizedPizza, addWingsToCart, updateWingsInCart, removeFromCart, updateQuantity, clearCart, setCartItems, total, itemCount }}
     >
       {children}
     </CartContext.Provider>

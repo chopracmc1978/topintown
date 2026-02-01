@@ -42,10 +42,7 @@ const MyOrders = () => {
   };
 
   const handleRepeatOrder = (order: CustomerOrder) => {
-    // Clear current cart first
-    clearCart();
-
-    // Convert order items to cart items and add to cart via localStorage workaround
+    // Convert order items to cart items
     const cartItems: CartItem[] = order.items.map((item, index) => {
       const baseItem: CartItem = {
         id: `repeat-${item.id}-${Date.now()}-${index}`,
@@ -77,15 +74,20 @@ const MyOrders = () => {
       return baseItem;
     });
 
-    // Store in localStorage temporarily and navigate - cart will pick it up
-    localStorage.setItem('repeat_order_items', JSON.stringify(cartItems));
+    // Clear cart first, then store repeat items in localStorage
+    clearCart();
+    
+    // Small delay to ensure clearCart completes before setting new items
+    setTimeout(() => {
+      localStorage.setItem('repeat_order_items', JSON.stringify(cartItems));
 
-    toast({
-      title: 'Order Added to Cart',
-      description: `${order.items.length} items from order #${order.orderNumber} added to your cart.`,
-    });
+      toast({
+        title: 'Order Added to Cart',
+        description: `${order.items.length} items from order #${order.orderNumber} added to your cart.`,
+      });
 
-    navigate('/cart');
+      navigate('/cart');
+    }, 100);
   };
 
   const formatDate = (dateString: string) => {
