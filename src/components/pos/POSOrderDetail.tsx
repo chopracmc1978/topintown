@@ -1,5 +1,5 @@
 import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard } from 'lucide-react';
-import { Order, OrderStatus } from '@/types/menu';
+import { Order, OrderStatus, CartPizzaCustomization } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +11,103 @@ interface POSOrderDetailProps {
   onPayment: (method: 'cash' | 'card') => void;
   onPrintTicket: () => void;
 }
+
+// Helper to format pizza customization details for kitchen
+const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => {
+  const details: string[] = [];
+  
+  // Size and Crust (always show)
+  details.push(`${customization.size.name}, ${customization.crust.name}`);
+  
+  // Cheese - only show if NOT regular/normal
+  if (customization.cheeseType) {
+    const cheeseChanges: string[] = [];
+    // Check if cheese type is not mozzarella or if quantity is not normal
+    if (customization.cheeseType.toLowerCase() === 'no cheese') {
+      cheeseChanges.push('No Cheese');
+    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
+      cheeseChanges.push('Dairy Free Cheese');
+    } else {
+      // Mozzarella - check for quantity changes
+      const hasQuantityChange = customization.cheeseSides?.some(
+        cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal'
+      );
+      if (hasQuantityChange) {
+        const quantities = customization.cheeseSides
+          ?.filter(cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal')
+          .map(cs => `${cs.side}: ${cs.quantity} cheese`)
+          .join(', ');
+        if (quantities) cheeseChanges.push(quantities);
+      }
+    }
+    if (cheeseChanges.length > 0) {
+      details.push(cheeseChanges.join(', '));
+    }
+  }
+  
+  // Sauce - show if changed from default or quantity is not regular
+  if (customization.sauceName && customization.sauceName.toLowerCase() !== 'no sauce') {
+    if (customization.sauceQuantity && customization.sauceQuantity !== 'normal') {
+      details.push(`${customization.sauceQuantity} ${customization.sauceName}`);
+    }
+  } else if (customization.sauceName?.toLowerCase() === 'no sauce') {
+    details.push('No Sauce');
+  }
+  
+  // Spicy Level - only show if not 'none' on both sides
+  const leftSpicy = customization.spicyLevel?.left;
+  const rightSpicy = customization.spicyLevel?.right;
+  if (leftSpicy || rightSpicy) {
+    if (leftSpicy === rightSpicy && leftSpicy !== 'none') {
+      details.push(`Whole ${leftSpicy}`);
+    } else {
+      const spicyParts: string[] = [];
+      if (leftSpicy && leftSpicy !== 'none') spicyParts.push(`Left ${leftSpicy}`);
+      if (rightSpicy && rightSpicy !== 'none') spicyParts.push(`Right ${rightSpicy}`);
+      if (spicyParts.length > 0) {
+        details.push(spicyParts.join(', '));
+      }
+    }
+  }
+  
+  // Free Toppings (Cilantro, Ginger, Garlic) - show if selected
+  if (customization.freeToppings && customization.freeToppings.length > 0) {
+    details.push(`Add: ${customization.freeToppings.join(', ')}`);
+  }
+  
+  // Default Toppings - only show if removed (quantity = 'none') or changed
+  const removedToppings = customization.defaultToppings?.filter(t => t.quantity === 'none');
+  if (removedToppings && removedToppings.length > 0) {
+    details.push(`NO: ${removedToppings.map(t => t.name).join(', ')}`);
+  }
+  
+  // Default toppings with changed quantity (less or extra)
+  const modifiedDefaults = customization.defaultToppings?.filter(
+    t => t.quantity === 'less' || t.quantity === 'extra'
+  );
+  if (modifiedDefaults && modifiedDefaults.length > 0) {
+    modifiedDefaults.forEach(t => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      details.push(`${t.quantity} ${t.name}${sideInfo}`);
+    });
+  }
+  
+  // Extra Toppings - always show if any
+  if (customization.extraToppings && customization.extraToppings.length > 0) {
+    const extraList = customization.extraToppings.map(t => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      return `+${t.name}${sideInfo}`;
+    });
+    details.push(extraList.join(', '));
+  }
+  
+  // Notes
+  if (customization.note) {
+    details.push(`Note: ${customization.note}`);
+  }
+  
+  return details;
+};
 
 const statusFlow: Record<OrderStatus, OrderStatus | null> = {
   pending: 'preparing',
@@ -113,16 +210,22 @@ export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket
                   <span className="font-bold text-primary">{item.quantity}×</span>
                   <span className="font-medium">{item.name}</span>
                 </div>
-                {item.selectedSize && (
+                {item.selectedSize && !item.pizzaCustomization && (
                   <span className="text-sm text-muted-foreground ml-6">{item.selectedSize}</span>
                 )}
                 {item.pizzaCustomization && (
                   <div className="text-sm text-muted-foreground ml-6 space-y-0.5">
-                    <p>{item.pizzaCustomization.crust.name} crust</p>
-                    {item.pizzaCustomization.extraToppings.length > 0 && (
-                      <p>+{item.pizzaCustomization.extraToppings.map(t => t.name).join(', ')}</p>
-                    )}
+                    {formatPizzaDetails(item.pizzaCustomization).map((detail, idx) => (
+                      <p key={idx} className={cn(
+                        detail.startsWith('NO:') && 'text-destructive font-medium',
+                        detail.startsWith('+') && 'text-green-600 font-medium',
+                        detail.startsWith('Note:') && 'italic'
+                      )}>{detail}</p>
+                    ))}
                   </div>
+                )}
+                {item.wingsCustomization && (
+                  <p className="text-sm text-muted-foreground ml-6">{item.wingsCustomization.flavor}</p>
                 )}
               </div>
               <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
