@@ -1,4 +1,4 @@
-import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard } from 'lucide-react';
+import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil } from 'lucide-react';
 import { Order, OrderStatus, CartPizzaCustomization } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ interface POSOrderDetailProps {
   onUpdateStatus: (status: OrderStatus) => void;
   onPayment: (method: 'cash' | 'card') => void;
   onPrintTicket: () => void;
+  onEditOrder: () => void;
 }
 
 // Helper to format pizza customization details for kitchen
@@ -125,7 +126,7 @@ const statusLabels: Record<OrderStatus, string> = {
   cancelled: 'Cancelled',
 };
 
-export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket }: POSOrderDetailProps) => {
+export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket, onEditOrder }: POSOrderDetailProps) => {
   const nextStatus = statusFlow[order.status];
 
   const formatTime = (date: Date) => {
@@ -289,6 +290,11 @@ export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket
           <Button variant="outline" onClick={onPrintTicket}>
             <Printer className="w-4 h-4 mr-2" />
             Print
+          </Button>
+          
+          <Button variant="outline" onClick={onEditOrder}>
+            <Pencil className="w-4 h-4 mr-2" />
+            Edit
           </Button>
           
           {order.status !== 'cancelled' && order.status !== 'delivered' && (
