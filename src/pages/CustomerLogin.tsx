@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -16,7 +16,11 @@ type ViewMode = 'login' | 'forgot-email' | 'forgot-otp' | 'forgot-newpassword';
 
 const CustomerLogin = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, customer } = useCustomer();
+  
+  // Get redirect URL from query params (default to /my-orders)
+  const redirectUrl = searchParams.get('redirect') || '/my-orders';
   
   // Login state
   const [email, setEmail] = useState('');
@@ -36,7 +40,7 @@ const CustomerLogin = () => {
 
   // Redirect if already logged in
   if (customer) {
-    navigate('/my-orders');
+    navigate(redirectUrl);
     return null;
   }
 
@@ -55,7 +59,7 @@ const CustomerLogin = () => {
       
       if (result.success) {
         toast.success('Welcome back!');
-        navigate('/my-orders');
+        navigate(redirectUrl);
       } else {
         // Don't show raw backend errors to customers.
         const errText = (result.error ?? '').toLowerCase();
