@@ -304,7 +304,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                       onClick={() => handleItemClick(item)}
                       className="p-2 bg-secondary/30 rounded-lg text-left hover:bg-secondary transition-colors border-l-4 border-primary/30"
                     >
-                      <p className="font-medium text-xs truncate uppercase">{item.name}</p>
+                      <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
                       <p className="text-xs text-primary font-bold">
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
