@@ -314,8 +314,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
     }]);
   };
 
-  const vegTops = (allToppings || []).filter(t => t.is_veg && !defaultToppings.some(d => d.id === t.id) && !extraToppings.some(e => e.id === t.id));
-  const nonVegTops = (allToppings || []).filter(t => !t.is_veg && !defaultToppings.some(d => d.id === t.id) && !extraToppings.some(e => e.id === t.id));
+  // Filter out "Cheese" from extra toppings (keep in settings but hide from customer modal)
+  const vegTops = (allToppings || []).filter(t => t.is_veg && t.name.toLowerCase() !== 'cheese' && !defaultToppings.some(d => d.id === t.id) && !extraToppings.some(e => e.id === t.id));
+  const nonVegTops = (allToppings || []).filter(t => !t.is_veg && t.name.toLowerCase() !== 'cheese' && !defaultToppings.some(d => d.id === t.id) && !extraToppings.some(e => e.id === t.id));
 
   // Pizza side icon component - circular with half/full fill
   const PizzaSideIcon = ({ side, selected, onClick, disabled, size = 'md' }: { side: PizzaSide; selected: boolean; onClick: () => void; disabled?: boolean; size?: 'sm' | 'md' }) => {
@@ -888,21 +889,30 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
   const isActive = topping.quantity !== 'none';
 
   return (
-    <div className={cn("flex items-center gap-2 p-2 rounded border", !isActive && "opacity-50 bg-muted/30")}>
-      <Checkbox
-        checked={isActive}
-        onCheckedChange={(checked) => {
-          if (checked) {
-            onUpdate('regular', 'whole', isExtraTopping ? toppingPrice : 0);
-          } else {
-            onRemove();
-          }
-        }}
-      />
-      <span className={cn("flex-1 text-sm truncate", !isActive && "line-through")}>{topping.name}</span>
+    <div className={cn(
+      "flex flex-col gap-1 p-2 rounded border md:flex-row md:items-center md:gap-2",
+      !isActive && "opacity-50 bg-muted/30"
+    )}>
+      {/* Row 1: Checkbox + Name */}
+      <div className="flex items-center gap-2 min-w-0">
+        <Checkbox
+          checked={isActive}
+          onCheckedChange={(checked) => {
+            if (checked) {
+              onUpdate('regular', 'whole', isExtraTopping ? toppingPrice : 0);
+            } else {
+              onRemove();
+            }
+          }}
+        />
+        <span className={cn("text-sm truncate flex-1", !isActive && "line-through")}>{topping.name}</span>
+        {showRemove && (
+          <button onClick={onRemove} className="text-destructive text-sm font-bold md:hidden">×</button>
+        )}
+      </div>
       
       {isActive && (
-        <>
+        <div className="flex items-center gap-2 pl-6 md:pl-0 md:ml-auto">
           {/* Side selection icons - only for large pizzas */}
           {canShowSides && (
             <div className="flex gap-1">
@@ -938,11 +948,11 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
           {isExtraTopping && (
             <span className="text-xs text-primary font-medium">+${toppingPrice}</span>
           )}
-        </>
+        </div>
       )}
 
       {showRemove && (
-        <button onClick={onRemove} className="text-destructive text-sm font-bold">×</button>
+        <button onClick={onRemove} className="text-destructive text-sm font-bold hidden md:block">×</button>
       )}
     </div>
   );
