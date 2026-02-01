@@ -307,6 +307,39 @@ export type Database = {
           },
         ]
       }
+      location_hours: {
+        Row: {
+          close_time: string
+          created_at: string
+          day_of_week: number
+          id: string
+          is_open: boolean
+          location_id: string
+          open_time: string
+          updated_at: string
+        }
+        Insert: {
+          close_time?: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_open?: boolean
+          location_id: string
+          open_time?: string
+          updated_at?: string
+        }
+        Update: {
+          close_time?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_open?: boolean
+          location_id?: string
+          open_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           base_price: number
@@ -417,6 +450,7 @@ export type Database = {
           order_type: string
           payment_method: string | null
           payment_status: string
+          pickup_time: string | null
           source: string
           status: string
           stripe_session_id: string | null
@@ -439,6 +473,7 @@ export type Database = {
           order_type?: string
           payment_method?: string | null
           payment_status?: string
+          pickup_time?: string | null
           source?: string
           status?: string
           stripe_session_id?: string | null
@@ -461,6 +496,7 @@ export type Database = {
           order_type?: string
           payment_method?: string | null
           payment_status?: string
+          pickup_time?: string | null
           source?: string
           status?: string
           stripe_session_id?: string | null
@@ -523,6 +559,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      printers: {
+        Row: {
+          auto_cut: boolean
+          created_at: string
+          id: string
+          ip_address: string
+          is_active: boolean
+          location_id: string
+          name: string
+          paper_width: number
+          station: string
+          updated_at: string
+        }
+        Insert: {
+          auto_cut?: boolean
+          created_at?: string
+          id?: string
+          ip_address: string
+          is_active?: boolean
+          location_id: string
+          name: string
+          paper_width?: number
+          station?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_cut?: boolean
+          created_at?: string
+          id?: string
+          ip_address?: string
+          is_active?: boolean
+          location_id?: string
+          name?: string
+          paper_width?: number
+          station?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

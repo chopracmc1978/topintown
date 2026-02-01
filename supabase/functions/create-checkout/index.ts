@@ -23,10 +23,11 @@ serve(async (req) => {
       customerEmail,
       customerId,
       locationId,
-      notes 
+      notes,
+      pickupTime
     } = await req.json();
 
-    console.log("Creating checkout session for:", { customerName, customerEmail, total, itemCount: items?.length });
+    console.log("Creating checkout session for:", { customerName, customerEmail, total, itemCount: items?.length, pickupTime });
 
     if (!items || items.length === 0) {
       throw new Error("No items in cart");
@@ -118,6 +119,7 @@ serve(async (req) => {
       tax: tax.toString(),
       total: total.toString(),
       itemChunks: itemChunks.length.toString(),
+      pickupTime: pickupTime || "",
     };
 
     // Add each chunk as items0, items1, items2, etc.

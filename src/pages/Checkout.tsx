@@ -15,7 +15,9 @@ import { CartItem } from '@/types/menu';
 import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
 import { CheckoutAuthOptions } from '@/components/checkout/CheckoutAuthOptions';
+import { AdvanceOrderPicker } from '@/components/checkout/AdvanceOrderPicker';
 import { useMenuItems } from '@/hooks/useMenuItems';
+import { useIsLocationOpen } from '@/hooks/useLocationHours';
 import { supabase } from '@/integrations/supabase/client';
 
 // Order item card with expandable details
@@ -215,6 +217,7 @@ const Checkout = () => {
   const { selectedLocation } = useLocationContext();
   const { customer } = useCustomer();
   const { data: menuItems } = useMenuItems();
+  const { checkIfOpen } = useIsLocationOpen(selectedLocation?.id || 'calgary');
   
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('pickup');
   const [editingPizzaItem, setEditingPizzaItem] = useState<CartItem | null>(null);
@@ -223,6 +226,10 @@ const Checkout = () => {
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const placeOrderLock = useRef(false);
+  
+  // Advance ordering state
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+  const [scheduledTime, setScheduledTime] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     address: '',
@@ -239,9 +246,17 @@ const Checkout = () => {
     ? menuItems?.find(m => m.id === editingWingsItem.wingsCustomization?.originalItemId)
     : null;
 
+  const locationStatus = checkIfOpen();
+
   const handleCheckoutClick = () => {
     if (items.length === 0) {
       toast.error('Your cart is empty!');
+      return;
+    }
+
+    // If location is closed and no scheduled time, require scheduling
+    if (!locationStatus.isOpen && (!scheduledDate || !scheduledTime)) {
+      toast.error('Please select a pickup time');
       return;
     }
 
@@ -278,6 +293,15 @@ const Checkout = () => {
         fullName: '' 
       };
 
+      // Build pickup time if scheduled
+      let pickupTime: string | null = null;
+      if (scheduledDate && scheduledTime) {
+        const [hours, minutes] = scheduledTime.split(':').map(Number);
+        const pickupDate = new Date(scheduledDate);
+        pickupDate.setHours(hours, minutes, 0, 0);
+        pickupTime = pickupDate.toISOString();
+      }
+
       // Call create-checkout edge function to get Stripe URL
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -291,6 +315,7 @@ const Checkout = () => {
           customerId: customerId,
           locationId,
           notes: formData.notes || '',
+          pickupTime,
         }
       });
 
@@ -405,6 +430,19 @@ const Checkout = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Pickup Time Selection */}
+                  <div className="mb-6 p-4 bg-secondary/30 rounded-lg border border-border">
+                    <AdvanceOrderPicker
+                      locationId={selectedLocation?.id || 'calgary'}
+                      selectedDate={scheduledDate}
+                      selectedTime={scheduledTime}
+                      onDateTimeChange={(date, time) => {
+                        setScheduledDate(date);
+                        setScheduledTime(time);
+                      }}
+                    />
+                  </div>
 
                   <div className="space-y-4">
 

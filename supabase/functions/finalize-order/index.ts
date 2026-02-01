@@ -72,6 +72,7 @@ serve(async (req) => {
     const subtotal = parseFloat(metadata.subtotal || "0");
     const tax = parseFloat(metadata.tax || "0");
     const total = parseFloat(metadata.total || "0");
+    const pickupTime = metadata.pickupTime || null;
     
     // Parse items from chunked metadata (items0, items1, etc.)
     let items: any[] = [];
@@ -127,6 +128,7 @@ serve(async (req) => {
         total,
         notes,
         stripe_session_id: sessionId,
+        pickup_time: pickupTime || null,
       })
       .select()
       .single();
