@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useCart } from '@/contexts/CartContext';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import type { CartItem } from '@/types/menu';
+import { ArrowRight } from 'lucide-react';
+import UpsellModal from '@/components/upsell/UpsellModal';
 
 interface WingsCustomizationModalProps {
   item: MenuItem;
@@ -24,8 +26,15 @@ const FLAVOR_OPTIONS = [
 
 const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: WingsCustomizationModalProps) => {
   const [selectedFlavor, setSelectedFlavor] = useState<string>('plain');
-  const { addWingsToCart, updateWingsInCart } = useCart();
+  const { addWingsToCart, updateWingsInCart, addToCart } = useCart();
   const isEditing = !!editingCartItem;
+
+  // Upsell modal state
+  const [showUpsell, setShowUpsell] = useState(false);
+  const [pendingWingsData, setPendingWingsData] = useState<{
+    cartItem: any;
+    flavorName: string;
+  } | null>(null);
 
   // Initialize flavor from editing item
   useEffect(() => {
@@ -39,7 +48,7 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
     }
   }, [isOpen, editingCartItem]);
 
-  const handleAddToCart = () => {
+  const handleNext = () => {
     const flavorName = FLAVOR_OPTIONS.find(f => f.id === selectedFlavor)?.name || 'Plain';
     
     // Convert DB MenuItem to cart-compatible format
@@ -54,17 +63,55 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
     };
     
     if (isEditing && editingCartItem) {
+      // For editing, update directly without upsell
       updateWingsInCart(editingCartItem.id, cartItem, flavorName);
+      onClose();
+      setSelectedFlavor('plain');
     } else {
-      addWingsToCart(cartItem, flavorName);
+      // For new wings, show upsell flow
+      setPendingWingsData({ cartItem, flavorName });
+      setShowUpsell(true);
+    }
+  };
+
+  const handleUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number }[]) => {
+    // First add the wings
+    if (pendingWingsData) {
+      addWingsToCart(pendingWingsData.cartItem, pendingWingsData.flavorName);
     }
     
-    onClose();
+    // Then add all upsell items
+    upsellItems.forEach(item => {
+      for (let i = 0; i < item.quantity; i++) {
+        addToCart({
+          id: item.id,
+          name: item.name,
+          description: '',
+          price: item.price,
+          image: item.image_url || '/placeholder.svg',
+          category: 'sides',
+        });
+      }
+    });
+    
+    // Reset and close
+    setPendingWingsData(null);
+    setShowUpsell(false);
     setSelectedFlavor('plain');
+    onClose();
+  };
+
+  const handleUpsellClose = () => {
+    // If upsell is closed via X button, do NOT add the wings - user cancelled
+    setPendingWingsData(null);
+    setShowUpsell(false);
+    setSelectedFlavor('plain');
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <Dialog open={isOpen && !showUpsell} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
@@ -101,14 +148,26 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button variant="pizza" onClick={handleAddToCart}>
-                {isEditing ? 'Update' : 'Add to Cart'}
+              <Button variant="pizza" onClick={handleNext}>
+                {isEditing ? 'Update' : (
+                  <>
+                    Next <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Upsell Modal */}
+    <UpsellModal 
+      isOpen={showUpsell} 
+      onClose={handleUpsellClose}
+      onComplete={handleUpsellComplete}
+    />
+    </>
   );
 };
 
