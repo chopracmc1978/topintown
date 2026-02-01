@@ -15,6 +15,7 @@ const statusConfig: Record<string, { label: string; icon: React.ElementType; col
   confirmed: { label: 'Confirmed', icon: CheckCircle, color: 'bg-blue-100 text-blue-800' },
   preparing: { label: 'Preparing', icon: Loader2, color: 'bg-purple-100 text-purple-800' },
   ready: { label: 'Ready', icon: Package, color: 'bg-green-100 text-green-800' },
+  delivered: { label: 'Delivered', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
   completed: { label: 'Completed', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Cancelled', icon: AlertCircle, color: 'bg-red-100 text-red-800' },
 };
