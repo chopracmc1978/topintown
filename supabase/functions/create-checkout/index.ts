@@ -21,6 +21,7 @@ serve(async (req) => {
       customerName, 
       customerPhone, 
       customerEmail,
+      customerId,
       locationId,
       notes 
     } = await req.json();
@@ -42,9 +43,11 @@ serve(async (req) => {
         currency: "cad",
         product_data: {
           name: item.name,
-          description: item.customizations 
-            ? `Customized: ${JSON.stringify(item.customizations).substring(0, 100)}...`
-            : undefined,
+          description: item.pizzaCustomization 
+            ? `${item.pizzaCustomization.size?.name || ''} - ${item.pizzaCustomization.crust?.name || ''}`
+            : item.wingsCustomization
+            ? `Flavor: ${item.wingsCustomization.flavor}`
+            : item.selectedSize || undefined,
         },
         unit_amount: Math.round((item.totalPrice / item.quantity) * 100), // Convert to cents
       },
@@ -74,10 +77,11 @@ serve(async (req) => {
       success_url: `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout`,
       metadata: {
-        customerName,
-        customerPhone,
-        customerEmail,
-        locationId,
+        customerName: customerName || "",
+        customerPhone: customerPhone || "",
+        customerEmail: customerEmail || "",
+        customerId: customerId || "",
+        locationId: locationId || "calgary",
         notes: notes || "",
         subtotal: subtotal.toString(),
         tax: tax.toString(),

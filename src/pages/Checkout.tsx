@@ -264,67 +264,51 @@ const Checkout = () => {
     
     try {
       const locationId = selectedLocation?.id || 'calgary';
-      
-      // Generate order number via edge function (uses atomic DB function)
-      const { data, error } = await supabase.functions.invoke('generate-order-number', {
-        body: { locationId }
-      });
-      if (error) {
-        console.error('Error generating order number:', error);
-        throw new Error('Unable to generate order number. Please try again.');
-      }
-      const orderNumber = data.orderNumber;
-      
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
       const tax = total * 0.05; // 5% GST
       const grandTotal = total + deliveryFee + tax;
 
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          order_number: orderNumber,
-          customer_id: customerId,
-          location_id: locationId,
-          status: 'pending',
+      // Get customer info
+      const customerInfo = customer || { 
+        email: '', 
+        phone: '', 
+        fullName: '' 
+      };
+
+      // Call create-checkout edge function to get Stripe URL
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          items,
           subtotal: total,
-          tax: tax,
+          tax,
           total: grandTotal,
-          notes: `${orderType === 'delivery' ? `Delivery to: ${formData.address}\n` : ''}${formData.notes}`.trim() || null,
-        })
-        .select()
-        .single();
+          customerName: customerInfo.fullName || '',
+          customerPhone: customerInfo.phone || '',
+          customerEmail: customerInfo.email || '',
+          customerId: customerId,
+          locationId,
+          notes: formData.notes || '',
+        }
+      });
 
-      if (orderError) throw orderError;
+      if (error) {
+        console.error('Error creating checkout:', error);
+        throw new Error('Failed to create checkout session');
+      }
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.pizzaCustomization?.originalItemId || item.wingsCustomization?.originalItemId || null,
-        name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: item.totalPrice,
-        customizations: item.pizzaCustomization 
-          ? JSON.parse(JSON.stringify(item.pizzaCustomization))
-          : item.wingsCustomization 
-          ? JSON.parse(JSON.stringify(item.wingsCustomization))
-          : null,
-      }));
+      if (!data?.url) {
+        throw new Error('No checkout URL returned');
+      }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
+      // Clear cart before redirecting (will be restored if user cancels)
       clearCart();
-      toast.success('Order placed successfully!');
-      navigate(`/order-confirmation/${order.id}`);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+      
     } catch (error: any) {
       console.error('Error placing order:', error);
-      toast.error(error.message || 'Failed to place order');
-    } finally {
+      toast.error(error.message || 'Failed to start checkout');
       setPlacingOrder(false);
       placeOrderLock.current = false;
     }
