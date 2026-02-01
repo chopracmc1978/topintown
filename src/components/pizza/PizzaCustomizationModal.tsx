@@ -719,7 +719,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
               {defaultToppings.filter(t => !t.isVeg).length > 0 && (
                 <div>
                   <p className="text-sm font-bold text-destructive mb-2">Choose Meats</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {defaultToppings.filter(t => !t.isVeg).map(t => (
                       <ToppingRow
                         key={t.id}
@@ -738,7 +738,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
               {defaultToppings.filter(t => t.isVeg).length > 0 && (
                 <div>
                   <p className="text-sm font-bold text-green-600 mb-2">Choose Non-meats</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {defaultToppings.filter(t => t.isVeg).map(t => (
                       <ToppingRow
                         key={t.id}
@@ -757,7 +757,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
               {extraToppings.length > 0 && (
                 <div className="border-t pt-3">
                   <p className="text-sm font-bold text-primary mb-2">Added Toppings</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {extraToppings.map(t => (
                       <ToppingRow
                         key={t.id}
