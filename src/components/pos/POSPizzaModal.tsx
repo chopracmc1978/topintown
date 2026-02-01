@@ -478,27 +478,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           <div>
             <h3 className="font-medium text-xs mb-1">Spicy Level</h3>
             <div className="flex items-center gap-2">
-              {/* None button - disabled when a side has heat selected */}
-              {(() => {
-                const isNoneActive = leftSpicy === 'none' && rightSpicy === 'none';
-                const isNoneDisabled = (leftSpicy !== 'none' || rightSpicy !== 'none');
-                return (
-                  <button
-                    disabled={isNoneDisabled}
-                    onClick={() => {
-                      setLeftSpicy('none');
-                      setRightSpicy('none');
-                    }}
-                    className={cn(
-                      "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[50px]",
-                      isNoneActive ? btnActive : btnInactive,
-                      isNoneDisabled && "opacity-40 cursor-not-allowed"
-                    )}
-                  >
-                    None
-                  </button>
-                );
-              })()}
+              {/* None button - always enabled so user can reset */}
+              <button
+                onClick={() => {
+                  setLeftSpicy('none');
+                  setRightSpicy('none');
+                }}
+                className={cn(
+                  "px-3 py-1.5 text-xs rounded border font-medium transition-colors min-w-[50px]",
+                  leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive
+                )}
+              >
+                None
+              </button>
 
               {/* Medium button with L/W/R for large pizza */}
               {isLargePizza ? (
