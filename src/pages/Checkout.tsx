@@ -271,7 +271,16 @@ const Checkout = () => {
         orderNumber = data.orderNumber;
       } catch (err) {
         console.error('Error generating order number, using fallback:', err);
-        orderNumber = `TIT-${Date.now().toString(36).toUpperCase()}`;
+        // Fallback: build format locally
+        const LOCATION_CODES: Record<string, string> = { calgary: 'CAL', chestermere: 'KIN' };
+        const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const locCode = LOCATION_CODES[locationId?.toLowerCase()] || 'CAL';
+        const now = new Date();
+        const year = now.getFullYear().toString().slice(-2);
+        const month = MONTHS[now.getMonth()];
+        const day = now.getDate().toString().padStart(2, '0');
+        const seq = 101 + Math.floor(Math.random() * 100);
+        orderNumber = `TIT-${locCode}-${year}${month}${day}${seq}`;
       }
       
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;

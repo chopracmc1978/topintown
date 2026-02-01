@@ -64,6 +64,7 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
     customerName: dbOrder.customer_name || 'Online Customer',
     customerPhone: dbOrder.customer_phone || '',
     customerAddress: dbOrder.customer_address || '',
+    customerId: dbOrder.customer_id || undefined,
     orderType: (dbOrder.order_type || 'pickup') as OrderType,
     status: (dbOrder.status || 'pending') as OrderStatus,
     total: dbOrder.total,
@@ -150,24 +151,47 @@ export const usePOSOrders = () => {
       return data.orderNumber;
     } catch (err) {
       console.error('Error generating order number, using fallback:', err);
-      // Fallback to timestamp-based if edge function fails
-      return `TIT-${Date.now().toString(36).toUpperCase()}`;
+      // Fallback: build format locally if edge function fails
+      const LOCATION_CODES: Record<string, string> = { calgary: 'CAL', chestermere: 'KIN' };
+      const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      const locCode = LOCATION_CODES[locationId?.toLowerCase()] || 'CAL';
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = MONTHS[now.getMonth()];
+      const day = now.getDate().toString().padStart(2, '0');
+      const seq = 101 + Math.floor(Math.random() * 100);
+      return `TIT-${locCode}-${year}${month}${day}${seq}`;
     }
   };
 
   // Send SMS notification for order status
-  const sendOrderSms = async (orderNumber: string, phone: string, type: 'preparing' | 'ready' | 'complete', prepTime?: number) => {
+  const sendOrderSms = async (
+    orderNumber: string, 
+    phone: string | undefined, 
+    customerId: string | undefined,
+    type: 'preparing' | 'ready' | 'complete', 
+    prepTime?: number
+  ) => {
     try {
-      if (!phone) {
-        console.log('No phone number, skipping SMS');
+      if (!phone && !customerId) {
+        console.log('No phone or customerId, skipping SMS');
         return;
       }
       
-      const { error } = await supabase.functions.invoke('order-sms', {
-        body: { orderNumber, phone, type, prepTime }
+      console.log(`Sending order SMS: ${type} for ${orderNumber} to phone=${phone} customerId=${customerId}`);
+      
+      const { data, error } = await supabase.functions.invoke('order-sms', {
+        body: { orderNumber, phone, customerId, type, prepTime }
       });
       
       if (error) throw error;
+      
+      // Check response for skipped cases
+      if (data?.message?.includes('skipped')) {
+        console.log('SMS skipped:', data.message);
+        return;
+      }
+      
       toast.success(`SMS sent to customer`);
     } catch (err: any) {
       console.error('Error sending SMS:', err);
@@ -253,17 +277,17 @@ export const usePOSOrders = () => {
 
       if (error) throw error;
 
-      // Get order phone for SMS
+      // Get order for SMS
       const order = orders.find(o => o.id === orderNumber);
       
-      // Send SMS based on status
-      if (order?.customerPhone) {
+      // Send SMS based on status (pass both phone and customerId for fallback lookup)
+      if (order?.customerPhone || order?.customerId) {
         if (status === 'preparing' && prepTime) {
-          await sendOrderSms(orderNumber, order.customerPhone, 'preparing', prepTime);
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', prepTime);
         } else if (status === 'ready') {
-          await sendOrderSms(orderNumber, order.customerPhone, 'ready');
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
         } else if (status === 'delivered') {
-          await sendOrderSms(orderNumber, order.customerPhone, 'complete');
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete');
         }
       }
 
