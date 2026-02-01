@@ -1,4 +1,4 @@
-import { Clock, Phone, Globe, User, MapPin, Utensils, Package, Truck } from 'lucide-react';
+import { Clock, Phone, Globe, User, MapPin, Utensils, Package, Truck, Smartphone } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -17,10 +17,12 @@ const statusColors = {
   cancelled: 'bg-red-100 text-red-800 border-red-300',
 };
 
-const sourceIcons = {
-  online: Globe,
-  phone: Phone,
-  'walk-in': User,
+const sourceConfig = {
+  web: { icon: Globe, label: 'Web', color: 'bg-blue-100 text-blue-700' },
+  online: { icon: Globe, label: 'Web', color: 'bg-blue-100 text-blue-700' },
+  app: { icon: Smartphone, label: 'App', color: 'bg-purple-100 text-purple-700' },
+  phone: { icon: Phone, label: 'Phone', color: 'bg-orange-100 text-orange-700' },
+  'walk-in': { icon: User, label: 'Walk-in', color: 'bg-gray-100 text-gray-700' },
 };
 
 const orderTypeIcons = {
@@ -30,7 +32,8 @@ const orderTypeIcons = {
 };
 
 export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) => {
-  const SourceIcon = sourceIcons[order.source || 'online'];
+  const source = sourceConfig[order.source || 'web'] || sourceConfig.web;
+  const SourceIcon = source.icon;
   const TypeIcon = orderTypeIcons[order.orderType];
   
   const getTimeSince = (date: Date) => {
@@ -57,7 +60,10 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="font-mono font-bold text-lg">{order.id}</span>
-          <SourceIcon className="w-4 h-4 text-muted-foreground" />
+          <Badge variant="outline" className={cn("text-xs px-1.5 py-0", source.color)}>
+            <SourceIcon className="w-3 h-3 mr-1" />
+            {source.label}
+          </Badge>
         </div>
         <Badge variant="outline" className={cn("text-xs", statusColors[order.status])}>
           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}

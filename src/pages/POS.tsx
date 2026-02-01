@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ChefHat, Plus, Clock, CheckCircle, Package, Truck, Utensils } from 'lucide-react';
+import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useOrders } from '@/contexts/OrderContext';
+import { usePOSOrders } from '@/hooks/usePOSOrders';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
 import { POSOrderCard } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
@@ -20,7 +20,7 @@ const statusTabs = [
 ] as const;
 
 const POS = () => {
-  const { orders, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = useOrders();
+  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -49,7 +49,7 @@ const POS = () => {
     delivered: orders.filter(o => o.status === 'delivered').length,
   };
 
-  const handleCreateOrder = (orderData: {
+  const handleCreateOrder = async (orderData: {
     items: CartItem[];
     customerName: string;
     customerPhone: string;
@@ -63,7 +63,7 @@ const POS = () => {
     const tax = subtotal * 0.08;
     const total = subtotal + tax;
 
-    const newOrder = addOrder({
+    const newOrder = await addOrder({
       ...orderData,
       subtotal,
       tax,
@@ -73,7 +73,9 @@ const POS = () => {
     });
 
     setShowNewOrder(false);
-    setSelectedOrderId(newOrder.id);
+    if (newOrder) {
+      setSelectedOrderId(newOrder.id);
+    }
   };
 
   const handleUpdateStatus = (status: OrderStatus) => {
@@ -181,7 +183,12 @@ const POS = () => {
         {/* Left Panel - Order List */}
         <div className="w-80 border-r border-border flex flex-col bg-secondary/20">
           <ScrollArea className="flex-1 p-3">
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
+                <p>Loading orders...</p>
+              </div>
+            ) : filteredOrders.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No orders</p>

@@ -406,39 +406,63 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          customer_address: string | null
           customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
           id: string
           location_id: string
           notes: string | null
           order_number: string
+          order_type: string
+          payment_method: string | null
+          payment_status: string
+          source: string
           status: string
           subtotal: number
+          table_number: string | null
           tax: number
           total: number
           updated_at: string
         }
         Insert: {
           created_at?: string
+          customer_address?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           location_id: string
           notes?: string | null
           order_number: string
+          order_type?: string
+          payment_method?: string | null
+          payment_status?: string
+          source?: string
           status?: string
           subtotal?: number
+          table_number?: string | null
           tax?: number
           total?: number
           updated_at?: string
         }
         Update: {
           created_at?: string
+          customer_address?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           id?: string
           location_id?: string
           notes?: string | null
           order_number?: string
+          order_type?: string
+          payment_method?: string | null
+          payment_status?: string
+          source?: string
           status?: string
           subtotal?: number
+          table_number?: string | null
           tax?: number
           total?: number
           updated_at?: string

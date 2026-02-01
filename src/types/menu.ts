@@ -46,7 +46,7 @@ export type OrderType = 'pickup' | 'delivery' | 'dine-in';
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'paid' | 'refunded';
 export type PaymentMethod = 'cash' | 'card' | 'online';
-export type OrderSource = 'online' | 'phone' | 'walk-in';
+export type OrderSource = 'web' | 'app' | 'online' | 'phone' | 'walk-in';
 
 export interface Order {
   id: string;
