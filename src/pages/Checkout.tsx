@@ -259,8 +259,20 @@ const Checkout = () => {
     setPlacingOrder(true);
     
     try {
-      // Generate order number
-      const orderNumber = `TIT-${Date.now().toString(36).toUpperCase()}`;
+      const locationId = selectedLocation?.id || 'calgary';
+      
+      // Generate order number via edge function
+      let orderNumber: string;
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-order-number', {
+          body: { locationId }
+        });
+        if (error) throw error;
+        orderNumber = data.orderNumber;
+      } catch (err) {
+        console.error('Error generating order number, using fallback:', err);
+        orderNumber = `TIT-${Date.now().toString(36).toUpperCase()}`;
+      }
       
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
       const tax = total * 0.05; // 5% GST
@@ -272,7 +284,7 @@ const Checkout = () => {
         .insert({
           order_number: orderNumber,
           customer_id: customerId,
-          location_id: selectedLocation?.id || 'calgary',
+          location_id: locationId,
           status: 'pending',
           subtotal: total,
           tax: tax,
