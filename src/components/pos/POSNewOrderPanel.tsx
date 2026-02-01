@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
-import { CartItem, OrderType, OrderSource, CartPizzaCustomization } from '@/types/menu';
+import { CartItem, OrderType, OrderSource, CartPizzaCustomization, Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
 import { POSWingsModal } from '@/components/pos/POSWingsModal';
@@ -110,6 +110,8 @@ interface POSNewOrderPanelProps {
     notes?: string;
   }) => void;
   onCancel: () => void;
+  editingOrder?: Order | null;
+  onUpdateOrder?: (orderData: { items: CartItem[]; notes?: string }) => void;
 }
 
 const categories = [
@@ -131,12 +133,14 @@ const pizzaSubcategories = [
 // Items that require customization
 const CUSTOMIZABLE_CATEGORIES = ['pizza', 'chicken_wings'];
 
-export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelProps) => {
+export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpdateOrder }: POSNewOrderPanelProps) => {
+  const isEditMode = !!editingOrder;
   const { data: menuItems = [], isLoading } = useMenuItems();
   const [activeCategory, setActiveCategory] = useState<string>('pizza');
   const [activeSubcategory, setActiveSubcategory] = useState<string>('vegetarian');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Initialize cart with editing order's items or empty
+  const [cartItems, setCartItems] = useState<CartItem[]>(editingOrder?.items || []);
   
   // Customization modal state
   const [selectedPizzaItem, setSelectedPizzaItem] = useState<MenuItem | null>(null);
@@ -144,13 +148,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
   
-  // Customer info
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
-  const [orderType, setOrderType] = useState<OrderType>('pickup');
-  const [tableNumber, setTableNumber] = useState('');
-  const [notes, setNotes] = useState('');
+  // Customer info - initialize from editing order if available
+  const [customerName, setCustomerName] = useState(editingOrder?.customerName || '');
+  const [customerPhone, setCustomerPhone] = useState(editingOrder?.customerPhone || '');
+  const [customerAddress, setCustomerAddress] = useState(editingOrder?.customerAddress || '');
+  const [orderType, setOrderType] = useState<OrderType>(editingOrder?.orderType || 'pickup');
+  const [tableNumber, setTableNumber] = useState(editingOrder?.tableNumber || '');
+  const [notes, setNotes] = useState(editingOrder?.notes || '');
 
   const filteredItems = menuItems.filter(item => {
     const matchesCategory = item.category === activeCategory;
@@ -299,16 +303,23 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
   const handleSubmit = () => {
     if (cartItems.length === 0) return;
 
-    onCreateOrder({
-      items: cartItems,
-      customerName: customerName || 'Walk-in Customer',
-      customerPhone,
-      customerAddress,
-      orderType,
-      source: 'walk-in',
-      tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
-      notes: notes || undefined,
-    });
+    if (isEditMode && onUpdateOrder) {
+      onUpdateOrder({
+        items: cartItems,
+        notes: notes || undefined,
+      });
+    } else {
+      onCreateOrder({
+        items: cartItems,
+        customerName: customerName || 'Walk-in Customer',
+        customerPhone,
+        customerAddress,
+        orderType,
+        source: 'walk-in',
+        tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
+        notes: notes || undefined,
+      });
+    }
   };
 
   return (
@@ -316,7 +327,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
       <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
         {/* Header */}
         <div className="bg-secondary/50 p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-xl font-bold">New Order</h2>
+          <div>
+            <h2 className="text-xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
+            {isEditMode && editingOrder && (
+              <p className="text-sm text-muted-foreground">{editingOrder.customerName}</p>
+            )}
+          </div>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-5 h-5" />
           </Button>
@@ -539,7 +555,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >
-                Create Order
+                {isEditMode ? 'Update Order' : 'Create Order'}
               </Button>
             </div>
           </div>

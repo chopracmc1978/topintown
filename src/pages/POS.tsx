@@ -20,11 +20,12 @@ const statusTabs = [
 ] as const;
 
 const POS = () => {
-  const { orders, addOrder, updateOrderStatus, updatePaymentStatus } = useOrders();
+  const { orders, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = useOrders();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showNewOrder, setShowNewOrder] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [cashModalOpen, setCashModalOpen] = useState(false);
   const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
 
@@ -127,6 +128,25 @@ const POS = () => {
     });
   };
 
+  const handleEditOrder = () => {
+    if (selectedOrder) {
+      setEditingOrder(selectedOrder);
+      setShowNewOrder(false);
+    }
+  };
+
+  const handleUpdateOrder = (orderData: { items: CartItem[]; notes?: string }) => {
+    if (editingOrder) {
+      updateOrder(editingOrder.id, orderData);
+      setEditingOrder(null);
+      setSelectedOrderId(editingOrder.id);
+      toast({
+        title: 'Order Updated',
+        description: `Order ${editingOrder.id} has been updated`,
+      });
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
@@ -208,9 +228,19 @@ const POS = () => {
           </ScrollArea>
         </div>
 
-        {/* Right Panel - Detail or New Order */}
+        {/* Right Panel - Detail, Edit, or New Order */}
         <div className="flex-1 p-4 overflow-auto">
-          {showNewOrder ? (
+          {editingOrder ? (
+            <POSNewOrderPanel
+              onCreateOrder={handleCreateOrder}
+              onCancel={() => {
+                setEditingOrder(null);
+                setSelectedOrderId(editingOrder.id);
+              }}
+              editingOrder={editingOrder}
+              onUpdateOrder={handleUpdateOrder}
+            />
+          ) : showNewOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
               onCancel={() => setShowNewOrder(false)}
@@ -221,6 +251,7 @@ const POS = () => {
               onUpdateStatus={handleUpdateStatus}
               onPayment={handlePayment}
               onPrintTicket={handlePrintTicket}
+              onEditOrder={handleEditOrder}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">

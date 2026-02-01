@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Order, OrderStatus, PaymentStatus, PaymentMethod } from '@/types/menu';
+import { Order, OrderStatus, PaymentStatus, PaymentMethod, CartItem } from '@/types/menu';
 
 interface OrderContextType {
   orders: Order[];
   addOrder: (order: Omit<Order, 'id' | 'createdAt'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   updatePaymentStatus: (orderId: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod) => void;
+  updateOrder: (orderId: string, updates: { items: CartItem[]; notes?: string }) => void;
   getOrderById: (orderId: string) => Order | undefined;
 }
 
@@ -41,12 +42,33 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const updateOrder = (orderId: string, updates: { items: CartItem[]; notes?: string }) => {
+    setOrders((prev) =>
+      prev.map((order) => {
+        if (order.id !== orderId) return order;
+        
+        const subtotal = updates.items.reduce((sum, item) => sum + item.totalPrice, 0);
+        const tax = subtotal * 0.08;
+        const total = subtotal + tax;
+        
+        return {
+          ...order,
+          items: updates.items,
+          notes: updates.notes,
+          subtotal,
+          tax,
+          total,
+        };
+      })
+    );
+  };
+
   const getOrderById = (orderId: string) => {
     return orders.find((order) => order.id === orderId);
   };
 
   return (
-    <OrderContext.Provider value={{ orders, addOrder, updateOrderStatus, updatePaymentStatus, getOrderById }}>
+    <OrderContext.Provider value={{ orders, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, getOrderById }}>
       {children}
     </OrderContext.Provider>
   );
