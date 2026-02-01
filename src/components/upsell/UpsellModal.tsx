@@ -18,21 +18,28 @@ interface UpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (upsellItems: UpsellItem[]) => void;
+  excludeSteps?: UpsellStep[];
 }
 
 type UpsellStep = 'drinks' | 'dipping_sauce' | 'wings' | 'garlic_toast';
 
-const UPSELL_STEPS: { step: UpsellStep; title: string; subtitle: string; category: string }[] = [
+const ALL_UPSELL_STEPS: { step: UpsellStep; title: string; subtitle: string; category: string }[] = [
   { step: 'drinks', title: 'Add a Drink?', subtitle: 'Refresh your meal with a cold beverage', category: 'drinks' },
   { step: 'dipping_sauce', title: 'Add Dipping Sauce?', subtitle: 'Perfect for dipping your pizza crust', category: 'dipping_sauce' },
   { step: 'wings', title: 'Add Wings?', subtitle: 'Crispy, juicy wings to complete your order', category: 'chicken_wings' },
   { step: 'garlic_toast', title: 'Add Garlic Toast?', subtitle: 'Fresh garlic bread on the side', category: 'baked_lasagna' },
 ];
 
-const UpsellModal = ({ isOpen, onClose, onComplete }: UpsellModalProps) => {
+const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellModalProps) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedItems, setSelectedItems] = useState<UpsellItem[]>([]);
   const { addToCart } = useCart();
+
+  // Filter out excluded steps
+  const UPSELL_STEPS = useMemo(() => 
+    ALL_UPSELL_STEPS.filter(s => !excludeSteps.includes(s.step)),
+    [excludeSteps]
+  );
 
   const currentStep = UPSELL_STEPS[currentStepIndex];
   const isLastStep = currentStepIndex === UPSELL_STEPS.length - 1;

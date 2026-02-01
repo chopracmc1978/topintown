@@ -161,11 +161,12 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
       </DialogContent>
     </Dialog>
 
-    {/* Upsell Modal */}
+    {/* Upsell Modal - exclude wings since we're already ordering wings */}
     <UpsellModal 
       isOpen={showUpsell} 
       onClose={handleUpsellClose}
       onComplete={handleUpsellComplete}
+      excludeSteps={['wings']}
     />
     </>
   );
