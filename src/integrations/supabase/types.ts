@@ -419,6 +419,7 @@ export type Database = {
           payment_status: string
           source: string
           status: string
+          stripe_session_id: string | null
           subtotal: number
           table_number: string | null
           tax: number
@@ -440,6 +441,7 @@ export type Database = {
           payment_status?: string
           source?: string
           status?: string
+          stripe_session_id?: string | null
           subtotal?: number
           table_number?: string | null
           tax?: number
@@ -461,6 +463,7 @@ export type Database = {
           payment_status?: string
           source?: string
           status?: string
+          stripe_session_id?: string | null
           subtotal?: number
           table_number?: string | null
           tax?: number

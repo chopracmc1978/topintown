@@ -1,5 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
-import { CheckCircle, Clock, MapPin, Phone, Loader2 } from 'lucide-react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { CheckCircle, Clock, MapPin, Phone, Loader2, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -30,24 +30,68 @@ interface OrderData {
 
 const OrderConfirmation = () => {
   const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+  
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      if (!orderId) {
-        setError('No order ID provided');
-        setLoading(false);
+    const finalizeAndFetchOrder = async () => {
+      // If we have a session_id, finalize the order first
+      if (sessionId) {
+        setFinalizing(true);
+        try {
+          console.log('Finalizing order for session:', sessionId);
+          const { data, error: finalizeError } = await supabase.functions.invoke('finalize-order', {
+            body: { sessionId }
+          });
+
+          if (finalizeError) {
+            console.error('Finalize error:', finalizeError);
+            setError('Payment confirmed but order creation failed. Please contact support.');
+            setLoading(false);
+            return;
+          }
+
+          if (data?.error) {
+            console.error('Finalize data error:', data.error);
+            setError(data.error);
+            setLoading(false);
+            return;
+          }
+
+          console.log('Order finalized:', data);
+          
+          // Now fetch the order details
+          await fetchOrder(data.orderId);
+        } catch (err) {
+          console.error('Error finalizing:', err);
+          setError('Failed to confirm order. Please contact support.');
+          setLoading(false);
+        }
+        setFinalizing(false);
         return;
       }
 
+      // Otherwise, fetch by orderId param
+      if (orderId) {
+        await fetchOrder(orderId);
+      } else {
+        setError('No order information provided');
+        setLoading(false);
+      }
+    };
+
+    const fetchOrder = async (id: string) => {
       try {
         // First try to find by order_number, then by id
         let { data: orderData, error: orderError } = await supabase
           .from('orders')
           .select('*')
-          .eq('order_number', orderId)
+          .eq('order_number', id)
           .single();
 
         if (orderError || !orderData) {
@@ -55,7 +99,7 @@ const OrderConfirmation = () => {
           const result = await supabase
             .from('orders')
             .select('*')
-            .eq('id', orderId)
+            .eq('id', id)
             .single();
           orderData = result.data;
           orderError = result.error;
@@ -89,15 +133,20 @@ const OrderConfirmation = () => {
       }
     };
 
-    fetchOrder();
-  }, [orderId]);
+    finalizeAndFetchOrder();
+  }, [orderId, sessionId]);
 
-  if (loading) {
+  if (loading || finalizing) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <main className="flex-1 py-12 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              {finalizing ? 'Confirming your payment...' : 'Loading order...'}
+            </p>
+          </div>
         </main>
         <Footer />
       </div>
@@ -110,8 +159,15 @@ const OrderConfirmation = () => {
         <Navbar />
         <main className="flex-1 py-12">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="font-serif text-3xl font-bold text-foreground mb-4">Order Not Found</h1>
-            <p className="text-muted-foreground mb-6">We couldn't find this order.</p>
+            <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-10 h-10 text-destructive" />
+            </div>
+            <h1 className="font-serif text-3xl font-bold text-foreground mb-4">
+              {error || 'Order Not Found'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              {error ? 'Please contact support with your payment confirmation.' : "We couldn't find this order."}
+            </p>
             <Link to="/menu">
               <Button variant="pizza">Browse Menu</Button>
             </Link>
@@ -133,7 +189,7 @@ const OrderConfirmation = () => {
             </div>
 
             <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
-              Your Order Has Been Placed!
+              Payment Successful!
             </h1>
             <p className="text-muted-foreground mb-6">
               Thank you for your order. We're preparing your delicious food now!
