@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
+import UpsellModal from '@/components/upsell/UpsellModal';
 
 interface MenuCardDBProps {
   item: MenuItem;
@@ -20,12 +21,19 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   const [isCustomizingWings, setIsCustomizingWings] = useState(false);
   const { addToCart } = useCart();
 
+  // Upsell state for baked lasagna
+  const [showLasagnaUpsell, setShowLasagnaUpsell] = useState(false);
+  const [pendingLasagnaItem, setPendingLasagnaItem] = useState<any>(null);
+
   const currentPrice = item.sizes && selectedSize
     ? item.sizes.find((s) => s.name === selectedSize)?.price || item.base_price
     : item.base_price;
 
   const isPizza = item.category === 'pizza';
   const isWings = item.category === 'chicken_wings';
+  const isLasagna = item.category === 'baked_lasagna';
+  // Check if it's a garlic toast item (exclude from upsell flow)
+  const isGarlicToast = isLasagna && (item.name.toLowerCase().includes('garlic') || item.name.toLowerCase().includes('toast'));
 
   const handleAddToCart = () => {
     if (isPizza) {
@@ -38,7 +46,23 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
       return;
     }
 
-    // Non-pizza items go directly to cart
+    // Baked lasagna items (except garlic toast) get upsell flow
+    if (isLasagna && !isGarlicToast) {
+      const cartItem = {
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        price: item.base_price,
+        image: item.image_url || '/placeholder.svg',
+        category: item.category as 'baked_lasagna',
+        popular: item.is_popular,
+      };
+      setPendingLasagnaItem(cartItem);
+      setShowLasagnaUpsell(true);
+      return;
+    }
+
+    // Other items go directly to cart
     const cartItem = {
       id: item.id,
       name: item.name,
@@ -53,6 +77,39 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
     addToCart(cartItem, selectedSize);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1500);
+  };
+
+  const handleLasagnaUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number }[]) => {
+    // First add the lasagna item
+    if (pendingLasagnaItem) {
+      addToCart(pendingLasagnaItem);
+    }
+    
+    // Then add all upsell items
+    upsellItems.forEach(upsellItem => {
+      for (let i = 0; i < upsellItem.quantity; i++) {
+        addToCart({
+          id: upsellItem.id,
+          name: upsellItem.name,
+          description: '',
+          price: upsellItem.price,
+          image: upsellItem.image_url || '/placeholder.svg',
+          category: 'sides',
+        });
+      }
+    });
+    
+    // Reset and show added feedback
+    setPendingLasagnaItem(null);
+    setShowLasagnaUpsell(false);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 1500);
+  };
+
+  const handleLasagnaUpsellClose = () => {
+    // User cancelled - don't add anything
+    setPendingLasagnaItem(null);
+    setShowLasagnaUpsell(false);
   };
 
   return (
@@ -142,6 +199,16 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
           item={item}
           isOpen={isCustomizingWings}
           onClose={() => setIsCustomizingWings(false)}
+        />
+      )}
+
+      {/* Lasagna upsell - Drinks and Garlic Toast only */}
+      {isLasagna && !isGarlicToast && (
+        <UpsellModal
+          isOpen={showLasagnaUpsell}
+          onClose={handleLasagnaUpsellClose}
+          onComplete={handleLasagnaUpsellComplete}
+          excludeSteps={['dipping_sauce', 'wings']}
         />
       )}
     </>
