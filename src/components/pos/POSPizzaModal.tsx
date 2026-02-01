@@ -331,9 +331,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-4 flex flex-col">
+      <DialogContent className="max-w-5xl overflow-hidden p-4">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-4 pb-2 border-b pr-6 flex-shrink-0">
+        <div className="flex items-center gap-4 pb-2 border-b pr-6">
           <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
@@ -373,13 +373,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto space-y-2 mt-2 pr-1">
-          {/* Row 1: Cheese with quantities + Free Add-ons */}
+        <div className="space-y-2 mt-2">
+          {/* Row 1: Cheese (all inline: type + quantity) + Free Add-ons */}
           <div className="flex items-start gap-6">
             <div>
               <h3 className="font-medium text-xs mb-1">Cheese</h3>
-              <div className="flex gap-1 flex-wrap">
+              <div className="flex gap-1 items-center">
+                {/* Cheese type options */}
                 {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
                   <button
                     key={cheese}
@@ -395,28 +395,27 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     )}
                   </button>
                 ))}
-                {selectedCheese === 'Mozzarella' && (
-                  <>
-                    <div className="w-px bg-border" />
-                    {(['less', 'normal', 'extra'] as const).map(qty => {
-                      const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
-                                         selectedSize?.name?.includes('Medium') ? 2.5 : 3;
-                      return (
-                        <button
-                          key={qty}
-                          onClick={() => setCheeseQuantity(qty)}
-                          className={cn(
-                            "px-3 py-1 text-xs rounded border font-medium transition-colors",
-                            cheeseQuantity === qty ? btnActive : btnInactive
-                          )}
-                        >
-                          {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
-                          {qty === 'extra' && <span className="text-primary ml-1">+${extraPrice}</span>}
-                        </button>
-                      );
-                    })}
-                  </>
-                )}
+                {/* Quantity options - always visible */}
+                {(['less', 'normal', 'extra'] as const).map(qty => {
+                  const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
+                                     selectedSize?.name?.includes('Medium') ? 2.5 : 3;
+                  const isDisabled = selectedCheese === 'No Cheese';
+                  return (
+                    <button
+                      key={qty}
+                      onClick={() => !isDisabled && setCheeseQuantity(qty)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "px-3 py-1 text-xs rounded border font-medium transition-colors",
+                        isDisabled ? "opacity-40 cursor-not-allowed" :
+                        cheeseQuantity === qty ? btnActive : btnInactive
+                      )}
+                    >
+                      {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
+                      {qty === 'extra' && <span className="text-primary ml-1">+${extraPrice}</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             
@@ -821,10 +820,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               </div>
             </div>
           )}
-        </div>
 
-        {/* Fixed Footer: Notes + Extra Amount + Price + Buttons */}
-        <div className="flex items-center justify-between pt-2 border-t mt-2 flex-shrink-0">
+          {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
+          <div className="flex items-center justify-between pt-2 border-t mt-1">
           <div className="flex items-center gap-2 flex-1 mr-4">
             <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
             <input
@@ -862,6 +860,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             >
               {editingItem ? 'Update' : 'Add to Order'}
             </Button>
+          </div>
           </div>
         </div>
       </DialogContent>
