@@ -36,11 +36,14 @@ const OrderItemCard = ({
   return (
     <div className="p-4 bg-secondary/30 rounded-lg space-y-3">
       <div className="flex items-center gap-4">
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-16 h-16 object-cover rounded-lg"
-        />
+        {item.image && (
+          <img
+            src={item.image}
+            alt=""
+            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="font-medium text-foreground">{item.name}</h4>
