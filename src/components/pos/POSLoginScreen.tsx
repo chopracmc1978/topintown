@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ChefHat, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 interface POSLoginScreenProps {
   onLoginSuccess: () => void;
@@ -80,11 +81,9 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground p-4 rounded-full">
-              <ChefHat className="w-10 h-10" />
-            </div>
+            <img src={logo} alt="Top In Town Pizza" className="w-20 h-20 object-contain" />
           </div>
-          <CardTitle className="font-serif text-2xl">Bella Pizza POS</CardTitle>
+          <CardTitle className="font-serif text-2xl">Top In Town Pizza POS</CardTitle>
           <CardDescription>
             Sign in with your staff account to access the point of sale
           </CardDescription>
