@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, MenuItem, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
 
 interface CartContextType {
@@ -19,6 +19,21 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+
+  // Check for repeat order items on mount
+  useEffect(() => {
+    const repeatOrderItems = localStorage.getItem('repeat_order_items');
+    if (repeatOrderItems) {
+      try {
+        const parsedItems = JSON.parse(repeatOrderItems);
+        setItems(parsedItems);
+        localStorage.removeItem('repeat_order_items');
+      } catch (error) {
+        console.error('Error parsing repeat order items:', error);
+        localStorage.removeItem('repeat_order_items');
+      }
+    }
+  }, []);
 
   const addToCart = (item: MenuItem, size?: string) => {
     setItems((prev) => {

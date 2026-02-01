@@ -1,14 +1,17 @@
 import { useNavigate } from 'react-router-dom';
-import { Package, Calendar, MapPin, ChevronRight, LogOut, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Package, Calendar, MapPin, LogOut, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, User } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCustomer } from '@/contexts/CustomerContext';
-import { useCustomerOrders } from '@/hooks/useCustomerOrders';
+import { useCustomerOrders, CustomerOrder } from '@/hooks/useCustomerOrders';
 import { cn } from '@/lib/utils';
 import { LOCATIONS } from '@/contexts/LocationContext';
+import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/hooks/use-toast';
+import { CartItem, CartPizzaCustomization } from '@/types/menu';
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
@@ -24,6 +27,8 @@ const MyOrders = () => {
   const navigate = useNavigate();
   const { customer, logout, loading: customerLoading } = useCustomer();
   const { data: orders, isLoading: ordersLoading } = useCustomerOrders(customer?.id);
+  const { clearCart } = useCart();
+  const { toast } = useToast();
 
   // Redirect if not logged in
   if (!customerLoading && !customer) {
@@ -34,6 +39,53 @@ const MyOrders = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleRepeatOrder = (order: CustomerOrder) => {
+    // Clear current cart first
+    clearCart();
+
+    // Convert order items to cart items and add to cart via localStorage workaround
+    const cartItems: CartItem[] = order.items.map((item, index) => {
+      const baseItem: CartItem = {
+        id: `repeat-${item.id}-${Date.now()}-${index}`,
+        name: item.name,
+        description: '',
+        price: item.unitPrice,
+        image: '',
+        category: 'pizza' as const,
+        popular: false,
+        quantity: item.quantity,
+        totalPrice: item.totalPrice,
+      };
+
+      // Check if item has pizza customization
+      if (item.customizations?.size || item.customizations?.crust) {
+        baseItem.pizzaCustomization = item.customizations as CartPizzaCustomization;
+        baseItem.description = `${item.customizations.size?.name || ''}, ${item.customizations.crust?.name || ''}`.trim();
+      }
+
+      // Check if item has wings customization
+      if (item.customizations?.flavor) {
+        baseItem.wingsCustomization = {
+          flavor: item.customizations.flavor,
+          originalItemId: item.customizations.originalItemId || item.id,
+        };
+        baseItem.description = `Flavor: ${item.customizations.flavor}`;
+      }
+
+      return baseItem;
+    });
+
+    // Store in localStorage temporarily and navigate - cart will pick it up
+    localStorage.setItem('repeat_order_items', JSON.stringify(cartItems));
+
+    toast({
+      title: 'Order Added to Cart',
+      description: `${order.items.length} items from order #${order.orderNumber} added to your cart.`,
+    });
+
+    navigate('/cart');
   };
 
   const formatDate = (dateString: string) => {
@@ -76,10 +128,16 @@ const MyOrders = () => {
                 Welcome back, {customer?.fullName || customer?.email}
               </p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/profile')}>
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
 
           {/* Orders List */}
@@ -132,10 +190,20 @@ const MyOrders = () => {
                         )}
                       </div>
 
-                      {/* Order Total */}
+                      {/* Order Total & Actions */}
                       <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <span className="font-semibold">Total</span>
-                        <span className="text-lg font-bold text-primary">${order.total.toFixed(2)}</span>
+                        <div>
+                          <span className="font-semibold">Total</span>
+                          <span className="text-lg font-bold text-primary ml-2">${order.total.toFixed(2)}</span>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleRepeatOrder(order)}
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Repeat Order
+                        </Button>
                       </div>
 
                       {/* Notes */}
