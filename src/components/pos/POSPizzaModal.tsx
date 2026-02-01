@@ -558,7 +558,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     leftSpicy === 'medium' ? btnActive : btnInactive
                   )}
                 >
-                  Medium
+                  Medium Hot
                 </button>
               )}
 

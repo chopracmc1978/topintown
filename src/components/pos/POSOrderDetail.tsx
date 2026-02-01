@@ -55,7 +55,7 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     details.push('No Sauce');
   }
   
-  // Spicy Level - only show if not 'none' on both sides
+  // Spicy Level - only show if at least one side is not 'none'
   const leftSpicy = customization.spicyLevel?.left;
   const rightSpicy = customization.spicyLevel?.right;
   
@@ -63,19 +63,21 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
   const spicyDisplayName = (level: string) => {
     if (level === 'medium') return 'Medium Hot';
     if (level === 'hot') return 'Hot';
+    if (level === 'none' || !level) return 'None';
     return level;
   };
   
-  if (leftSpicy || rightSpicy) {
-    if (leftSpicy === rightSpicy && leftSpicy !== 'none') {
-      details.push(`Spicy Level: Whole ${spicyDisplayName(leftSpicy)}`);
+  // Check if any side has spicy selected (not none)
+  const hasLeftSpicy = leftSpicy && leftSpicy !== 'none';
+  const hasRightSpicy = rightSpicy && rightSpicy !== 'none';
+  
+  if (hasLeftSpicy || hasRightSpicy) {
+    // Both sides same and not none - show single level
+    if (leftSpicy === rightSpicy) {
+      details.push(`Spicy Level: ${spicyDisplayName(leftSpicy!)}`);
     } else {
-      const spicyParts: string[] = [];
-      if (leftSpicy && leftSpicy !== 'none') spicyParts.push(`Left ${spicyDisplayName(leftSpicy)}`);
-      if (rightSpicy && rightSpicy !== 'none') spicyParts.push(`Right ${spicyDisplayName(rightSpicy)}`);
-      if (spicyParts.length > 0) {
-        details.push(`Spicy Level: ${spicyParts.join(', ')}`);
-      }
+      // Different sides - show both with Left/Right labels
+      details.push(`Spicy Level: Left ${spicyDisplayName(leftSpicy || 'none')}, Right ${spicyDisplayName(rightSpicy || 'none')}`);
     }
   }
   
