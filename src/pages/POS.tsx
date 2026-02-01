@@ -20,7 +20,7 @@ const statusTabs = [
 ] as const;
 
 const POS = () => {
-  const { orders, addOrder, updateOrderStatus } = useOrders();
+  const { orders, addOrder, updateOrderStatus, updatePaymentStatus } = useOrders();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -83,9 +83,8 @@ const POS = () => {
     if (!selectedOrderId) return;
     updateOrderStatus(selectedOrderId, status);
     
-    if (status === 'delivered' || status === 'cancelled') {
-      setSelectedOrderId(null);
-    }
+    // Clear selection and go back to empty state after status change
+    setSelectedOrderId(null);
 
     toast({
       title: 'Order Updated',
@@ -101,7 +100,7 @@ const POS = () => {
       setCashModalOpen(true);
     } else {
       // Card payment - mark as paid directly (terminal handles it)
-      handlePaymentComplete();
+      updatePaymentStatus(selectedOrderId, 'paid', 'card');
       toast({
         title: 'Process on Terminal',
         description: 'Complete the card payment on your terminal',
@@ -109,8 +108,10 @@ const POS = () => {
     }
   };
 
-  const handlePaymentComplete = () => {
-    // In a real app, update payment status in state/database
+  const handlePaymentComplete = (method: 'cash' | 'card' = 'cash') => {
+    if (pendingPaymentOrderId) {
+      updatePaymentStatus(pendingPaymentOrderId, 'paid', method);
+    }
     setCashModalOpen(false);
     setPendingPaymentOrderId(null);
     toast({
