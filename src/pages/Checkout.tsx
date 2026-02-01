@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MapPin, Phone, User, FileText, Truck, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2 } from 'lucide-react';
+import { MapPin, Phone, User, FileText, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2, CreditCard } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -403,36 +403,17 @@ const Checkout = () => {
                     </div>
                   )}
 
-                  {/* Order Type Toggle */}
-                  <div className="flex gap-4 mb-6">
-                    <button
-                      onClick={() => setOrderType('delivery')}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all",
-                        orderType === 'delivery'
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border text-muted-foreground hover:border-primary/50"
-                      )}
-                    >
-                      <Truck className="w-5 h-5" />
-                      <span className="font-medium">Delivery</span>
-                    </button>
-                    <button
-                      onClick={() => setOrderType('pickup')}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border-2 transition-all",
-                        orderType === 'pickup'
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border text-muted-foreground hover:border-primary/50"
-                      )}
-                    >
-                      <Store className="w-5 h-5" />
-                      <span className="font-medium">Pickup</span>
-                    </button>
+                  {/* Pickup Only Notice */}
+                  <div className="mb-6 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Store className="w-4 h-4 text-primary" />
+                      <span className="font-medium text-primary">Pickup Only</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">All orders require prepayment via credit card</p>
                   </div>
 
                   {/* Location display for pickup */}
-                  {orderType === 'pickup' && selectedLocation && (
+                  {selectedLocation && (
                     <div className="mb-6 p-4 bg-secondary/50 rounded-lg">
                       <div className="flex items-start gap-3">
                         <MapPin className="w-5 h-5 text-primary mt-0.5" />
@@ -446,18 +427,6 @@ const Checkout = () => {
                   )}
 
                   <div className="space-y-4">
-                    {orderType === 'delivery' && (
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-                        <Textarea
-                          placeholder="Delivery Address"
-                          value={formData.address}
-                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="pl-10 min-h-[80px]"
-                          required
-                        />
-                      </div>
-                    )}
 
                     <div className="relative">
                       <FileText className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
@@ -474,17 +443,20 @@ const Checkout = () => {
                       variant="pizza" 
                       className="w-full" 
                       size="lg"
-                      disabled={placingOrder || (orderType === 'delivery' && !formData.address)}
+                      disabled={placingOrder}
                     >
                       {placingOrder ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Placing Order...
+                          Processing...
                         </>
                       ) : customer || verifiedCustomerId ? (
-                        `Place Order - $${grandTotal.toFixed(2)}`
+                        <>
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Pay ${grandTotal.toFixed(2)}
+                        </>
                       ) : (
-                        `Continue to Verification - $${grandTotal.toFixed(2)}`
+                        `Continue - $${grandTotal.toFixed(2)}`
                       )}
                     </Button>
                   </div>
