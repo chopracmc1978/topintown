@@ -8,7 +8,7 @@ import { POSOrderCard } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
-import { useToast } from '@/hooks/use-toast';
+
 import { cn } from '@/lib/utils';
 
 const statusTabs = [
@@ -21,7 +21,7 @@ const statusTabs = [
 
 const POS = () => {
   const { orders, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = useOrders();
-  const { toast } = useToast();
+  
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showNewOrder, setShowNewOrder] = useState(false);
@@ -74,10 +74,6 @@ const POS = () => {
 
     setShowNewOrder(false);
     setSelectedOrderId(newOrder.id);
-    toast({
-      title: 'Order Created',
-      description: `Order ${newOrder.id} has been created`,
-    });
   };
 
   const handleUpdateStatus = (status: OrderStatus) => {
@@ -86,11 +82,6 @@ const POS = () => {
     
     // Clear selection and go back to empty state after status change
     setSelectedOrderId(null);
-
-    toast({
-      title: 'Order Updated',
-      description: `Order status changed to ${status}`,
-    });
   };
 
   const handlePayment = (method: 'cash' | 'card') => {
@@ -102,10 +93,6 @@ const POS = () => {
     } else {
       // Card payment - mark as paid directly (terminal handles it)
       updatePaymentStatus(selectedOrderId, 'paid', 'card');
-      toast({
-        title: 'Process on Terminal',
-        description: 'Complete the card payment on your terminal',
-      });
     }
   };
 
@@ -115,17 +102,10 @@ const POS = () => {
     }
     setCashModalOpen(false);
     setPendingPaymentOrderId(null);
-    toast({
-      title: 'Payment Complete',
-      description: 'Order has been marked as paid',
-    });
   };
 
   const handlePrintTicket = () => {
-    toast({
-      title: 'Printing...',
-      description: 'Kitchen ticket sent to printer',
-    });
+    // Printing handled silently
   };
 
   const handleEditOrder = () => {
@@ -140,10 +120,6 @@ const POS = () => {
       updateOrder(editingOrder.id, orderData);
       setEditingOrder(null);
       setSelectedOrderId(editingOrder.id);
-      toast({
-        title: 'Order Updated',
-        description: `Order ${editingOrder.id} has been updated`,
-      });
     }
   };
 
