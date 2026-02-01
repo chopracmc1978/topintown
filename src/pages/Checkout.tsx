@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MapPin, Phone, User, FileText, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2, CreditCard } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -219,6 +219,7 @@ const Checkout = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const placeOrderLock = useRef(false);
   
   const [formData, setFormData] = useState({
     address: '',
@@ -256,32 +257,23 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async (customerId: string) => {
+    // Prevent double submits
+    if (placeOrderLock.current) return;
+    placeOrderLock.current = true;
     setPlacingOrder(true);
     
     try {
       const locationId = selectedLocation?.id || 'calgary';
       
-      // Generate order number via edge function
-      let orderNumber: string;
-      try {
-        const { data, error } = await supabase.functions.invoke('generate-order-number', {
-          body: { locationId }
-        });
-        if (error) throw error;
-        orderNumber = data.orderNumber;
-      } catch (err) {
-        console.error('Error generating order number, using fallback:', err);
-        // Fallback: build format locally
-        const LOCATION_CODES: Record<string, string> = { calgary: 'CAL', chestermere: 'KIN' };
-        const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        const locCode = LOCATION_CODES[locationId?.toLowerCase()] || 'CAL';
-        const now = new Date();
-        const year = now.getFullYear().toString().slice(-2);
-        const month = MONTHS[now.getMonth()];
-        const day = now.getDate().toString().padStart(2, '0');
-        const seq = 101 + Math.floor(Math.random() * 100);
-        orderNumber = `TIT-${locCode}-${year}${month}${day}${seq}`;
+      // Generate order number via edge function (uses atomic DB function)
+      const { data, error } = await supabase.functions.invoke('generate-order-number', {
+        body: { locationId }
+      });
+      if (error) {
+        console.error('Error generating order number:', error);
+        throw new Error('Unable to generate order number. Please try again.');
       }
+      const orderNumber = data.orderNumber;
       
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
       const tax = total * 0.05; // 5% GST
@@ -334,6 +326,7 @@ const Checkout = () => {
       toast.error(error.message || 'Failed to place order');
     } finally {
       setPlacingOrder(false);
+      placeOrderLock.current = false;
     }
   };
 
