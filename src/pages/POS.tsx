@@ -16,6 +16,7 @@ const statusTabs = [
   { id: 'pending', label: 'New', icon: Clock },
   { id: 'preparing', label: 'Preparing', icon: ChefHat },
   { id: 'ready', label: 'Ready', icon: CheckCircle },
+  { id: 'delivered', label: 'Done', icon: CheckCircle },
 ] as const;
 
 const POS = () => {
@@ -30,6 +31,8 @@ const POS = () => {
   // Filter orders
   const filteredOrders = activeTab === 'all'
     ? orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled')
+    : activeTab === 'delivered'
+    ? orders.filter(o => o.status === 'delivered')
     : orders.filter(o => o.status === activeTab);
 
   const selectedOrder = selectedOrderId 
@@ -42,6 +45,7 @@ const POS = () => {
     pending: orders.filter(o => o.status === 'pending').length,
     preparing: orders.filter(o => o.status === 'preparing').length,
     ready: orders.filter(o => o.status === 'ready').length,
+    delivered: orders.filter(o => o.status === 'delivered').length,
   };
 
   const handleCreateOrder = (orderData: {
@@ -155,25 +159,25 @@ const POS = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Order List */}
-        <div className="w-96 border-r border-border flex flex-col bg-secondary/20">
-          {/* Status Tabs */}
-          <div className="flex gap-1 p-2 border-b border-border">
+        {/* Left Panel - Vertical Status Tabs + Order List */}
+        <div className="flex overflow-hidden">
+          {/* Vertical Status Tabs */}
+          <div className="w-28 flex flex-col gap-1 p-2 border-r border-border bg-secondary/10">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full",
                   activeTab === tab.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-card text-foreground hover:bg-secondary"
                 )}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
+                <tab.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{tab.label}</span>
                 <span className={cn(
-                  "ml-1 text-xs px-1.5 py-0.5 rounded-full",
+                  "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
                   activeTab === tab.id
                     ? "bg-primary-foreground/20"
                     : "bg-secondary"
@@ -185,28 +189,30 @@ const POS = () => {
           </div>
 
           {/* Order List */}
-          <ScrollArea className="flex-1 p-3">
-            {filteredOrders.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No orders</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredOrders.map(order => (
-                  <POSOrderCard
-                    key={order.id}
-                    order={order}
-                    isSelected={selectedOrderId === order.id}
-                    onClick={() => {
-                      setSelectedOrderId(order.id);
-                      setShowNewOrder(false);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </ScrollArea>
+          <div className="w-72 border-r border-border flex flex-col bg-secondary/20">
+            <ScrollArea className="flex-1 p-3">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No orders</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredOrders.map(order => (
+                    <POSOrderCard
+                      key={order.id}
+                      order={order}
+                      isSelected={selectedOrderId === order.id}
+                      onClick={() => {
+                        setSelectedOrderId(order.id);
+                        setShowNewOrder(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
         </div>
 
         {/* Right Panel - Detail or New Order */}
