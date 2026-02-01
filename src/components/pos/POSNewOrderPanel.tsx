@@ -7,11 +7,97 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
-import { CartItem, OrderType, OrderSource } from '@/types/menu';
+import { CartItem, OrderType, OrderSource, CartPizzaCustomization } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
 import { POSWingsModal } from '@/components/pos/POSWingsModal';
 
+// Helper to format pizza customization for display (only changes from default)
+const formatPizzaCustomization = (customization: CartPizzaCustomization): string[] => {
+  const details: string[] = [];
+  
+  // Size and Crust always show
+  details.push(`${customization.size.name}, ${customization.crust.name}`);
+  
+  // Cheese - only if changed from regular mozzarella
+  if (customization.cheeseType) {
+    if (customization.cheeseType.toLowerCase() === 'no cheese') {
+      details.push('No Cheese');
+    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
+      details.push('Dairy Free');
+    } else {
+      // Check for quantity changes
+      const hasQuantityChange = customization.cheeseSides?.some(
+        cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal'
+      );
+      if (hasQuantityChange) {
+        const qtyParts = customization.cheeseSides
+          ?.filter(cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal')
+          .map(cs => `${cs.quantity} cheese${cs.side !== 'whole' ? ` (${cs.side})` : ''}`);
+        if (qtyParts?.length) details.push(qtyParts.join(', '));
+      }
+    }
+  }
+  
+  // Sauce - only if no sauce or extra quantity
+  if (customization.sauceName?.toLowerCase() === 'no sauce') {
+    details.push('No Sauce');
+  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal') {
+    details.push(`${customization.sauceQuantity} ${customization.sauceName}`);
+  }
+  
+  // Spicy - only if not 'none'
+  const left = customization.spicyLevel?.left;
+  const right = customization.spicyLevel?.right;
+  if (left || right) {
+    if (left === right && left !== 'none') {
+      details.push(`Whole ${left}`);
+    } else {
+      const parts: string[] = [];
+      if (left && left !== 'none') parts.push(`L:${left}`);
+      if (right && right !== 'none') parts.push(`R:${right}`);
+      if (parts.length) details.push(parts.join(' '));
+    }
+  }
+  
+  // Free toppings - if any selected
+  if (customization.freeToppings?.length) {
+    details.push(`+ ${customization.freeToppings.join(', ')}`);
+  }
+  
+  // Removed default toppings
+  const removed = customization.defaultToppings?.filter(t => t.quantity === 'none');
+  if (removed?.length) {
+    details.push(`NO: ${removed.map(t => t.name).join(', ')}`);
+  }
+  
+  // Modified default toppings (less/extra)
+  const modified = customization.defaultToppings?.filter(
+    t => t.quantity === 'less' || t.quantity === 'extra'
+  );
+  if (modified?.length) {
+    modified.forEach(t => {
+      const side = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      details.push(`${t.quantity} ${t.name}${side}`);
+    });
+  }
+  
+  // Extra toppings
+  if (customization.extraToppings?.length) {
+    const extras = customization.extraToppings.map(t => {
+      const side = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      return `+${t.name}${side}`;
+    });
+    details.push(extras.join(', '));
+  }
+  
+  // Note
+  if (customization.note) {
+    details.push(`Note: ${customization.note}`);
+  }
+  
+  return details;
+};
 interface POSNewOrderPanelProps {
   onCreateOrder: (orderData: {
     items: CartItem[];
@@ -330,16 +416,27 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                 <div className="space-y-2">
                   {cartItems.map((item, index) => (
                     <div key={`${item.id}-${index}`} className="p-2 bg-secondary/30 rounded-lg">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-start gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{item.name}</p>
-                          {item.selectedSize && (
+                          {item.selectedSize && !item.pizzaCustomization && (
                             <p className="text-xs text-muted-foreground">{item.selectedSize}</p>
                           )}
                           {item.pizzaCustomization && (
-                            <p className="text-xs text-muted-foreground">
-                              {item.pizzaCustomization.crust.name} • {item.pizzaCustomization.cheeseType}
-                            </p>
+                            <div className="text-xs text-muted-foreground space-y-0.5 mt-0.5">
+                              {formatPizzaCustomization(item.pizzaCustomization).map((line, i) => (
+                                <p 
+                                  key={i} 
+                                  className={cn(
+                                    line.startsWith('NO:') && 'text-destructive font-medium',
+                                    line.startsWith('+') && 'text-green-600 font-medium',
+                                    line.startsWith('Note:') && 'italic'
+                                  )}
+                                >
+                                  {line}
+                                </p>
+                              ))}
+                            </div>
                           )}
                           {item.wingsCustomization && (
                             <p className="text-xs text-muted-foreground">
@@ -351,7 +448,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel }: POSNewOrderPanelPr
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-6 w-6 shrink-0"
                             onClick={() => handleEditItem(item, index)}
                           >
                             <Edit2 className="w-3 h-3" />
