@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -20,7 +20,12 @@ const CustomerLogin = () => {
   const { login, customer } = useCustomer();
   
   // Get redirect URL from query params (default to /my-orders)
-  const redirectUrl = searchParams.get('redirect') || '/my-orders';
+  // Keep it internal-only to avoid open redirects.
+  const requestedRedirect = searchParams.get('redirect');
+  const redirectUrl =
+    requestedRedirect && requestedRedirect.startsWith('/') && !requestedRedirect.startsWith('//')
+      ? requestedRedirect
+      : '/my-orders';
   
   // Login state
   const [email, setEmail] = useState('');
@@ -39,10 +44,13 @@ const CustomerLogin = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Redirect if already logged in
-  if (customer) {
-    navigate(redirectUrl);
-    return null;
-  }
+  useEffect(() => {
+    if (customer) {
+      navigate(redirectUrl, { replace: true });
+    }
+  }, [customer, navigate, redirectUrl]);
+
+  if (customer) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +67,7 @@ const CustomerLogin = () => {
       
       if (result.success) {
         toast.success('Welcome back!');
-        navigate(redirectUrl);
+        navigate(redirectUrl, { replace: true });
       } else {
         // Don't show raw backend errors to customers.
         const errText = (result.error ?? '').toLowerCase();

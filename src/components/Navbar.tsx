@@ -13,6 +13,12 @@ const Navbar = () => {
   const { itemCount } = useCart();
   const { customer } = useCustomer();
   const location = useLocation();
+
+  const accountHref = customer
+    ? "/my-orders"
+    : location.pathname === "/checkout"
+      ? "/customer-login?redirect=/checkout"
+      : "/customer-login";
   const navLinks = [{
     name: 'Home',
     path: '/'
@@ -49,7 +55,7 @@ const Navbar = () => {
           {/* Location Selector, Account, Cart & Order Button */}
           <div className="hidden md:flex items-center gap-4">
             <LocationSelector />
-            <Link to={customer ? "/my-orders" : "/customer-login"}>
+            <Link to={accountHref}>
               <Button variant="ghost" size="icon" title={customer ? "My Orders" : "Login"}>
                 <User className="w-5 h-5" />
               </Button>
@@ -90,7 +96,7 @@ const Navbar = () => {
               {navLinks.map(link => <Link key={link.path} to={link.path} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors", isActive(link.path) ? "text-primary" : "text-muted-foreground")}>
                   {link.name}
                 </Link>)}
-              <Link to={customer ? "/my-orders" : "/customer-login"} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors flex items-center gap-2", isActive('/my-orders') || isActive('/customer-login') ? "text-primary" : "text-muted-foreground")}>
+              <Link to={accountHref} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors flex items-center gap-2", isActive('/my-orders') || isActive('/customer-login') ? "text-primary" : "text-muted-foreground")}>
                 <User className="w-4 h-4" />
                 {customer ? "My Orders" : "Login"}
               </Link>
