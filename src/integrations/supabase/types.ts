@@ -528,6 +528,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          location_id: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -538,6 +539,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          location_id?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -548,6 +550,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          location_id?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null

@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
       const { data: profile, error: profileError } = await adminClient
         .from('profiles')
-        .select('email')
+        .select('email, location_id')
         .eq('username', identifier)
         .maybeSingle()
 
@@ -78,8 +78,8 @@ Deno.serve(async (req) => {
       return json(400, { error: 'Invalid username/email or password' })
     }
 
-    // Best-effort: ensure a profiles row exists so future username logins can resolve username -> email.
-    // (Do not fail login if this step fails.)
+    // Fetch profile to get location_id
+    let locationId: string | null = null
     try {
       const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
         auth: { autoRefreshToken: false, persistSession: false },
@@ -92,7 +92,8 @@ Deno.serve(async (req) => {
 
       const usernameToStore = identifier.includes('@') ? normalizedMetadataUsername : identifier
 
-      await adminClient
+      // Upsert profile and get location_id
+      const { data: profileData } = await adminClient
         .from('profiles')
         .upsert(
           {
@@ -102,11 +103,15 @@ Deno.serve(async (req) => {
           },
           { onConflict: 'user_id' }
         )
+        .select('location_id')
+        .single()
+
+      locationId = profileData?.location_id || null
     } catch (profileUpsertError) {
       console.error('username-login: profile upsert failed', profileUpsertError)
     }
 
-    return json(200, { session: data.session, user: data.user })
+    return json(200, { session: data.session, user: data.user, locationId })
   } catch (err) {
     console.error('username-login error:', err)
     return json(500, { error: 'Unexpected error' })

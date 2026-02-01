@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -20,6 +20,11 @@ const statusTabs = [
   { id: 'delivered', label: 'Done', icon: CheckCircle },
 ] as const;
 
+const LOCATION_NAMES: Record<string, string> = {
+  'calgary': 'Calgary',
+  'chestermere': 'Chestermere (Kinniburgh)',
+};
+
 const POS = () => {
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
   
@@ -31,6 +36,16 @@ const POS = () => {
   const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
   const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
+  
+  // Get location from localStorage (set during login)
+  const [currentLocationId, setCurrentLocationId] = useState<string>('calgary');
+  
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('pos_location_id');
+    if (savedLocation) {
+      setCurrentLocationId(savedLocation);
+    }
+  }, []);
 
   // Filter orders
   const filteredOrders = activeTab === 'all'
@@ -73,7 +88,7 @@ const POS = () => {
       total,
       status: 'pending',
       paymentStatus: 'unpaid',
-    });
+    }, currentLocationId);
 
     setShowNewOrder(false);
     if (newOrder) {
@@ -154,7 +169,10 @@ const POS = () => {
             <ChefHat className="w-7 h-7" />
             <div>
               <h1 className="font-serif text-lg font-bold">Bella Pizza POS</h1>
-              <p className="text-xs text-primary-foreground/70">Order Management</p>
+              <div className="flex items-center gap-1 text-xs text-primary-foreground/70">
+                <MapPin className="w-3 h-3" />
+                <span>{LOCATION_NAMES[currentLocationId] || currentLocationId}</span>
+              </div>
             </div>
           </div>
           

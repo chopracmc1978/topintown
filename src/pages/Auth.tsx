@@ -94,6 +94,11 @@ const Auth = () => {
           throw new Error('Invalid username/email or password');
         }
 
+        // Save location ID for POS
+        if (data?.locationId) {
+          localStorage.setItem('pos_location_id', data.locationId);
+        }
+
         const { error: setSessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,

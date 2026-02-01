@@ -72,6 +72,7 @@ const UsersManager = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<AppRole>('user');
+  const [newLocationId, setNewLocationId] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
 
   // Delete user state
@@ -160,6 +161,7 @@ const UsersManager = () => {
           password: newPassword,
           fullName: newFullName,
           role: newRole,
+          locationId: newLocationId || null,
         },
       });
 
@@ -173,6 +175,7 @@ const UsersManager = () => {
       setNewPassword('');
       setNewFullName('');
       setNewRole('user');
+      setNewLocationId('');
       refetch();
     } catch (err: any) {
       toast({ title: 'Error creating user', description: err.message, variant: 'destructive' });
@@ -411,6 +414,21 @@ const UsersManager = () => {
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newLocation">Store Location (for POS)</Label>
+              <Select value={newLocationId} onValueChange={setNewLocationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="calgary">Calgary</SelectItem>
+                  <SelectItem value="chestermere">Chestermere (Kinniburgh)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Assign a store for POS staff login
+              </p>
             </div>
           </div>
           <DialogFooter>
