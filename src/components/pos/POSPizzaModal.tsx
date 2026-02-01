@@ -497,13 +497,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-medium text-foreground min-w-[50px]">Medium</span>
                   <div className="flex gap-0.5">
-                    {(['left', 'whole', 'right'] as Side[]).map(side => {
-                      // Active states
-                      const isActive = side === 'whole' 
-                        ? leftSpicy === 'medium' && rightSpicy === 'medium'
+                  {(['left', 'whole', 'right'] as Side[]).map(side => {
+                      // Active states - when Whole is selected (both sides same), all 3 buttons show active
+                      const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
+                      const isActive = isWholeSelected 
+                        ? true // All L/W/R active when whole
                         : side === 'left' 
                           ? leftSpicy === 'medium'
-                          : rightSpicy === 'medium';
+                          : side === 'right'
+                            ? rightSpicy === 'medium'
+                            : false;
                       
                       // Disable logic:
                       // - If whole Medium is active, disable L/R for Medium
@@ -566,13 +569,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-medium text-foreground min-w-[30px]">Hot</span>
                   <div className="flex gap-0.5">
-                    {(['left', 'whole', 'right'] as Side[]).map(side => {
-                      // Active states
-                      const isActive = side === 'whole' 
-                        ? leftSpicy === 'hot' && rightSpicy === 'hot'
+                  {(['left', 'whole', 'right'] as Side[]).map(side => {
+                      // Active states - when Whole is selected (both sides same), all 3 buttons show active
+                      const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
+                      const isActive = isWholeSelected 
+                        ? true // All L/W/R active when whole
                         : side === 'left' 
                           ? leftSpicy === 'hot'
-                          : rightSpicy === 'hot';
+                          : side === 'right'
+                            ? rightSpicy === 'hot'
+                            : false;
                       
                       // Disable logic:
                       // - If whole Hot is active, disable L/R for Hot
