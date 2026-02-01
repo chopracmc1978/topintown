@@ -140,28 +140,17 @@ export const usePOSOrders = () => {
     }
   };
 
-  // Generate order number via edge function
+  // Generate order number via edge function (uses atomic DB function)
   const generateOrderNumber = async (locationId: string): Promise<string> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-order-number', {
-        body: { locationId }
-      });
-      
-      if (error) throw error;
-      return data.orderNumber;
-    } catch (err) {
-      console.error('Error generating order number, using fallback:', err);
-      // Fallback: build format locally if edge function fails
-      const LOCATION_CODES: Record<string, string> = { calgary: 'CAL', chestermere: 'KIN' };
-      const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-      const locCode = LOCATION_CODES[locationId?.toLowerCase()] || 'CAL';
-      const now = new Date();
-      const year = now.getFullYear().toString().slice(-2);
-      const month = MONTHS[now.getMonth()];
-      const day = now.getDate().toString().padStart(2, '0');
-      const seq = 101 + Math.floor(Math.random() * 100);
-      return `TIT-${locCode}-${year}${month}${day}${seq}`;
+    const { data, error } = await supabase.functions.invoke('generate-order-number', {
+      body: { locationId }
+    });
+    
+    if (error) {
+      console.error('Error generating order number:', error);
+      throw new Error('Unable to generate order number. Please try again.');
     }
+    return data.orderNumber;
   };
 
   // Send SMS notification for order status

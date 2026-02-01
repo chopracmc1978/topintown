@@ -743,6 +743,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_order_number: { Args: { p_location_id: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "staff" | "user"
