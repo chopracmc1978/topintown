@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'create': {
-        const { email, password, username, fullName, role } = data
+        const { email, password, username, fullName, role, locationId } = data
 
         // Create user
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -84,11 +84,15 @@ Deno.serve(async (req) => {
           )
         }
 
-        // Update profile with username
+        // Update profile with username and location
         if (newUser.user) {
           await adminClient
             .from('profiles')
-            .update({ username: username?.toLowerCase(), full_name: fullName })
+            .update({ 
+              username: username?.toLowerCase(), 
+              full_name: fullName,
+              location_id: locationId || null
+            })
             .eq('user_id', newUser.user.id)
 
           // Add role if specified
