@@ -746,49 +746,66 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Extra Toppings - 3 column grid */}
+          {/* Extra Toppings - inline L/W/R layout */}
           {availableExtraToppings.length > 0 && (
             <div>
               <h3 className="font-medium text-xs mb-1">
                 Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="flex flex-col gap-1">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
                   return (
-                    <div key={topping.id} className="flex flex-col gap-0.5">
+                    <div 
+                      key={topping.id} 
+                      className={cn(
+                        "flex items-center gap-2 px-2 py-1 rounded border transition-colors",
+                        isSelected ? "border-primary bg-primary/5" : "border-border"
+                      )}
+                    >
+                      {/* Topping name - click to toggle */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className={cn(
-                          "flex items-center gap-1.5 px-2 py-1 text-xs rounded border transition-colors text-left",
-                          isSelected ? btnActive : btnInactive
-                        )}
+                        className="flex items-center gap-1.5 flex-1 text-left"
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0",
                           topping.is_veg ? "bg-green-500" : "bg-red-500"
                         )} />
-                        <span className="truncate">{topping.name}</span>
+                        <span className="text-xs truncate">{topping.name}</span>
                       </button>
 
-                      {/* Side selection (Large only, when selected) */}
-                      {isLargePizza && isSelected && (
-                        <div className="flex gap-0.5">
+                      {/* Side selection - always visible for Large, show W only for others */}
+                      {isLargePizza ? (
+                        <div className="flex gap-0.5 flex-shrink-0">
                           {SIDE_OPTIONS.map(side => (
                             <button
                               key={side.value}
                               type="button"
-                              onClick={() => updateExtraToppingSide(topping.id, side.value as PizzaSide)}
+                              onClick={() => {
+                                if (!isSelected) toggleExtraTopping(topping);
+                                updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                              }}
                               className={cn(
-                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
-                                (selected?.side || 'whole') === side.value ? btnActive : btnInactive
+                                "w-8 py-1 text-[10px] rounded border font-medium transition-colors",
+                                isSelected && (selected?.side || 'whole') === side.value ? btnActive : btnInactive
                               )}
                             >
                               {side.label}
                             </button>
                           ))}
                         </div>
+                      ) : (
+                        <button
+                          onClick={() => toggleExtraTopping(topping)}
+                          className={cn(
+                            "w-8 py-1 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
+                            isSelected ? btnActive : btnInactive
+                          )}
+                        >
+                          W
+                        </button>
                       )}
                     </div>
                   );
