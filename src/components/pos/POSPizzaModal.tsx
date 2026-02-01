@@ -759,12 +759,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   return (
                     <div 
                       key={topping.id} 
-                      className={cn(
-                        "flex items-center gap-2 px-2 py-1 rounded border transition-colors",
-                        isSelected ? "border-primary bg-primary/5" : "border-border"
-                      )}
+                      className="flex items-center gap-2 px-2 py-1 rounded border border-border transition-colors"
                     >
-                      {/* Topping name - click to toggle */}
+                      {/* Topping name with veg indicator */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
                         className="flex items-center gap-1.5 flex-1 text-left"
@@ -776,25 +773,35 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <span className="text-xs truncate">{topping.name}</span>
                       </button>
 
-                      {/* Side selection - always visible for Large, show W only for others */}
+                      {/* Side selection - Large pizza shows L/W/R, others show just W */}
                       {isLargePizza ? (
                         <div className="flex gap-0.5 flex-shrink-0">
-                          {SIDE_OPTIONS.map(side => (
-                            <button
-                              key={side.value}
-                              type="button"
-                              onClick={() => {
-                                if (!isSelected) toggleExtraTopping(topping);
-                                updateExtraToppingSide(topping.id, side.value as PizzaSide);
-                              }}
-                              className={cn(
-                                "w-8 py-1 text-[10px] rounded border font-medium transition-colors",
-                                isSelected && (selected?.side || 'whole') === side.value ? btnActive : btnInactive
-                              )}
-                            >
-                              {side.label}
-                            </button>
-                          ))}
+                          {SIDE_OPTIONS.map(side => {
+                            // Only highlight the selected side when topping is selected
+                            const isThisSideActive = isSelected && (selected?.side || 'whole') === side.value;
+                            return (
+                              <button
+                                key={side.value}
+                                type="button"
+                                onClick={() => {
+                                  if (!isSelected) {
+                                    // Add topping with this side
+                                    toggleExtraTopping(topping);
+                                    setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
+                                  } else {
+                                    // Just update the side
+                                    updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                                  }
+                                }}
+                                className={cn(
+                                  "w-8 py-1 text-[10px] rounded border font-medium transition-colors",
+                                  isThisSideActive ? btnActive : btnInactive
+                                )}
+                              >
+                                {side.label}
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : (
                         <button
