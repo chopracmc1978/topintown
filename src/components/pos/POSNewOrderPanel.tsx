@@ -337,14 +337,32 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   return (
     <>
       <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
-        {/* Header */}
-        <div className="bg-secondary/50 p-4 border-b border-border flex items-center justify-between">
-          <div>
+        {/* Header with Customer Info */}
+        <div className="bg-secondary/50 px-4 py-3 border-b border-border flex items-center gap-4">
+          {/* Customer Name & Phone */}
+          <div className="flex flex-col gap-2">
+            <Input
+              placeholder="Customer name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="h-8 text-sm w-48"
+            />
+            <Input
+              placeholder="Phone number"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              className="h-8 text-sm w-48"
+            />
+          </div>
+          
+          {/* Title - centered */}
+          <div className="flex-1 text-center">
             <h2 className="text-xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
             {isEditMode && editingOrder && (
               <p className="text-sm text-muted-foreground">{editingOrder.customerName}</p>
             )}
           </div>
+          
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-5 h-5" />
           </Button>
@@ -523,21 +541,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             <Separator />
 
-            {/* Customer Info */}
-            <div className="p-3 space-y-3 border-t border-border">
-              <Input
-                placeholder="Customer name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="h-8 text-sm"
-              />
-              <Input
-                placeholder="Phone number"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                className="h-8 text-sm"
-              />
-
+            {/* Order Notes */}
+            <div className="p-3 border-t border-border">
               <Textarea
                 placeholder="Order notes..."
                 value={notes}
