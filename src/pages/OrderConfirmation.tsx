@@ -1,16 +1,110 @@
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle, Clock, MapPin, Phone } from 'lucide-react';
+import { CheckCircle, Clock, MapPin, Phone, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { useOrders } from '@/contexts/OrderContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface OrderData {
+  id: string;
+  order_number: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  customer_address: string | null;
+  order_type: string;
+  status: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes: string | null;
+  created_at: string;
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }[];
+}
 
 const OrderConfirmation = () => {
   const { orderId } = useParams();
-  const { getOrderById } = useOrders();
-  const order = orderId ? getOrderById(orderId) : undefined;
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!order) {
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!orderId) {
+        setError('No order ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // First try to find by order_number, then by id
+        let { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('order_number', orderId)
+          .single();
+
+        if (orderError || !orderData) {
+          // Try by id
+          const result = await supabase
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .single();
+          orderData = result.data;
+          orderError = result.error;
+        }
+
+        if (orderError || !orderData) {
+          setError('Order not found');
+          setLoading(false);
+          return;
+        }
+
+        // Fetch order items
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('order_items')
+          .select('*')
+          .eq('order_id', orderData.id);
+
+        if (itemsError) {
+          console.error('Error fetching items:', itemsError);
+        }
+
+        setOrder({
+          ...orderData,
+          items: itemsData || [],
+        });
+      } catch (err) {
+        console.error('Error fetching order:', err);
+        setError('Failed to load order');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 py-12 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !order) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -39,15 +133,15 @@ const OrderConfirmation = () => {
             </div>
 
             <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
-              Order Confirmed!
+              Your Order Has Been Placed!
             </h1>
             <p className="text-muted-foreground mb-6">
-              Thank you for your order. We're preparing your delicious pizza now!
+              Thank you for your order. We're preparing your delicious food now!
             </p>
 
             <div className="bg-secondary/50 rounded-lg p-4 mb-6">
               <p className="text-sm text-muted-foreground mb-1">Order Number</p>
-              <p className="font-mono text-xl font-bold text-primary">{order.id}</p>
+              <p className="font-mono text-xl font-bold text-primary">{order.order_number}</p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 mb-8 text-left">
@@ -60,17 +154,17 @@ const OrderConfirmation = () => {
               </div>
               <div className="bg-secondary/30 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  {order.orderType === 'delivery' ? (
+                  {order.order_type === 'delivery' ? (
                     <MapPin className="w-4 h-4" />
                   ) : (
                     <Phone className="w-4 h-4" />
                   )}
                   <span className="text-sm">
-                    {order.orderType === 'delivery' ? 'Delivering to' : 'Contact'}
+                    {order.order_type === 'delivery' ? 'Delivering to' : 'Contact'}
                   </span>
                 </div>
                 <p className="font-semibold text-sm">
-                  {order.orderType === 'delivery' ? order.customerAddress : order.customerPhone}
+                  {order.order_type === 'delivery' ? order.customer_address : order.customer_phone}
                 </p>
               </div>
             </div>
@@ -80,16 +174,23 @@ const OrderConfirmation = () => {
               <div className="space-y-3">
                 {order.items.map((item) => (
                   <div
-                    key={`${item.id}-${item.selectedSize}`}
+                    key={item.id}
                     className="flex justify-between text-sm"
                   >
                     <span className="text-muted-foreground">
                       {item.quantity}x {item.name}
-                      {item.selectedSize && ` (${item.selectedSize})`}
                     </span>
-                    <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
+                    <span className="font-medium">${item.total_price.toFixed(2)}</span>
                   </div>
                 ))}
+                <div className="flex justify-between text-sm pt-2 border-t border-border">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>${order.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>${order.tax.toFixed(2)}</span>
+                </div>
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-border">
                   <span>Total</span>
                   <span className="text-primary">${order.total.toFixed(2)}</span>
