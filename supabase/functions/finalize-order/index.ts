@@ -73,9 +73,22 @@ serve(async (req) => {
     const tax = parseFloat(metadata.tax || "0");
     const total = parseFloat(metadata.total || "0");
     
-    let items = [];
+    // Parse items from chunked metadata (items0, items1, etc.)
+    let items: any[] = [];
     try {
-      items = JSON.parse(metadata.items || "[]");
+      const chunkCount = parseInt(metadata.itemChunks || "0");
+      if (chunkCount > 0) {
+        for (let i = 0; i < chunkCount; i++) {
+          const chunkData = metadata[`items${i}`];
+          if (chunkData) {
+            const chunkItems = JSON.parse(chunkData);
+            items = items.concat(chunkItems);
+          }
+        }
+      } else if (metadata.items) {
+        // Fallback for old format
+        items = JSON.parse(metadata.items);
+      }
     } catch (e) {
       console.error("Error parsing items:", e);
     }
