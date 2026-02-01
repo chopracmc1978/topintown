@@ -8,6 +8,7 @@ import { POSOrderCard } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
+import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,8 @@ const POS = () => {
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [cashModalOpen, setCashModalOpen] = useState(false);
   const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
+  const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
+  const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
 
   // Filter orders
   const filteredOrders = activeTab === 'all'
@@ -78,12 +81,29 @@ const POS = () => {
     }
   };
 
-  const handleUpdateStatus = (status: OrderStatus) => {
+  const handleUpdateStatus = (status: OrderStatus, prepTime?: number) => {
     if (!selectedOrderId) return;
-    updateOrderStatus(selectedOrderId, status);
+    
+    // If changing to "preparing", show prep time modal first
+    if (status === 'preparing' && !prepTime) {
+      setPendingPrepOrderId(selectedOrderId);
+      setPrepTimeModalOpen(true);
+      return;
+    }
+    
+    updateOrderStatus(selectedOrderId, status, prepTime);
     
     // Clear selection and go back to empty state after status change
     setSelectedOrderId(null);
+  };
+
+  const handlePrepTimeConfirm = (prepTime: number) => {
+    if (pendingPrepOrderId) {
+      updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime);
+      setSelectedOrderId(null);
+    }
+    setPrepTimeModalOpen(false);
+    setPendingPrepOrderId(null);
   };
 
   const handlePayment = (method: 'cash' | 'card') => {
@@ -256,6 +276,17 @@ const POS = () => {
         }}
         total={selectedOrder?.total || 0}
         onConfirm={handlePaymentComplete}
+      />
+
+      {/* Prep Time Modal */}
+      <POSPrepTimeModal
+        open={prepTimeModalOpen}
+        onClose={() => {
+          setPrepTimeModalOpen(false);
+          setPendingPrepOrderId(null);
+        }}
+        onConfirm={handlePrepTimeConfirm}
+        orderNumber={pendingPrepOrderId || ''}
       />
     </div>
   );

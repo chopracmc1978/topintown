@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, OrderStatus, PaymentStatus, PaymentMethod, CartItem, OrderType, OrderSource, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
+import { toast } from 'sonner';
 
 interface DBOrder {
   id: string;
@@ -138,16 +139,52 @@ export const usePOSOrders = () => {
     }
   };
 
-  // Add new order (for POS walk-in orders)
-  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>): Promise<Order | null> => {
+  // Generate order number via edge function
+  const generateOrderNumber = async (locationId: string): Promise<string> => {
     try {
-      const orderNumber = `POS-${Date.now().toString(36).toUpperCase()}`;
+      const { data, error } = await supabase.functions.invoke('generate-order-number', {
+        body: { locationId }
+      });
+      
+      if (error) throw error;
+      return data.orderNumber;
+    } catch (err) {
+      console.error('Error generating order number, using fallback:', err);
+      // Fallback to timestamp-based if edge function fails
+      return `TIT-${Date.now().toString(36).toUpperCase()}`;
+    }
+  };
+
+  // Send SMS notification for order status
+  const sendOrderSms = async (orderNumber: string, phone: string, type: 'preparing' | 'ready' | 'complete', prepTime?: number) => {
+    try {
+      if (!phone) {
+        console.log('No phone number, skipping SMS');
+        return;
+      }
+      
+      const { error } = await supabase.functions.invoke('order-sms', {
+        body: { orderNumber, phone, type, prepTime }
+      });
+      
+      if (error) throw error;
+      toast.success(`SMS sent to customer`);
+    } catch (err: any) {
+      console.error('Error sending SMS:', err);
+      toast.error('Failed to send SMS notification');
+    }
+  };
+
+  // Add new order (for POS walk-in orders)
+  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>, locationId: string = 'calgary'): Promise<Order | null> => {
+    try {
+      const orderNumber = await generateOrderNumber(locationId);
       
       const { data: newOrder, error: orderError } = await supabase
         .from('orders')
         .insert({
           order_number: orderNumber,
-          location_id: 'calgary', // TODO: Make dynamic
+          location_id: locationId,
           status: orderData.status,
           source: orderData.source,
           order_type: orderData.orderType,
@@ -206,8 +243,8 @@ export const usePOSOrders = () => {
     }
   };
 
-  // Update order status
-  const updateOrderStatus = async (orderNumber: string, status: OrderStatus) => {
+  // Update order status with optional SMS
+  const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number) => {
     try {
       const { error } = await supabase
         .from('orders')
@@ -216,9 +253,23 @@ export const usePOSOrders = () => {
 
       if (error) throw error;
 
+      // Get order phone for SMS
+      const order = orders.find(o => o.id === orderNumber);
+      
+      // Send SMS based on status
+      if (order?.customerPhone) {
+        if (status === 'preparing' && prepTime) {
+          await sendOrderSms(orderNumber, order.customerPhone, 'preparing', prepTime);
+        } else if (status === 'ready') {
+          await sendOrderSms(orderNumber, order.customerPhone, 'ready');
+        } else if (status === 'delivered') {
+          await sendOrderSms(orderNumber, order.customerPhone, 'complete');
+        }
+      }
+
       // Update local state
-      setOrders(prev => prev.map(order => 
-        order.id === orderNumber ? { ...order, status } : order
+      setOrders(prev => prev.map(o => 
+        o.id === orderNumber ? { ...o, status } : o
       ));
     } catch (err: any) {
       console.error('Error updating order status:', err);
