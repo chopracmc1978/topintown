@@ -598,85 +598,83 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                 ))}
               </div>
             ) : (
-              // Large pizzas: side-based spicy level selection
+              // Large pizzas: side-based spicy level selection - stacked vertically for mobile
               <div className="space-y-3">
-                <div className="flex gap-4 flex-wrap">
-                  {/* No Spicy option */}
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="spicy-whole"
-                      checked={spicyLevel.left === 'none' && spicyLevel.right === 'none'}
-                      onChange={() => setSpicyLevel({ left: 'none', right: 'none' })}
-                      className="w-4 h-4"
-                    />
-                    <span>No Spicy</span>
-                  </label>
-                  
-                  {/* Medium with side selection */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-orange-600 font-medium">Medium:</span>
-                    <div className="flex gap-1">
-                      {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
-                        const isSelected = side === 'whole' 
-                          ? (spicyLevel.left === 'medium' && spicyLevel.right === 'medium')
-                          : side === 'left' 
-                            ? spicyLevel.left === 'medium'
-                            : spicyLevel.right === 'medium';
-                        
-                        return (
-                          <PizzaSideIcon
-                            key={`medium-${side}`}
-                            side={side}
-                            selected={isSelected}
-                            onClick={() => {
-                              if (side === 'whole') {
-                                setSpicyLevel({ left: 'medium', right: 'medium' });
-                              } else if (side === 'left') {
-                                const rightLevel = spicyLevel.right === 'hot' ? 'hot' : 'none';
-                                setSpicyLevel({ left: 'medium', right: rightLevel });
-                              } else {
-                                const leftLevel = spicyLevel.left === 'hot' ? 'hot' : 'none';
-                                setSpicyLevel({ left: leftLevel, right: 'medium' });
-                              }
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
+                {/* No Spicy option */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="spicy-whole"
+                    checked={spicyLevel.left === 'none' && spicyLevel.right === 'none'}
+                    onChange={() => setSpicyLevel({ left: 'none', right: 'none' })}
+                    className="w-4 h-4"
+                  />
+                  <span>No Spicy</span>
+                </label>
+                
+                {/* Medium with side selection */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-orange-600 font-medium w-16">Medium:</span>
+                  <div className="flex gap-1">
+                    {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
+                      const isSelected = side === 'whole' 
+                        ? (spicyLevel.left === 'medium' && spicyLevel.right === 'medium')
+                        : side === 'left' 
+                          ? spicyLevel.left === 'medium'
+                          : spicyLevel.right === 'medium';
+                      
+                      return (
+                        <PizzaSideIcon
+                          key={`medium-${side}`}
+                          side={side}
+                          selected={isSelected}
+                          onClick={() => {
+                            if (side === 'whole') {
+                              setSpicyLevel({ left: 'medium', right: 'medium' });
+                            } else if (side === 'left') {
+                              const rightLevel = spicyLevel.right === 'hot' ? 'hot' : 'none';
+                              setSpicyLevel({ left: 'medium', right: rightLevel });
+                            } else {
+                              const leftLevel = spicyLevel.left === 'hot' ? 'hot' : 'none';
+                              setSpicyLevel({ left: leftLevel, right: 'medium' });
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </div>
-                  
-                  {/* Hot with side selection */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-red-600 font-medium">Hot:</span>
-                    <div className="flex gap-1">
-                      {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
-                        const isSelected = side === 'whole' 
-                          ? (spicyLevel.left === 'hot' && spicyLevel.right === 'hot')
-                          : side === 'left' 
-                            ? spicyLevel.left === 'hot'
-                            : spicyLevel.right === 'hot';
-                        
-                        return (
-                          <PizzaSideIcon
-                            key={`hot-${side}`}
-                            side={side}
-                            selected={isSelected}
-                            onClick={() => {
-                              if (side === 'whole') {
-                                setSpicyLevel({ left: 'hot', right: 'hot' });
-                              } else if (side === 'left') {
-                                const rightLevel = spicyLevel.right === 'medium' ? 'medium' : 'none';
-                                setSpicyLevel({ left: 'hot', right: rightLevel });
-                              } else {
-                                const leftLevel = spicyLevel.left === 'medium' ? 'medium' : 'none';
-                                setSpicyLevel({ left: leftLevel, right: 'hot' });
-                              }
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
+                </div>
+                
+                {/* Hot with side selection */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-red-600 font-medium w-16">Hot:</span>
+                  <div className="flex gap-1">
+                    {(['left', 'whole', 'right'] as PizzaSide[]).map(side => {
+                      const isSelected = side === 'whole' 
+                        ? (spicyLevel.left === 'hot' && spicyLevel.right === 'hot')
+                        : side === 'left' 
+                          ? spicyLevel.left === 'hot'
+                          : spicyLevel.right === 'hot';
+                      
+                      return (
+                        <PizzaSideIcon
+                          key={`hot-${side}`}
+                          side={side}
+                          selected={isSelected}
+                          onClick={() => {
+                            if (side === 'whole') {
+                              setSpicyLevel({ left: 'hot', right: 'hot' });
+                            } else if (side === 'left') {
+                              const rightLevel = spicyLevel.right === 'medium' ? 'medium' : 'none';
+                              setSpicyLevel({ left: 'hot', right: rightLevel });
+                            } else {
+                              const leftLevel = spicyLevel.left === 'medium' ? 'medium' : 'none';
+                              setSpicyLevel({ left: leftLevel, right: 'hot' });
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
                 
