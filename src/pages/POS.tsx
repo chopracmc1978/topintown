@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -34,7 +34,7 @@ const POS = () => {
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
   
   // Notification sound for new web/app orders
-  const { hasPendingRemoteOrders, pendingCount } = usePOSNotificationSound(orders);
+  const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -207,6 +207,23 @@ const POS = () => {
               <div className="flex items-center gap-2 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce">
                 <Bell className="w-4 h-4" />
                 <span className="font-semibold text-sm">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
+              </div>
+            )}
+            {!isAudioEnabled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={enableAudio}
+                className="bg-yellow-100 border-yellow-400 text-yellow-800 hover:bg-yellow-200"
+              >
+                <VolumeX className="w-4 h-4 mr-1" />
+                Click to Enable Sound
+              </Button>
+            )}
+            {isAudioEnabled && (
+              <div className="flex items-center gap-1 text-green-600 text-xs">
+                <Volume2 className="w-3 h-3" />
+                <span>Sound On</span>
               </div>
             )}
           </div>
