@@ -361,7 +361,7 @@ const Checkout = () => {
                       {customer || verifiedCustomerId ? 'Order Details' : 'Guest Checkout'}
                     </h2>
                     {!customer && !verifiedCustomerId && (
-                      <Link to="/customer-login" className="text-sm text-primary hover:underline flex items-center gap-1">
+                      <Link to="/customer-login?redirect=/checkout" className="text-sm text-primary hover:underline flex items-center gap-1">
                         <LogIn className="w-4 h-4" />
                         Login
                       </Link>
