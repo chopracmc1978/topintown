@@ -261,10 +261,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
   };
 
   const handleUpsellClose = () => {
-    // If upsell is closed without completing, still add the pizza
-    if (pendingPizzaData) {
-      addCustomizedPizza(pendingPizzaData.menuItem, pendingPizzaData.customization, pendingPizzaData.totalPrice);
-    }
+    // If upsell is closed via X button, do NOT add the pizza - user cancelled
     setPendingPizzaData(null);
     setShowUpsell(false);
     onClose();
