@@ -129,8 +129,8 @@ const POS = () => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground py-3 px-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <header className="bg-primary text-primary-foreground py-2 px-4 flex-shrink-0">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <ChefHat className="w-7 h-7" />
             <div>
@@ -138,49 +138,27 @@ const POS = () => {
               <p className="text-xs text-primary-foreground/70">Order Management</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-xs text-primary-foreground/70">Active</p>
-              <p className="text-xl font-bold">{counts.all}</p>
-            </div>
-            <Button 
-              onClick={() => {
-                setShowNewOrder(true);
-                setSelectedOrderId(null);
-              }}
-              className="bg-white text-primary hover:bg-white/90"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Order
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Vertical Status Tabs + Order List */}
-        <div className="flex overflow-hidden">
-          {/* Vertical Status Tabs */}
-          <div className="w-28 flex flex-col gap-1 p-2 border-r border-border bg-secondary/10">
+          
+          {/* Status Tabs in Header */}
+          <div className="flex gap-2 flex-1">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full",
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeTab === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-foreground hover:bg-secondary"
+                    ? "bg-white text-primary"
+                    : "bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
                 )}
               >
-                <tab.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{tab.label}</span>
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
                 <span className={cn(
                   "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
                   activeTab === tab.id
-                    ? "bg-primary-foreground/20"
-                    : "bg-secondary"
+                    ? "bg-primary text-white"
+                    : "bg-primary-foreground/20"
                 )}>
                   {counts[tab.id as keyof typeof counts]}
                 </span>
@@ -188,31 +166,45 @@ const POS = () => {
             ))}
           </div>
 
-          {/* Order List */}
-          <div className="w-72 border-r border-border flex flex-col bg-secondary/20">
-            <ScrollArea className="flex-1 p-3">
-              {filteredOrders.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No orders</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredOrders.map(order => (
-                    <POSOrderCard
-                      key={order.id}
-                      order={order}
-                      isSelected={selectedOrderId === order.id}
-                      onClick={() => {
-                        setSelectedOrderId(order.id);
-                        setShowNewOrder(false);
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </div>
+          <Button 
+            onClick={() => {
+              setShowNewOrder(true);
+              setSelectedOrderId(null);
+            }}
+            className="bg-white text-primary hover:bg-white/90"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Order
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Order List */}
+        <div className="w-80 border-r border-border flex flex-col bg-secondary/20">
+          <ScrollArea className="flex-1 p-3">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No orders</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredOrders.map(order => (
+                  <POSOrderCard
+                    key={order.id}
+                    order={order}
+                    isSelected={selectedOrderId === order.id}
+                    onClick={() => {
+                      setSelectedOrderId(order.id);
+                      setShowNewOrder(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </div>
 
         {/* Right Panel - Detail or New Order */}
