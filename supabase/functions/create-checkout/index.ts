@@ -69,6 +69,19 @@ serve(async (req) => {
     // Get the origin for redirect URLs
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
 
+    // Store minimal item data in metadata (Stripe has 500 char limit per value)
+    // Only store essential fields, strip heavy customization data
+    const minimalItems = items.map((item: any) => ({
+      n: item.name,
+      q: item.quantity || 1,
+      p: item.price || 0,
+      t: item.totalPrice || 0,
+      pid: item.pizzaCustomization?.originalItemId || item.wingsCustomization?.originalItemId || null,
+      sz: item.pizzaCustomization?.size?.name || item.selectedSize || null,
+      cr: item.pizzaCustomization?.crust?.name || null,
+      fl: item.wingsCustomization?.flavor || null,
+    }));
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: customerEmail || undefined,
@@ -86,7 +99,7 @@ serve(async (req) => {
         subtotal: subtotal.toString(),
         tax: tax.toString(),
         total: total.toString(),
-        items: JSON.stringify(items),
+        items: JSON.stringify(minimalItems),
       },
     });
 

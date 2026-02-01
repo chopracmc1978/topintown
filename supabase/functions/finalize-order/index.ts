@@ -125,16 +125,20 @@ serve(async (req) => {
 
     console.log("Order created:", order.id);
 
-    // Create order items
+    // Create order items from minimal metadata format
     if (items.length > 0) {
       const orderItems = items.map((item: any) => ({
         order_id: order.id,
-        menu_item_id: item.pizzaCustomization?.originalItemId || item.wingsCustomization?.originalItemId || null,
-        name: item.name,
-        quantity: item.quantity || 1,
-        unit_price: item.price || 0,
-        total_price: item.totalPrice || 0,
-        customizations: item.pizzaCustomization || item.wingsCustomization || null,
+        menu_item_id: item.pid || null,
+        name: item.n || item.name || 'Item',
+        quantity: item.q || item.quantity || 1,
+        unit_price: item.p || item.price || 0,
+        total_price: item.t || item.totalPrice || 0,
+        customizations: item.sz || item.fl ? {
+          size: item.sz,
+          crust: item.cr,
+          flavor: item.fl,
+        } : null,
       }));
 
       const { error: itemsError } = await supabase
