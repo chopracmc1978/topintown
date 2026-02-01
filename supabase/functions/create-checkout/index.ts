@@ -70,7 +70,7 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
 
     // Store minimal item data in metadata (Stripe has 500 char limit per value)
-    // Only store essential fields, strip heavy customization data
+    // Split items across multiple metadata fields if needed
     const minimalItems = items.map((item: any) => ({
       n: item.name,
       q: item.quantity || 1,
@@ -82,6 +82,51 @@ serve(async (req) => {
       fl: item.wingsCustomization?.flavor || null,
     }));
 
+    // Split items into chunks that fit within 500 char limit
+    const itemChunks: string[][] = [];
+    let currentChunk: any[] = [];
+    let currentChunkSize = 2; // Start with "[]" size
+
+    for (const item of minimalItems) {
+      const itemStr = JSON.stringify(item);
+      const itemSize = itemStr.length + (currentChunk.length > 0 ? 1 : 0); // +1 for comma
+      
+      if (currentChunkSize + itemSize > 490) { // Leave some margin
+        if (currentChunk.length > 0) {
+          itemChunks.push(currentChunk);
+        }
+        currentChunk = [item];
+        currentChunkSize = 2 + itemStr.length;
+      } else {
+        currentChunk.push(item);
+        currentChunkSize += itemSize;
+      }
+    }
+    if (currentChunk.length > 0) {
+      itemChunks.push(currentChunk);
+    }
+
+    // Build metadata with split items
+    const metadata: Record<string, string> = {
+      customerName: customerName || "",
+      customerPhone: customerPhone || "",
+      customerEmail: customerEmail || "",
+      customerId: customerId || "",
+      locationId: locationId || "calgary",
+      notes: notes || "",
+      subtotal: subtotal.toString(),
+      tax: tax.toString(),
+      total: total.toString(),
+      itemChunks: itemChunks.length.toString(),
+    };
+
+    // Add each chunk as items0, items1, items2, etc.
+    itemChunks.forEach((chunk, index) => {
+      metadata[`items${index}`] = JSON.stringify(chunk);
+    });
+
+    console.log("Metadata chunks:", itemChunks.length, "Total items:", minimalItems.length);
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: customerEmail || undefined,
@@ -89,18 +134,7 @@ serve(async (req) => {
       mode: "payment",
       success_url: `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout`,
-      metadata: {
-        customerName: customerName || "",
-        customerPhone: customerPhone || "",
-        customerEmail: customerEmail || "",
-        customerId: customerId || "",
-        locationId: locationId || "calgary",
-        notes: notes || "",
-        subtotal: subtotal.toString(),
-        tax: tax.toString(),
-        total: total.toString(),
-        items: JSON.stringify(minimalItems),
-      },
+      metadata,
     });
 
     console.log("Checkout session created:", session.id);
