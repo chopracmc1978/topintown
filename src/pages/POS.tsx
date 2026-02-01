@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2, MapPin } from 'lucide-react';
+import { ChefHat, Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -28,7 +28,7 @@ const LOCATION_NAMES: Record<string, string> = {
 };
 
 const POS = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
   
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -233,6 +233,18 @@ const POS = () => {
           >
             <Plus className="w-4 h-4 mr-2" />
             New Order
+          </Button>
+
+          <Button 
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              localStorage.removeItem('pos_location_id');
+              signOut();
+            }}
+            className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </header>
