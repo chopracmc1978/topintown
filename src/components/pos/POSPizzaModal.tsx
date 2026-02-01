@@ -29,9 +29,9 @@ const QUANTITY_OPTIONS: { value: ToppingQuantity; label: string }[] = [
 ];
 
 const SIDE_OPTIONS: { value: Side; label: string }[] = [
-  { value: 'left', label: 'L' },
-  { value: 'whole', label: 'W' },
-  { value: 'right', label: 'R' },
+  { value: 'left', label: 'Left' },
+  { value: 'whole', label: 'Whole' },
+  { value: 'right', label: 'Right' },
 ];
 
 const getExtraToppingPrice = (sizeName: string): number => {
@@ -794,7 +794,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   }
                                 }}
                                 className={cn(
-                                  "w-8 py-1 text-[10px] rounded border font-medium transition-colors",
+                                  "px-2 py-1 text-[10px] rounded border font-medium transition-colors",
                                   isThisSideActive ? btnActive : btnInactive
                                 )}
                               >
@@ -807,11 +807,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <button
                           onClick={() => toggleExtraTopping(topping)}
                           className={cn(
-                            "w-8 py-1 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
+                            "px-2 py-1 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
                             isSelected ? btnActive : btnInactive
                           )}
                         >
-                          W
+                          Whole
                         </button>
                       )}
                     </div>
