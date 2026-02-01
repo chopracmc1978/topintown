@@ -517,59 +517,60 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
             <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">
               3. SAUCE <span className="font-normal text-sm">(* Other sauces may have additional fee)</span>
             </div>
-            <div className="p-4">
+            <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-x-8 gap-y-2">
                 {/* No Sauce */}
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer flex-1">
-                    <input
-                      type="radio"
-                      name="sauce"
-                      checked={selectedSauceId === null}
-                      onChange={() => {
-                          setHasTouchedSauce(true);
-                        setSelectedSauceId(null);
-                        setSauceQuantity('normal');
-                      }}
-                      className="w-4 h-4 text-primary"
-                    />
-                    <span>No Sauce</span>
-                  </label>
-                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="sauce"
+                    checked={selectedSauceId === null}
+                    onChange={() => {
+                      setHasTouchedSauce(true);
+                      setSelectedSauceId(null);
+                      setSauceQuantity('normal');
+                    }}
+                    className="w-4 h-4 text-primary"
+                  />
+                  <span>No Sauce</span>
+                </label>
 
                 {(allSauces || []).map(sauce => {
                   const isDefault = defaultSauceIds.includes(sauce.id);
                   const isSelected = selectedSauceId === sauce.id;
                   return (
-                    <div key={sauce.id} className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <input
-                          type="radio"
-                          name="sauce"
-                          checked={isSelected}
-                          onChange={() => {
-                            setHasTouchedSauce(true);
-                            setSelectedSauceId(sauce.id);
-                          }}
-                          className="w-4 h-4 text-primary"
-                        />
-                        <span>{sauce.name}{!isDefault && '*'}</span>
-                      </label>
-                      {isSelected && (
-                        <Select value={sauceQuantity} onValueChange={(v) => setSauceQuantity(v as 'normal' | 'extra')}>
-                          <SelectTrigger className="w-28">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="normal">Normal</SelectItem>
-                            <SelectItem value="extra">Extra</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
+                    <label key={sauce.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="sauce"
+                        checked={isSelected}
+                        onChange={() => {
+                          setHasTouchedSauce(true);
+                          setSelectedSauceId(sauce.id);
+                        }}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <span>{sauce.name}{!isDefault && '*'}</span>
+                    </label>
                   );
                 })}
               </div>
+
+              {/* Sauce quantity - only show when a sauce is selected */}
+              {selectedSauceId && (
+                <div className="flex items-center gap-3 pt-2 border-t">
+                  <span className="text-sm text-muted-foreground">Amount:</span>
+                  <Select value={sauceQuantity} onValueChange={(v) => setSauceQuantity(v as 'normal' | 'extra')}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="extra">Extra</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 
