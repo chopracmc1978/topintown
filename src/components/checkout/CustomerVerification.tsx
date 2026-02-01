@@ -11,9 +11,11 @@ import { cn } from '@/lib/utils';
 
 type VerificationStep = 'info' | 'email-otp' | 'phone-otp' | 'password' | 'complete';
 
-interface CustomerVerificationProps {
+export interface CustomerVerificationProps {
   onComplete: (customerId: string) => void;
   onBack: () => void;
+  /** If true, will require password setup. If false (guest mode), skips password step */
+  createAccount?: boolean;
 }
 
 // Simple password hashing matching the edge function
@@ -25,7 +27,7 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export const CustomerVerification = ({ onComplete, onBack }: CustomerVerificationProps) => {
+export const CustomerVerification = ({ onComplete, onBack, createAccount = true }: CustomerVerificationProps) => {
   const { setCustomer } = useCustomer();
   const [step, setStep] = useState<VerificationStep>('info');
   const [loading, setLoading] = useState(false);
@@ -158,6 +160,28 @@ export const CustomerVerification = ({ onComplete, onBack }: CustomerVerificatio
 
       toast.success('Email verified!');
       
+      // If guest mode (no account creation), complete now
+      if (!createAccount) {
+        // Update customer as verified (email only for guest)
+        await supabase
+          .from('customers')
+          .update({ email_verified: true })
+          .eq('id', customerId);
+        
+        // Set customer in context (partial - no password)
+        setCustomer({
+          id: customerId!,
+          email: email.toLowerCase().trim(),
+          phone,
+          fullName,
+          emailVerified: true,
+          phoneVerified: false,
+        });
+        
+        onComplete(customerId!);
+        return;
+      }
+      
       // Send phone OTP
       const { error: phoneOtpError } = await supabase.functions.invoke('send-otp', {
         body: { phone, type: 'phone', customerId },
@@ -277,18 +301,23 @@ export const CustomerVerification = ({ onComplete, onBack }: CustomerVerificatio
     }
   };
 
+  // Calculate steps for progress indicator
+  const steps = createAccount 
+    ? ['info', 'email-otp', 'phone-otp', 'password'] 
+    : ['info', 'email-otp'];
+
   return (
     <div className="space-y-6">
       {/* Progress indicator */}
       <div className="flex items-center justify-center gap-2">
-        {['info', 'email-otp', 'phone-otp', 'password'].map((s, index) => (
+        {steps.map((s, index) => (
           <div
             key={s}
             className={cn(
               'w-3 h-3 rounded-full transition-colors',
               step === s
                 ? 'bg-primary'
-                : ['info', 'email-otp', 'phone-otp', 'password'].indexOf(step) > index
+                : steps.indexOf(step) > index
                 ? 'bg-primary/50'
                 : 'bg-muted'
             )}
@@ -300,8 +329,12 @@ export const CustomerVerification = ({ onComplete, onBack }: CustomerVerificatio
       {step === 'info' && (
         <div className="space-y-4">
           <div className="text-center mb-6">
-            <h3 className="text-lg font-semibold">Customer Information</h3>
-            <p className="text-sm text-muted-foreground">Enter your details to continue</p>
+            <h3 className="text-lg font-semibold">
+              {createAccount ? 'Create Your Account' : 'Guest Checkout'}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {createAccount ? 'Enter your details to get started' : 'Enter your details to continue'}
+            </p>
           </div>
 
           <div className="space-y-2">

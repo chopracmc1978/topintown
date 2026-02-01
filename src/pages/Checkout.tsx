@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { CartItem } from '@/types/menu';
 import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
-import { CustomerVerification } from '@/components/checkout/CustomerVerification';
+import { CheckoutAuthOptions } from '@/components/checkout/CheckoutAuthOptions';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -219,7 +219,7 @@ const Checkout = () => {
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('pickup');
   const [editingPizzaItem, setEditingPizzaItem] = useState<CartItem | null>(null);
   const [editingWingsItem, setEditingWingsItem] = useState<CartItem | null>(null);
-  const [showVerification, setShowVerification] = useState(false);
+  const [showAuthOptions, setShowAuthOptions] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const placeOrderLock = useRef(false);
@@ -245,17 +245,17 @@ const Checkout = () => {
       return;
     }
 
-    // If already verified, place order directly
+    // If already verified or logged in, place order directly
     if (verifiedCustomerId || customer?.id) {
       handlePlaceOrder(verifiedCustomerId || customer!.id);
     } else {
-      setShowVerification(true);
+      setShowAuthOptions(true);
     }
   };
 
-  const handleVerificationComplete = (customerId: string) => {
+  const handleGuestCheckoutComplete = (customerId: string) => {
     setVerifiedCustomerId(customerId);
-    setShowVerification(false);
+    setShowAuthOptions(false);
     handlePlaceOrder(customerId);
   };
 
@@ -347,12 +347,12 @@ const Checkout = () => {
           <h1 className="font-serif text-3xl font-bold text-foreground mb-8 text-center">Checkout</h1>
 
           <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Left Side - Customer Info or Verification */}
+            {/* Left Side - Customer Info or Auth Options */}
             <div className="bg-card rounded-xl border border-border p-6">
-              {showVerification ? (
-                <CustomerVerification 
-                  onComplete={handleVerificationComplete}
-                  onBack={() => setShowVerification(false)}
+              {showAuthOptions ? (
+                <CheckoutAuthOptions 
+                  onContinueAsGuest={handleGuestCheckoutComplete}
+                  onBack={() => setShowAuthOptions(false)}
                 />
               ) : (
                 <>
