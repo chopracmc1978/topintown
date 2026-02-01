@@ -9,6 +9,8 @@ import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
+import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
+import { useAuth } from '@/hooks/useAuth';
 
 import { cn } from '@/lib/utils';
 
@@ -26,6 +28,7 @@ const LOCATION_NAMES: Record<string, string> = {
 };
 
 const POS = () => {
+  const { user, loading: authLoading } = useAuth();
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
   
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -45,7 +48,25 @@ const POS = () => {
     if (savedLocation) {
       setCurrentLocationId(savedLocation);
     }
-  }, []);
+  }, [user]);
+
+  // Show login screen if not authenticated
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <POSLoginScreen onLoginSuccess={() => {
+      const savedLocation = localStorage.getItem('pos_location_id');
+      if (savedLocation) {
+        setCurrentLocationId(savedLocation);
+      }
+    }} />;
+  }
 
   // Filter orders
   const filteredOrders = activeTab === 'all'
