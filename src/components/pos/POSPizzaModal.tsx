@@ -759,7 +759,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   return (
                     <div 
                       key={topping.id} 
-                      className="flex items-center gap-2 px-2 py-1 rounded border border-border transition-colors"
+                      className={cn(
+                        "flex items-center gap-2 px-2 py-1 rounded border transition-colors",
+                        isSelected 
+                          ? "border-primary bg-primary/10" 
+                          : "border-border"
+                      )}
                     >
                       {/* Topping name with veg indicator */}
                       <button
