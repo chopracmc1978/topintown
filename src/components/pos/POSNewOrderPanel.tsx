@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,9 @@ import { CartItem, OrderType, OrderSource, CartPizzaCustomization, Order } from 
 import { cn } from '@/lib/utils';
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
 import { POSWingsModal } from '@/components/pos/POSWingsModal';
+import { POSOrderHistoryDropdown } from '@/components/pos/POSOrderHistoryDropdown';
+import { useCustomerLookup } from '@/hooks/useCustomerLookup';
+import { toast } from 'sonner';
 
 // Helper to format pizza customization for display (only changes from default)
 const formatPizzaCustomization = (customization: CartPizzaCustomization): string[] => {
@@ -168,6 +171,53 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const [tableNumber, setTableNumber] = useState(editingOrder?.tableNumber || '');
   const [notes, setNotes] = useState(editingOrder?.notes || '');
 
+  // Customer lookup state
+  const { isSearching, orderHistory, customerInfo, searchByPhone, saveCustomer, clearSearch } = useCustomerLookup();
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const phoneDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle phone input with debounced search
+  const handlePhoneChange = (value: string) => {
+    setCustomerPhone(value);
+    
+    // Clear previous debounce
+    if (phoneDebounceRef.current) {
+      clearTimeout(phoneDebounceRef.current);
+    }
+    
+    // Debounce search
+    if (value.length >= 3) {
+      phoneDebounceRef.current = setTimeout(() => {
+        searchByPhone(value);
+        setShowOrderHistory(true);
+      }, 400);
+    } else {
+      clearSearch();
+      setShowOrderHistory(false);
+    }
+  };
+
+  // Auto-fill customer name from lookup
+  useEffect(() => {
+    if (customerInfo?.full_name && !customerName) {
+      setCustomerName(customerInfo.full_name);
+    }
+  }, [customerInfo]);
+
+  // Handle selecting order from history
+  const handleSelectPastOrder = (items: CartItem[], mode: 'exact' | 'edit') => {
+    // Deep clone items to avoid reference issues
+    const clonedItems = JSON.parse(JSON.stringify(items));
+    setCartItems(clonedItems);
+    
+    if (mode === 'exact') {
+      toast.success('Order loaded - ready to submit!');
+    } else {
+      toast.info('Order loaded - you can now edit items');
+    }
+  };
+
   const filteredItems = menuItems.filter(item => {
     const matchesCategory = item.category === activeCategory;
     const matchesSubcategory = activeCategory !== 'pizza' || 
@@ -312,8 +362,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (cartItems.length === 0) return;
+
+    // Save customer to database if phone provided
+    if (customerPhone && !isEditMode) {
+      await saveCustomer(customerPhone, customerName);
+    }
 
     if (isEditMode && onUpdateOrder) {
       onUpdateOrder({
@@ -340,19 +395,40 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
         {/* Header with Customer Info */}
         <div className="bg-secondary/50 px-4 py-3 border-b border-border flex items-center gap-4">
           {/* Customer Name & Phone */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 relative">
             <Input
               placeholder="Customer name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               className="h-8 text-sm w-48"
             />
-            <Input
-              placeholder="Phone number"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              className="h-8 text-sm w-48"
-            />
+            <div className="relative">
+              <Input
+                ref={phoneInputRef}
+                placeholder="Phone number"
+                value={customerPhone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
+                onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
+                className={cn(
+                  "h-8 text-sm w-48 pr-8",
+                  orderHistory.length > 0 && "border-primary"
+                )}
+              />
+              {orderHistory.length > 0 && (
+                <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              )}
+              
+              {/* Order History Dropdown */}
+              {showOrderHistory && (
+                <POSOrderHistoryDropdown
+                  orders={orderHistory}
+                  isSearching={isSearching}
+                  onSelectOrder={handleSelectPastOrder}
+                  onClose={() => setShowOrderHistory(false)}
+                />
+              )}
+            </div>
           </div>
           
           {/* Title - centered */}
