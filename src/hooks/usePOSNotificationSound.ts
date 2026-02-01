@@ -4,13 +4,41 @@ import { Order } from '@/types/menu';
 export const usePOSNotificationSound = (orders: Order[]) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true); // Default to true
   const previousPendingIdsRef = useRef<Set<string>>(new Set());
+  const initAttemptedRef = useRef(false);
 
   // Track pending web/app orders (not walk-in)
   const pendingRemoteOrders = orders.filter(
     o => o.status === 'pending' && (o.source === 'web' || o.source === 'app')
   );
+
+  // Try to initialize AudioContext immediately on mount
+  useEffect(() => {
+    if (initAttemptedRef.current) return;
+    initAttemptedRef.current = true;
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
+      
+      // Try to resume immediately (may work if user has interacted before)
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().then(() => {
+          console.log('✅ Audio auto-enabled successfully');
+          setIsAudioEnabled(true);
+        }).catch(() => {
+          console.log('⚠️ Audio requires user interaction to enable');
+          setIsAudioEnabled(false);
+        });
+      } else {
+        setIsAudioEnabled(true);
+      }
+    } catch (e) {
+      console.error('Failed to create AudioContext:', e);
+      setIsAudioEnabled(false);
+    }
+  }, []);
 
   // Play a loud, attention-grabbing notification sound
   const playNotificationTone = useCallback(() => {
