@@ -686,25 +686,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       "rounded p-1 border",
                       isRemoved ? "border-destructive/30 bg-destructive/5" : "border-border"
                     )}>
-                      {/* Name with veg indicator */}
-                      <div className="flex items-center gap-1 mb-1">
+                      {/* Name row - entire row is clickable to toggle */}
+                      <button
+                        onClick={() => updateDefaultToppingQuantity(
+                          topping.id, 
+                          isRemoved ? 'regular' : 'none'
+                        )}
+                        className="flex items-center gap-1 mb-1 w-full text-left"
+                      >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0",
                           topping.isVeg ? "bg-green-500" : "bg-red-500"
                         )} />
-                        <button
-                          onClick={() => updateDefaultToppingQuantity(
-                            topping.id, 
-                            isRemoved ? 'regular' : 'none'
-                          )}
-                          className={cn(
-                            "text-[10px] font-medium text-left truncate",
-                            isRemoved && "line-through text-muted-foreground"
-                          )}
-                        >
+                        <span className={cn(
+                          "text-[10px] font-medium truncate",
+                          isRemoved && "line-through text-muted-foreground"
+                        )}>
                           {topping.name}
-                        </button>
-                      </div>
+                        </span>
+                      </button>
                       {/* Quantity: Less/Reg/Extra */}
                       {!isRemoved && (
                         <div className="flex gap-0.5 mb-0.5">
