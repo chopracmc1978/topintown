@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -11,6 +11,7 @@ import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
+import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { useAuth } from '@/hooks/useAuth';
 import logo from '@/assets/logo.png';
 
@@ -44,6 +45,7 @@ const POS = () => {
   const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
   const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   
   // Get location from localStorage (set during login)
   const [currentLocationId, setCurrentLocationId] = useState<string>('calgary');
@@ -267,6 +269,15 @@ const POS = () => {
 
           <Button 
             variant="ghost"
+            size="icon"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+
+          <Button 
+            variant="ghost"
             size="sm"
             onClick={() => {
               localStorage.removeItem('pos_location_id');
@@ -369,6 +380,14 @@ const POS = () => {
         onConfirm={handlePrepTimeConfirm}
         orderNumber={pendingPrepOrderId || ''}
       />
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <POSSettingsPanel
+          locationId={currentLocationId}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 };
