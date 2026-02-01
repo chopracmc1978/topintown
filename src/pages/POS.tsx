@@ -12,6 +12,7 @@ import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
+import { ReceiptPreviewModal } from '@/components/pos/receipts/ReceiptPreviewModal';
 import { useAuth } from '@/hooks/useAuth';
 import logo from '@/assets/logo.png';
 
@@ -46,6 +47,7 @@ const POS = () => {
   const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false);
   
   // Get location from localStorage (set during login)
   const [currentLocationId, setCurrentLocationId] = useState<string>('calgary');
@@ -170,7 +172,9 @@ const POS = () => {
   };
 
   const handlePrintTicket = () => {
-    // Printing handled silently
+    if (selectedOrder) {
+      setShowReceiptPreview(true);
+    }
   };
 
   const handleEditOrder = () => {
@@ -386,6 +390,15 @@ const POS = () => {
         <POSSettingsPanel
           locationId={currentLocationId}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* Receipt Preview Modal */}
+      {showReceiptPreview && selectedOrder && (
+        <ReceiptPreviewModal
+          order={selectedOrder}
+          locationId={currentLocationId}
+          onClose={() => setShowReceiptPreview(false)}
         />
       )}
     </div>
