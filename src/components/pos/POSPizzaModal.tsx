@@ -495,7 +495,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {/* Medium button with L/W/R for large pizza */}
               {isLargePizza ? (
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-foreground min-w-[50px]">Medium</span>
+                  <span className="text-xs font-medium text-foreground min-w-[70px]">Medium Hot</span>
                   <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
                       // Active states - show only the selected button

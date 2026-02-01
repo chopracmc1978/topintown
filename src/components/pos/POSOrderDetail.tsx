@@ -58,15 +58,23 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
   // Spicy Level - only show if not 'none' on both sides
   const leftSpicy = customization.spicyLevel?.left;
   const rightSpicy = customization.spicyLevel?.right;
+  
+  // Map internal values to display names
+  const spicyDisplayName = (level: string) => {
+    if (level === 'medium') return 'Medium Hot';
+    if (level === 'hot') return 'Hot';
+    return level;
+  };
+  
   if (leftSpicy || rightSpicy) {
     if (leftSpicy === rightSpicy && leftSpicy !== 'none') {
-      details.push(`Whole ${leftSpicy}`);
+      details.push(`Spicy Level: Whole ${spicyDisplayName(leftSpicy)}`);
     } else {
       const spicyParts: string[] = [];
-      if (leftSpicy && leftSpicy !== 'none') spicyParts.push(`Left ${leftSpicy}`);
-      if (rightSpicy && rightSpicy !== 'none') spicyParts.push(`Right ${rightSpicy}`);
+      if (leftSpicy && leftSpicy !== 'none') spicyParts.push(`Left ${spicyDisplayName(leftSpicy)}`);
+      if (rightSpicy && rightSpicy !== 'none') spicyParts.push(`Right ${spicyDisplayName(rightSpicy)}`);
       if (spicyParts.length > 0) {
-        details.push(spicyParts.join(', '));
+        details.push(`Spicy Level: ${spicyParts.join(', ')}`);
       }
     }
   }
