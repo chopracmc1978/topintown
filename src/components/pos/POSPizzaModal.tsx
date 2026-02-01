@@ -331,9 +331,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-4">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-4 flex flex-col">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-4 pb-2 border-b pr-6">
+        <div className="flex items-center gap-4 pb-2 border-b pr-6 flex-shrink-0">
           <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
@@ -373,7 +373,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-2 mt-2">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto space-y-2 mt-2 pr-1">
           {/* Row 1: Cheese with quantities + Free Add-ons */}
           <div className="flex items-start gap-6">
             <div>
@@ -820,47 +821,47 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               </div>
             </div>
           )}
+        </div>
 
-          {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
-          <div className="flex items-center justify-between pt-2 border-t mt-1">
-            <div className="flex items-center gap-2 flex-1 mr-4">
-              <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
-              <input
-                type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Special requests..."
-                className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
-              />
-            </div>
-            <div className="flex items-center gap-1 mr-4">
-              <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={extraAmount || ''}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9.]/g, '');
-                  setExtraAmount(parseFloat(val) || 0);
-                }}
-                placeholder="0"
-                className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
-              />
-            </div>
-            <span className="text-base font-bold text-primary mr-4">
-              ${totalPrice.toFixed(2)}
-            </span>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-              <Button 
-                variant="pizza" 
-                size="sm"
-                onClick={handleAddToOrder}
-                disabled={!selectedSize || !selectedCrust}
-              >
-                {editingItem ? 'Update' : 'Add to Order'}
-              </Button>
-            </div>
+        {/* Fixed Footer: Notes + Extra Amount + Price + Buttons */}
+        <div className="flex items-center justify-between pt-2 border-t mt-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Special requests..."
+              className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
+            />
+          </div>
+          <div className="flex items-center gap-1 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={extraAmount || ''}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, '');
+                setExtraAmount(parseFloat(val) || 0);
+              }}
+              placeholder="0"
+              className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
+            />
+          </div>
+          <span className="text-base font-bold text-primary mr-4">
+            ${totalPrice.toFixed(2)}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+            <Button 
+              variant="pizza" 
+              size="sm"
+              onClick={handleAddToOrder}
+              disabled={!selectedSize || !selectedCrust}
+            >
+              {editingItem ? 'Update' : 'Add to Order'}
+            </Button>
           </div>
         </div>
       </DialogContent>
