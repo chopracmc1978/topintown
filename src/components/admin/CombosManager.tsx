@@ -332,12 +332,12 @@ const CombosManager = () => {
                           {SIZE_OPTIONS[item.item_type].length > 0 && (
                             <div>
                               <Label className="text-xs">Size Restriction</Label>
-                              <Select value={item.size_restriction} onValueChange={(v) => updateItem(index, { size_restriction: v })}>
+                              <Select value={item.size_restriction || 'any'} onValueChange={(v) => updateItem(index, { size_restriction: v === 'any' ? '' : v })}>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Any size" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="">Any size</SelectItem>
+                                  <SelectItem value="any">Any size</SelectItem>
                                   {SIZE_OPTIONS[item.item_type].map(size => (
                                     <SelectItem key={size} value={size}>{size}</SelectItem>
                                   ))}
