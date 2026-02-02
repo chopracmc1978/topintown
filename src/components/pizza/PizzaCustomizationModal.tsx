@@ -20,6 +20,10 @@ interface PizzaCustomizationModalProps {
   isOpen: boolean;
   onClose: () => void;
   editingCartItem?: CartItem;
+  // Optional callback for combo mode - bypasses upsell and returns customization instead of adding to cart
+  onCustomizationComplete?: (customization: any, totalPrice: number) => void;
+  // Optional size restriction for combos (e.g., "Large 14\"")
+  sizeRestriction?: string;
 }
 
 type CheeseQuantity = 'none' | 'light' | 'normal' | 'extra';
@@ -31,7 +35,7 @@ interface CheeseSideSelection {
 
 const GLUTEN_FREE_PRICE = 2.5;
 
-const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: PizzaCustomizationModalProps) => {
+const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCustomizationComplete, sizeRestriction }: PizzaCustomizationModalProps) => {
   const { addCustomizedPizza, updateCustomizedPizza, addToCart } = useCart();
   const { data: sizeCrustAvailability } = useSizeCrustAvailability();
   const { data: cheeseOptions } = useCheeseOptions();
@@ -51,7 +55,17 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
     () => item.default_global_sauces?.map(ds => ds.global_sauce_id) || [],
     [item.default_global_sauces]
   );
-  const defaultSize = item.sizes?.[1] || item.sizes?.[0];
+  
+  // Default size - respect size restriction if provided (for combo mode)
+  const defaultSize = useMemo(() => {
+    if (sizeRestriction && item.sizes) {
+      const restrictedSize = item.sizes.find(s => 
+        s.name.toLowerCase().includes(sizeRestriction.toLowerCase().split(' ')[0])
+      );
+      if (restrictedSize) return restrictedSize;
+    }
+    return item.sizes?.[1] || item.sizes?.[0];
+  }, [item.sizes, sizeRestriction]);
 
   // Get initial values from editingCartItem if in edit mode
   const editCustomization = editingCartItem?.pizzaCustomization;
@@ -223,6 +237,13 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
       popular: item.is_popular,
     };
     
+    // Combo mode - return customization via callback, no upsell
+    if (onCustomizationComplete) {
+      onCustomizationComplete(customization, totalPrice);
+      onClose();
+      return;
+    }
+    
     if (editingCartItem) {
       // For editing, update directly without upsell
       updateCustomizedPizza(editingCartItem.id, menuItem, customization, totalPrice);
@@ -371,11 +392,19 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                 {(item.sizes || []).map(s => {
                   const sizeNum = s.name.includes('Small') ? '10"' : s.name.includes('Medium') ? '12"' : '14"';
                   const sizeName = s.name.includes('Small') ? 'Small' : s.name.includes('Medium') ? 'Medium' : 'Large';
+                  
+                  // Check if this size is restricted (for combo mode)
+                  const isRestricted = sizeRestriction && !s.name.toLowerCase().includes(sizeRestriction.toLowerCase().split(' ')[0]);
+                  
                   return (
                     <button
                       key={s.id}
-                      onClick={() => setSelectedSize({ id: s.id, name: s.name, price: s.price })}
-                      className="flex flex-col items-center gap-2"
+                      onClick={() => !isRestricted && setSelectedSize({ id: s.id, name: s.name, price: s.price })}
+                      disabled={isRestricted}
+                      className={cn(
+                        "flex flex-col items-center gap-2",
+                        isRestricted && "opacity-30 cursor-not-allowed"
+                      )}
                     >
                       <div className={cn(
                         "rounded-full flex items-center justify-center font-bold text-lg transition-all",
@@ -390,6 +419,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Piz
                       </div>
                       <span className="text-sm font-medium">{sizeName}</span>
                       <span className="text-xs text-muted-foreground">${s.price}</span>
+                      {isRestricted && <span className="text-xs text-destructive">Not available</span>}
                     </button>
                   );
                 })}

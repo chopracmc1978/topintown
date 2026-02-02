@@ -47,6 +47,95 @@ export type Database = {
         }
         Relationships: []
       }
+      combo_items: {
+        Row: {
+          combo_id: string
+          created_at: string
+          id: string
+          is_chargeable: boolean
+          is_required: boolean
+          item_type: string
+          quantity: number
+          size_restriction: string | null
+          sort_order: number
+        }
+        Insert: {
+          combo_id: string
+          created_at?: string
+          id?: string
+          is_chargeable?: boolean
+          is_required?: boolean
+          item_type: string
+          quantity?: number
+          size_restriction?: string | null
+          sort_order?: number
+        }
+        Update: {
+          combo_id?: string
+          created_at?: string
+          id?: string
+          is_chargeable?: boolean
+          is_required?: boolean
+          item_type?: string
+          quantity?: number
+          size_restriction?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_items_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      combos: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+          schedule_dates: number[] | null
+          schedule_days: number[] | null
+          schedule_type: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price?: number
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coupon_usage: {
         Row: {
           coupon_id: string

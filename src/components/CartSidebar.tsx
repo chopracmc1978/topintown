@@ -19,7 +19,8 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
   const [expanded, setExpanded] = useState(false);
   const pizzaCustomization = item.pizzaCustomization;
   const wingsCustomization = item.wingsCustomization;
-  const hasCustomization = pizzaCustomization || wingsCustomization;
+  const comboCustomization = item.comboCustomization;
+  const hasCustomization = pizzaCustomization || wingsCustomization || comboCustomization;
 
   return (
     <div className="p-4 bg-secondary/50 rounded-lg space-y-3">
@@ -31,7 +32,11 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
         />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-foreground truncate">{item.name}</h4>
-          {pizzaCustomization ? (
+          {comboCustomization ? (
+            <p className="text-sm text-muted-foreground">
+              Combo Deal • {comboCustomization.selections.length} items
+            </p>
+          ) : pizzaCustomization ? (
             <p className="text-sm text-muted-foreground">
               {pizzaCustomization.size.name} • {pizzaCustomization.crust.name}
             </p>
@@ -59,7 +64,7 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
               </button>
             </div>
             <div className="flex items-center gap-2">
-              {pizzaCustomization && (
+              {pizzaCustomization && !comboCustomization && (
                 <button
                   onClick={() => onEditPizza(item)}
                   className="text-primary hover:text-primary/80 transition-colors"
@@ -68,7 +73,7 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
                   <Edit2 className="w-4 h-4" />
                 </button>
               )}
-              {wingsCustomization && (
+              {wingsCustomization && !comboCustomization && (
                 <button
                   onClick={() => onEditWings(item)}
                   className="text-primary hover:text-primary/80 transition-colors"
@@ -206,12 +211,36 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
             </div>
           )}
 
-          {expanded && wingsCustomization && (
+          {expanded && wingsCustomization && !comboCustomization && (
             <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
               <div>
                 <span className="font-medium text-muted-foreground">Flavor: </span>
                 <span>{wingsCustomization.flavor}</span>
               </div>
+            </div>
+          )}
+
+          {expanded && comboCustomization && (
+            <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
+              <div className="font-medium text-primary mb-2">Combo Contents:</div>
+              {comboCustomization.selections.map((selection, idx) => (
+                <div key={idx} className="flex justify-between py-1 border-b border-border/50 last:border-0">
+                  <div>
+                    <span className="capitalize text-muted-foreground">{selection.itemType.replace('_', ' ')}: </span>
+                    <span>{selection.itemName}</span>
+                    {selection.flavor && <span className="text-muted-foreground"> ({selection.flavor})</span>}
+                  </div>
+                  {selection.extraCharge > 0 && (
+                    <span className="text-primary">+${selection.extraCharge.toFixed(2)}</span>
+                  )}
+                </div>
+              ))}
+              {comboCustomization.totalExtraCharge > 0 && (
+                <div className="pt-2 mt-2 border-t flex justify-between font-medium">
+                  <span>Base Price:</span>
+                  <span>${comboCustomization.comboBasePrice.toFixed(2)}</span>
+                </div>
+              )}
             </div>
           )}
         </>
