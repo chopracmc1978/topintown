@@ -29,12 +29,13 @@ const HeroSection = () => {
         className="w-full h-auto object-cover"
       />
       
-      {/* Clickable overlay for Order Now button - positioned over the button in the image */}
+      {/* Actual Order Now button positioned over the image */}
       <button
         onClick={() => setShowLocationDialog(true)}
-        className="absolute left-1/2 -translate-x-1/2 bottom-[20%] md:bottom-[25%] w-32 md:w-40 h-10 md:h-12 cursor-pointer hover:scale-105 transition-transform"
-        aria-label="Order Now"
-      />
+        className="absolute left-1/2 -translate-x-1/2 bottom-[18%] md:bottom-[22%] bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:scale-105 transition-all cursor-pointer text-sm md:text-base"
+      >
+        Order Now
+      </button>
 
       {/* Location Selection Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
