@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
 import { usePOSNotificationSound } from '@/hooks/usePOSNotificationSound';
 import { usePrintReceipts } from '@/hooks/usePrintReceipts';
+import { usePOSSession } from '@/hooks/usePOSSession';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
 import { POSOrderCard } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
@@ -13,6 +14,7 @@ import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
+import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { useAuth } from '@/hooks/useAuth';
 import logo from '@/assets/logo.png';
 
@@ -51,12 +53,47 @@ const POS = () => {
   const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEndDay, setShowEndDay] = useState(false);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
   
   // Print receipts hook
   const { printKitchenTicket, printCustomerReceipt } = usePrintReceipts(currentLocationId);
+  
+  // POS Session management
+  const { 
+    activeSession, 
+    todayCashSales, 
+    startSession, 
+    endSession, 
+    getLastSessionEndCash,
+    setupAutoLogout 
+  } = usePOSSession(currentLocationId, user?.id);
+  
+  // Start session on login if none exists
+  useEffect(() => {
+    const initSession = async () => {
+      if (user && !activeSession) {
+        const lastCash = await getLastSessionEndCash();
+        await startSession(lastCash);
+      }
+    };
+    initSession();
+  }, [user, activeSession]);
+  
+  // Setup auto-logout at 2 AM Mountain Time
+  useEffect(() => {
+    if (activeSession) {
+      return setupAutoLogout(async () => {
+        // Auto end session with calculated cash
+        const expectedCash = (activeSession?.start_cash || 0) + todayCashSales;
+        await endSession(expectedCash);
+        localStorage.removeItem('pos_location_id');
+        signOut();
+      });
+    }
+  }, [activeSession, todayCashSales]);
   
   useEffect(() => {
     const savedLocation = localStorage.getItem('pos_location_id');
@@ -288,6 +325,16 @@ const POS = () => {
           </Button>
 
           <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEndDay(true)}
+            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+          >
+            <CalendarClock className="w-4 h-4 mr-2" />
+            End of Day
+          </Button>
+
+          <Button 
             variant="ghost"
             size="icon"
             onClick={() => setShowSettings(true)}
@@ -410,6 +457,22 @@ const POS = () => {
           onClose={() => setShowSettings(false)}
         />
       )}
+
+      {/* End of Day Modal */}
+      <POSEndDayModal
+        open={showEndDay}
+        onClose={() => setShowEndDay(false)}
+        onEndDay={async (enteredCash) => {
+          const success = await endSession(enteredCash);
+          if (success) {
+            setShowEndDay(false);
+            localStorage.removeItem('pos_location_id');
+            signOut();
+          }
+        }}
+        activeSession={activeSession}
+        todayCashSales={todayCashSales}
+      />
     </div>
   );
 };
