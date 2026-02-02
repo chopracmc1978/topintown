@@ -392,15 +392,15 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   return (
     <>
       <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
-        {/* Header with Customer Info - Tablet optimized */}
-        <div className="bg-secondary/50 px-5 py-4 border-b border-border flex items-center gap-6">
-          {/* Customer Name & Phone */}
-          <div className="flex flex-col gap-3 relative">
+        {/* Header - Compact single row layout */}
+        <div className="bg-secondary/50 px-4 py-2.5 border-b border-border flex items-center gap-4">
+          {/* Customer Name & Phone - horizontal */}
+          <div className="flex items-center gap-3 relative">
             <Input
               placeholder="Customer name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="h-12 text-lg w-60"
+              className="h-10 text-base w-48"
             />
             <div className="relative">
               <Input
@@ -411,12 +411,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
                 onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
                 className={cn(
-                  "h-12 text-lg w-60 pr-10",
+                  "h-10 text-base w-48 pr-8",
                   orderHistory.length > 0 && "border-primary"
                 )}
               />
               {orderHistory.length > 0 && (
-                <History className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
               )}
               
               {/* Order History Dropdown */}
@@ -431,16 +431,16 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           </div>
           
-          {/* Title - centered */}
-          <div className="flex-1 text-center">
-            <h2 className="text-2xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
+          {/* Title - right aligned */}
+          <div className="flex-1 text-right pr-2">
+            <h2 className="text-xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
             {isEditMode && editingOrder && (
-              <p className="text-base text-muted-foreground">{editingOrder.customerName}</p>
+              <p className="text-sm text-muted-foreground">{editingOrder.customerName}</p>
             )}
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onCancel} className="h-12 w-12">
-            <X className="w-6 h-6" />
+          <Button variant="ghost" size="icon" onClick={onCancel} className="h-10 w-10">
+            <X className="w-5 h-5" />
           </Button>
         </div>
 
