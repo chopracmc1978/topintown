@@ -1,19 +1,28 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+/**
+ * POS Native build strategy (reliable “proper” way):
+ * - Default: bundle the web app into the native binary (NO server.url).
+ *   This avoids “white screen” caused by WebView/network failing to load a remote URL at boot.
+ * - Optional: remote-hosted mode for quick iteration by setting CAPACITOR_SERVER_URL.
+ *   Example: CAPACITOR_SERVER_URL=https://topintown.lovable.app/pos
+ */
+const serverUrl = (process.env.CAPACITOR_SERVER_URL || '').trim();
+
 const config: CapacitorConfig = {
   appId: 'com.topintown.pos',
   appName: 'topintown',
   webDir: 'dist',
-  server: {
-    url: 'https://topintown.lovable.app/pos',
-    cleartext: true,
-    // Prevent silent white screens if the WebView can't load the remote URL.
-    // Shows a local page from dist/ instead.
-    errorPath: 'native-error.html',
-    // Keep navigation inside the WebView for our published domain.
-    // (Not intended for production in Capacitor docs, but required for remote-hosted POS variant.)
-    allowNavigation: ['topintown.lovable.app', '*.lovable.app']
-  }
+  server: serverUrl
+    ? {
+        url: serverUrl,
+        cleartext: true,
+        // If remote URL fails to load, show a local page from dist/ instead.
+        errorPath: 'native-error.html',
+        // NOTE: allowNavigation is intentionally omitted.
+        // There are known cases where allowNavigation causes loading issues on some Android WebViews.
+      }
+    : undefined,
 };
 
 export default config;
