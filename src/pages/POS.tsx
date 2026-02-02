@@ -52,7 +52,7 @@ const POS = () => {
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
   
   // Print receipts hook
-  const { printBothReceipts } = usePrintReceipts(currentLocationId);
+  const { printKitchenTicket } = usePrintReceipts(currentLocationId);
   
   useEffect(() => {
     const savedLocation = localStorage.getItem('pos_location_id');
@@ -175,7 +175,7 @@ const POS = () => {
 
   const handlePrintTicket = () => {
     if (selectedOrder) {
-      printBothReceipts(selectedOrder);
+      printKitchenTicket(selectedOrder);
     }
   };
 

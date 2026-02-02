@@ -318,7 +318,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
         <div className="flex gap-2">
           <Button variant="outline" onClick={onPrintTicket}>
             <Printer className="w-4 h-4 mr-2" />
-            Print All
+            Kitchen
           </Button>
           
           <Button variant="outline" onClick={onEditOrder}>
