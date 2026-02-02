@@ -3,9 +3,7 @@ import { Order } from '@/types/menu';
 import { toast } from 'sonner';
 import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
 import { LOCATIONS } from '@/contexts/LocationContext';
-
-// Local print server URL - change this to your print server address
-const PRINT_SERVER_URL = localStorage.getItem('print_server_url') || 'http://localhost:9100';
+import { getPrintServerUrl, savePrintServerUrl } from '@/utils/printServer';
 
 export const usePrintReceipts = (locationId: string) => {
   const { printers } = usePrinters(locationId);
@@ -18,9 +16,11 @@ export const usePrintReceipts = (locationId: string) => {
   const sendToPrinter = async (printer: Printer, data: string): Promise<boolean> => {
     try {
       console.log(`Sending print job to ${printer.name} (${printer.ip_address})`);
+
+      const printServerUrl = getPrintServerUrl();
       
       // Try to send to local print server
-      const response = await fetch(`${PRINT_SERVER_URL}/print`, {
+      const response = await fetch(`${printServerUrl}/print`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export const usePrintReceipts = (locationId: string) => {
   };
 
   const setPrintServerUrl = (url: string) => {
-    localStorage.setItem('print_server_url', url);
+    savePrintServerUrl(url);
   };
 
   return {
@@ -163,6 +163,6 @@ export const usePrintReceipts = (locationId: string) => {
     printCustomerReceipt,
     printBothReceipts,
     setPrintServerUrl,
-    printServerUrl: PRINT_SERVER_URL,
+    printServerUrl: getPrintServerUrl(),
   };
 };

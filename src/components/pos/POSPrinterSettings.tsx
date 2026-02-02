@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePrinters, PRINTER_STATIONS, PAPER_WIDTHS, type PrinterInsert, type Printer } from '@/hooks/usePrinters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { DEFAULT_PRINT_SERVER_URL, getPrintServerUrl, normalizePrintServerUrl, savePrintServerUrl } from '@/utils/printServer';
 
 interface POSPrinterSettingsProps {
   locationId: string;
@@ -18,7 +19,7 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [printServerUrl, setPrintServerUrl] = useState(
-    localStorage.getItem('print_server_url') || 'http://localhost:3001'
+    getPrintServerUrl()
   );
   const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
@@ -36,15 +37,25 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   const checkServerStatus = async () => {
     setServerStatus('checking');
     try {
-      const response = await fetch(`${printServerUrl}/health`, { 
+      const baseUrl = normalizePrintServerUrl(printServerUrl);
+      if (!baseUrl) {
+        setServerStatus('offline');
+        return;
+      }
+
+      const response = await fetch(`${baseUrl}/health`, { 
         method: 'GET',
         signal: AbortSignal.timeout(3000),
       });
-      if (response.ok) {
-        setServerStatus('online');
-      } else {
+
+      if (!response.ok) {
         setServerStatus('offline');
+        return;
       }
+
+      // Guard against false-positives (e.g., HTML page returning 200).
+      const json = await response.json().catch(() => null);
+      setServerStatus(json?.status === 'ok' ? 'online' : 'offline');
     } catch {
       setServerStatus('offline');
     }
@@ -55,7 +66,12 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   }, [printServerUrl]);
 
   const handleSavePrintServerUrl = () => {
-    localStorage.setItem('print_server_url', printServerUrl);
+    const normalized = savePrintServerUrl(printServerUrl);
+    if (!normalized) {
+      toast.error('Enter a valid Print Server URL');
+      return;
+    }
+    setPrintServerUrl(normalized);
     toast.success('Print server URL saved');
     checkServerStatus();
   };
@@ -82,7 +98,10 @@ If you see this, printing works!
 \x1DVA
 `;
       
-      const response = await fetch(`${printServerUrl}/print`, {
+      const baseUrl = normalizePrintServerUrl(printServerUrl);
+      if (!baseUrl) throw new Error('Missing print server URL');
+
+      const response = await fetch(`${baseUrl}/print`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -189,7 +208,7 @@ If you see this, printing works!
         
         <div className="flex gap-2">
           <Input
-            placeholder="http://localhost:3001"
+            placeholder={DEFAULT_PRINT_SERVER_URL}
             value={printServerUrl}
             onChange={(e) => setPrintServerUrl(e.target.value)}
             className="flex-1"
