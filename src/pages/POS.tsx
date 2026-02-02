@@ -43,7 +43,7 @@ const POS = () => {
   });
   
   // Pass location to orders hook for filtering
-  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders(currentLocationId);
+  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders } = usePOSOrders(currentLocationId);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -477,6 +477,8 @@ const POS = () => {
         onEndDay={async (enteredCash) => {
           const success = await endSession(enteredCash);
           if (success) {
+            // Clear orders from POS view (keep advance orders)
+            await clearEndOfDayOrders(currentLocationId);
             setShowEndDay(false);
             localStorage.removeItem('pos_location_id');
             signOut();
