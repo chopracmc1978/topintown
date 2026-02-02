@@ -140,7 +140,7 @@ serve(async (req) => {
 
     console.log("Order created:", order.id);
 
-    // Create order items from minimal metadata format
+    // Create order items from metadata with full customization objects
     if (items.length > 0) {
       const orderItems = items.map((item: any) => ({
         order_id: order.id,
@@ -149,11 +149,12 @@ serve(async (req) => {
         quantity: item.q || item.quantity || 1,
         unit_price: item.p || item.price || 0,
         total_price: item.t || item.totalPrice || 0,
-        customizations: item.sz || item.fl ? {
+        // Use full customization objects if available, fallback to minimal format for backwards compatibility
+        customizations: item.pc || item.wc || (item.sz ? {
           size: item.sz,
           crust: item.cr,
           flavor: item.fl,
-        } : null,
+        } : null),
       }));
 
       const { error: itemsError } = await supabase

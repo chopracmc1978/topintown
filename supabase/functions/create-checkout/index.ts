@@ -70,7 +70,7 @@ serve(async (req) => {
     // Get the origin for redirect URLs
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
 
-    // Store minimal item data in metadata (Stripe has 500 char limit per value)
+    // Store item data with FULL customization objects in metadata
     // Split items across multiple metadata fields if needed
     const minimalItems = items.map((item: any) => ({
       n: item.name,
@@ -78,9 +78,10 @@ serve(async (req) => {
       p: item.price || 0,
       t: item.totalPrice || 0,
       pid: item.pizzaCustomization?.originalItemId || item.wingsCustomization?.originalItemId || null,
-      sz: item.pizzaCustomization?.size?.name || item.selectedSize || null,
-      cr: item.pizzaCustomization?.crust?.name || null,
-      fl: item.wingsCustomization?.flavor || null,
+      sz: item.selectedSize || null,
+      // Store full customization objects
+      pc: item.pizzaCustomization || null,  // Full pizza customization
+      wc: item.wingsCustomization || null,  // Full wings customization
     }));
 
     // Split items into chunks that fit within 500 char limit
