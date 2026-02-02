@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
 import CustomersManager from '@/components/admin/CustomersManager';
+import CouponsManager from '@/components/admin/CouponsManager';
 import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
@@ -97,7 +98,7 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-9 w-full max-w-6xl">
+            <TabsList className="grid grid-cols-10 w-full max-w-6xl">
               {displayCategories.map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
@@ -111,6 +112,10 @@ const Admin = () => {
               <TabsTrigger value="sauces" className="gap-2">
                 <Soup className="w-4 h-4" />
                 <span className="hidden sm:inline">Sauces</span>
+              </TabsTrigger>
+              <TabsTrigger value="coupons" className="gap-2">
+                <Tag className="w-4 h-4" />
+                <span className="hidden sm:inline">Coupons</span>
               </TabsTrigger>
               <TabsTrigger value="customers" className="gap-2">
                 <UserCheck className="w-4 h-4" />
@@ -134,6 +139,10 @@ const Admin = () => {
 
             <TabsContent value="sauces">
               <GlobalSauceManager />
+            </TabsContent>
+
+            <TabsContent value="coupons">
+              <CouponsManager />
             </TabsContent>
 
             <TabsContent value="customers">

@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
+import PromoBar from '@/components/PromoBar';
 import ComboDeals from '@/components/ComboDeals';
 import LocationsSection from '@/components/LocationsSection';
 import FoodCategories from '@/components/FoodCategories';
@@ -12,6 +13,7 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <PromoBar />
         <ComboDeals />
         <FoodCategories />
         <FeaturedPizzas />
