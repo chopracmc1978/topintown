@@ -1,13 +1,19 @@
 import { Tag, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
-import { useHomepageCoupons } from '@/hooks/useCoupons';
+import { useMemo, useState } from 'react';
+import { useHomepageCoupons, isCouponActiveToday } from '@/hooks/useCoupons';
 import { toast } from 'sonner';
 
 const PromoBar = () => {
   const { data: coupons, isLoading } = useHomepageCoupons();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  if (isLoading || !coupons || coupons.length === 0) {
+  // Filter coupons by their schedule (e.g., Monday-only coupons only show on Mondays)
+  const activeCoupons = useMemo(() => {
+    if (!coupons) return [];
+    return coupons.filter(isCouponActiveToday);
+  }, [coupons]);
+
+  if (isLoading || activeCoupons.length === 0) {
     return null;
   }
 
@@ -22,7 +28,7 @@ const PromoBar = () => {
     <div className="bg-gradient-to-r from-primary to-[hsl(200,70%,45%)] text-white py-3">
       <div className="container mx-auto px-4">
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm md:text-base">
-          {coupons.map((coupon) => (
+          {activeCoupons.map((coupon) => (
             <button
               key={coupon.id}
               onClick={() => handleCopy(coupon.code)}
