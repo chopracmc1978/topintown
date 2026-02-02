@@ -154,61 +154,14 @@ const BlueSlide = ({ image }: { image: string }) => (
   </div>
 );
 
-// White slide component (second style from reference)
+// White slide component - full-width image background matching reference
 const WhiteSlide = ({ image }: { image: string }) => (
-  <div className="h-full min-h-[500px] md:min-h-[600px] flex items-center bg-gradient-to-r from-white via-white to-gray-50 relative">
-    {/* Pizza Sketch - Left Side */}
-    <div className="absolute top-10 left-0 w-48 h-48 opacity-30 hidden lg:block">
-      <svg viewBox="0 0 200 200" className="text-gray-400">
-        <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="2"/>
-        <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="1"/>
-        <line x1="100" y1="5" x2="100" y2="195" stroke="currentColor" strokeWidth="1"/>
-        <line x1="5" y1="100" x2="195" y2="100" stroke="currentColor" strokeWidth="1"/>
-        <line x1="30" y1="30" x2="170" y2="170" stroke="currentColor" strokeWidth="1"/>
-        <line x1="170" y1="30" x2="30" y2="170" stroke="currentColor" strokeWidth="1"/>
-        <circle cx="60" cy="60" r="8" fill="currentColor" opacity="0.5"/>
-        <circle cx="130" cy="70" r="6" fill="currentColor" opacity="0.5"/>
-        <circle cx="80" cy="130" r="7" fill="currentColor" opacity="0.5"/>
-      </svg>
-    </div>
-
-    {/* Arugula leaves - Bottom Left */}
-    <div className="absolute bottom-10 left-10 w-24 h-24 opacity-80 hidden lg:block">
-      <svg viewBox="0 0 24 24" fill="currentColor" className="text-green-600 rotate-45 drop-shadow">
-        <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/>
-      </svg>
-    </div>
-
-    <div className="container mx-auto px-4 relative z-10">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-        {/* Content - Center */}
-        <div className="lg:w-1/2 text-center lg:text-left lg:pl-20">
-          <h2 className="font-serif text-4xl md:text-5xl italic text-primary leading-tight mb-4">
-            Enjoy Our Delicious Food
-          </h2>
-          <p className="text-gray-600 text-lg mb-6 max-w-md">
-            Top in town is all-Canadian pizza quick-service restaurant that is located in Calgary, Alberta.
-          </p>
-          <Link to="/menu">
-            <Button 
-              size="lg" 
-              className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-8 rounded-full shadow-lg"
-            >
-              Order Now
-            </Button>
-          </Link>
-        </div>
-
-        {/* Pizza Image - Right Side */}
-        <div className="lg:w-1/2 relative">
-          <img 
-            src={image}
-            alt="Fresh pizza with ingredients"
-            className="w-full max-w-xl mx-auto object-contain"
-          />
-        </div>
-      </div>
-    </div>
+  <div className="h-full min-h-[500px] md:min-h-[600px] relative overflow-hidden">
+    <img 
+      src={image}
+      alt="Enjoy Our Delicious Food - Top In Town Pizza"
+      className="w-full h-full min-h-[500px] md:min-h-[600px] object-cover object-center"
+    />
   </div>
 );
 
