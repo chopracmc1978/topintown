@@ -95,7 +95,11 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
     let filtered = menuItems.filter(item => {
       // Map combo item_type to menu category
       if (currentComboItem.item_type === 'pizza') return item.category === 'pizza';
-      if (currentComboItem.item_type === 'wings') return item.category === 'chicken_wings';
+      if (currentComboItem.item_type === 'wings') {
+        // Only show Wings and Boneless Wings for combos (exclude Crispy Breaded Chicken Breast)
+        return item.category === 'chicken_wings' && 
+          (item.name.toLowerCase().includes('wings'));
+      }
       if (currentComboItem.item_type === 'drinks') return item.category === 'drinks';
       if (currentComboItem.item_type === 'dipping_sauce') return item.category === 'dipping_sauce';
       return false;
