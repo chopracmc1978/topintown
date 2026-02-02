@@ -113,11 +113,24 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
       });
     }
 
-    // For drinks, filter by size if restricted
+    // For drinks, filter by size restriction based on item name
     if (currentComboItem.item_type === 'drinks' && currentComboItem.size_restriction) {
+      const restriction = currentComboItem.size_restriction.toLowerCase();
       filtered = filtered.filter(item => {
-        const sizeName = currentComboItem.size_restriction?.toLowerCase() || '';
-        return item.sizes?.some(s => s.name.toLowerCase().includes(sizeName.split(' ')[0]));
+        const itemName = item.name.toLowerCase();
+        // Match "2 Litre" or "2L" in restriction to "2l" in name
+        if (restriction.includes('2 litre') || restriction.includes('2l')) {
+          return itemName.includes('2l');
+        }
+        // Match "Can" in restriction
+        if (restriction.includes('can')) {
+          return itemName.includes('can');
+        }
+        // Match "500ml" or "Bottle" (not 2L)
+        if (restriction.includes('500ml') || restriction.includes('bottle')) {
+          return itemName.includes('500ml') || (itemName.includes('bottle') && !itemName.includes('2l'));
+        }
+        return true;
       });
     }
 
