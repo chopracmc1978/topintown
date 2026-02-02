@@ -182,16 +182,28 @@ export const buildCustomerReceipt = (order: {
     return left + ' '.repeat(padding) + right;
   };
 
-  // Helper to format item line - splits to two lines if too long
+  // Helper to format item line - separates variant info to next line if needed
   const formatItemLine = (itemName: string, price: string): string => {
-    const minGap = 2; // Minimum space between item and price
+    // Check if item has variant info in parentheses
+    const parenMatch = itemName.match(/^(.+?)(\s*\([^)]+\))$/);
+    
+    if (parenMatch) {
+      // Has variant info - put main name + price on line 1, variant indented on line 2
+      const mainName = parenMatch[1].trim();
+      const variant = parenMatch[2].trim();
+      const line1 = formatLine(mainName, price);
+      const line2 = '   ' + variant; // Indented variant
+      return line1 + LF + line2;
+    }
+    
+    // No variant - check if it fits on one line
+    const minGap = 2;
     const available = RECEIPT_WIDTH - price.length - minGap;
     
     if (itemName.length <= available) {
-      // Fits on one line
       return formatLine(itemName, price);
     } else {
-      // Item name too long - put price on next line, right-aligned
+      // Too long - put price on next line, right-aligned
       const pricePadding = RECEIPT_WIDTH - price.length;
       return itemName + LF + ' '.repeat(pricePadding) + price;
     }
