@@ -50,7 +50,21 @@ const CustomerLogin = () => {
     }
   }, [customer, navigate, redirectUrl]);
 
-  if (customer) return null;
+  // Avoid a blank screen while redirecting an already-authenticated customer.
+  if (customer) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center py-12 px-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Redirecting...</span>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
