@@ -182,6 +182,21 @@ export const buildCustomerReceipt = (order: {
     return left + ' '.repeat(padding) + right;
   };
 
+  // Helper to format item line - splits to two lines if too long
+  const formatItemLine = (itemName: string, price: string): string => {
+    const minGap = 2; // Minimum space between item and price
+    const available = RECEIPT_WIDTH - price.length - minGap;
+    
+    if (itemName.length <= available) {
+      // Fits on one line
+      return formatLine(itemName, price);
+    } else {
+      // Item name too long - put price on next line, right-aligned
+      const pricePadding = RECEIPT_WIDTH - price.length;
+      return itemName + LF + ' '.repeat(pricePadding) + price;
+    }
+  };
+
   // Extract just city from address (remove AB and postal code)
   const getShortAddress = (address?: string): string => {
     if (!address) return '';
@@ -230,11 +245,11 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // Items with right-aligned prices
+  // Items with right-aligned prices (split to 2 lines if too long)
   for (const item of order.items) {
     const itemName = `${item.quantity}x ${item.name}`;
     const price = `$${item.totalPrice.toFixed(2)}`;
-    receipt += formatLine(itemName, price) + LF;
+    receipt += formatItemLine(itemName, price) + LF;
   }
   
   receipt += LINE + LF;
