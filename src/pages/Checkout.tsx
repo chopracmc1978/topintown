@@ -337,9 +337,11 @@ const Checkout = () => {
     try {
       const locationId = selectedLocation?.id || 'calgary';
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-      const discountedSubtotal = total - appliedDiscount;
-      const tax = discountedSubtotal * 0.05; // 5% GST
-      const grandTotal = discountedSubtotal + deliveryFee + tax;
+      // Discount only applies to non-combo items
+      const discountedNonCombo = nonComboSubtotal - appliedDiscount;
+      const finalSubtotal = discountedNonCombo + comboSubtotal;
+      const tax = finalSubtotal * 0.05; // 5% GST
+      const grandTotal = finalSubtotal + deliveryFee + tax;
 
       // Get customer info
       const customerInfo = customer || { 
@@ -400,8 +402,18 @@ const Checkout = () => {
     }
   };
 
+  // Calculate subtotal for non-combo items only (coupons don't apply to combos)
+  const nonComboSubtotal = items
+    .filter(item => !item.comboCustomization)
+    .reduce((sum, item) => sum + item.totalPrice, 0);
+  const comboSubtotal = items
+    .filter(item => item.comboCustomization)
+    .reduce((sum, item) => sum + item.totalPrice, 0);
+
   const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-  const discountedSubtotal = total - appliedDiscount;
+  // Discount only applies to non-combo items
+  const discountedNonComboSubtotal = nonComboSubtotal - appliedDiscount;
+  const discountedSubtotal = discountedNonComboSubtotal + comboSubtotal;
   const tax = discountedSubtotal * 0.05;
   const grandTotal = discountedSubtotal + deliveryFee + tax;
 
@@ -566,15 +578,28 @@ const Checkout = () => {
                 ))}
               </div>
 
-              {/* Coupon Field */}
+              {/* Coupon Field - only applies to non-combo items */}
               <div className="mb-4">
-                <CouponField
-                  subtotal={total}
-                  onApply={handleApplyCoupon}
-                  onRemove={handleRemoveCoupon}
-                  appliedCoupon={appliedCoupon}
-                  appliedDiscount={appliedDiscount}
-                />
+                {comboSubtotal > 0 && nonComboSubtotal === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    Coupons cannot be applied to combo deals
+                  </p>
+                ) : (
+                  <>
+                    <CouponField
+                      subtotal={nonComboSubtotal}
+                      onApply={handleApplyCoupon}
+                      onRemove={handleRemoveCoupon}
+                      appliedCoupon={appliedCoupon}
+                      appliedDiscount={appliedDiscount}
+                    />
+                    {comboSubtotal > 0 && nonComboSubtotal > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Note: Coupons apply only to non-combo items (${nonComboSubtotal.toFixed(2)})
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="border-t border-border pt-4 space-y-2">
