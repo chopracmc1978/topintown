@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { OrderProvider } from "@/contexts/OrderContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -32,6 +32,26 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * IMPORTANT (native stability):
+ * The POS app (opened directly at /pos in a Capacitor WebView) must NOT mount
+ * customer/location providers since they use browser APIs (localStorage + IP detection)
+ * that can hard-crash some WebView environments and produce a white screen.
+ */
+const PublicProvidersLayout = () => {
+  return (
+    <LocationProvider>
+      <CustomerProvider>
+        <CartProvider>
+          <OrderProvider>
+            <Outlet />
+          </OrderProvider>
+        </CartProvider>
+      </CustomerProvider>
+    </LocationProvider>
+  );
+};
+
 const App = () => {
   // Global unhandled rejection handler to prevent white screen crashes
   useEffect(() => {
@@ -59,34 +79,31 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <LocationProvider>
-            <CustomerProvider>
-              <CartProvider>
-                <OrderProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/menu" element={<Menu />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-                      <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                      <Route path="/pos" element={<POS />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/customer-login" element={<CustomerLogin />} />
-                      <Route path="/my-orders" element={<MyOrders />} />
-                      <Route path="/profile" element={<Profile />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </OrderProvider>
-              </CartProvider>
-            </CustomerProvider>
-          </LocationProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* POS is isolated for native stability */}
+              <Route path="/pos" element={<POS />} />
+
+              {/* Public site + admin routes */}
+              <Route element={<PublicProvidersLayout />}>
+                <Route index element={<Index />} />
+                <Route path="menu" element={<Menu />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="checkout" element={<Checkout />} />
+                <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
+                <Route path="order-confirmation" element={<OrderConfirmation />} />
+                <Route path="auth" element={<Auth />} />
+                <Route path="admin" element={<Admin />} />
+                <Route path="customer-login" element={<CustomerLogin />} />
+                <Route path="my-orders" element={<MyOrders />} />
+                <Route path="profile" element={<Profile />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
