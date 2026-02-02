@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MapPin, Phone, User, FileText, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2, CreditCard } from 'lucide-react';
+import { MapPin, Phone, User, FileText, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2, CreditCard, AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useCart } from '@/contexts/CartContext';
 import { useLocation as useLocationContext } from '@/contexts/LocationContext';
 import { useCustomer } from '@/contexts/CustomerContext';
@@ -235,6 +236,9 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   
+  // Location confirmation dialog
+  const [showLocationConfirm, setShowLocationConfirm] = useState(false);
+  
   // Advance ordering state - initialize from localStorage if available
   const [scheduledDate, setScheduledDate] = useState<Date | null>(() => {
     try {
@@ -314,6 +318,13 @@ const Checkout = () => {
       return;
     }
 
+    // Show location confirmation dialog first
+    setShowLocationConfirm(true);
+  };
+
+  const handleConfirmLocation = () => {
+    setShowLocationConfirm(false);
+    
     // If already verified or logged in, place order directly
     if (verifiedCustomerId || customer?.id) {
       handlePlaceOrder(verifiedCustomerId || customer!.id);
@@ -647,6 +658,46 @@ const Checkout = () => {
           editingCartItem={editingWingsItem}
         />
       )}
+
+      {/* Location Confirmation Dialog */}
+      <AlertDialog open={showLocationConfirm} onOpenChange={setShowLocationConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Confirm Pickup Location
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Please confirm you will pick up your order from:</p>
+                <div className="bg-secondary/50 rounded-lg p-4 space-y-1">
+                  <p className="font-semibold text-foreground">
+                    {selectedLocation?.name || 'Top In Town Pizza - Calgary'}
+                  </p>
+                  <p className="text-sm">
+                    {selectedLocation?.address || '3250 60 ST NE, CALGARY, AB T1Y 3T5'}
+                  </p>
+                  <p className="text-sm text-primary font-medium">
+                    {selectedLocation?.phone || '(403) 280-7373 ext 1'}
+                  </p>
+                </div>
+                {scheduledDate && scheduledTime && (
+                  <p className="text-sm">
+                    <span className="font-medium">Scheduled pickup:</span>{' '}
+                    {scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {scheduledTime}
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Change Location</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLocation} className="bg-primary hover:bg-primary/90">
+              Confirm & Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
