@@ -1,3 +1,6 @@
+// Polyfill AbortController for older Android WebViews (pre-Chrome 66)
+import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
+
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
