@@ -88,10 +88,23 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       
       if (hasManualSelection || hasDetected) return;
 
+      // Skip IP detection for POS app (runs on local network)
+      if (window.location.pathname.startsWith('/pos')) {
+        localStorage.setItem(IP_DETECTION_KEY, 'true');
+        return;
+      }
+
       setIsDetecting(true);
       try {
-        // Using ipapi.co (free HTTPS endpoint)
-        const response = await fetch('https://ipapi.co/json/');
+        // Using ipapi.co (free HTTPS endpoint) with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch('https://ipapi.co/json/', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
         
         if (data.latitude && data.longitude) {
@@ -100,7 +113,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem(STORAGE_KEY, closestLocation.id);
         }
       } catch (error) {
-        console.log('IP detection failed, using default location');
+        console.log('IP detection skipped:', error instanceof Error ? error.message : 'Network error');
       } finally {
         localStorage.setItem(IP_DETECTION_KEY, 'true');
         setIsDetecting(false);
