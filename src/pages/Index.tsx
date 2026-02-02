@@ -7,6 +7,7 @@ import LocationsSection from '@/components/LocationsSection';
 import FoodCategories from '@/components/FoodCategories';
 import FeaturedPizzas from '@/components/FeaturedPizzas';
 import Footer from '@/components/Footer';
+import PopupPosterModal from '@/components/PopupPosterModal';
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
         <LocationsSection />
       </main>
       <Footer />
+      <PopupPosterModal />
     </div>
   );
 };
