@@ -185,15 +185,97 @@ const MyOrders = () => {
                     </CardHeader>
                     <CardContent>
                       {/* Order Items */}
-                      <div className="space-y-2 mb-4">
-                        {order.items.slice(0, 3).map((item) => (
-                          <div key={item.id} className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">
-                              {item.quantity}x {item.name}
-                            </span>
-                            <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
-                          </div>
-                        ))}
+                      <div className="space-y-3 mb-4">
+                        {order.items.slice(0, 3).map((item) => {
+                          const customizations = item.customizations;
+                          const hasPizzaCustomization = customizations?.size || customizations?.crust;
+                          const hasWingsCustomization = customizations?.flavor;
+                          
+                          return (
+                            <div key={item.id} className="text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-foreground font-medium">
+                                  {item.quantity}x {item.name}
+                                </span>
+                                <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
+                              </div>
+                              
+                              {/* Pizza Customization Details */}
+                              {hasPizzaCustomization && (
+                                <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-0.5">
+                                  {/* Size & Crust */}
+                                  <p>
+                                    {customizations.size?.name || ''}{customizations.crust?.name ? `, ${customizations.crust.name} Crust` : ''}
+                                  </p>
+                                  
+                                  {/* Sauce */}
+                                  {customizations.sauceName && customizations.sauceName !== 'Pizza Sauce' && (
+                                    <p>Sauce: {customizations.sauceName}{customizations.sauceQuantity === 'extra' ? ' (Extra)' : ''}</p>
+                                  )}
+                                  
+                                  {/* Cheese */}
+                                  {customizations.cheeseType && customizations.cheeseType !== 'mozzarella' && (
+                                    <p>Cheese: {customizations.cheeseType === 'none' ? 'No Cheese' : customizations.cheeseType === 'dairy_free' ? 'Dairy Free' : customizations.cheeseType}</p>
+                                  )}
+                                  
+                                  {/* Spicy Level */}
+                                  {customizations.spicyLevel && (
+                                    <>
+                                      {typeof customizations.spicyLevel === 'string' && customizations.spicyLevel !== 'none' && (
+                                        <p>Spicy: {customizations.spicyLevel === 'medium' ? 'Medium Hot' : customizations.spicyLevel.charAt(0).toUpperCase() + customizations.spicyLevel.slice(1)}</p>
+                                      )}
+                                      {typeof customizations.spicyLevel === 'object' && (customizations.spicyLevel.left !== 'none' || customizations.spicyLevel.right !== 'none') && (
+                                        <p>Spicy: {customizations.spicyLevel.left !== 'none' ? `L:${customizations.spicyLevel.left === 'medium' ? 'Medium Hot' : customizations.spicyLevel.left}` : ''} {customizations.spicyLevel.right !== 'none' ? `R:${customizations.spicyLevel.right === 'medium' ? 'Medium Hot' : customizations.spicyLevel.right}` : ''}</p>
+                                      )}
+                                    </>
+                                  )}
+                                  
+                                  {/* Free Toppings */}
+                                  {customizations.freeToppings && customizations.freeToppings.length > 0 && (
+                                    <p>Add: {customizations.freeToppings.join(', ')}</p>
+                                  )}
+                                  
+                                  {/* Modified Default Toppings */}
+                                  {customizations.defaultToppings && customizations.defaultToppings.filter((t: any) => t.quantity !== 'regular').length > 0 && (
+                                    <p>
+                                      {customizations.defaultToppings
+                                        .filter((t: any) => t.quantity !== 'regular')
+                                        .map((t: any) => {
+                                          if (t.quantity === 'none') return `NO: ${t.name}`;
+                                          if (t.quantity === 'less') return `Less ${t.name}`;
+                                          if (t.quantity === 'extra') return `Extra ${t.name}`;
+                                          return t.name;
+                                        })
+                                        .join(', ')}
+                                    </p>
+                                  )}
+                                  
+                                  {/* Extra Toppings */}
+                                  {customizations.extraToppings && customizations.extraToppings.length > 0 && (
+                                    <p>
+                                      +{customizations.extraToppings.map((t: any) => {
+                                        const side = t.side && t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : '';
+                                        return `${t.name}${side}`;
+                                      }).join(', ')}
+                                    </p>
+                                  )}
+                                  
+                                  {/* Note */}
+                                  {customizations.note && (
+                                    <p className="italic">Note: {customizations.note}</p>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Wings Customization */}
+                              {hasWingsCustomization && (
+                                <p className="mt-1 ml-4 text-xs text-muted-foreground">
+                                  Flavor: {customizations.flavor}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
                         {order.items.length > 3 && (
                           <p className="text-sm text-muted-foreground">
                             +{order.items.length - 3} more items
