@@ -52,7 +52,7 @@ const POS = () => {
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
   
   // Print receipts hook
-  const { printKitchenTicket } = usePrintReceipts(currentLocationId);
+  const { printKitchenTicket, printCustomerReceipt } = usePrintReceipts(currentLocationId);
   
   useEffect(() => {
     const savedLocation = localStorage.getItem('pos_location_id');
@@ -353,6 +353,7 @@ const POS = () => {
               onUpdateStatus={handleUpdateStatus}
               onPayment={handlePayment}
               onPrintTicket={handlePrintTicket}
+              onPrintReceipt={() => printCustomerReceipt(selectedOrder)}
               onEditOrder={handleEditOrder}
             />
           ) : (
