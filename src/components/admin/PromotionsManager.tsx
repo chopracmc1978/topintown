@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Plus, Edit, Trash2, Megaphone, Upload, X, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Megaphone, Upload, X, GripVertical, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -29,8 +30,26 @@ import {
   uploadPromotionImage,
   deletePromotionImage,
   Promotion,
+  ScheduleType,
 } from '@/hooks/usePromotions';
 import { toast } from 'sonner';
+
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
+];
+
+const DATE_PRESETS = [
+  { label: '1st-15th', dates: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] },
+  { label: '16th-End', dates: [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31] },
+  { label: '1st only', dates: [1] },
+  { label: 'Last day (31st)', dates: [31] },
+];
 
 const colorPresets = [
   { name: 'Red', value: '#dc2626' },
@@ -67,6 +86,9 @@ const PromotionsManager = () => {
     show_order_button: true,
     is_active: true,
     sort_order: 0,
+    schedule_type: 'always' as ScheduleType,
+    schedule_days: [] as number[],
+    schedule_dates: [] as number[],
   });
 
   const resetForm = () => {
@@ -85,6 +107,9 @@ const PromotionsManager = () => {
       show_order_button: true,
       is_active: true,
       sort_order: promotions?.length || 0,
+      schedule_type: 'always',
+      schedule_days: [],
+      schedule_dates: [],
     });
     setEditingPromotion(null);
   };
@@ -111,6 +136,9 @@ const PromotionsManager = () => {
       show_order_button: promo.show_order_button,
       is_active: promo.is_active,
       sort_order: promo.sort_order,
+      schedule_type: promo.schedule_type || 'always',
+      schedule_days: promo.schedule_days || [],
+      schedule_dates: promo.schedule_dates || [],
     });
     setIsDialogOpen(true);
   };
@@ -163,6 +191,9 @@ const PromotionsManager = () => {
       show_order_button: formData.show_order_button,
       is_active: formData.is_active,
       sort_order: formData.sort_order,
+      schedule_type: formData.schedule_type,
+      schedule_days: formData.schedule_type === 'days_of_week' ? formData.schedule_days : null,
+      schedule_dates: formData.schedule_type === 'dates_of_month' ? formData.schedule_dates : null,
     };
 
     if (editingPromotion) {
@@ -239,7 +270,7 @@ const PromotionsManager = () => {
                 <p className="text-sm text-muted-foreground truncate">
                   {promo.description || promo.subtitle}
                 </p>
-                <div className="flex items-center gap-4 mt-1 text-sm">
+                <div className="flex items-center gap-4 mt-1 text-sm flex-wrap">
                   <span className="font-bold">${promo.price.toFixed(2)}{promo.price_suffix}</span>
                   {promo.coupon_code && (
                     <span className="font-mono bg-muted px-2 py-0.5 rounded text-xs">
@@ -249,6 +280,15 @@ const PromotionsManager = () => {
                   {promo.show_order_button && (
                     <Badge variant="outline" className="text-xs text-green-600">
                       Order Button
+                    </Badge>
+                  )}
+                  {promo.schedule_type !== 'always' && (
+                    <Badge variant="outline" className="text-xs text-blue-600">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {promo.schedule_type === 'days_of_week' 
+                        ? promo.schedule_days?.map(d => DAYS_OF_WEEK.find(day => day.value === d)?.label.slice(0, 3)).join(', ')
+                        : `Dates: ${promo.schedule_dates?.join(', ')}`
+                      }
                     </Badge>
                   )}
                 </div>
@@ -448,6 +488,149 @@ const PromotionsManager = () => {
                   onChange={(e) => setFormData({ ...formData, badge_text: e.target.value })}
                 />
               </div>
+            </div>
+
+            {/* Schedule Settings */}
+            <div className="border-t pt-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <Label className="font-medium">Schedule</Label>
+              </div>
+              
+              <Select
+                value={formData.schedule_type}
+                onValueChange={(v) => setFormData({ ...formData, schedule_type: v as ScheduleType })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="always">Always Active</SelectItem>
+                  <SelectItem value="days_of_week">Specific Days of Week</SelectItem>
+                  <SelectItem value="dates_of_month">Specific Dates of Month</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {formData.schedule_type === 'days_of_week' && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Select days when this promotion is active:</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <label
+                        key={day.value}
+                        className={`flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer transition-colors ${
+                          formData.schedule_days.includes(day.value)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background hover:bg-secondary'
+                        }`}
+                      >
+                        <Checkbox
+                          checked={formData.schedule_days.includes(day.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                schedule_days: [...formData.schedule_days, day.value].sort()
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                schedule_days: formData.schedule_days.filter(d => d !== day.value)
+                              });
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                        <span className="text-sm">{day.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, schedule_days: [1, 2, 3, 4, 5] })}
+                    >
+                      Mon-Fri
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, schedule_days: [0, 6] })}
+                    >
+                      Weekends
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, schedule_days: [] })}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {formData.schedule_type === 'dates_of_month' && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Select dates when this promotion is active:</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                      <label
+                        key={date}
+                        className={`flex items-center justify-center w-9 h-9 border rounded cursor-pointer transition-colors text-sm ${
+                          formData.schedule_dates.includes(date)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background hover:bg-secondary'
+                        }`}
+                      >
+                        <Checkbox
+                          checked={formData.schedule_dates.includes(date)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                schedule_dates: [...formData.schedule_dates, date].sort((a, b) => a - b)
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                schedule_dates: formData.schedule_dates.filter(d => d !== date)
+                              });
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                        {date}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {DATE_PRESETS.map((preset) => (
+                      <Button
+                        key={preset.label}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, schedule_dates: preset.dates })}
+                      >
+                        {preset.label}
+                      </Button>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, schedule_dates: [] })}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between border-t pt-4">

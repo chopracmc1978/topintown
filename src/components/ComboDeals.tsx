@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useActivePromotions, Promotion } from '@/hooks/usePromotions';
+import { useActivePromotions, Promotion, isPromotionActiveToday } from '@/hooks/usePromotions';
 import { useLocation, LOCATIONS } from '@/contexts/LocationContext';
 
 const ComboDeals = () => {
@@ -47,10 +47,17 @@ const ComboDeals = () => {
     return null;
   }
 
+  // Filter promotions that are active today based on schedule
+  const activeToday = promotions.filter(isPromotionActiveToday);
+
+  if (activeToday.length === 0) {
+    return null;
+  }
+
   // Separate promotions by layout type
-  const featuredPromos = promotions.filter(p => p.layout === 'featured');
-  const cardPromos = promotions.filter(p => p.layout === 'card');
-  const horizontalPromos = promotions.filter(p => p.layout === 'horizontal');
+  const featuredPromos = activeToday.filter(p => p.layout === 'featured');
+  const cardPromos = activeToday.filter(p => p.layout === 'card');
+  const horizontalPromos = activeToday.filter(p => p.layout === 'horizontal');
 
   return (
     <section className="py-8 bg-amber-50/50">
