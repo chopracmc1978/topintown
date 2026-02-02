@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
 import CustomersManager from '@/components/admin/CustomersManager';
 import CouponsManager from '@/components/admin/CouponsManager';
 import PromotionsManager from '@/components/admin/PromotionsManager';
+import CombosManager from '@/components/admin/CombosManager';
 import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
@@ -99,7 +100,7 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-11 w-full max-w-7xl">
+            <TabsList className="grid grid-cols-12 w-full max-w-7xl">
               {displayCategories.map((category) => (
                 <TabsTrigger key={category} value={category} className="gap-2">
                   {categoryIcons[category]}
@@ -113,6 +114,10 @@ const Admin = () => {
               <TabsTrigger value="sauces" className="gap-2">
                 <Soup className="w-4 h-4" />
                 <span className="hidden sm:inline">Sauces</span>
+              </TabsTrigger>
+              <TabsTrigger value="combos" className="gap-2">
+                <Package className="w-4 h-4" />
+                <span className="hidden sm:inline">Combos</span>
               </TabsTrigger>
               <TabsTrigger value="promotions" className="gap-2">
                 <Megaphone className="w-4 h-4" />
@@ -144,6 +149,10 @@ const Admin = () => {
 
             <TabsContent value="sauces">
               <GlobalSauceManager />
+            </TabsContent>
+
+            <TabsContent value="combos">
+              <CombosManager />
             </TabsContent>
 
             <TabsContent value="promotions">

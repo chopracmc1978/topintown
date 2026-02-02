@@ -34,12 +34,29 @@ export interface CartWingsCustomization {
   originalItemId: string;
 }
 
+export interface ComboSelectionItem {
+  itemType: string;
+  itemName: string;
+  flavor?: string;
+  pizzaCustomization?: CartPizzaCustomization;
+  extraCharge: number;
+}
+
+export interface CartComboCustomization {
+  comboId: string;
+  comboName: string;
+  comboBasePrice: number;
+  selections: ComboSelectionItem[];
+  totalExtraCharge: number;
+}
+
 export interface CartItem extends MenuItem {
   quantity: number;
   selectedSize?: string;
   totalPrice: number;
   pizzaCustomization?: CartPizzaCustomization;
   wingsCustomization?: CartWingsCustomization;
+  comboCustomization?: CartComboCustomization;
 }
 
 export type OrderType = 'pickup' | 'delivery' | 'dine-in';

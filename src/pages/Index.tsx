@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import PromoBar from '@/components/PromoBar';
 import ComboDeals from '@/components/ComboDeals';
+import CombosSection from '@/components/CombosSection';
 import LocationsSection from '@/components/LocationsSection';
 import FoodCategories from '@/components/FoodCategories';
 import FeaturedPizzas from '@/components/FeaturedPizzas';
@@ -15,6 +16,7 @@ const Index = () => {
         <HeroSection />
         <PromoBar />
         <ComboDeals />
+        <CombosSection />
         <FoodCategories />
         <FeaturedPizzas />
         <LocationsSection />
