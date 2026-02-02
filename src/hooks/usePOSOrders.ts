@@ -483,6 +483,35 @@ export const usePOSOrders = (locationId?: string) => {
     return orders.find(order => order.id === orderNumber);
   };
 
+  // Clear orders at End of Day - mark delivered orders as archived, keep advance preparing orders
+  const clearEndOfDayOrders = async (locationId: string) => {
+    try {
+      // Get today's date range in Mountain Time
+      const now = new Date();
+      const mtNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
+      mtNow.setHours(0, 0, 0, 0);
+
+      // Clear all orders from local state except:
+      // 1. Advance orders that are still in "preparing" status (have pickupTime in the future)
+      // 2. Pending orders with future pickupTime
+      setOrders(prev => prev.filter(order => {
+        // Keep advance orders with future pickup times
+        if (order.pickupTime) {
+          const pickupDate = new Date(order.pickupTime);
+          if (pickupDate > now && (order.status === 'preparing' || order.status === 'pending')) {
+            return true;
+          }
+        }
+        // Clear everything else
+        return false;
+      }));
+
+      console.log('End of Day: Orders cleared from POS view');
+    } catch (err: any) {
+      console.error('Error clearing end of day orders:', err);
+    }
+  };
+
   // Set up realtime subscription for new orders - filtered by location
   useEffect(() => {
     fetchOrders();
@@ -576,6 +605,7 @@ export const usePOSOrders = (locationId?: string) => {
     updatePaymentStatus,
     updateOrder,
     getOrderById,
+    clearEndOfDayOrders,
     refetch: fetchOrders,
   };
 };
