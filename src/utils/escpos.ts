@@ -49,7 +49,7 @@ export const buildKitchenTicket = (order: {
     wingsCustomization?: any;
   }>;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
   
   const formatTime = (date: Date | string) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -68,25 +68,44 @@ export const buildKitchenTicket = (order: {
     return `${month} ${day} - ${weekday} - ${year}`;
   };
 
+  const formatPickupDateTime = (date: Date | string) => {
+    const d = new Date(date);
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const day = d.getDate().toString().padStart(2, '0');
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const year = d.getFullYear();
+    const time = d.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return { date: `${month} ${day} ${weekday} ${year}`, time };
+  };
+
   let receipt = INIT;
   
-  // Header - Line 1: KITCHEN ORDER (large and bold)
+  // Header - Line 1: KITCHEN ORDER (double height only, not double width - fits on one line)
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
   
   // Line 2: Order No
   receipt += ALIGN_LEFT;
   receipt += `Order No: ${order.id}${LF}`;
   
-  // Line 3: Date, Time, and Type in one line
-  receipt += `Date: ${formatDateFull(order.createdAt)}, Time: ${formatTime(order.createdAt)}, Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
+  // Line 3: Date and Time
+  receipt += `Date: ${formatDateFull(order.createdAt)}, Time: ${formatTime(order.createdAt)}${LF}`;
+  
+  // Line 4: Type
+  receipt += `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
+  
+  // Line 5: For advance orders, show scheduled pickup date/time
+  if (order.pickupTime) {
+    const pickup = formatPickupDateTime(order.pickupTime);
+    receipt += BOLD_ON + `Pickup: ${pickup.date} Time: ${pickup.time}` + BOLD_OFF + LF;
+  }
   
   if (order.tableNumber) {
     receipt += `Table: ${order.tableNumber}${LF}`;
-  }
-  
-  if (order.pickupTime) {
-    receipt += BOLD_ON + `Pickup: ${formatTime(order.pickupTime)}` + BOLD_OFF + LF;
   }
   
   receipt += LINE + LF;
@@ -291,50 +310,104 @@ export const buildCustomerReceipt = (order: {
   return receipt;
 };
 
-// Helper to format pizza customization for print
+// Helper to format pizza customization for print (only show non-default changes)
 const formatPizzaDetailsForPrint = (customization: any): string[] => {
   const details: string[] = [];
   
-  // Size and Crust
+  // Size and Crust (always show)
   const sizeName = typeof customization.size === 'object' ? customization.size?.name : customization.size;
   const crustName = typeof customization.crust === 'object' ? customization.crust?.name : customization.crust;
   if (sizeName || crustName) {
     details.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
-  // Cheese
+  // Cheese - only show if NOT regular/normal
   if (customization.cheeseType) {
+    const cheeseChanges: string[] = [];
     if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      details.push('No Cheese');
+      cheeseChanges.push('No Cheese');
     } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      details.push('Dairy Free Cheese');
+      cheeseChanges.push('Dairy Free Cheese');
+    } else {
+      // Check for quantity changes on cheese sides
+      const hasQuantityChange = customization.cheeseSides?.some(
+        (cs: any) => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal'
+      );
+      if (hasQuantityChange) {
+        const quantities = customization.cheeseSides
+          ?.filter((cs: any) => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal')
+          .map((cs: any) => `${cs.side}: ${cs.quantity} cheese`)
+          .join(', ');
+        if (quantities) cheeseChanges.push(quantities);
+      }
+    }
+    if (cheeseChanges.length > 0) {
+      details.push(cheeseChanges.join(', '));
     }
   }
   
-  // Sauce
+  // Sauce - only show if changed from default or quantity is not normal
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal') {
-    details.push(`${customization.sauceQuantity} ${customization.sauceName}`);
+  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
+    details.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
   }
   
-  // Free Toppings
+  // Spicy Level - only show if not 'none'
+  const leftSpicy = customization.spicyLevel?.left;
+  const rightSpicy = customization.spicyLevel?.right;
+  
+  const spicyDisplayName = (level: string) => {
+    if (level === 'medium') return 'Medium Hot';
+    if (level === 'hot') return 'Hot';
+    return level;
+  };
+  
+  const hasLeftSpicy = leftSpicy && leftSpicy !== 'none';
+  const hasRightSpicy = rightSpicy && rightSpicy !== 'none';
+  
+  if (hasLeftSpicy || hasRightSpicy) {
+    if (leftSpicy === rightSpicy) {
+      details.push(`Spicy: ${spicyDisplayName(leftSpicy!)}`);
+    } else {
+      const parts: string[] = [];
+      if (hasLeftSpicy) parts.push(`L:${spicyDisplayName(leftSpicy!)}`);
+      if (hasRightSpicy) parts.push(`R:${spicyDisplayName(rightSpicy!)}`);
+      details.push(`Spicy: ${parts.join(' ')}`);
+    }
+  }
+  
+  // Free Toppings - only show if any selected
   if (customization.freeToppings?.length > 0) {
     details.push(`Add: ${customization.freeToppings.join(', ')}`);
   }
   
-  // Removed Toppings
+  // Default Toppings - only show removed (none) or modified (less/extra)
   const removedToppings = customization.defaultToppings?.filter((t: any) => t.quantity === 'none');
   if (removedToppings?.length > 0) {
     details.push(`NO: ${removedToppings.map((t: any) => t.name).join(', ')}`);
   }
   
-  // Extra Toppings
-  if (customization.extraToppings?.length > 0) {
-    details.push(`+${customization.extraToppings.map((t: any) => t.name).join(', ')}`);
+  const modifiedDefaults = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'less' || t.quantity === 'extra'
+  );
+  if (modifiedDefaults?.length > 0) {
+    modifiedDefaults.forEach((t: any) => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      details.push(`${t.quantity} ${t.name}${sideInfo}`);
+    });
   }
   
-  // Note
+  // Extra Toppings - only show if any added
+  if (customization.extraToppings?.length > 0) {
+    const extraList = customization.extraToppings.map((t: any) => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      return `+${t.name}${sideInfo}`;
+    });
+    details.push(extraList.join(', '));
+  }
+  
+  // Note - only show if present
   if (customization.note) {
     details.push(`Note: ${customization.note}`);
   }
