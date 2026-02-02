@@ -802,6 +802,9 @@ export type Database = {
           layout: string | null
           price: number
           price_suffix: string | null
+          schedule_dates: number[] | null
+          schedule_days: number[] | null
+          schedule_type: string | null
           show_order_button: boolean | null
           sort_order: number | null
           subtitle: string | null
@@ -821,6 +824,9 @@ export type Database = {
           layout?: string | null
           price: number
           price_suffix?: string | null
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
           show_order_button?: boolean | null
           sort_order?: number | null
           subtitle?: string | null
@@ -840,6 +846,9 @@ export type Database = {
           layout?: string | null
           price?: number
           price_suffix?: string | null
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
           show_order_button?: boolean | null
           sort_order?: number | null
           subtitle?: string | null

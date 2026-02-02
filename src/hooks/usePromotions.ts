@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export type ScheduleType = 'always' | 'days_of_week' | 'dates_of_month';
+
 export interface Promotion {
   id: string;
   title: string;
@@ -18,9 +20,32 @@ export interface Promotion {
   show_order_button: boolean;
   is_active: boolean;
   sort_order: number;
+  schedule_type: ScheduleType;
+  schedule_days: number[] | null;
+  schedule_dates: number[] | null;
   created_at: string;
   updated_at: string;
 }
+
+// Helper to check if a promotion is active based on schedule
+export const isPromotionActiveToday = (promo: Promotion): boolean => {
+  if (!promo.is_active) return false;
+  
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+  const dateOfMonth = now.getDate(); // 1-31
+  
+  switch (promo.schedule_type) {
+    case 'always':
+      return true;
+    case 'days_of_week':
+      return promo.schedule_days?.includes(dayOfWeek) ?? false;
+    case 'dates_of_month':
+      return promo.schedule_dates?.includes(dateOfMonth) ?? false;
+    default:
+      return true;
+  }
+};
 
 export const usePromotions = () => {
   return useQuery({
@@ -75,6 +100,9 @@ export const useCreatePromotion = () => {
           show_order_button: promotion.show_order_button ?? true,
           is_active: promotion.is_active ?? true,
           sort_order: promotion.sort_order || 0,
+          schedule_type: promotion.schedule_type || 'always',
+          schedule_days: promotion.schedule_days || null,
+          schedule_dates: promotion.schedule_dates || null,
         })
         .select()
         .single();
