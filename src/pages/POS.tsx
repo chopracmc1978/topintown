@@ -137,7 +137,7 @@ const POS = () => {
       
       // For advance orders with pickupTime, skip prep time modal and just accept
       if (order?.pickupTime) {
-        updateOrderStatus(selectedOrderId, 'preparing');
+        updateOrderStatus(selectedOrderId, 'preparing', undefined, currentLocationId);
         setSelectedOrderId(null);
         return;
       }
@@ -148,7 +148,7 @@ const POS = () => {
       return;
     }
     
-    updateOrderStatus(selectedOrderId, status, prepTime);
+    updateOrderStatus(selectedOrderId, status, prepTime, currentLocationId);
     
     // Clear selection and go back to empty state after status change
     setSelectedOrderId(null);
@@ -156,7 +156,7 @@ const POS = () => {
 
   const handlePrepTimeConfirm = (prepTime: number) => {
     if (pendingPrepOrderId) {
-      updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime);
+      updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime, currentLocationId);
       setSelectedOrderId(null);
     }
     setPrepTimeModalOpen(false);

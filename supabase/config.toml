@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.finalize-order]
 verify_jwt = false
+
+[functions.send-receipt]
+verify_jwt = false

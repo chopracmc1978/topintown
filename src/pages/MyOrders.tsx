@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Calendar, MapPin, LogOut, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, User } from 'lucide-react';
+import { Package, Calendar, MapPin, LogOut, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, User, FileText } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { LOCATIONS } from '@/contexts/LocationContext';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { CartItem, CartPizzaCustomization } from '@/types/menu';
+import { OrderReceiptModal } from '@/components/orders/OrderReceiptModal';
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
@@ -29,6 +31,7 @@ const MyOrders = () => {
   const { data: orders, isLoading: ordersLoading } = useCustomerOrders(customer?.id);
   const { clearCart } = useCart();
   const { toast } = useToast();
+  const [receiptOrder, setReceiptOrder] = useState<CustomerOrder | null>(null);
 
   // Redirect if not logged in
   if (!customerLoading && !customer) {
@@ -204,14 +207,24 @@ const MyOrders = () => {
                           <span className="font-semibold">Total</span>
                           <span className="text-lg font-bold text-primary ml-2">${order.total.toFixed(2)}</span>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleRepeatOrder(order)}
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Repeat Order
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setReceiptOrder(order)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Receipt
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleRepeatOrder(order)}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Repeat
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Notes */}
@@ -242,6 +255,13 @@ const MyOrders = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Receipt Modal */}
+      <OrderReceiptModal
+        order={receiptOrder}
+        open={!!receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+      />
     </div>
   );
 };
