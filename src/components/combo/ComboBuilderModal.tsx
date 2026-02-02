@@ -47,6 +47,8 @@ const WING_FLAVORS = [
   { id: 'plain', name: 'Plain' },
 ];
 
+const PIZZA_SUBCATEGORIES = ['Vegetarian', 'Paneer', 'Chicken', 'Meat Pizza', 'Hawaiian'];
+
 export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalProps) => {
   const { data: menuItems } = useMenuItems();
   const { addToCart } = useCart();
@@ -62,14 +64,21 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
   const [pizzaModalItem, setPizzaModalItem] = useState<MenuItem | null>(null);
   const [wingsModalItem, setWingsModalItem] = useState<MenuItem | null>(null);
   const [editingSelectionIndex, setEditingSelectionIndex] = useState<number | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
       setSelections([]);
+      setSelectedSubcategory(null);
     }
   }, [isOpen]);
+
+  // Reset subcategory filter when step changes
+  useEffect(() => {
+    setSelectedSubcategory(null);
+  }, [currentStep]);
 
   const currentComboItem = steps[currentStep];
   
@@ -86,6 +95,14 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
       return false;
     });
 
+    // For pizzas, filter by size if restricted (only show pizzas that have the required size)
+    if (currentComboItem.item_type === 'pizza' && currentComboItem.size_restriction) {
+      const sizeRestriction = currentComboItem.size_restriction.toLowerCase();
+      filtered = filtered.filter(item => {
+        return item.sizes?.some(s => s.name.toLowerCase() === sizeRestriction);
+      });
+    }
+
     // For drinks, filter by size if restricted
     if (currentComboItem.item_type === 'drinks' && currentComboItem.size_restriction) {
       filtered = filtered.filter(item => {
@@ -94,8 +111,15 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
       });
     }
 
+    // Apply subcategory filter for pizzas
+    if (currentComboItem.item_type === 'pizza' && selectedSubcategory) {
+      filtered = filtered.filter(item => 
+        item.subcategory?.toLowerCase() === selectedSubcategory.toLowerCase()
+      );
+    }
+
     return filtered;
-  }, [menuItems, currentComboItem]);
+  }, [menuItems, currentComboItem, selectedSubcategory]);
 
   // Count how many items have been selected for the current step
   const currentStepSelections = selections.filter(s => s.comboItemId === currentComboItem?.id);
@@ -326,6 +350,31 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
                 {currentComboItem.is_chargeable && ' • Extra charges apply'}
                 {!currentComboItem.is_required && ' • Optional'}
               </p>
+            </div>
+          )}
+
+          {/* Subcategory Filter for Pizzas */}
+          {currentComboItem?.item_type === 'pizza' && (
+            <div className="flex flex-wrap justify-center gap-2 pb-3">
+              <Button
+                variant={selectedSubcategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedSubcategory(null)}
+                className="rounded-full"
+              >
+                All
+              </Button>
+              {PIZZA_SUBCATEGORIES.map(subcategory => (
+                <Button
+                  key={subcategory}
+                  variant={selectedSubcategory === subcategory ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedSubcategory(subcategory)}
+                  className="rounded-full"
+                >
+                  {subcategory}
+                </Button>
+              ))}
             </div>
           )}
 
