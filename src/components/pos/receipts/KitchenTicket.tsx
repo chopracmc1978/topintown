@@ -1,4 +1,4 @@
-import { Order, CartPizzaCustomization } from '@/types/menu';
+import { Order, CartPizzaCustomization, CartComboCustomization } from '@/types/menu';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
@@ -111,6 +111,41 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
   return details;
 };
 
+// Helper to format combo selection details for kitchen
+const formatComboDetailsForKitchen = (comboCustomization: CartComboCustomization, formatPizzaDetailsFn: typeof formatPizzaDetails): React.ReactNode[] => {
+  const details: React.ReactNode[] = [];
+  
+  comboCustomization.selections.forEach((selection, idx) => {
+    if (selection.itemType === 'pizza' && selection.pizzaCustomization) {
+      const pizzaDetails = formatPizzaDetailsFn(selection.pizzaCustomization);
+      details.push(
+        <div key={idx} className="mt-1 first:mt-0 border-l-2 border-gray-400 pl-2">
+          <p className="font-bold text-xs uppercase">{selection.itemName}</p>
+          <div className="text-xs space-y-0.5">
+            {pizzaDetails.map((detail, i) => (
+              <p key={i} className={cn(
+                detail.startsWith('NO:') && 'font-bold bg-red-100 px-1 -mx-1',
+                detail.startsWith('+') && 'font-bold bg-green-100 px-1 -mx-1',
+                detail.startsWith('Note:') && 'italic bg-yellow-100 px-1 -mx-1'
+              )}>{detail}</p>
+            ))}
+          </div>
+        </div>
+      );
+    } else if (selection.itemType === 'wings' && selection.flavor) {
+      details.push(
+        <p key={idx} className="text-xs mt-1 first:mt-0">• {selection.itemName} - {selection.flavor}</p>
+      );
+    } else {
+      details.push(
+        <p key={idx} className="text-xs mt-1 first:mt-0">• {selection.itemName}</p>
+      );
+    }
+  });
+  
+  return details;
+};
+
 export const KitchenTicket = ({ order }: KitchenTicketProps) => {
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -200,7 +235,13 @@ export const KitchenTicket = ({ order }: KitchenTicketProps) => {
             )}
             
             {item.wingsCustomization && (
-              <p className="text-xs ml-5 font-medium">Flavor: {item.wingsCustomization.flavor}</p>
+              <p className="text-xs ml-5 font-medium">{item.wingsCustomization.flavor}</p>
+            )}
+            
+            {item.comboCustomization && (
+              <div className="ml-3 mt-1 space-y-1">
+                {formatComboDetailsForKitchen(item.comboCustomization, formatPizzaDetails)}
+              </div>
             )}
           </div>
         ))}

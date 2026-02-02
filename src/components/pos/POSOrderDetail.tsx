@@ -1,5 +1,5 @@
 import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil, CalendarDays, CheckCircle } from 'lucide-react';
-import { Order, OrderStatus, CartPizzaCustomization } from '@/types/menu';
+import { Order, OrderStatus, CartPizzaCustomization, CartComboCustomization, ComboSelectionItem } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -123,6 +123,43 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
   if (customization.note) {
     details.push(`Note: ${customization.note}`);
   }
+  
+  return details;
+};
+
+// Helper to format combo selection details
+const formatComboDetails = (comboCustomization: CartComboCustomization, formatPizzaDetailsFn: typeof formatPizzaDetails): React.ReactNode[] => {
+  const details: React.ReactNode[] = [];
+  
+  comboCustomization.selections.forEach((selection, idx) => {
+    const selectionDetails: string[] = [];
+    
+    if (selection.itemType === 'pizza' && selection.pizzaCustomization) {
+      const pizzaDetails = formatPizzaDetailsFn(selection.pizzaCustomization);
+      details.push(
+        <div key={idx} className="mt-1 first:mt-0">
+          <p className="font-medium text-foreground">• {selection.itemName}</p>
+          <div className="ml-3 text-sm text-muted-foreground space-y-0.5">
+            {pizzaDetails.map((detail, i) => (
+              <p key={i} className={cn(
+                detail.startsWith('NO:') && 'text-destructive font-medium',
+                detail.startsWith('+') && 'text-green-600 font-medium',
+                detail.startsWith('Note:') && 'italic'
+              )}>{detail}</p>
+            ))}
+          </div>
+        </div>
+      );
+    } else if (selection.itemType === 'wings' && selection.flavor) {
+      details.push(
+        <p key={idx} className="mt-1 first:mt-0">• {selection.itemName} - {selection.flavor}</p>
+      );
+    } else {
+      details.push(
+        <p key={idx} className="mt-1 first:mt-0">• {selection.itemName}</p>
+      );
+    }
+  });
   
   return details;
 };
@@ -285,6 +322,11 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
                 )}
                 {item.wingsCustomization && (
                   <p className="text-sm text-muted-foreground ml-6">{item.wingsCustomization.flavor}</p>
+                )}
+                {item.comboCustomization && (
+                  <div className="text-sm text-muted-foreground ml-6 space-y-1">
+                    {formatComboDetails(item.comboCustomization, formatPizzaDetails)}
+                  </div>
                 )}
               </div>
               <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
