@@ -9,6 +9,7 @@ interface CustomerOrderHistory {
   total: number;
   items: CartItem[];
   customer_name: string | null;
+  customer_phone: string | null;
 }
 
 interface CustomerInfo {
@@ -52,7 +53,7 @@ export const useCustomerLookup = () => {
       // Search orders by phone (works even without customer record)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, order_number, created_at, total, customer_name')
+        .select('id, order_number, created_at, total, customer_name, customer_phone')
         .ilike('customer_phone', `%${cleanPhone}%`)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -103,6 +104,7 @@ export const useCustomerLookup = () => {
           total: order.total,
           items: orderItems,
           customer_name: order.customer_name,
+          customer_phone: order.customer_phone,
         };
       });
 
