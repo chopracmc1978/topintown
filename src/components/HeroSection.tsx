@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLocation, LOCATIONS } from '@/contexts/LocationContext';
+import heroBanner from '@/assets/hero-banner.png';
 
 const HeroSection = () => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -22,35 +23,23 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative bg-white overflow-hidden">
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="flex flex-col lg:flex-row items-center gap-8">
-          {/* Left Content */}
-          <div className="lg:w-1/2 text-center lg:text-left">
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl italic text-[#2596be] leading-tight mb-4">
-              Enjoy Our Delicious Food
-            </h1>
-            <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto lg:mx-0">
-              Top in town is all-Canadian pizza quick-service restaurant that is located in Calgary, Alberta.
-            </p>
-            <Button 
-              onClick={() => setShowLocationDialog(true)}
-              size="lg"
-              className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-8 py-6 rounded-full shadow-lg text-base"
-            >
-              Order Now
-            </Button>
-          </div>
-
-          {/* Right - Pizza Image */}
-          <div className="lg:w-1/2">
-            <img 
-              src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80"
-              alt="Delicious pizza with fresh ingredients"
-              className="w-full max-w-lg mx-auto rounded-lg"
-            />
-          </div>
-        </div>
+    <section className="relative overflow-hidden">
+      {/* Hero Banner Image */}
+      <img 
+        src={heroBanner}
+        alt="Enjoy Our Delicious Food - Top In Town Pizza"
+        className="w-full h-auto object-cover"
+      />
+      
+      {/* Order Now Button - positioned over the image */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[8%] sm:bottom-[10%] md:bottom-[12%]">
+        <Button 
+          onClick={() => setShowLocationDialog(true)}
+          size="lg"
+          className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-lg text-sm sm:text-base hover:scale-105 transition-transform"
+        >
+          Order Now
+        </Button>
       </div>
 
       {/* Location Selection Dialog */}
