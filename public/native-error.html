@@ -71,11 +71,19 @@
       <p>
         Expected start page: <code>https://topintown.lovable.app/pos</code>
       </p>
+      <p>
+        If you are seeing a <b>completely blank white screen</b> (and not this page), the app usually isn’t
+        loading <i>any</i> web content yet — that points to an outdated build (no rebuild/sync) or an
+        outdated/broken Android WebView.
+      </p>
       <p>Common fixes:</p>
       <ul>
         <li>Check the device has internet (Wi‑Fi connected, no captive portal).</li>
         <li>Update <b>Android System WebView</b> and <b>Chrome</b> on the POS tablet.</li>
-        <li>Rebuild the app and run <code>npx cap sync</code> after pulling the latest code.</li>
+        <li>
+          Uninstall the app, then pull latest code, run <code>npm run build</code>, then run
+          <code>npx cap sync android</code>, then reinstall.
+        </li>
       </ul>
       <a class="btn" href="javascript:location.reload()">Retry</a>
     </div>
