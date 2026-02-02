@@ -271,63 +271,63 @@ const POS = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header */}
+      {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
-        "border-b border-border py-2 px-4 flex-shrink-0 shadow-sm transition-colors",
+        "border-b border-border py-3 px-5 flex-shrink-0 shadow-sm transition-colors",
         hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : "bg-white"
       )}>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Top In Town Pizza" className="w-10 h-10 object-contain" />
+            <img src={logo} alt="Top In Town Pizza" className="w-12 h-12 object-contain" />
             <div>
-              <h1 className="font-serif text-lg font-bold text-foreground">Top In Town Pizza</h1>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="w-3 h-3" />
+              <h1 className="font-serif text-xl font-bold text-foreground">Top In Town Pizza</h1>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
                 <span>{LOCATION_NAMES[currentLocationId] || currentLocationId}</span>
               </div>
             </div>
             {hasPendingRemoteOrders && (
-              <div className="flex items-center gap-2 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce">
-                <Bell className="w-4 h-4" />
-                <span className="font-semibold text-sm">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
+              <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full animate-bounce">
+                <Bell className="w-5 h-5" />
+                <span className="font-semibold text-base">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
               </div>
             )}
             {!isAudioEnabled && (
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={enableAudio}
-                className="bg-yellow-100 border-yellow-400 text-yellow-800 hover:bg-yellow-200"
+                className="bg-yellow-100 border-yellow-400 text-yellow-800 hover:bg-yellow-200 text-base px-4 py-2"
               >
-                <VolumeX className="w-4 h-4 mr-1" />
-                Click to Enable Sound
+                <VolumeX className="w-5 h-5 mr-2" />
+                Enable Sound
               </Button>
             )}
             {isAudioEnabled && (
-              <div className="flex items-center gap-1 text-green-600 text-xs">
-                <Volume2 className="w-3 h-3" />
+              <div className="flex items-center gap-1.5 text-green-600 text-sm">
+                <Volume2 className="w-4 h-4" />
                 <span>Sound On</span>
               </div>
             )}
           </div>
           
-          {/* Status Tabs in Header */}
+          {/* Status Tabs - Larger for tablet touch */}
           <div className="flex gap-2 flex-1">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-2 px-5 py-3 rounded-lg text-base font-medium transition-colors",
                   activeTab === tab.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
-                <tab.icon className="w-4 h-4" />
+                <tab.icon className="w-5 h-5" />
                 {tab.label}
                 <span className={cn(
-                  "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                  "text-sm px-2 py-1 rounded-full min-w-[24px] text-center",
                   activeTab === tab.id
                     ? "bg-primary-foreground text-primary"
                     : "bg-background"
@@ -343,29 +343,28 @@ const POS = () => {
               setShowNewOrder(true);
               setSelectedOrderId(null);
             }}
+            className="text-base px-5 py-3 h-auto"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-5 h-5 mr-2" />
             New Order
           </Button>
 
           <Button 
             variant="outline"
-            size="sm"
             onClick={() => setShowReports(true)}
-            className="text-primary border-primary/30 hover:bg-primary/5"
+            className="text-primary border-primary/30 hover:bg-primary/5 text-base px-4 py-3 h-auto"
           >
-            <BarChart3 className="w-4 h-4 mr-2" />
+            <BarChart3 className="w-5 h-5 mr-2" />
             Reports
           </Button>
 
           <Button 
             variant="outline"
-            size="sm"
             onClick={() => setShowEndDay(true)}
-            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+            className="text-orange-600 border-orange-300 hover:bg-orange-50 text-base px-4 py-3 h-auto"
           >
-            <CalendarClock className="w-4 h-4 mr-2" />
-            End of Day
+            <CalendarClock className="w-5 h-5 mr-2" />
+            End Day
           </Button>
 
           <Button 
@@ -373,41 +372,42 @@ const POS = () => {
             size="icon"
             onClick={() => setShowSettings(true)}
             title="Settings"
+            className="h-12 w-12"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-6 h-6" />
           </Button>
 
           <Button 
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => {
               localStorage.removeItem('pos_location_id');
               signOut();
             }}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground h-12 w-12"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Order List */}
-        <div className="w-80 border-r border-border flex flex-col bg-secondary/20">
-          <ScrollArea className="flex-1 p-3">
+        {/* Left Panel - Order List - Wider for tablet */}
+        <div className="w-96 border-r border-border flex flex-col bg-secondary/20">
+          <ScrollArea className="flex-1 p-4">
             {loading ? (
               <div className="text-center py-12 text-muted-foreground">
-                <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
-                <p>Loading orders...</p>
+                <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" />
+                <p className="text-lg">Loading orders...</p>
               </div>
             ) : filteredOrders.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No orders</p>
+                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">No orders</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {filteredOrders.map(order => (
                   <POSOrderCard
                     key={order.id}
@@ -454,8 +454,8 @@ const POS = () => {
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Select an order or create a new one</p>
+                <Package className="w-20 h-20 mx-auto mb-6 opacity-50" />
+                <p className="text-xl">Select an order or create a new one</p>
               </div>
             </div>
           )}

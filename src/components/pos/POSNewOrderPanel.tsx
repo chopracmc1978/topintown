@@ -392,15 +392,15 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   return (
     <>
       <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
-        {/* Header with Customer Info */}
-        <div className="bg-secondary/50 px-4 py-3 border-b border-border flex items-center gap-4">
+        {/* Header with Customer Info - Tablet optimized */}
+        <div className="bg-secondary/50 px-5 py-4 border-b border-border flex items-center gap-6">
           {/* Customer Name & Phone */}
-          <div className="flex flex-col gap-2 relative">
+          <div className="flex flex-col gap-3 relative">
             <Input
               placeholder="Customer name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="h-8 text-sm w-48"
+              className="h-12 text-lg w-60"
             />
             <div className="relative">
               <Input
@@ -411,12 +411,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
                 onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
                 className={cn(
-                  "h-8 text-sm w-48 pr-8",
+                  "h-12 text-lg w-60 pr-10",
                   orderHistory.length > 0 && "border-primary"
                 )}
               />
               {orderHistory.length > 0 && (
-                <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                <History className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
               )}
               
               {/* Order History Dropdown */}
@@ -433,14 +433,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           
           {/* Title - centered */}
           <div className="flex-1 text-center">
-            <h2 className="text-xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
+            <h2 className="text-2xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
             {isEditMode && editingOrder && (
-              <p className="text-sm text-muted-foreground">{editingOrder.customerName}</p>
+              <p className="text-base text-muted-foreground">{editingOrder.customerName}</p>
             )}
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onCancel}>
-            <X className="w-5 h-5" />
+          <Button variant="ghost" size="icon" onClick={onCancel} className="h-12 w-12">
+            <X className="w-6 h-6" />
           </Button>
         </div>
 
@@ -448,26 +448,26 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           {/* Menu Selection */}
           <div className="flex-1 flex flex-col border-r border-border">
             {/* Search */}
-            <div className="p-3 border-b border-border">
+            <div className="p-4 border-b border-border">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search menu..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="pl-12 h-12 text-lg"
                 />
               </div>
             </div>
 
-            {/* Category Tabs */}
-            <div className="flex gap-1 p-2 border-b border-border overflow-x-auto">
+            {/* Category Tabs - Larger for tablet */}
+            <div className="flex gap-2 p-3 border-b border-border overflow-x-auto">
               {categories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+                    "px-5 py-3 rounded-lg text-base font-medium whitespace-nowrap transition-colors",
                     activeCategory === cat.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -480,13 +480,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Pizza Subcategory Tabs */}
             {activeCategory === 'pizza' && (
-              <div className="flex gap-1 p-2 border-b border-border overflow-x-auto bg-secondary/20">
+              <div className="flex gap-2 p-3 border-b border-border overflow-x-auto bg-secondary/20">
                 {pizzaSubcategories.map(sub => (
                   <button
                     key={sub.id}
                     onClick={() => setActiveSubcategory(sub.id)}
                     className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                      "px-4 py-2 rounded-full text-base font-medium whitespace-nowrap transition-colors",
                       activeSubcategory === sub.id
                         ? "bg-primary/80 text-primary-foreground"
                         : "bg-card text-foreground border border-border hover:bg-secondary"
@@ -498,25 +498,25 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
             )}
 
-            {/* Menu Items Grid - 3 columns, no scroll */}
-            <div className="flex-1 p-3 overflow-hidden">
+            {/* Menu Items Grid - 3 columns, larger cards for tablet */}
+            <div className="flex-1 p-4 overflow-hidden">
               {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading menu...</div>
+                <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
               ) : filteredItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No items found</div>
+                <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-2 bg-secondary/30 rounded-lg text-left hover:bg-secondary transition-colors border-l-4 border-primary/30"
+                      className="p-4 bg-secondary/30 rounded-lg text-left hover:bg-secondary transition-colors border-l-4 border-primary/30"
                     >
-                      <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold">
+                      <p className="font-medium text-base uppercase line-clamp-2 leading-tight">{item.name}</p>
+                      <p className="text-base text-primary font-bold mt-1">
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                          <span className="text-[10px] text-muted-foreground font-normal ml-1">+</span>
+                          <span className="text-sm text-muted-foreground font-normal ml-1">+</span>
                         )}
                       </p>
                     </button>
@@ -526,26 +526,26 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           </div>
 
-          {/* Order Summary */}
-          <div className="w-80 flex flex-col">
+          {/* Order Summary - Wider for tablet */}
+          <div className="w-96 flex flex-col">
             {/* Cart Items */}
-            <ScrollArea className="flex-1 p-3">
+            <ScrollArea className="flex-1 p-4">
               {cartItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground text-lg">
                   Tap items to add to order
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {cartItems.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="p-2 bg-secondary/30 rounded-lg">
-                      <div className="flex items-start gap-2">
+                    <div key={`${item.id}-${index}`} className="p-3 bg-secondary/30 rounded-lg">
+                      <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{item.name}</p>
+                          <p className="font-medium text-base truncate">{item.name}</p>
                           {item.selectedSize && !item.pizzaCustomization && (
-                            <p className="text-xs text-muted-foreground">{item.selectedSize}</p>
+                            <p className="text-sm text-muted-foreground">{item.selectedSize}</p>
                           )}
                           {item.pizzaCustomization && (
-                            <div className="text-xs text-muted-foreground space-y-0.5 mt-0.5">
+                            <div className="text-sm text-muted-foreground space-y-0.5 mt-1">
                               {formatPizzaCustomization(item.pizzaCustomization).map((line, i) => (
                                 <p 
                                   key={i} 
@@ -561,7 +561,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                             </div>
                           )}
                           {item.wingsCustomization && (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                               {item.wingsCustomization.flavor}
                             </p>
                           )}
@@ -570,43 +570,43 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 shrink-0"
+                            className="h-10 w-10 shrink-0"
                             onClick={() => handleEditItem(item, index)}
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-5 h-5" />
                           </Button>
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-10 w-10"
                             onClick={() => updateQuantity(index, -1)}
                           >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-5 h-5" />
                           </Button>
-                          <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                          <span className="w-8 text-center text-lg font-medium">{item.quantity}</span>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-10 w-10"
                             onClick={() => updateQuantity(index, 1)}
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-5 h-5" />
                           </Button>
                         </div>
-                        <span className="text-sm font-medium">
+                        <span className="text-base font-medium">
                           ${item.totalPrice.toFixed(2)}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-destructive"
+                          className="h-10 w-10 text-destructive"
                           onClick={() => removeItem(index)}
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-5 h-5" />
                         </Button>
                       </div>
                     </div>
@@ -618,33 +618,33 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             <Separator />
 
             {/* Order Notes */}
-            <div className="p-3 border-t border-border">
+            <div className="p-4 border-t border-border">
               <Textarea
                 placeholder="Order notes..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="text-sm resize-none h-16"
+                className="text-base resize-none h-20"
               />
             </div>
 
             {/* Totals & Submit */}
-            <div className="p-3 border-t border-border bg-secondary/30 space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className="p-4 border-t border-border bg-secondary/30 space-y-3">
+              <div className="flex justify-between text-base">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-base">
                 <span className="text-muted-foreground">Tax</span>
                 <span>${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-bold text-xl">
                 <span>Total</span>
                 <span className="text-primary">${total.toFixed(2)}</span>
               </div>
               
               <Button 
                 variant="pizza" 
-                className="w-full mt-2"
+                className="w-full mt-3 text-lg py-4 h-auto"
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >
