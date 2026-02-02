@@ -1,63 +1,158 @@
-import { usePrinters } from './usePrinters';
+import { usePrinters, Printer } from './usePrinters';
 import { Order } from '@/types/menu';
 import { toast } from 'sonner';
+import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
+import { LOCATIONS } from '@/contexts/LocationContext';
+
+// Local print server URL - change this to your print server address
+const PRINT_SERVER_URL = localStorage.getItem('print_server_url') || 'http://localhost:9100';
 
 export const usePrintReceipts = (locationId: string) => {
   const { printers } = usePrinters(locationId);
+  const location = LOCATIONS.find(l => l.id === locationId);
   
   const kitchenPrinters = printers.filter(p => p.is_active && (p.station === 'Kitchen' || p.station === 'Prep' || p.station === 'Expo'));
   const counterPrinters = printers.filter(p => p.is_active && (p.station === 'Counter' || p.station === 'Bar'));
   const hasPrinters = printers.length > 0;
 
-  const printKitchenTicket = async (order: Order) => {
+  const sendToPrinter = async (printer: Printer, data: string): Promise<boolean> => {
+    try {
+      console.log(`Sending print job to ${printer.name} (${printer.ip_address})`);
+      
+      // Try to send to local print server
+      const response = await fetch(`${PRINT_SERVER_URL}/print`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          printer_ip: printer.ip_address,
+          port: 9100,
+          data: data,
+          auto_cut: printer.auto_cut,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Print server error: ${response.statusText}`);
+      }
+
+      console.log(`Print job sent successfully to ${printer.name}`);
+      return true;
+    } catch (error) {
+      console.error(`Failed to print to ${printer.name}:`, error);
+      
+      // Check if it's a network error (print server not running)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Print server not reachable. Make sure the print server is running.');
+      }
+      
+      return false;
+    }
+  };
+
+  const printKitchenTicket = async (order: Order): Promise<boolean> => {
     if (kitchenPrinters.length === 0) {
       console.log('No kitchen printers configured');
       return false;
     }
     
-    // TODO: Implement actual ESC/POS printing to thermal printer
-    console.log('Printing kitchen ticket to:', kitchenPrinters.map(p => p.name));
-    return true;
+    const ticketData = buildKitchenTicket({
+      id: order.id,
+      createdAt: order.createdAt,
+      orderType: order.orderType,
+      tableNumber: order.tableNumber,
+      pickupTime: (order as any).pickupTime,
+      customerName: order.customerName,
+      notes: order.notes,
+      items: order.items,
+    });
+
+    let anySuccess = false;
+    for (const printer of kitchenPrinters) {
+      const success = await sendToPrinter(printer, ticketData);
+      if (success) anySuccess = true;
+    }
+    
+    return anySuccess;
   };
 
-  const printCustomerReceipt = async (order: Order) => {
-    if (counterPrinters.length === 0) {
-      console.log('No counter printers configured');
+  const printCustomerReceipt = async (order: Order): Promise<boolean> => {
+    // If no counter printers, use kitchen printers for customer receipt too
+    const targetPrinters = counterPrinters.length > 0 ? counterPrinters : kitchenPrinters;
+    
+    if (targetPrinters.length === 0) {
+      console.log('No printers configured for customer receipt');
       return false;
     }
     
-    // TODO: Implement actual ESC/POS printing to thermal printer
-    console.log('Printing customer receipt to:', counterPrinters.map(p => p.name));
-    return true;
+    const receiptData = buildCustomerReceipt({
+      id: order.id,
+      createdAt: order.createdAt,
+      orderType: order.orderType,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      items: order.items,
+    }, {
+      name: location?.name,
+      address: location?.address,
+      phone: location?.phone,
+    });
+
+    let anySuccess = false;
+    for (const printer of targetPrinters) {
+      const success = await sendToPrinter(printer, receiptData);
+      if (success) anySuccess = true;
+    }
+    
+    return anySuccess;
   };
 
-  const printBothReceipts = async (order: Order) => {
+  const printBothReceipts = async (order: Order): Promise<boolean> => {
     if (!hasPrinters) {
       toast.error('No printers configured. Go to Settings to add printers.');
       return false;
     }
 
-    const results = await Promise.all([
-      printKitchenTicket(order),
-      printCustomerReceipt(order),
-    ]);
+    // Show loading toast
+    const loadingToast = toast.loading('Sending to printer...');
 
-    const kitchenPrinted = results[0];
-    const customerPrinted = results[1];
+    try {
+      const [kitchenResult, customerResult] = await Promise.all([
+        printKitchenTicket(order),
+        printCustomerReceipt(order),
+      ]);
 
-    if (kitchenPrinted && customerPrinted) {
-      toast.success('Sent to printer: Kitchen Ticket + Customer Receipt');
-    } else if (kitchenPrinted) {
-      toast.success('Sent to printer: Kitchen Ticket');
-      toast.warning('No counter printer configured for customer receipt');
-    } else if (customerPrinted) {
-      toast.success('Sent to printer: Customer Receipt');
-      toast.warning('No kitchen printer configured for kitchen ticket');
-    } else {
-      toast.error('No printers available for this order');
+      toast.dismiss(loadingToast);
+
+      if (kitchenResult && customerResult) {
+        toast.success('Printed: Kitchen Ticket + Customer Receipt');
+        return true;
+      } else if (kitchenResult) {
+        toast.success('Printed: Kitchen Ticket');
+        return true;
+      } else if (customerResult) {
+        toast.success('Printed: Customer Receipt');
+        return true;
+      } else {
+        toast.error('Print failed. Check if print server is running.');
+        return false;
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Print failed. Check print server connection.');
+      console.error('Print error:', error);
+      return false;
     }
+  };
 
-    return kitchenPrinted || customerPrinted;
+  const setPrintServerUrl = (url: string) => {
+    localStorage.setItem('print_server_url', url);
   };
 
   return {
@@ -67,5 +162,7 @@ export const usePrintReceipts = (locationId: string) => {
     printKitchenTicket,
     printCustomerReceipt,
     printBothReceipts,
+    setPrintServerUrl,
+    printServerUrl: PRINT_SERVER_URL,
   };
 };
