@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Tag, Percent, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Percent, DollarSign, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,16 @@ import {
 } from '@/hooks/useCoupons';
 import { format } from 'date-fns';
 
+const DAYS_OF_WEEK = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+];
+
 const CouponsManager = () => {
   const { data: coupons, isLoading } = useCoupons();
   const createCoupon = useCreateCoupon();
@@ -56,6 +66,9 @@ const CouponsManager = () => {
     is_active: true,
     show_on_homepage: false,
     expires_at: '',
+    schedule_type: 'always' as 'always' | 'days_of_week' | 'dates_of_month',
+    schedule_days: [] as number[],
+    schedule_dates: [] as number[],
   });
 
   const resetForm = () => {
@@ -70,6 +83,9 @@ const CouponsManager = () => {
       is_active: true,
       show_on_homepage: false,
       expires_at: '',
+      schedule_type: 'always',
+      schedule_days: [],
+      schedule_dates: [],
     });
     setEditingCoupon(null);
   };
@@ -92,6 +108,9 @@ const CouponsManager = () => {
       is_active: coupon.is_active,
       show_on_homepage: coupon.show_on_homepage,
       expires_at: coupon.expires_at ? format(new Date(coupon.expires_at), "yyyy-MM-dd'T'HH:mm") : '',
+      schedule_type: coupon.schedule_type || 'always',
+      schedule_days: coupon.schedule_days || [],
+      schedule_dates: coupon.schedule_dates || [],
     });
     setIsDialogOpen(true);
   };
@@ -108,6 +127,9 @@ const CouponsManager = () => {
       is_active: formData.is_active,
       show_on_homepage: formData.show_on_homepage,
       expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
+      schedule_type: formData.schedule_type,
+      schedule_days: formData.schedule_type === 'days_of_week' ? formData.schedule_days : null,
+      schedule_dates: formData.schedule_type === 'dates_of_month' ? formData.schedule_dates : null,
     };
 
     if (editingCoupon) {
@@ -150,8 +172,8 @@ const CouponsManager = () => {
               <TableHead>Discount</TableHead>
               <TableHead>Min Order</TableHead>
               <TableHead>Usage</TableHead>
+              <TableHead>Schedule</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Homepage</TableHead>
               <TableHead>Expires</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -181,14 +203,24 @@ const CouponsManager = () => {
                   {coupon.usage_limit && ` / ${coupon.usage_limit}`}
                 </TableCell>
                 <TableCell>
+                  {coupon.schedule_type === 'always' || !coupon.schedule_type ? (
+                    <span className="text-muted-foreground text-sm">Always</span>
+                  ) : coupon.schedule_type === 'days_of_week' ? (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {coupon.schedule_days?.map(d => DAYS_OF_WEEK.find(day => day.value === d)?.label).join(', ')}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Dates: {coupon.schedule_dates?.join(', ')}
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Badge variant={coupon.is_active ? 'default' : 'secondary'}>
                     {coupon.is_active ? 'Active' : 'Inactive'}
                   </Badge>
-                </TableCell>
-                <TableCell>
-                  {coupon.show_on_homepage && (
-                    <Badge variant="outline" className="text-green-600">Shown</Badge>
-                  )}
                 </TableCell>
                 <TableCell>
                   {coupon.expires_at 
@@ -334,6 +366,95 @@ const CouponsManager = () => {
                   onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
                 />
               </div>
+            </div>
+
+            {/* Schedule Section */}
+            <div className="grid gap-2 border-t pt-4">
+              <Label className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Schedule
+              </Label>
+              <Select
+                value={formData.schedule_type}
+                onValueChange={(v) => setFormData({ 
+                  ...formData, 
+                  schedule_type: v as 'always' | 'days_of_week' | 'dates_of_month',
+                  schedule_days: [],
+                  schedule_dates: [],
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="always">Always Available</SelectItem>
+                  <SelectItem value="days_of_week">Specific Days of Week</SelectItem>
+                  <SelectItem value="dates_of_month">Specific Dates of Month</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {formData.schedule_type === 'days_of_week' && (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS_OF_WEEK.map((day) => (
+                      <Button
+                        key={day.value}
+                        type="button"
+                        size="sm"
+                        variant={formData.schedule_days.includes(day.value) ? 'default' : 'outline'}
+                        onClick={() => {
+                          const newDays = formData.schedule_days.includes(day.value)
+                            ? formData.schedule_days.filter(d => d !== day.value)
+                            : [...formData.schedule_days, day.value].sort((a, b) => a - b);
+                          setFormData({ ...formData, schedule_days: newDays });
+                        }}
+                      >
+                        {day.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setFormData({ ...formData, schedule_days: [1, 2, 3, 4, 5] })}
+                    >
+                      Mon-Fri
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setFormData({ ...formData, schedule_days: [0, 6] })}
+                    >
+                      Weekends
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {formData.schedule_type === 'dates_of_month' && (
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                    <Button
+                      key={date}
+                      type="button"
+                      size="sm"
+                      variant={formData.schedule_dates.includes(date) ? 'default' : 'outline'}
+                      className="w-8 h-8 p-0"
+                      onClick={() => {
+                        const newDates = formData.schedule_dates.includes(date)
+                          ? formData.schedule_dates.filter(d => d !== date)
+                          : [...formData.schedule_dates, date].sort((a, b) => a - b);
+                        setFormData({ ...formData, schedule_dates: newDates });
+                      }}
+                    >
+                      {date}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between">
