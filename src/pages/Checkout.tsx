@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MapPin, Phone, User, FileText, Store, Edit2, ChevronDown, ChevronUp, LogIn, Loader2, CreditCard } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -19,6 +19,8 @@ import { AdvanceOrderPicker } from '@/components/checkout/AdvanceOrderPicker';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useIsLocationOpen } from '@/hooks/useLocationHours';
 import { supabase } from '@/integrations/supabase/client';
+
+const CHECKOUT_STATE_KEY = 'checkout_state';
 
 // Order item card with expandable details
 const OrderItemCard = ({ 
@@ -227,14 +229,60 @@ const Checkout = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const placeOrderLock = useRef(false);
   
-  // Advance ordering state
-  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
-  const [scheduledTime, setScheduledTime] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState({
-    address: '',
-    notes: '',
+  // Advance ordering state - initialize from localStorage if available
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(() => {
+    try {
+      const saved = localStorage.getItem(CHECKOUT_STATE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.scheduledDate ? new Date(parsed.scheduledDate) : null;
+      }
+    } catch {}
+    return null;
   });
+  const [scheduledTime, setScheduledTime] = useState<string | null>(() => {
+    try {
+      const saved = localStorage.getItem(CHECKOUT_STATE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.scheduledTime || null;
+      }
+    } catch {}
+    return null;
+  });
+  
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHECKOUT_STATE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          address: parsed.address || '',
+          notes: parsed.notes || '',
+        };
+      }
+    } catch {}
+    return {
+      address: '',
+      notes: '',
+    };
+  });
+
+  // Persist checkout state to localStorage
+  useEffect(() => {
+    const state = {
+      scheduledDate: scheduledDate?.toISOString() || null,
+      scheduledTime,
+      address: formData.address,
+      notes: formData.notes,
+    };
+    localStorage.setItem(CHECKOUT_STATE_KEY, JSON.stringify(state));
+  }, [scheduledDate, scheduledTime, formData]);
+
+  // Clear checkout state after successful order
+  const clearCheckoutState = () => {
+    localStorage.removeItem(CHECKOUT_STATE_KEY);
+  };
 
   // Find the original menu item for editing pizza
   const originalPizzaMenuItem = editingPizzaItem?.pizzaCustomization 
@@ -328,8 +376,9 @@ const Checkout = () => {
         throw new Error('No checkout URL returned');
       }
 
-      // Clear cart before redirecting (will be restored if user cancels)
+      // Clear cart and checkout state before redirecting
       clearCart();
+      clearCheckoutState();
       
       // Redirect to Stripe Checkout
       window.location.href = data.url;
