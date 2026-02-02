@@ -155,7 +155,8 @@ export const buildCustomerReceipt = (order: {
   address?: string;
   phone?: string;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const { INIT, BOLD_ON, BOLD_OFF, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const RECEIPT_WIDTH = 32; // Standard 80mm receipt width in characters
   
   const formatTime = (date: Date | string) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -165,48 +166,86 @@ export const buildCustomerReceipt = (order: {
     });
   };
 
+  const formatDateShort = (date: Date | string) => {
+    const d = new Date(date);
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const day = d.getDate();
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const year = d.getFullYear();
+    return `${month} ${day} ${weekday} ${year}`;
+  };
+
+  // Helper to format a line with left and right aligned text
+  const formatLine = (left: string, right: string): string => {
+    const padding = RECEIPT_WIDTH - left.length - right.length;
+    if (padding < 1) return left + ' ' + right;
+    return left + ' '.repeat(padding) + right;
+  };
+
+  // Extract just city from address (remove AB and postal code)
+  const getShortAddress = (address?: string): string => {
+    if (!address) return '';
+    // Remove postal code pattern and province
+    const parts = address.split(',').map(p => p.trim());
+    // Return just street and city (first two parts typically)
+    if (parts.length >= 2) {
+      return parts.slice(0, 2).join(', ');
+    }
+    return parts[0] || '';
+  };
+
   let receipt = INIT;
   
-  // Header
+  // Line 1: TOP IN TOWN PIZZA (centered, normal size - smaller font)
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_SIZE_ON + 'TOP IN TOWN PIZZA' + NORMAL_SIZE + LF;
+  receipt += BOLD_ON + 'TOP IN TOWN PIZZA' + BOLD_OFF + LF;
   
-  if (location?.address) {
-    receipt += location.address + LF;
+  // Line 2: Short address (no AB, no postal code)
+  const shortAddress = getShortAddress(location?.address);
+  if (shortAddress) {
+    receipt += shortAddress + LF;
   }
+  
+  // Line 3: Phone
   if (location?.phone) {
     receipt += location.phone + LF;
   }
   
   receipt += LINE + LF;
   receipt += ALIGN_LEFT;
+  
+  // Line 4: Order number
   receipt += `Order: ${order.id}${LF}`;
-  receipt += `Date: ${formatTime(order.createdAt)}${LF}`;
+  
+  // Line 5: Date and Time in one line
+  receipt += `Date: ${formatDateShort(order.createdAt)} Time: ${formatTime(order.createdAt)}${LF}`;
+  
+  // Line 6: Type
   receipt += `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
   
+  // Line 7: Customer
   if (order.customerName) {
     receipt += `Customer: ${order.customerName}${LF}`;
   }
   
   receipt += LINE + LF;
   
-  // Items
+  // Items with right-aligned prices
   for (const item of order.items) {
-    const itemLine = `${item.quantity}x ${item.name}`;
-    const priceLine = `$${item.totalPrice.toFixed(2)}`;
-    receipt += itemLine + LF;
-    receipt += ALIGN_RIGHT + priceLine + ALIGN_LEFT + LF;
+    const itemName = `${item.quantity}x ${item.name}`;
+    const price = `$${item.totalPrice.toFixed(2)}`;
+    receipt += formatLine(itemName, price) + LF;
   }
   
   receipt += LINE + LF;
   
-  // Totals
-  const subtotal = order.subtotal || order.total * 0.92;
-  const tax = order.tax || order.total * 0.08;
+  // Totals with right-aligned amounts
+  const subtotal = order.subtotal || order.total * 0.95;
+  const tax = order.tax || order.total * 0.05;
   
-  receipt += `Subtotal: $${subtotal.toFixed(2)}${LF}`;
-  receipt += `Tax: $${tax.toFixed(2)}${LF}`;
-  receipt += BOLD_ON + `TOTAL: $${order.total.toFixed(2)}` + BOLD_OFF + LF;
+  receipt += formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + LF;
+  receipt += formatLine('GST (5%):', `$${tax.toFixed(2)}`) + LF;
+  receipt += BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
   
   receipt += LINE + LF;
   
