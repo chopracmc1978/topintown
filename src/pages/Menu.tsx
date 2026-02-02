@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MenuCardDB from '@/components/MenuCardDB';
-import MenuLocationBar from '@/components/MenuLocationBar';
 import { useMenuItems, type MenuCategory } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 
@@ -86,7 +85,6 @@ const Menu = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <MenuLocationBar />
       <main className="py-12">
         <div className="container mx-auto px-4">
           {/* Header */}

@@ -46,10 +46,38 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map(link => <Link key={link.path} to={link.path} className={cn("text-sm font-medium transition-colors hover:text-primary", isActive(link.path) ? "text-primary" : "text-muted-foreground")}>
                 {link.name}
               </Link>)}
+          </div>
+
+          {/* Desktop Right Section */}
+          <div className="hidden md:flex items-center gap-3">
+            <LocationSelector />
+            
+            <Link to={accountHref}>
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
+            
+            <Link to="/cart" className="relative">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                <ShoppingCart className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                    {itemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+            
+            <Link to="/menu">
+              <Button className="bg-gradient-to-r from-primary to-red-700 hover:from-primary/90 hover:to-red-700/90 text-white font-semibold px-6 rounded-full">
+                Order Now
+              </Button>
+            </Link>
           </div>
 
 
