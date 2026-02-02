@@ -101,46 +101,53 @@ const Admin = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-13 w-full max-w-7xl">
-              {displayCategories.map((category) => (
-                <TabsTrigger key={category} value={category} className="gap-2">
-                  {categoryIcons[category]}
-                  <span className="hidden sm:inline">{categoryLabels[category]}</span>
+            <div className="space-y-2">
+              {/* Row 1: Menu Categories */}
+              <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+                {displayCategories.map((category) => (
+                  <TabsTrigger key={category} value={category} className="gap-2">
+                    {categoryIcons[category]}
+                    <span className="hidden sm:inline">{categoryLabels[category]}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {/* Row 2: Settings & Management */}
+              <TabsList className="grid grid-cols-8 w-full max-w-5xl">
+                <TabsTrigger value="toppings" className="gap-2">
+                  <Layers className="w-4 h-4" />
+                  <span className="hidden sm:inline">Toppings</span>
                 </TabsTrigger>
-              ))}
-              <TabsTrigger value="toppings" className="gap-2">
-                <Layers className="w-4 h-4" />
-                <span className="hidden sm:inline">Toppings</span>
-              </TabsTrigger>
-              <TabsTrigger value="sauces" className="gap-2">
-                <Soup className="w-4 h-4" />
-                <span className="hidden sm:inline">Sauces</span>
-              </TabsTrigger>
-              <TabsTrigger value="combos" className="gap-2">
-                <Package className="w-4 h-4" />
-                <span className="hidden sm:inline">Combos</span>
-              </TabsTrigger>
-              <TabsTrigger value="promotions" className="gap-2">
-                <Megaphone className="w-4 h-4" />
-                <span className="hidden sm:inline">Promos</span>
-              </TabsTrigger>
-              <TabsTrigger value="posters" className="gap-2">
-                <ImageIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Posters</span>
-              </TabsTrigger>
-              <TabsTrigger value="coupons" className="gap-2">
-                <Tag className="w-4 h-4" />
-                <span className="hidden sm:inline">Coupons</span>
-              </TabsTrigger>
-              <TabsTrigger value="customers" className="gap-2">
-                <UserCheck className="w-4 h-4" />
-                <span className="hidden sm:inline">Customers</span>
-              </TabsTrigger>
-              <TabsTrigger value="users" className="gap-2">
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Users</span>
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger value="sauces" className="gap-2">
+                  <Soup className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sauces</span>
+                </TabsTrigger>
+                <TabsTrigger value="combos" className="gap-2">
+                  <Package className="w-4 h-4" />
+                  <span className="hidden sm:inline">Combos</span>
+                </TabsTrigger>
+                <TabsTrigger value="promotions" className="gap-2">
+                  <Megaphone className="w-4 h-4" />
+                  <span className="hidden sm:inline">Promos</span>
+                </TabsTrigger>
+                <TabsTrigger value="posters" className="gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">Posters</span>
+                </TabsTrigger>
+                <TabsTrigger value="coupons" className="gap-2">
+                  <Tag className="w-4 h-4" />
+                  <span className="hidden sm:inline">Coupons</span>
+                </TabsTrigger>
+                <TabsTrigger value="customers" className="gap-2">
+                  <UserCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Customers</span>
+                </TabsTrigger>
+                <TabsTrigger value="users" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Users</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             {displayCategories.map((category) => (
               <TabsContent key={category} value={category}>
