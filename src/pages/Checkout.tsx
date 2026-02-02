@@ -592,10 +592,6 @@ const Checkout = () => {
                   <span>GST (5%)</span>
                   <span>${tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{orderType === 'delivery' ? 'Delivery Fee' : 'Pickup'}</span>
-                  <span>{deliveryFee > 0 ? `$${deliveryFee.toFixed(2)}` : 'Free'}</span>
-                </div>
                 <div className="flex justify-between text-lg font-bold text-foreground pt-2 border-t border-border">
                   <span>Total</span>
                   <span className="text-primary">${grandTotal.toFixed(2)}</span>
