@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, OrderStatus, PaymentStatus, PaymentMethod, CartItem, OrderType, OrderSource, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
 import { toast } from 'sonner';
+import { LOCATIONS } from '@/contexts/LocationContext';
 
 interface DBOrder {
   id: string;
@@ -197,6 +198,74 @@ export const usePOSOrders = () => {
     }
   };
 
+  // Send email receipt to customer
+  const sendEmailReceipt = async (order: Order, locationId: string) => {
+    try {
+      // Get customer email from database
+      if (!order.customerId) {
+        console.log('No customer ID, skipping email receipt');
+        return;
+      }
+
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('email, email_verified')
+        .eq('id', order.customerId)
+        .single();
+
+      if (customerError || !customer?.email) {
+        console.log('Customer email not found, skipping email receipt');
+        return;
+      }
+
+      if (!customer.email_verified) {
+        console.log('Customer email not verified, skipping email receipt');
+        return;
+      }
+
+      const location = LOCATIONS.find(l => l.id === locationId);
+      
+      const emailData = {
+        orderId: order.id,
+        email: customer.email,
+        customerName: order.customerName || 'Valued Customer',
+        orderNumber: order.id,
+        orderDate: order.createdAt.toISOString(),
+        orderType: order.orderType,
+        pickupTime: order.pickupTime?.toISOString(),
+        items: order.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.totalPrice,
+          customizations: item.pizzaCustomization || item.wingsCustomization,
+        })),
+        subtotal: order.subtotal,
+        tax: order.tax,
+        total: order.total,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+        locationName: location?.name || 'Top In Town Pizza',
+        locationAddress: location?.address || '',
+        locationPhone: location?.phone || '',
+      };
+
+      console.log('Sending email receipt to:', customer.email);
+      
+      const { error } = await supabase.functions.invoke('send-receipt', {
+        body: emailData
+      });
+
+      if (error) throw error;
+      
+      console.log('Email receipt sent successfully');
+    } catch (err: any) {
+      console.error('Error sending email receipt:', err);
+      // Don't show toast for email failures, just log
+    }
+  };
+
   // Add new order (for POS walk-in orders)
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>, locationId: string = 'calgary'): Promise<Order | null> => {
     try {
@@ -265,8 +334,8 @@ export const usePOSOrders = () => {
     }
   };
 
-  // Update order status with optional SMS
-  const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number) => {
+  // Update order status with optional SMS and email receipt
+  const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number, locationId?: string) => {
     try {
       const { error } = await supabase
         .from('orders')
@@ -293,6 +362,10 @@ export const usePOSOrders = () => {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
         } else if (status === 'delivered') {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete');
+          // Send email receipt when order is completed
+          if (order && locationId) {
+            await sendEmailReceipt(order, locationId);
+          }
         }
       }
 

@@ -15,12 +15,17 @@ export interface CustomerOrder {
   orderNumber: string;
   locationId: string;
   status: string;
+  orderType: string;
   subtotal: number;
   tax: number;
   total: number;
   notes: string | null;
   createdAt: string;
   pickupTime: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
+  paymentStatus: string;
+  paymentMethod: string | null;
   items: OrderItem[];
 }
 
@@ -53,12 +58,17 @@ export const useCustomerOrders = (customerId: string | undefined) => {
             orderNumber: order.order_number,
             locationId: order.location_id,
             status: order.status,
+            orderType: order.order_type,
             subtotal: Number(order.subtotal),
             tax: Number(order.tax),
             total: Number(order.total),
             notes: order.notes,
             createdAt: order.created_at,
             pickupTime: order.pickup_time,
+            customerName: order.customer_name,
+            customerPhone: order.customer_phone,
+            paymentStatus: order.payment_status,
+            paymentMethod: order.payment_method,
             items: (items || []).map((item) => ({
               id: item.id,
               name: item.name,
