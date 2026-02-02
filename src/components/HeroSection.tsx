@@ -7,8 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { useLocation, LOCATIONS } from '@/contexts/LocationContext';
-import heroBanner from '@/assets/hero-slide-2.png';
 
 const HeroSection = () => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -22,20 +22,36 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden">
-      <img 
-        src={heroBanner}
-        alt="Enjoy Our Delicious Food - Top In Town Pizza"
-        className="w-full h-auto object-cover"
-      />
-      
-      {/* Actual Order Now button positioned exactly over the image button */}
-      <button
-        onClick={() => setShowLocationDialog(true)}
-        className="absolute left-[50%] -translate-x-1/2 bottom-[22%] sm:bottom-[24%] md:bottom-[26%] lg:bottom-[24%] bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-5 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-full shadow-lg hover:scale-105 transition-all cursor-pointer text-xs sm:text-sm md:text-base"
-      >
-        Order Now
-      </button>
+    <section className="relative bg-white overflow-hidden">
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="flex flex-col lg:flex-row items-center gap-8">
+          {/* Left Content */}
+          <div className="lg:w-1/2 text-center lg:text-left">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl italic text-[#2596be] leading-tight mb-4">
+              Enjoy Our Delicious Food
+            </h1>
+            <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto lg:mx-0">
+              Top in town is all-Canadian pizza quick-service restaurant that is located in Calgary, Alberta.
+            </p>
+            <Button 
+              onClick={() => setShowLocationDialog(true)}
+              size="lg"
+              className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-8 py-6 rounded-full shadow-lg text-base"
+            >
+              Order Now
+            </Button>
+          </div>
+
+          {/* Right - Pizza Image */}
+          <div className="lg:w-1/2">
+            <img 
+              src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80"
+              alt="Delicious pizza with fresh ingredients"
+              className="w-full max-w-lg mx-auto rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Location Selection Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
