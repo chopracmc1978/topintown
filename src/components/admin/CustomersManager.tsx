@@ -62,16 +62,17 @@ const CustomersManager = () => {
     },
   });
 
-  // Fetch orders for selected customer
+  // Fetch orders for selected customer - search by phone to find all orders
   const { data: customerOrders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['customer-orders', selectedCustomer?.id],
+    queryKey: ['customer-orders', selectedCustomer?.id, selectedCustomer?.phone],
     queryFn: async () => {
       if (!selectedCustomer) return [];
       
+      // Query orders by customer phone (more reliable than customer_id for POS orders)
       const { data, error } = await supabase
         .from('orders')
         .select('id, order_number, status, total, order_type, created_at')
-        .eq('customer_id', selectedCustomer.id)
+        .or(`customer_id.eq.${selectedCustomer.id},customer_phone.ilike.%${selectedCustomer.phone.replace(/\D/g, '')}%`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -225,8 +226,9 @@ const CustomersManager = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />
-              Orders for {selectedCustomer?.full_name || selectedCustomer?.email}
+              Orders for {selectedCustomer?.full_name || selectedCustomer?.phone || 'Customer'}
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">{selectedCustomer?.phone}</p>
           </DialogHeader>
           
           {ordersLoading ? (

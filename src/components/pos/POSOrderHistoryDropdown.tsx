@@ -12,6 +12,7 @@ interface OrderHistory {
   total: number;
   items: CartItem[];
   customer_name: string | null;
+  customer_phone?: string | null;
 }
 
 interface POSOrderHistoryDropdownProps {
@@ -66,13 +67,24 @@ export const POSOrderHistoryDropdown = ({
         <div className="divide-y divide-border">
           {orders.map((order) => (
             <div key={order.id} className="p-3 hover:bg-secondary/30 transition-colors">
-              {/* Order Header */}
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    {format(new Date(order.created_at), 'MMM d, h:mm a')}
-                  </span>
+              {/* Customer Info - Phone first, then name, then order # */}
+              <div className="flex items-start justify-between mb-2">
+                <div className="space-y-0.5">
+                  {/* Line 1: Phone */}
+                  <p className="font-semibold text-sm text-foreground">
+                    {order.customer_phone || 'No phone'}
+                  </p>
+                  {/* Line 2: Name (if available) */}
+                  {order.customer_name && order.customer_name !== 'Walk-in Customer' && (
+                    <p className="text-xs text-muted-foreground">{order.customer_name}</p>
+                  )}
+                  {/* Line 3: Order number + date */}
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(order.created_at), 'MMM d, h:mm a')}
+                    </span>
+                  </div>
                 </div>
                 <span className="font-bold text-sm">${order.total.toFixed(2)}</span>
               </div>
