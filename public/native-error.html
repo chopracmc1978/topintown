@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS Loading Error</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: #0b6aa2;
+        color: #0b1b2b;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        padding: 24px;
+      }
+      .card {
+        width: min(720px, 100%);
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+      p {
+        margin: 0 0 12px;
+        line-height: 1.45;
+        font-size: 14px;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+        background: #f2f4f7;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 14px;
+        background: #0b6aa2;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Top In Town POS couldn’t load</h1>
+      <p>
+        The app couldn’t open the POS screen from the internet, so it showed this fallback page instead of a
+        blank white screen.
+      </p>
+      <p>
+        Expected start page: <code>https://topintown.lovable.app/pos</code>
+      </p>
+      <p>Common fixes:</p>
+      <ul>
+        <li>Check the device has internet (Wi‑Fi connected, no captive portal).</li>
+        <li>Update <b>Android System WebView</b> and <b>Chrome</b> on the POS tablet.</li>
+        <li>Rebuild the app and run <code>npx cap sync</code> after pulling the latest code.</li>
+      </ul>
+      <a class="btn" href="javascript:location.reload()">Retry</a>
+    </div>
+  </body>
+</html>
