@@ -1,11 +1,7 @@
-import { useState } from 'react';
-import { X, Printer, FileText, UtensilsCrossed } from 'lucide-react';
+import { X, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Order } from '@/types/menu';
 import { KitchenTicket } from './KitchenTicket';
-import { CustomerReceipt } from './CustomerReceipt';
-import { LOCATIONS } from '@/contexts/LocationContext';
 import { usePrinters } from '@/hooks/usePrinters';
 
 interface ReceiptPreviewModalProps {
@@ -15,25 +11,20 @@ interface ReceiptPreviewModalProps {
 }
 
 export const ReceiptPreviewModal = ({ order, locationId, onClose }: ReceiptPreviewModalProps) => {
-  const [activeTab, setActiveTab] = useState<'kitchen' | 'customer'>('kitchen');
   const { printers } = usePrinters(locationId);
   
-  const location = LOCATIONS.find(l => l.id === locationId);
   const hasPrinters = printers.length > 0;
   const kitchenPrinters = printers.filter(p => p.is_active && (p.station === 'Kitchen' || p.station === 'Prep' || p.station === 'Expo'));
-  const counterPrinters = printers.filter(p => p.is_active && (p.station === 'Counter' || p.station === 'Bar'));
 
   const handlePrint = () => {
     if (!hasPrinters) {
-      // No printers configured - just show a message
       alert('No printers configured. Go to Settings to add printers.');
       return;
     }
     
     // TODO: Implement actual printing via IP printer
-    // This would send ESC/POS commands to the thermal printer
-    console.log('Printing to:', activeTab === 'kitchen' ? kitchenPrinters : counterPrinters);
-    alert(`Would print ${activeTab} receipt to configured printers`);
+    console.log('Printing to:', kitchenPrinters);
+    alert(`Would print kitchen ticket to configured printers`);
   };
 
   return (
@@ -47,47 +38,12 @@ export const ReceiptPreviewModal = ({ order, locationId, onClose }: ReceiptPrevi
           </Button>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'kitchen' | 'customer')} className="flex-1 flex flex-col overflow-hidden">
-          <div className="border-b border-border px-4">
-            <TabsList className="h-12 bg-transparent">
-              <TabsTrigger 
-                value="kitchen" 
-                className="data-[state=active]:bg-primary/10 gap-2"
-              >
-                <UtensilsCrossed className="w-4 h-4" />
-                Kitchen Ticket
-              </TabsTrigger>
-              <TabsTrigger 
-                value="customer" 
-                className="data-[state=active]:bg-primary/10 gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                Customer Receipt
-              </TabsTrigger>
-            </TabsList>
+        {/* Preview Content */}
+        <div className="flex-1 overflow-auto p-4 bg-gray-100">
+          <div className="shadow-lg">
+            <KitchenTicket order={order} />
           </div>
-
-          {/* Preview Content */}
-          <div className="flex-1 overflow-auto p-4 bg-gray-100">
-            <TabsContent value="kitchen" className="mt-0">
-              <div className="shadow-lg">
-                <KitchenTicket order={order} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="customer" className="mt-0">
-              <div className="shadow-lg">
-                <CustomerReceipt 
-                  order={order}
-                  locationName={location?.name}
-                  locationAddress={location?.address}
-                  locationPhone={location?.phone}
-                />
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+        </div>
 
         {/* Actions */}
         <div className="p-4 border-t border-border flex gap-2">
