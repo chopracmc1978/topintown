@@ -32,7 +32,7 @@ const HeroSection = () => {
       {/* Actual Order Now button positioned exactly over the image button */}
       <button
         onClick={() => setShowLocationDialog(true)}
-        className="absolute left-[50%] -translate-x-1/2 bottom-[28%] md:bottom-[32%] lg:bottom-[30%] bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-6 md:px-8 py-2.5 md:py-3 rounded-full shadow-lg hover:scale-105 transition-all cursor-pointer text-sm md:text-base"
+        className="absolute left-[50%] -translate-x-1/2 bottom-[22%] sm:bottom-[24%] md:bottom-[26%] lg:bottom-[24%] bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-5 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-full shadow-lg hover:scale-105 transition-all cursor-pointer text-xs sm:text-sm md:text-base"
       >
         Order Now
       </button>
