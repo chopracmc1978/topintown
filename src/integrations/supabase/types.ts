@@ -789,6 +789,66 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          background_color: string | null
+          badge_text: string | null
+          coupon_code: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          layout: string | null
+          price: number
+          price_suffix: string | null
+          show_order_button: boolean | null
+          sort_order: number | null
+          subtitle: string | null
+          text_color: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          badge_text?: string | null
+          coupon_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          layout?: string | null
+          price: number
+          price_suffix?: string | null
+          show_order_button?: boolean | null
+          sort_order?: number | null
+          subtitle?: string | null
+          text_color?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          badge_text?: string | null
+          coupon_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          layout?: string | null
+          price?: number
+          price_suffix?: string | null
+          show_order_button?: boolean | null
+          sort_order?: number | null
+          subtitle?: string | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sauce_groups: {
         Row: {
           created_at: string
