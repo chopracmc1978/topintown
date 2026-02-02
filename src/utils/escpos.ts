@@ -114,10 +114,12 @@ export const buildKitchenTicket = (order: {
   for (const item of order.items) {
     receipt += BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + LF;
     
+    // Show size for non-pizza items
     if (item.selectedSize && !item.pizzaCustomization) {
       receipt += `   ${item.selectedSize}${LF}`;
     }
     
+    // Pizza customization details
     if (item.pizzaCustomization) {
       const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
       for (const detail of details) {
@@ -125,8 +127,19 @@ export const buildKitchenTicket = (order: {
       }
     }
     
-    if (item.wingsCustomization) {
-      receipt += `   Flavor: ${item.wingsCustomization.flavor}${LF}`;
+    // Wings/chicken customization - show flavor if selected
+    if (item.wingsCustomization?.flavor) {
+      receipt += `   ${item.wingsCustomization.flavor}${LF}`;
+    }
+    
+    // Generic sauce selection (for items with sauce groups like dipping sauces)
+    if ((item as any).selectedSauces?.length > 0) {
+      receipt += `   ${(item as any).selectedSauces.join(', ')}${LF}`;
+    }
+    
+    // Any custom notes on the item
+    if ((item as any).itemNote) {
+      receipt += `   Note: ${(item as any).itemNote}${LF}`;
     }
     
     receipt += LF;
