@@ -356,20 +356,12 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
           {/* Subcategory Filter for Pizzas */}
           {currentComboItem?.item_type === 'pizza' && (
             <div className="flex flex-wrap justify-center gap-2 pb-3">
-              <Button
-                variant={selectedSubcategory === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedSubcategory(null)}
-                className="rounded-full"
-              >
-                All
-              </Button>
               {PIZZA_SUBCATEGORIES.map(subcategory => (
                 <Button
                   key={subcategory}
                   variant={selectedSubcategory === subcategory ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedSubcategory(subcategory)}
+                  onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory ? null : subcategory)}
                   className="rounded-full"
                 >
                   {subcategory}
