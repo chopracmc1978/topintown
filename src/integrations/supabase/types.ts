@@ -560,6 +560,51 @@ export type Database = {
           },
         ]
       }
+      pos_sessions: {
+        Row: {
+          cash_sales_total: number | null
+          created_at: string
+          end_cash: number | null
+          end_time: string | null
+          entered_cash_amount: number | null
+          id: string
+          is_active: boolean
+          location_id: string
+          start_cash: number
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cash_sales_total?: number | null
+          created_at?: string
+          end_cash?: number | null
+          end_time?: string | null
+          entered_cash_amount?: number | null
+          id?: string
+          is_active?: boolean
+          location_id: string
+          start_cash?: number
+          start_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cash_sales_total?: number | null
+          created_at?: string
+          end_cash?: number | null
+          end_time?: string | null
+          entered_cash_amount?: number | null
+          id?: string
+          is_active?: boolean
+          location_id?: string
+          start_cash?: number
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       printers: {
         Row: {
           auto_cut: boolean
