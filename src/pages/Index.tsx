@@ -1,9 +1,9 @@
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
+import StartOrderBar from '@/components/StartOrderBar';
+import ComboDeals from '@/components/ComboDeals';
 import LocationsSection from '@/components/LocationsSection';
 import FoodCategories from '@/components/FoodCategories';
-import AboutSection from '@/components/AboutSection';
-import DiscoverSection from '@/components/DiscoverSection';
 import FeaturedPizzas from '@/components/FeaturedPizzas';
 import Footer from '@/components/Footer';
 
@@ -13,11 +13,11 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
-        <LocationsSection />
+        <StartOrderBar />
+        <ComboDeals />
         <FoodCategories />
-        <AboutSection />
-        <DiscoverSection />
         <FeaturedPizzas />
+        <LocationsSection />
       </main>
       <Footer />
     </div>
