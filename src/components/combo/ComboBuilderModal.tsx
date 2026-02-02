@@ -47,7 +47,13 @@ const WING_FLAVORS = [
   { id: 'plain', name: 'Plain' },
 ];
 
-const PIZZA_SUBCATEGORIES = ['Vegetarian', 'Paneer', 'Chicken', 'Meat Pizza', 'Hawaiian'];
+const PIZZA_SUBCATEGORIES = [
+  { label: 'Vegetarian', value: 'vegetarian' },
+  { label: 'Paneer', value: 'paneer' },
+  { label: 'Chicken', value: 'chicken' },
+  { label: 'Meat Pizza', value: 'meat' },
+  { label: 'Hawaiian', value: 'hawaiian' },
+];
 
 export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalProps) => {
   const { data: menuItems } = useMenuItems();
@@ -356,15 +362,15 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
           {/* Subcategory Filter for Pizzas */}
           {currentComboItem?.item_type === 'pizza' && (
             <div className="flex flex-wrap justify-center gap-2 pb-3">
-              {PIZZA_SUBCATEGORIES.map(subcategory => (
+              {PIZZA_SUBCATEGORIES.map(({ label, value }) => (
                 <Button
-                  key={subcategory}
-                  variant={selectedSubcategory === subcategory ? "default" : "outline"}
+                  key={value}
+                  variant={selectedSubcategory === value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedSubcategory(selectedSubcategory === subcategory ? null : subcategory)}
+                  onClick={() => setSelectedSubcategory(selectedSubcategory === value ? null : value)}
                   className="rounded-full"
                 >
-                  {subcategory}
+                  {label}
                 </Button>
               ))}
             </div>
@@ -405,7 +411,7 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
                         className="w-full h-20 object-cover rounded mb-2"
                       />
                     )}
-                    <p className="font-medium text-sm truncate">{item.name}</p>
+                    <p className="font-medium text-sm leading-tight line-clamp-2">{item.name}</p>
                     {currentComboItem?.is_chargeable && (
                       <p className="text-xs text-primary">+${item.base_price.toFixed(2)}</p>
                     )}
