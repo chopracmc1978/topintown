@@ -76,9 +76,13 @@ const POS = () => {
   // Start session on login if none exists
   useEffect(() => {
     const initSession = async () => {
-      if (user && !activeSession) {
-        const lastCash = await getLastSessionEndCash();
-        await startSession(lastCash);
+      try {
+        if (user && !activeSession) {
+          const lastCash = await getLastSessionEndCash();
+          await startSession(lastCash);
+        }
+      } catch (error) {
+        console.error('Failed to initialize POS session:', error);
       }
     };
     initSession();

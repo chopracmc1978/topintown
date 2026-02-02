@@ -65,10 +65,12 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
 
       toast({ title: 'Welcome!', description: 'Successfully logged in.' });
       onLoginSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      const message = error instanceof Error ? error.message : 'Invalid credentials';
       toast({
         title: 'Login Failed',
-        description: error.message || 'Invalid credentials',
+        description: message,
         variant: 'destructive',
       });
     } finally {
