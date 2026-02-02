@@ -10,8 +10,9 @@ interface OrderSmsRequest {
   orderNumber: string;
   phone?: string;
   customerId?: string;
-  type: "preparing" | "ready" | "complete";
+  type: "accepted" | "preparing" | "ready" | "complete";
   prepTime?: number; // in minutes, only for "preparing" type
+  pickupTime?: string; // ISO string for scheduled pickup time
 }
 
 async function sendSmsWithTwilio(to: string, message: string): Promise<void> {
@@ -64,8 +65,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orderNumber, phone, customerId, type, prepTime }: OrderSmsRequest = await req.json();
-    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime });
+    const { orderNumber, phone, customerId, type, prepTime, pickupTime }: OrderSmsRequest = await req.json();
+    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime, pickupTime });
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -131,7 +132,28 @@ const handler = async (req: Request): Promise<Response> => {
 
     let message = "";
 
+    // Helper to format pickup time
+    const formatPickupTime = (isoString: string): string => {
+      const date = new Date(isoString);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      }) + ' at ' + date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    };
+
     switch (type) {
+      case "accepted":
+        if (pickupTime) {
+          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted! Scheduled pickup: ${formatPickupTime(pickupTime)}. Thank you!`;
+        } else {
+          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted and is being prepared. Thank you!`;
+        }
+        break;
       case "preparing":
         message = `Top In Town Pizza: Your order ${orderNumber} is being prepared. Estimated time: ${prepTime || 20} minutes. Thank you for your order!`;
         break;

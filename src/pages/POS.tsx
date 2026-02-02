@@ -131,8 +131,18 @@ const POS = () => {
   const handleUpdateStatus = (status: OrderStatus, prepTime?: number) => {
     if (!selectedOrderId) return;
     
-    // If changing to "preparing", show prep time modal first
+    // If changing to "preparing", check if it's an advance order
     if (status === 'preparing' && !prepTime) {
+      const order = orders.find(o => o.id === selectedOrderId);
+      
+      // For advance orders with pickupTime, skip prep time modal and just accept
+      if (order?.pickupTime) {
+        updateOrderStatus(selectedOrderId, 'preparing');
+        setSelectedOrderId(null);
+        return;
+      }
+      
+      // For ASAP orders, show prep time modal
       setPendingPrepOrderId(selectedOrderId);
       setPrepTimeModalOpen(true);
       return;

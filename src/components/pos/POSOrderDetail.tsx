@@ -1,4 +1,4 @@
-import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil } from 'lucide-react';
+import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil, CalendarDays, CheckCircle } from 'lucide-react';
 import { Order, OrderStatus, CartPizzaCustomization } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -135,20 +135,43 @@ const statusFlow: Record<OrderStatus, OrderStatus | null> = {
   cancelled: null,
 };
 
-const statusLabels: Record<OrderStatus, string> = {
-  pending: 'Start Preparing',
-  preparing: 'Mark Ready',
-  ready: 'Complete Order',
-  delivered: 'Completed',
-  cancelled: 'Cancelled',
+// Get button label based on status and whether it's an advance order
+const getStatusButtonLabel = (status: OrderStatus, isAdvanceOrder: boolean): string => {
+  if (status === 'pending') {
+    return 'Accept';
+  }
+  const labels: Record<OrderStatus, string> = {
+    pending: 'Accept',
+    preparing: 'Mark Ready',
+    ready: 'Complete Order',
+    delivered: 'Completed',
+    cancelled: 'Cancelled',
+  };
+  return labels[status];
 };
 
 export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, onPrintTicket, onPrintReceipt, onEditOrder }: POSOrderDetailProps) => {
   const nextStatus = statusFlow[order.status];
   const location = LOCATIONS.find(l => l.id === locationId);
+  
+  // Check if this is an advance order (has scheduled pickup time in the future)
+  const isAdvanceOrder = order.pickupTime && new Date(order.pickupTime) > new Date();
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const formatPickupDateTime = (date: Date) => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }) + ' at ' + d.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -202,6 +225,14 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             {order.tableNumber && <span>(Table {order.tableNumber})</span>}
           </div>
         </div>
+        
+        {/* Advance Order Pickup Time */}
+        {order.pickupTime && (
+          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-lg w-fit">
+            <CalendarDays className="w-4 h-4" />
+            <span>Scheduled Pickup: {formatPickupDateTime(order.pickupTime)}</span>
+          </div>
+        )}
       </div>
 
       {/* Customer Info */}
@@ -340,8 +371,12 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               className="flex-1"
               onClick={() => onUpdateStatus(nextStatus)}
             >
-              <ChefHat className="w-4 h-4 mr-2" />
-              {statusLabels[order.status]}
+              {order.status === 'pending' ? (
+                <CheckCircle className="w-4 h-4 mr-2" />
+              ) : (
+                <ChefHat className="w-4 h-4 mr-2" />
+              )}
+              {getStatusButtonLabel(order.status, !!isAdvanceOrder)}
             </Button>
           )}
         </div>
