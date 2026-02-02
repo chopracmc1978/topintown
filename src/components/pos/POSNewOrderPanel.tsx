@@ -392,43 +392,52 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   return (
     <>
       <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
-        {/* Header - Compact single row layout */}
-        <div className="bg-secondary/50 px-4 py-2.5 border-b border-border flex items-center gap-4">
+        {/* Header - Compact single row with search */}
+        <div className="bg-secondary/50 px-4 py-2.5 border-b border-border flex items-center gap-3">
           {/* Customer Name & Phone - horizontal */}
-          <div className="flex items-center gap-3 relative">
+          <Input
+            placeholder="Customer name"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="h-10 text-base w-40"
+          />
+          <div className="relative">
             <Input
-              placeholder="Customer name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="h-10 text-base w-48"
+              ref={phoneInputRef}
+              placeholder="Phone number"
+              value={customerPhone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
+              onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
+              className={cn(
+                "h-10 text-base w-40 pr-8",
+                orderHistory.length > 0 && "border-primary"
+              )}
             />
-            <div className="relative">
-              <Input
-                ref={phoneInputRef}
-                placeholder="Phone number"
-                value={customerPhone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
-                onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
-                className={cn(
-                  "h-10 text-base w-48 pr-8",
-                  orderHistory.length > 0 && "border-primary"
-                )}
+            {orderHistory.length > 0 && (
+              <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+            )}
+            
+            {/* Order History Dropdown */}
+            {showOrderHistory && (
+              <POSOrderHistoryDropdown
+                orders={orderHistory}
+                isSearching={isSearching}
+                onSelectOrder={handleSelectPastOrder}
+                onClose={() => setShowOrderHistory(false)}
               />
-              {orderHistory.length > 0 && (
-                <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-              )}
-              
-              {/* Order History Dropdown */}
-              {showOrderHistory && (
-                <POSOrderHistoryDropdown
-                  orders={orderHistory}
-                  isSearching={isSearching}
-                  onSelectOrder={handleSelectPastOrder}
-                  onClose={() => setShowOrderHistory(false)}
-                />
-              )}
-            </div>
+            )}
+          </div>
+          
+          {/* Search bar in header */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-10 text-base"
+            />
           </div>
           
           {/* Title - right aligned */}
@@ -447,18 +456,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
         <div className="flex-1 flex overflow-hidden">
           {/* Menu Selection */}
           <div className="flex-1 flex flex-col border-r border-border">
-            {/* Search */}
-            <div className="p-4 border-b border-border">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search menu..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 text-lg"
-                />
-              </div>
-            </div>
 
             {/* Category Tabs - Larger for tablet */}
             <div className="flex gap-2 p-3 border-b border-border overflow-x-auto">
