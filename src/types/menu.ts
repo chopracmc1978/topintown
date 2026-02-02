@@ -68,4 +68,5 @@ export interface Order {
   paymentMethod?: PaymentMethod;
   tableNumber?: string;
   estimatedReadyTime?: Date;
+  pickupTime?: Date; // Scheduled pickup time for advance orders
 }

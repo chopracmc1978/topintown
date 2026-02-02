@@ -23,6 +23,7 @@ interface DBOrder {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  pickup_time: string | null;
 }
 
 interface DBOrderItem {
@@ -76,6 +77,7 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
     paymentStatus: (dbOrder.payment_status || 'unpaid') as PaymentStatus,
     paymentMethod: dbOrder.payment_method as PaymentMethod | undefined,
     tableNumber: dbOrder.table_number || undefined,
+    pickupTime: dbOrder.pickup_time ? new Date(dbOrder.pickup_time) : undefined,
   };
 };
 
@@ -158,8 +160,8 @@ export const usePOSOrders = () => {
     orderNumber: string, 
     phone: string | undefined, 
     customerId: string | undefined,
-    type: 'preparing' | 'ready' | 'complete', 
-    prepTime?: number
+    type: 'accepted' | 'preparing' | 'ready' | 'complete', 
+    options?: { prepTime?: number; pickupTime?: Date }
   ) => {
     try {
       if (!phone && !customerId) {
@@ -170,7 +172,14 @@ export const usePOSOrders = () => {
       console.log(`Sending order SMS: ${type} for ${orderNumber} to phone=${phone} customerId=${customerId}`);
       
       const { data, error } = await supabase.functions.invoke('order-sms', {
-        body: { orderNumber, phone, customerId, type, prepTime }
+        body: { 
+          orderNumber, 
+          phone, 
+          customerId, 
+          type, 
+          prepTime: options?.prepTime,
+          pickupTime: options?.pickupTime?.toISOString()
+        }
       });
       
       if (error) throw error;
@@ -271,8 +280,15 @@ export const usePOSOrders = () => {
       
       // Send SMS based on status (pass both phone and customerId for fallback lookup)
       if (order?.customerPhone || order?.customerId) {
-        if (status === 'preparing' && prepTime) {
-          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', prepTime);
+        if (status === 'preparing') {
+          // Check if it's an advance order (has pickupTime)
+          if (order.pickupTime) {
+            // For advance orders, send "accepted" SMS with pickup time
+            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'accepted', { pickupTime: order.pickupTime });
+          } else if (prepTime) {
+            // For ASAP orders, send "preparing" SMS with prep time
+            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime });
+          }
         } else if (status === 'ready') {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
         } else if (status === 'delivered') {

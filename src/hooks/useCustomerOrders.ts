@@ -20,6 +20,7 @@ export interface CustomerOrder {
   total: number;
   notes: string | null;
   createdAt: string;
+  pickupTime: string | null;
   items: OrderItem[];
 }
 
@@ -57,6 +58,7 @@ export const useCustomerOrders = (customerId: string | undefined) => {
             total: Number(order.total),
             notes: order.notes,
             createdAt: order.created_at,
+            pickupTime: order.pickup_time,
             items: (items || []).map((item) => ({
               id: item.id,
               name: item.name,

@@ -157,11 +157,17 @@ const MyOrders = () => {
                           <CardTitle className="text-lg font-semibold">
                             Order #{order.orderNumber}
                           </CardTitle>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               {formatDate(order.createdAt)}
                             </span>
+                            {order.pickupTime && (
+                              <span className="flex items-center gap-1 text-primary font-medium">
+                                <Clock className="w-4 h-4" />
+                                Pickup: {formatDate(order.pickupTime)}
+                              </span>
+                            )}
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
                               {getLocationName(order.locationId)}
