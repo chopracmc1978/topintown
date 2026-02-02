@@ -347,6 +347,7 @@ const POS = () => {
           ) : selectedOrder ? (
             <POSOrderDetail
               order={selectedOrder}
+              locationId={currentLocationId}
               onUpdateStatus={handleUpdateStatus}
               onPayment={handlePayment}
               onPrintTicket={handlePrintTicket}
