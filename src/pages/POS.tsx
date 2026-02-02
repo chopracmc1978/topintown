@@ -33,7 +33,14 @@ const LOCATION_NAMES: Record<string, string> = {
 
 const POS = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders();
+  
+  // Get location from localStorage (set during login)
+  const [currentLocationId, setCurrentLocationId] = useState<string>(() => {
+    return localStorage.getItem('pos_location_id') || 'calgary';
+  });
+  
+  // Pass location to orders hook for filtering
+  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder } = usePOSOrders(currentLocationId);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -45,9 +52,6 @@ const POS = () => {
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   
-  // Get location from localStorage (set during login)
-  const [currentLocationId, setCurrentLocationId] = useState<string>('calgary');
-  
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
   
@@ -56,7 +60,7 @@ const POS = () => {
   
   useEffect(() => {
     const savedLocation = localStorage.getItem('pos_location_id');
-    if (savedLocation) {
+    if (savedLocation && savedLocation !== currentLocationId) {
       setCurrentLocationId(savedLocation);
     }
   }, [user]);
