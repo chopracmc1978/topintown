@@ -82,25 +82,39 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
   };
 };
 
-export const usePOSOrders = () => {
+export const usePOSOrders = (locationId?: string) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentLocationId, setCurrentLocationId] = useState<string | undefined>(locationId);
 
-  // Fetch all orders with their items
+  // Update location when prop changes
+  useEffect(() => {
+    if (locationId && locationId !== currentLocationId) {
+      setCurrentLocationId(locationId);
+    }
+  }, [locationId]);
+
+  // Fetch orders with their items - filtered by location
   const fetchOrders = async () => {
     try {
       setLoading(true);
       
-      // Fetch orders from today (or could be configurable)
+      // Fetch orders from today, filtered by location
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const { data: dbOrders, error: ordersError } = await supabase
+      let query = supabase
         .from('orders')
         .select('*')
-        .gte('created_at', today.toISOString())
-        .order('created_at', { ascending: false });
+        .gte('created_at', today.toISOString());
+      
+      // Filter by location if specified
+      if (currentLocationId) {
+        query = query.eq('location_id', currentLocationId);
+      }
+      
+      const { data: dbOrders, error: ordersError } = await query.order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
 
@@ -469,22 +483,32 @@ export const usePOSOrders = () => {
     return orders.find(order => order.id === orderNumber);
   };
 
-  // Set up realtime subscription for new orders
+  // Set up realtime subscription for new orders - filtered by location
   useEffect(() => {
     fetchOrders();
 
-    // Subscribe to new orders and updates
+    // Subscribe to new orders and updates for this location
+    const channelName = currentLocationId ? `pos-orders-${currentLocationId}` : 'pos-orders-all';
     const channel = supabase
-      .channel('pos-orders')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'orders',
+          filter: currentLocationId ? `location_id=eq.${currentLocationId}` : undefined,
         },
         async (payload) => {
           console.log('New order received:', payload);
+          const newOrder = payload.new as DBOrder;
+          
+          // Double-check location filter (in case filter wasn't applied)
+          if (currentLocationId && newOrder.location_id !== currentLocationId) {
+            console.log('Order for different location, ignoring');
+            return;
+          }
+          
           // Fetch the complete order with items
           const newOrderId = payload.new.id;
           const { data: items } = await supabase
@@ -492,7 +516,7 @@ export const usePOSOrders = () => {
             .select('*')
             .eq('order_id', newOrderId);
 
-          const order = convertDBOrder(payload.new as DBOrder, (items || []) as DBOrderItem[]);
+          const order = convertDBOrder(newOrder, (items || []) as DBOrderItem[]);
           
           // Add to orders if not already present
           setOrders(prev => {
@@ -507,10 +531,16 @@ export const usePOSOrders = () => {
           event: 'UPDATE',
           schema: 'public',
           table: 'orders',
+          filter: currentLocationId ? `location_id=eq.${currentLocationId}` : undefined,
         },
         async (payload) => {
           console.log('Order updated:', payload);
           const updatedOrder = payload.new as DBOrder;
+          
+          // Double-check location filter
+          if (currentLocationId && updatedOrder.location_id !== currentLocationId) {
+            return;
+          }
           
           // Update local state
           setOrders(prev => prev.map(order => {
@@ -535,7 +565,7 @@ export const usePOSOrders = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentLocationId]);
 
   return {
     orders,
