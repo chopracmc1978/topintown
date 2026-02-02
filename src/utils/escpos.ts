@@ -59,27 +59,27 @@ export const buildKitchenTicket = (order: {
     });
   };
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+  const formatDateFull = (date: Date | string) => {
+    const d = new Date(date);
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const day = d.getDate().toString().padStart(2, '0');
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const year = d.getFullYear();
+    return `${month} ${day} - ${weekday} - ${year}`;
   };
 
   let receipt = INIT;
   
-  // Header
+  // Header - Line 1: KITCHEN ORDER (large and bold)
   receipt += ALIGN_CENTER;
-  receipt += BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + LF;
-  receipt += DOUBLE_SIZE_ON + order.id + NORMAL_SIZE + LF;
-  receipt += LINE + LF;
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
   
-  // Order info
+  // Line 2: Order No
   receipt += ALIGN_LEFT;
-  receipt += `Time: ${formatTime(order.createdAt)}${LF}`;
-  receipt += `Date: ${formatDate(order.createdAt)}${LF}`;
-  receipt += BOLD_ON + `Type: ${order.orderType.toUpperCase()}` + BOLD_OFF + LF;
+  receipt += `Order No: ${order.id}${LF}`;
+  
+  // Line 3: Date, Time, and Type in one line
+  receipt += `Date: ${formatDateFull(order.createdAt)}, Time: ${formatTime(order.createdAt)}, Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
   
   if (order.tableNumber) {
     receipt += `Table: ${order.tableNumber}${LF}`;
