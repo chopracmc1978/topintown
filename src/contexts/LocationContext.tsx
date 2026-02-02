@@ -90,12 +90,12 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
       setIsDetecting(true);
       try {
-        // Using ip-api.com (free, no API key required)
-        const response = await fetch('http://ip-api.com/json/?fields=lat,lon,status');
+        // Using ipapi.co (free HTTPS endpoint)
+        const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         
-        if (data.status === 'success' && data.lat && data.lon) {
-          const closestLocation = findClosestLocation(data.lat, data.lon);
+        if (data.latitude && data.longitude) {
+          const closestLocation = findClosestLocation(data.latitude, data.longitude);
           setSelectedLocationState(closestLocation);
           localStorage.setItem(STORAGE_KEY, closestLocation.id);
         }
