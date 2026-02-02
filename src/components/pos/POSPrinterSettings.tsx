@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Trash2, Edit2, Loader2, Printer as PrinterIcon, Check, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Edit2, Loader2, Printer as PrinterIcon, Check, X, Server, ExternalLink, TestTube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePrinters, PRINTER_STATIONS, PAPER_WIDTHS, type PrinterInsert, type Printer } from '@/hooks/usePrinters';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface POSPrinterSettingsProps {
   locationId: string;
@@ -16,6 +17,10 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   const { printers, isLoading, addPrinter, updatePrinter, deletePrinter } = usePrinters(locationId);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [printServerUrl, setPrintServerUrl] = useState(
+    localStorage.getItem('print_server_url') || 'http://localhost:3001'
+  );
+  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   const [formData, setFormData] = useState<PrinterInsert>({
     location_id: locationId,
@@ -26,6 +31,81 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
     auto_cut: true,
     is_active: true,
   });
+
+  // Check print server status
+  const checkServerStatus = async () => {
+    setServerStatus('checking');
+    try {
+      const response = await fetch(`${printServerUrl}/health`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(3000),
+      });
+      if (response.ok) {
+        setServerStatus('online');
+      } else {
+        setServerStatus('offline');
+      }
+    } catch {
+      setServerStatus('offline');
+    }
+  };
+
+  useEffect(() => {
+    checkServerStatus();
+  }, [printServerUrl]);
+
+  const handleSavePrintServerUrl = () => {
+    localStorage.setItem('print_server_url', printServerUrl);
+    toast.success('Print server URL saved');
+    checkServerStatus();
+  };
+
+  const handleTestPrint = async (printer: Printer) => {
+    const loadingToast = toast.loading('Sending test print...');
+    
+    try {
+      const testData = `
+\x1B@
+\x1Ba\x01
+\x1BE\x01TEST PRINT\x1BE\x00
+
+\x1Ba\x00
+Printer: ${printer.name}
+IP: ${printer.ip_address}
+Station: ${printer.station}
+Time: ${new Date().toLocaleTimeString()}
+--------------------------------
+If you see this, printing works!
+--------------------------------
+
+\x1Bd\x03
+\x1DVA
+`;
+      
+      const response = await fetch(`${printServerUrl}/print`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          printer_ip: printer.ip_address,
+          port: 9100,
+          data: testData,
+          auto_cut: printer.auto_cut,
+        }),
+      });
+
+      toast.dismiss(loadingToast);
+      
+      if (response.ok) {
+        toast.success('Test print sent!');
+      } else {
+        const error = await response.json();
+        toast.error(`Print failed: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Could not reach print server');
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -81,8 +161,54 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-muted-foreground mb-4">
+    <div className="space-y-6">
+      {/* Print Server Configuration */}
+      <div className="p-4 border border-border rounded-lg bg-secondary/30 space-y-3">
+        <div className="flex items-center gap-2">
+          <Server className="w-5 h-5 text-primary" />
+          <span className="font-medium">Print Server</span>
+          <div className={cn(
+            "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full",
+            serverStatus === 'online' && "bg-green-100 text-green-700",
+            serverStatus === 'offline' && "bg-red-100 text-red-700",
+            serverStatus === 'checking' && "bg-yellow-100 text-yellow-700",
+          )}>
+            <div className={cn(
+              "w-2 h-2 rounded-full",
+              serverStatus === 'online' && "bg-green-500",
+              serverStatus === 'offline' && "bg-red-500",
+              serverStatus === 'checking' && "bg-yellow-500 animate-pulse",
+            )} />
+            {serverStatus === 'online' ? 'Connected' : serverStatus === 'offline' ? 'Offline' : 'Checking...'}
+          </div>
+        </div>
+        
+        <p className="text-sm text-muted-foreground">
+          Run the print server on a computer on your local network to forward print jobs to your thermal printers.
+        </p>
+        
+        <div className="flex gap-2">
+          <Input
+            placeholder="http://localhost:3001"
+            value={printServerUrl}
+            onChange={(e) => setPrintServerUrl(e.target.value)}
+            className="flex-1"
+          />
+          <Button variant="outline" onClick={handleSavePrintServerUrl}>
+            Save
+          </Button>
+          <Button variant="outline" onClick={checkServerStatus}>
+            Test
+          </Button>
+        </div>
+        
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <ExternalLink className="w-3 h-3" />
+          Download print-server.js from /print-server.js and run with Node.js
+        </div>
+      </div>
+
+      <div className="text-sm text-muted-foreground">
         Configure thermal printers for order tickets. Add printers for kitchen, counter, or any station.
       </div>
 
@@ -126,6 +252,14 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => handleTestPrint(printer)}
+                  title="Test print"
+                >
+                  <TestTube className="w-4 h-4" />
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"
