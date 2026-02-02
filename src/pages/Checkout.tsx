@@ -16,6 +16,8 @@ import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal'
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
 import { CheckoutAuthOptions } from '@/components/checkout/CheckoutAuthOptions';
 import { AdvanceOrderPicker } from '@/components/checkout/AdvanceOrderPicker';
+import CouponField from '@/components/checkout/CouponField';
+import { Coupon } from '@/hooks/useCoupons';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useIsLocationOpen } from '@/hooks/useLocationHours';
 import { supabase } from '@/integrations/supabase/client';
@@ -229,6 +231,10 @@ const Checkout = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const placeOrderLock = useRef(false);
   
+  // Coupon state
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  
   // Advance ordering state - initialize from localStorage if available
   const [scheduledDate, setScheduledDate] = useState<Date | null>(() => {
     try {
@@ -331,8 +337,9 @@ const Checkout = () => {
     try {
       const locationId = selectedLocation?.id || 'calgary';
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-      const tax = total * 0.05; // 5% GST
-      const grandTotal = total + deliveryFee + tax;
+      const discountedSubtotal = total - appliedDiscount;
+      const tax = discountedSubtotal * 0.05; // 5% GST
+      const grandTotal = discountedSubtotal + deliveryFee + tax;
 
       // Get customer info
       const customerInfo = customer || { 
@@ -355,6 +362,8 @@ const Checkout = () => {
         body: {
           items,
           subtotal: total,
+          discount: appliedDiscount,
+          couponCode: appliedCoupon?.code || null,
           tax,
           total: grandTotal,
           customerName: customerInfo.fullName || '',
@@ -392,8 +401,19 @@ const Checkout = () => {
   };
 
   const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-  const tax = total * 0.05;
-  const grandTotal = total + deliveryFee + tax;
+  const discountedSubtotal = total - appliedDiscount;
+  const tax = discountedSubtotal * 0.05;
+  const grandTotal = discountedSubtotal + deliveryFee + tax;
+
+  const handleApplyCoupon = (coupon: Coupon, discount: number) => {
+    setAppliedCoupon(coupon);
+    setAppliedDiscount(discount);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setAppliedDiscount(0);
+  };
 
   if (items.length === 0) {
     return (
@@ -546,11 +566,28 @@ const Checkout = () => {
                 ))}
               </div>
 
+              {/* Coupon Field */}
+              <div className="mb-4">
+                <CouponField
+                  subtotal={total}
+                  onApply={handleApplyCoupon}
+                  onRemove={handleRemoveCoupon}
+                  appliedCoupon={appliedCoupon}
+                  appliedDiscount={appliedDiscount}
+                />
+              </div>
+
               <div className="border-t border-border pt-4 space-y-2">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
+                {appliedDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({appliedCoupon?.code})</span>
+                    <span>-${appliedDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-muted-foreground">
                   <span>GST (5%)</span>
                   <span>${tax.toFixed(2)}</span>
