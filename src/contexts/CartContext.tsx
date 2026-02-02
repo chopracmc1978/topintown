@@ -18,8 +18,30 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = 'pizza_cart_items';
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    // Initialize from localStorage
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        return JSON.parse(savedCart);
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+    }
+    return [];
+  });
+
+  // Persist cart to localStorage whenever items change
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch (error) {
+      console.error('Error saving cart to localStorage:', error);
+    }
+  }, [items]);
 
   // Check for repeat order items on mount and on storage events
   const checkRepeatOrderItems = useCallback(() => {
@@ -179,7 +201,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = () => {
+    setItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
+  };
   
   const setCartItems = (newItems: CartItem[]) => setItems(newItems);
 
