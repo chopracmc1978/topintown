@@ -157,26 +157,119 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
           
           {/* Items */}
           <div className="space-y-2">
-            {order.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between">
-                  <div className="flex-1">
-                    <span>{item.quantity}× {item.name}</span>
-                    {item.customizations?.size && item.customizations?.crust && (
-                      <p className="text-xs text-gray-600 ml-3">
-                        {item.customizations.size.name}, {item.customizations.crust.name}
-                      </p>
-                    )}
-                    {item.customizations?.flavor && (
-                      <p className="text-xs text-gray-600 ml-3">
-                        {item.customizations.flavor}
-                      </p>
-                    )}
+            {order.items.map((item) => {
+              const customizations = item.customizations;
+              const hasPizzaCustomization = customizations?.size?.name || customizations?.crust?.name;
+              const hasWingsCustomization = customizations?.flavor;
+              
+              // Build size/crust line only if both exist and have names
+              const sizeCrustParts: string[] = [];
+              if (customizations?.size?.name) sizeCrustParts.push(customizations.size.name);
+              if (customizations?.crust?.name) sizeCrustParts.push(`${customizations.crust.name} Crust`);
+              const sizeCrustLine = sizeCrustParts.length > 0 ? sizeCrustParts.join(', ') : null;
+              
+              // Build customization lines for pizza
+              const customizationLines: string[] = [];
+              
+              if (hasPizzaCustomization) {
+                // Sauce (only if non-default)
+                if (customizations?.sauceName && customizations.sauceName !== 'Pizza Sauce') {
+                  const sauceText = customizations.sauceQuantity === 'extra' 
+                    ? `${customizations.sauceName} (Extra)` 
+                    : customizations.sauceName;
+                  customizationLines.push(`Sauce: ${sauceText}`);
+                }
+                
+                // Cheese (only if non-default)
+                if (customizations?.cheeseType && customizations.cheeseType !== 'mozzarella') {
+                  const cheeseText = customizations.cheeseType === 'none' 
+                    ? 'No Cheese' 
+                    : customizations.cheeseType === 'dairy_free' 
+                      ? 'Dairy Free Cheese' 
+                      : customizations.cheeseType;
+                  customizationLines.push(cheeseText);
+                }
+                
+                // Spicy Level
+                if (customizations?.spicyLevel) {
+                  if (typeof customizations.spicyLevel === 'string' && customizations.spicyLevel !== 'none') {
+                    const level = customizations.spicyLevel === 'medium' ? 'Medium Hot' : 
+                                  customizations.spicyLevel.charAt(0).toUpperCase() + customizations.spicyLevel.slice(1);
+                    customizationLines.push(`Spicy: ${level}`);
+                  } else if (typeof customizations.spicyLevel === 'object') {
+                    const leftLevel = customizations.spicyLevel.left;
+                    const rightLevel = customizations.spicyLevel.right;
+                    if (leftLevel !== 'none' || rightLevel !== 'none') {
+                      const parts: string[] = [];
+                      if (leftLevel !== 'none') {
+                        parts.push(`L:${leftLevel === 'medium' ? 'Medium Hot' : leftLevel}`);
+                      }
+                      if (rightLevel !== 'none') {
+                        parts.push(`R:${rightLevel === 'medium' ? 'Medium Hot' : rightLevel}`);
+                      }
+                      customizationLines.push(`Spicy: ${parts.join(' ')}`);
+                    }
+                  }
+                }
+                
+                // Free Toppings
+                if (customizations?.freeToppings && customizations.freeToppings.length > 0) {
+                  customizationLines.push(`Add: ${customizations.freeToppings.join(', ')}`);
+                }
+                
+                // Modified Default Toppings
+                if (customizations?.defaultToppings) {
+                  const modified = customizations.defaultToppings.filter((t: any) => t.quantity !== 'regular');
+                  if (modified.length > 0) {
+                    const modifiedText = modified.map((t: any) => {
+                      if (t.quantity === 'none') return `NO ${t.name}`;
+                      if (t.quantity === 'less') return `Less ${t.name}`;
+                      if (t.quantity === 'extra') return `Extra ${t.name}`;
+                      return t.name;
+                    }).join(', ');
+                    customizationLines.push(modifiedText);
+                  }
+                }
+                
+                // Extra Toppings
+                if (customizations?.extraToppings && customizations.extraToppings.length > 0) {
+                  const extraText = customizations.extraToppings.map((t: any) => {
+                    const side = t.side && t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : '';
+                    return `+${t.name}${side}`;
+                  }).join(', ');
+                  customizationLines.push(extraText);
+                }
+                
+                // Note
+                if (customizations?.note) {
+                  customizationLines.push(`Note: ${customizations.note}`);
+                }
+              }
+              
+              return (
+                <div key={item.id}>
+                  <div className="flex justify-between">
+                    <div className="flex-1">
+                      <span>{item.quantity}× {item.name}</span>
+                    </div>
+                    <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
                   </div>
-                  <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
+                  
+                  {/* Pizza Customizations */}
+                  {sizeCrustLine && (
+                    <p className="text-xs text-gray-600 ml-3">{sizeCrustLine}</p>
+                  )}
+                  {customizationLines.map((line, idx) => (
+                    <p key={idx} className="text-xs text-gray-600 ml-3">{line}</p>
+                  ))}
+                  
+                  {/* Wings Flavor */}
+                  {hasWingsCustomization && (
+                    <p className="text-xs text-gray-600 ml-3">{customizations.flavor}</p>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           <Separator className="border-dashed border-black my-3" />
