@@ -8,11 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Package, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, X, Upload, Image } from 'lucide-react';
 import { useCombos, useCreateCombo, useUpdateCombo, useDeleteCombo, Combo, ComboItem } from '@/hooks/useCombos';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
-type ItemType = 'pizza' | 'wings' | 'drinks' | 'dipping_sauce';
+type ItemType = 'pizza' | 'wings' | 'drinks' | 'dipping_sauce' | 'baked_lasagna';
 
 interface EditableComboItem {
   item_type: ItemType;
@@ -28,6 +29,7 @@ const ITEM_TYPES: { value: ItemType; label: string }[] = [
   { value: 'wings', label: 'Wings' },
   { value: 'drinks', label: 'Drinks' },
   { value: 'dipping_sauce', label: 'Dipping Sauce' },
+  { value: 'baked_lasagna', label: 'Baked Lasagna' },
 ];
 
 const SIZE_OPTIONS: Record<ItemType, string[]> = {
@@ -35,6 +37,7 @@ const SIZE_OPTIONS: Record<ItemType, string[]> = {
   wings: ['6 Pieces', '12 Pieces', '24 Pieces'],
   drinks: ['Can', '500ml Bottle', '2 Litre'],
   dipping_sauce: [],
+  baked_lasagna: [],
 };
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -57,6 +60,8 @@ const CombosManager = () => {
   const [scheduleDays, setScheduleDays] = useState<number[]>([]);
   const [scheduleDates, setScheduleDates] = useState<number[]>([]);
   const [items, setItems] = useState<EditableComboItem[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const resetForm = () => {
     setName('');
@@ -67,6 +72,7 @@ const CombosManager = () => {
     setScheduleDays([]);
     setScheduleDates([]);
     setItems([]);
+    setImageUrl(null);
     setEditingCombo(null);
   };
 
@@ -79,6 +85,7 @@ const CombosManager = () => {
     setScheduleType(combo.schedule_type || 'always');
     setScheduleDays(combo.schedule_days || []);
     setScheduleDates(combo.schedule_dates || []);
+    setImageUrl(combo.image_url || null);
     setItems(
       (combo.combo_items || []).map(item => ({
         item_type: item.item_type as ItemType,
@@ -92,6 +99,39 @@ const CombosManager = () => {
     setIsDialogOpen(true);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File too large. Max 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const fileName = `combo-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('menu-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('menu-images')
+        .getPublicUrl(fileName);
+
+      setImageUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      alert('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     const comboData = {
       name,
@@ -102,7 +142,7 @@ const CombosManager = () => {
       schedule_type: scheduleType,
       schedule_days: scheduleType === 'days_of_week' ? scheduleDays : null,
       schedule_dates: scheduleType === 'dates_of_month' ? scheduleDates : null,
-      image_url: editingCombo?.image_url || null,
+      image_url: imageUrl,
     };
 
     const formattedItems = items.map((item, index) => ({
@@ -220,6 +260,50 @@ const CombosManager = () => {
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any 2 Large Pizzas + 24 Wings + 2L Drink" />
+              </div>
+
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label>Combo Image</Label>
+                <div className="flex items-start gap-4">
+                  {imageUrl ? (
+                    <div className="relative">
+                      <img src={imageUrl} alt="Combo" className="w-24 h-24 object-cover rounded-lg border" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                        onClick={() => setImageUrl(null)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted/30">
+                      <Image className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                      />
+                      <div className={cn(
+                        "flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-secondary/50 transition-colors",
+                        uploading && "opacity-50 cursor-not-allowed"
+                      )}>
+                        <Upload className="h-4 w-4" />
+                        {uploading ? 'Uploading...' : 'Upload Image'}
+                      </div>
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">Max 5MB. JPG, PNG, WebP</p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

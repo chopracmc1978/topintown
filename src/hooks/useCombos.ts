@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface ComboItem {
   id: string;
   combo_id: string;
-  item_type: 'pizza' | 'wings' | 'drinks' | 'dipping_sauce';
+  item_type: 'pizza' | 'wings' | 'drinks' | 'dipping_sauce' | 'baked_lasagna';
   quantity: number;
   size_restriction: string | null;
   is_required: boolean;
