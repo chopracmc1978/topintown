@@ -1,12 +1,16 @@
-import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil, FileText } from 'lucide-react';
 import { Order, OrderStatus, CartPizzaCustomization } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { CustomerReceiptModal } from './receipts/CustomerReceiptModal';
+import { LOCATIONS } from '@/contexts/LocationContext';
 
 interface POSOrderDetailProps {
   order: Order;
+  locationId: string;
   onUpdateStatus: (status: OrderStatus) => void;
   onPayment: (method: 'cash' | 'card') => void;
   onPrintTicket: () => void;
@@ -140,8 +144,10 @@ const statusLabels: Record<OrderStatus, string> = {
   cancelled: 'Cancelled',
 };
 
-export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket, onEditOrder }: POSOrderDetailProps) => {
+export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, onPrintTicket, onEditOrder }: POSOrderDetailProps) => {
+  const [showCustomerReceipt, setShowCustomerReceipt] = useState(false);
   const nextStatus = statusFlow[order.status];
+  const location = LOCATIONS.find(l => l.id === locationId);
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -163,6 +169,15 @@ export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket
             <Badge variant="outline" className="capitalize">
               {order.source || 'online'}
             </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 px-2 text-xs"
+              onClick={() => setShowCustomerReceipt(true)}
+            >
+              <FileText className="w-3.5 h-3.5 mr-1" />
+              Receipt
+            </Button>
           </div>
           <Badge 
             variant="outline" 
@@ -333,6 +348,18 @@ export const POSOrderDetail = ({ order, onUpdateStatus, onPayment, onPrintTicket
           )}
         </div>
       </div>
+
+      {/* Customer Receipt Modal */}
+      {showCustomerReceipt && (
+        <CustomerReceiptModal
+          order={order}
+          locationId={locationId}
+          locationName={location?.name}
+          locationAddress={location?.address}
+          locationPhone={location?.phone}
+          onClose={() => setShowCustomerReceipt(false)}
+        />
+      )}
     </div>
   );
 };
