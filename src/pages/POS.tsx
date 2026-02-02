@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings, CalendarClock } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings, CalendarClock, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -15,6 +15,7 @@ import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
+import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
 import logo from '@/assets/logo.png';
 
@@ -54,6 +55,7 @@ const POS = () => {
   const [pendingPrepOrderId, setPendingPrepOrderId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showEndDay, setShowEndDay] = useState(false);
+  const [showReports, setShowReports] = useState(false);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio } = usePOSNotificationSound(orders);
@@ -327,6 +329,16 @@ const POS = () => {
           <Button 
             variant="outline"
             size="sm"
+            onClick={() => setShowReports(true)}
+            className="text-primary border-primary/30 hover:bg-primary/5"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Reports
+          </Button>
+
+          <Button 
+            variant="outline"
+            size="sm"
             onClick={() => setShowEndDay(true)}
             className="text-orange-600 border-orange-300 hover:bg-orange-50"
           >
@@ -473,6 +485,14 @@ const POS = () => {
         activeSession={activeSession}
         todayCashSales={todayCashSales}
       />
+
+      {/* Reports Panel */}
+      {showReports && (
+        <POSReportsPanel
+          locationId={currentLocationId}
+          onClose={() => setShowReports(false)}
+        />
+      )}
     </div>
   );
 };
