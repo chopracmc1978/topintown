@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import heroPizza from '@/assets/hero-pizza.jpg';
+import heroPizza from '@/assets/hero-pizza-steam.png';
 
 const HeroSection = () => {
   return (
@@ -63,7 +63,7 @@ const HeroSection = () => {
               <img 
                 src={heroPizza}
                 alt="Delicious pizza"
-                className="w-full max-w-lg mx-auto rounded-full shadow-2xl animate-float"
+                className="w-full max-w-lg mx-auto rounded-3xl shadow-2xl animate-float"
               />
               {/* Navigation Arrows */}
               <button className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors shadow-lg">
