@@ -1,8 +1,30 @@
 // Polyfill AbortController for older Android WebViews (pre-Chrome 66)
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
 
+import { Capacitor } from "@capacitor/core";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+
+/**
+ * POS Native boot routing
+ *
+ * Capacitor native apps typically start at "/" (or "/index.html").
+ * The POS tablet build must always start at "/pos".
+ */
+function forcePosRouteForNativeBoot() {
+  try {
+    if (!Capacitor.isNativePlatform()) return;
+    const path = window.location.pathname;
+    const isRoot = path === "/" || path.endsWith("/index.html") || path === "/index.html";
+    if (isRoot) {
+      window.history.replaceState({}, "", "/pos");
+    }
+  } catch {
+    // no-op: never block boot
+  }
+}
+
+forcePosRouteForNativeBoot();
 
 type BootIssue = {
   type: "error" | "unhandledrejection";
