@@ -19,8 +19,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     legacy({
-      // Broad but safe target for older WebViews.
-      targets: ["Android >= 7", "Chrome >= 70"],
+      // "nomodule" (legacy) bundle targets.
+      // Keep this quite broad for older embedded WebViews.
+      targets: ["Android >= 5", "Chrome >= 49"],
+
+      // "module" (modern) bundle targets.
+      // IMPORTANT: even on Android 8.1, the System WebView can be old enough to
+      // choke on newer syntax like optional chaining, so we transpile down.
+      modernTargets: ["chrome >= 61", "chromeAndroid >= 61"],
+
       // Smaller output; polyfills included only when needed.
       modernPolyfills: true,
     }),
@@ -30,9 +37,5 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  build: {
-    // Ensure the base bundle is not too new for older WebViews.
-    target: "es2017",
   },
 }));
