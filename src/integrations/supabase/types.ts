@@ -767,6 +767,42 @@ export type Database = {
           },
         ]
       }
+      popup_posters: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          sort_order: number
+          start_date: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          sort_order?: number
+          start_date?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          sort_order?: number
+          start_date?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pos_sessions: {
         Row: {
           cash_sales_total: number | null
