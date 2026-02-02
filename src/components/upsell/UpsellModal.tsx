@@ -139,15 +139,15 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl w-full p-0 bg-card overflow-hidden max-h-[85vh]">
+      <DialogContent className="max-w-3xl w-full p-0 bg-card overflow-hidden max-h-[90vh]">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground px-6 py-4">
+        <div className="bg-primary text-primary-foreground px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-serif text-2xl font-bold">{currentStep?.title}</h2>
-              <p className="text-primary-foreground/80 text-sm">{currentStep?.subtitle}</p>
+              <h2 className="font-serif text-xl font-bold">{currentStep?.title}</h2>
+              <p className="text-primary-foreground/80 text-xs">{currentStep?.subtitle}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {UPSELL_STEPS.map((_, idx) => (
                 <div 
                   key={idx} 
@@ -162,14 +162,14 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
           </div>
         </div>
 
-        {/* Items Grid */}
-        <div className="p-4 overflow-y-auto max-h-[50vh]">
+        {/* Items Grid - Compact Layout */}
+        <div className="p-3 overflow-y-auto max-h-[60vh]">
           {currentItems.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 text-muted-foreground">
               <p>No items available in this category.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {currentItems.map((item) => {
                 const qty = getItemQuantity(item.id);
                 const isSelected = qty > 0;
@@ -178,12 +178,12 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                   <div 
                     key={item.id}
                     className={cn(
-                      "border rounded-lg p-3 transition-all",
+                      "border rounded-lg p-2 transition-all",
                       isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                     )}
                   >
-                    {/* Item Image */}
-                    <div className="aspect-square bg-muted rounded-lg mb-2 overflow-hidden">
+                    {/* Item Image - Smaller */}
+                    <div className="aspect-square bg-muted rounded-md mb-1.5 overflow-hidden">
                       {item.image_url ? (
                         <img 
                           src={item.image_url} 
@@ -192,31 +192,31 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          <span className="text-4xl">🍕</span>
+                          <span className="text-2xl">🍕</span>
                         </div>
                       )}
                     </div>
                     
-                    {/* Item Info */}
-                    <h3 className="font-medium text-sm line-clamp-2 mb-1">{item.name}</h3>
-                    <p className="text-primary font-bold text-sm mb-2">${item.base_price.toFixed(2)}</p>
+                    {/* Item Info - Compact */}
+                    <h3 className="font-medium text-xs line-clamp-2 mb-0.5 leading-tight">{item.name}</h3>
+                    <p className="text-primary font-bold text-xs mb-1.5">${item.base_price.toFixed(2)}</p>
                     
-                    {/* Quantity Controls */}
-                    <div className="flex items-center justify-center gap-2">
+                    {/* Quantity Controls - Smaller */}
+                    <div className="flex items-center justify-center gap-1">
                       {isSelected ? (
                         <>
                           <button
                             onClick={() => updateItemQuantity(item, -1)}
-                            className="w-8 h-8 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
+                            className="w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
                           >
-                            <Minus className="w-4 h-4" />
+                            <Minus className="w-3 h-3" />
                           </button>
-                          <span className="font-bold w-8 text-center">{qty}</span>
+                          <span className="font-bold w-5 text-center text-sm">{qty}</span>
                           <button
                             onClick={() => updateItemQuantity(item, 1)}
-                            className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors"
+                            className="w-6 h-6 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors"
                           >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3 h-3" />
                           </button>
                         </>
                       ) : (
@@ -224,9 +224,9 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                           size="sm"
                           variant="outline"
                           onClick={() => updateItemQuantity(item, 1)}
-                          className="w-full"
+                          className="w-full h-7 text-xs px-2"
                         >
-                          <Plus className="w-4 h-4 mr-1" /> Add
+                          <Plus className="w-3 h-3 mr-0.5" /> Add
                         </Button>
                       )}
                     </div>
