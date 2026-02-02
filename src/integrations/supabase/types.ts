@@ -108,6 +108,9 @@ export type Database = {
           is_active: boolean | null
           max_discount_amount: number | null
           min_order_amount: number | null
+          schedule_dates: number[] | null
+          schedule_days: number[] | null
+          schedule_type: string | null
           show_on_homepage: boolean | null
           starts_at: string | null
           updated_at: string | null
@@ -125,6 +128,9 @@ export type Database = {
           is_active?: boolean | null
           max_discount_amount?: number | null
           min_order_amount?: number | null
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
           show_on_homepage?: boolean | null
           starts_at?: string | null
           updated_at?: string | null
@@ -142,6 +148,9 @@ export type Database = {
           is_active?: boolean | null
           max_discount_amount?: number | null
           min_order_amount?: number | null
+          schedule_dates?: number[] | null
+          schedule_days?: number[] | null
+          schedule_type?: string | null
           show_on_homepage?: boolean | null
           starts_at?: string | null
           updated_at?: string | null

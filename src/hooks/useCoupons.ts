@@ -16,9 +16,33 @@ export interface Coupon {
   starts_at: string;
   expires_at: string | null;
   show_on_homepage: boolean;
+  schedule_type: 'always' | 'days_of_week' | 'dates_of_month';
+  schedule_days: number[] | null;
+  schedule_dates: number[] | null;
   created_at: string;
   updated_at: string;
 }
+
+// Helper function to check if a coupon is valid for today based on schedule
+export const isCouponActiveToday = (coupon: Coupon): boolean => {
+  if (coupon.schedule_type === 'always' || !coupon.schedule_type) {
+    return true;
+  }
+
+  const today = new Date();
+
+  if (coupon.schedule_type === 'days_of_week' && coupon.schedule_days?.length) {
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    return coupon.schedule_days.includes(dayOfWeek);
+  }
+
+  if (coupon.schedule_type === 'dates_of_month' && coupon.schedule_dates?.length) {
+    const dateOfMonth = today.getDate(); // 1-31
+    return coupon.schedule_dates.includes(dateOfMonth);
+  }
+
+  return true;
+};
 
 export const useCoupons = () => {
   return useQuery({
@@ -82,6 +106,11 @@ export const useValidateCoupon = () => {
       // Check usage limit
       if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
         throw new Error('This coupon has reached its usage limit');
+      }
+      
+      // Check schedule validity
+      if (!isCouponActiveToday(coupon)) {
+        throw new Error('This coupon is not valid today');
       }
       
       // Check minimum order amount
