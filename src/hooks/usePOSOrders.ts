@@ -116,7 +116,12 @@ export const usePOSOrders = (locationId?: string) => {
       
       const { data: dbOrders, error: ordersError } = await query.order('created_at', { ascending: false });
 
-      if (ordersError) throw ordersError;
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        setError(ordersError.message);
+        setLoading(false);
+        return; // Don't throw - just return with error state
+      }
 
       if (!dbOrders || dbOrders.length === 0) {
         setOrders([]);
@@ -131,15 +136,18 @@ export const usePOSOrders = (locationId?: string) => {
         .select('*')
         .in('order_id', orderIds);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('Error fetching order items:', itemsError);
+        // Continue without items rather than crashing
+      }
 
       // Group items by order
       const itemsByOrder: Record<string, DBOrderItem[]> = {};
-      (dbItems || []).forEach(item => {
+      ((dbItems || []) as DBOrderItem[]).forEach(item => {
         if (!itemsByOrder[item.order_id]) {
           itemsByOrder[item.order_id] = [];
         }
-        itemsByOrder[item.order_id].push(item as DBOrderItem);
+        itemsByOrder[item.order_id].push(item);
       });
 
       // Convert to frontend format
@@ -151,7 +159,8 @@ export const usePOSOrders = (locationId?: string) => {
       setError(null);
     } catch (err: any) {
       console.error('Error fetching orders:', err);
-      setError(err.message);
+      setError(err?.message || 'Unknown error');
+      // Don't rethrow - prevent crash in native environment
     } finally {
       setLoading(false);
     }

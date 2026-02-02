@@ -37,9 +37,14 @@ const LOCATION_NAMES: Record<string, string> = {
 const POS = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   
-  // Get location from localStorage (set during login)
+  // Get location from localStorage (set during login) - wrapped in try-catch for native safety
   const [currentLocationId, setCurrentLocationId] = useState<string>(() => {
-    return localStorage.getItem('pos_location_id') || 'calgary';
+    try {
+      return localStorage.getItem('pos_location_id') || 'calgary';
+    } catch (e) {
+      console.error('Failed to read location from localStorage:', e);
+      return 'calgary';
+    }
   });
   
   // Pass location to orders hook for filtering
@@ -73,7 +78,7 @@ const POS = () => {
     setupAutoLogout 
   } = usePOSSession(currentLocationId, user?.id);
   
-  // Start session on login if none exists
+  // Start session on login if none exists - wrapped in try-catch for native safety
   useEffect(() => {
     const initSession = async () => {
       try {
@@ -83,6 +88,7 @@ const POS = () => {
         }
       } catch (error) {
         console.error('Failed to initialize POS session:', error);
+        // Don't throw - just log the error to prevent crash
       }
     };
     initSession();
@@ -91,20 +97,32 @@ const POS = () => {
   // Setup auto-logout at 2 AM Mountain Time
   useEffect(() => {
     if (activeSession) {
-      return setupAutoLogout(async () => {
-        // Auto end session with calculated cash
-        const expectedCash = (activeSession?.start_cash || 0) + todayCashSales;
-        await endSession(expectedCash);
-        localStorage.removeItem('pos_location_id');
-        signOut();
-      });
+      try {
+        return setupAutoLogout(async () => {
+          try {
+            // Auto end session with calculated cash
+            const expectedCash = (activeSession?.start_cash || 0) + todayCashSales;
+            await endSession(expectedCash);
+            localStorage.removeItem('pos_location_id');
+            signOut();
+          } catch (error) {
+            console.error('Auto-logout failed:', error);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to setup auto-logout:', error);
+      }
     }
   }, [activeSession, todayCashSales]);
   
   useEffect(() => {
-    const savedLocation = localStorage.getItem('pos_location_id');
-    if (savedLocation && savedLocation !== currentLocationId) {
-      setCurrentLocationId(savedLocation);
+    try {
+      const savedLocation = localStorage.getItem('pos_location_id');
+      if (savedLocation && savedLocation !== currentLocationId) {
+        setCurrentLocationId(savedLocation);
+      }
+    } catch (error) {
+      console.error('Failed to read location from localStorage:', error);
     }
   }, [user]);
 

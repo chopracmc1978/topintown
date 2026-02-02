@@ -39,11 +39,15 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
-      
-      setActiveSession(data as POSSession | null);
+      if (error) {
+        console.error('Error fetching POS session:', error);
+        // Don't throw - just log and continue
+      } else {
+        setActiveSession(data as POSSession | null);
+      }
     } catch (err: any) {
       console.error('Error fetching POS session:', err);
+      // Don't rethrow - prevent crash in native environment
     } finally {
       setLoading(false);
     }
@@ -68,12 +72,17 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
         .eq('payment_status', 'paid')
         .gte('created_at', today.toISOString());
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cash sales:', error);
+        // Don't throw - continue with current value
+        return;
+      }
 
       const total = (data || []).reduce((sum, order) => sum + (order.total || 0), 0);
       setTodayCashSales(total);
     } catch (err: any) {
       console.error('Error fetching cash sales:', err);
+      // Don't rethrow - prevent crash in native environment
     }
   }, [locationId]);
 
