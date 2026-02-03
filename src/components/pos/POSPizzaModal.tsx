@@ -28,6 +28,17 @@ const getExtraToppingPrice = (sizeName: string): number => {
   return 3;
 };
 
+const getExtraCheesePrice = (sizeName: string): number => {
+  if (sizeName.includes('Small')) return 2;
+  if (sizeName.includes('Medium')) return 2.5;
+  return 3;
+};
+
+const getDairyFreePrice = (sizeName: string): number => {
+  if (sizeName.includes('Small')) return 2;
+  return 3;
+};
+
 interface FreeToppingSelection {
   name: string;
   side: Side;
@@ -68,7 +79,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>(editCustomization?.extraToppings || []);
   const [freeToppingSelections, setFreeToppingSelections] = useState<FreeToppingSelection[]>([]);
 
+  // Only show Left/Whole/Right for Large pizza with Regular crust (not Gluten Free)
   const isLargePizza = selectedSize?.name?.includes('Large') || selectedSize?.name?.includes('14"');
+  const isGlutenFree = selectedCrust?.name?.toLowerCase().includes('gluten');
+  const showSideOptions = isLargePizza && !isGlutenFree;
 
   const pizzaDefaultToppings = useMemo(() => {
     return (
@@ -125,15 +139,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     }
   }, [availableCrusts, editCustomization]);
 
+  // Reset side options when size/crust changes and sides are not available
   useEffect(() => {
-    if (!isLargePizza) {
+    if (!showSideOptions) {
       setLeftSpicy('none');
       setRightSpicy('none');
       setDefaultToppings((prev) => prev.map((t) => ({ ...t, side: 'whole' as PizzaSide })));
       setExtraToppings((prev) => prev.map((t) => ({ ...t, side: 'whole' as PizzaSide })));
       setFreeToppingSelections((prev) => prev.map((t) => ({ ...t, side: 'whole' as Side })));
     }
-  }, [isLargePizza]);
+  }, [showSideOptions]);
 
   const availableSauces = allSauces?.filter((s) => s.is_available) || [];
 
@@ -160,11 +175,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     setExtraToppings((prev) => {
       const existing = prev.find((t) => t.id === topping.id);
       if (existing) {
-        // If clicking same side, remove it
         if (existing.side === side) {
           return prev.filter((t) => t.id !== topping.id);
         }
-        // Otherwise update side
         return prev.map((t) => (t.id === topping.id ? { ...t, side } : t));
       }
       const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
@@ -199,22 +212,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const calculatePrice = () => {
     let price = selectedSize?.price || 0;
 
-    if (selectedCrust?.name.toLowerCase().includes('gluten')) {
+    if (isGlutenFree) {
       price += GLUTEN_FREE_PRICE;
     }
 
     if (selectedCheese === 'Dairy Free') {
-      price += selectedSize?.name === 'Small 10"' ? 2 : 3;
+      price += getDairyFreePrice(selectedSize?.name || '');
     }
 
     if (selectedCheese === 'Mozzarella' && cheeseQuantity === 'extra') {
-      if (selectedSize?.name?.includes('Small')) {
-        price += 2;
-      } else if (selectedSize?.name?.includes('Medium')) {
-        price += 2.5;
-      } else {
-        price += 3;
-      }
+      price += getExtraCheesePrice(selectedSize?.name || '');
     }
 
     const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
@@ -261,7 +268,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         sauceName,
         sauceQuantity: sauceQuantity === 'extra' ? 'extra' : 'normal',
         freeToppings: freeToppingSelections.map(
-          (f) => `${f.name}${isLargePizza && f.side !== 'whole' ? ` (${f.side})` : ''}`
+          (f) => `${f.name}${showSideOptions && f.side !== 'whole' ? ` (${f.side})` : ''}`
         ),
         spicyLevel: spicyLevelObj,
         defaultToppings,
@@ -277,12 +284,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   };
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
+  const extraCheesePrice = getExtraCheesePrice(selectedSize?.name || '');
+  const dairyFreePrice = getDairyFreePrice(selectedSize?.name || '');
 
   // Button styles with explicit hex colors for Android WebView
-  const btn = 'px-2 py-0.5 text-[11px] rounded border font-medium transition-colors cursor-pointer';
+  const btn = 'px-2.5 py-1 text-xs rounded border font-medium transition-colors cursor-pointer';
   const btnActive = 'border-[#1a8ccc] bg-[#1a8ccc] text-white';
   const btnInactive = 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700';
-  const btnSmall = 'px-1.5 py-0.5 text-[10px] rounded border font-medium cursor-pointer';
+  const btnSelected = 'border-[#1a8ccc] text-[#1a8ccc] bg-white font-semibold';
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -299,18 +308,44 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <button
                   key={size.id}
                   onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
-                  className={cn(btn, selectedSize?.id === size.id ? btnActive : btnInactive)}
+                  className={cn(
+                    'px-3 py-1 rounded border text-xs font-medium flex flex-col items-center',
+                    selectedSize?.id === size.id ? btnActive : btnInactive
+                  )}
                 >
-                  <div className="text-center">
-                    <div>{size.name}</div>
-                    <div className="text-[10px]">${size.price.toFixed(2)}</div>
-                  </div>
+                  <span>{size.name}</span>
+                  <span>${size.price.toFixed(2)}</span>
                 </button>
               ))}
             </div>
             <span className="text-xs text-gray-500">Crust</span>
-            <div className="flex-1 border rounded px-3 py-1 text-sm bg-white">
-              {selectedCrust?.name || 'Regular'}
+            <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 border rounded px-3 py-1.5 text-sm bg-white text-center">
+                {selectedCrust?.name || 'Regular'}
+              </div>
+              {availableCrusts.length > 1 && availableCrusts.map((crust) => {
+                if (crust.name.toLowerCase().includes('regular')) return null;
+                return (
+                  <button
+                    key={crust.id}
+                    onClick={() => setSelectedCrust(crust)}
+                    className={cn(btn, selectedCrust?.id === crust.id ? btnActive : btnInactive)}
+                  >
+                    {crust.name} +${GLUTEN_FREE_PRICE}
+                  </button>
+                );
+              })}
+              {availableCrusts.length > 1 && selectedCrust && !selectedCrust.name.toLowerCase().includes('regular') && (
+                <button
+                  onClick={() => {
+                    const regular = availableCrusts.find((c) => c.name.toLowerCase().includes('regular'));
+                    if (regular) setSelectedCrust(regular);
+                  }}
+                  className={cn(btn, btnInactive)}
+                >
+                  Regular
+                </button>
+              )}
             </div>
             <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
               <X className="w-5 h-5 text-gray-500" />
@@ -318,43 +353,47 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           </div>
 
           {/* Row 2: Cheese + Spicy Level */}
-          <div className="flex items-center gap-4 px-4 py-1.5 border-b bg-white flex-wrap">
+          <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-white flex-wrap">
             <span className="text-xs text-gray-600">Cheese</span>
-            <div className="flex gap-1">
-              {['None', 'Mozz', 'Dairy Free +$3'].map((label, idx) => {
-                const val = idx === 0 ? 'No Cheese' : idx === 1 ? 'Mozzarella' : 'Dairy Free';
-                return (
-                  <button
-                    key={val}
-                    onClick={() => {
-                      setSelectedCheese(val);
-                      if (val !== 'Mozzarella') setCheeseQuantity('normal');
-                    }}
-                    className={cn(btn, selectedCheese === val ? btnActive : btnInactive)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex gap-1">
-              {['Less', 'Norm', 'Extra +$3'].map((label) => {
-                const qty = label.startsWith('Less') ? 'less' : label.startsWith('Norm') ? 'normal' : 'extra';
-                return (
-                  <button
-                    key={label}
-                    onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity(qty as any)}
-                    disabled={selectedCheese === 'No Cheese'}
-                    className={cn(
-                      btn,
-                      selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === qty ? btnActive : btnInactive
-                    )}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+            <button
+              onClick={() => { setSelectedCheese('No Cheese'); setCheeseQuantity('normal'); }}
+              className={cn(btn, selectedCheese === 'No Cheese' ? btnActive : btnInactive)}
+            >
+              None
+            </button>
+            <button
+              onClick={() => setSelectedCheese('Mozzarella')}
+              className={cn(btn, selectedCheese === 'Mozzarella' ? btnActive : btnInactive)}
+            >
+              Mozz
+            </button>
+            <button
+              onClick={() => { setSelectedCheese('Dairy Free'); setCheeseQuantity('normal'); }}
+              className={cn(btn, selectedCheese === 'Dairy Free' ? btnActive : btnInactive)}
+            >
+              Dairy Free +${dairyFreePrice}
+            </button>
+            <button
+              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('less')}
+              disabled={selectedCheese === 'No Cheese'}
+              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'less' ? btnActive : btnInactive)}
+            >
+              Less
+            </button>
+            <button
+              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('normal')}
+              disabled={selectedCheese === 'No Cheese'}
+              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'normal' ? btnActive : btnInactive)}
+            >
+              Norm
+            </button>
+            <button
+              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('extra')}
+              disabled={selectedCheese === 'No Cheese'}
+              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'extra' ? btnActive : btnInactive)}
+            >
+              Extra +${extraCheesePrice}
+            </button>
 
             <span className="text-xs text-gray-600 ml-4">Spicy Level</span>
             <button
@@ -364,69 +403,96 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               None
             </button>
             <span className="text-xs text-gray-600">Med Hot</span>
-            <div className="flex gap-0.5">
-              {(['left', 'whole', 'right'] as Side[]).map((side) => {
-                const isWholeM = leftSpicy === 'medium' && rightSpicy === 'medium';
-                const isActiveM = side === 'whole' ? isWholeM : side === 'left' ? leftSpicy === 'medium' && !isWholeM : rightSpicy === 'medium' && !isWholeM;
-                return (
-                  <button
-                    key={side}
-                    onClick={() => {
-                      if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
-                      else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
-                      else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
-                    }}
-                    className={cn(btnSmall, isActiveM ? btnActive : btnInactive)}
-                  >
-                    {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                  </button>
-                );
-              })}
-            </div>
+            {showSideOptions ? (
+              <>
+                {(['left', 'whole', 'right'] as Side[]).map((side) => {
+                  const isWholeM = leftSpicy === 'medium' && rightSpicy === 'medium';
+                  const isActiveM = side === 'whole' ? isWholeM : side === 'left' ? leftSpicy === 'medium' && !isWholeM : rightSpicy === 'medium' && !isWholeM;
+                  return (
+                    <button
+                      key={side}
+                      onClick={() => {
+                        if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
+                        else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
+                        else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
+                      }}
+                      className={cn(btn, isActiveM ? btnActive : btnInactive)}
+                    >
+                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                    </button>
+                  );
+                })}
+              </>
+            ) : (
+              <button
+                onClick={() => { setLeftSpicy('medium'); setRightSpicy('medium'); }}
+                className={cn(btn, leftSpicy === 'medium' ? btnActive : btnInactive)}
+              >
+                Whole
+              </button>
+            )}
             <span className="text-xs text-gray-600">Hot</span>
-            <div className="flex gap-0.5">
-              {(['left', 'whole', 'right'] as Side[]).map((side) => {
-                const isWholeH = leftSpicy === 'hot' && rightSpicy === 'hot';
-                const isActiveH = side === 'whole' ? isWholeH : side === 'left' ? leftSpicy === 'hot' && !isWholeH : rightSpicy === 'hot' && !isWholeH;
-                return (
-                  <button
-                    key={side}
-                    onClick={() => {
-                      if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
-                      else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
-                      else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
-                    }}
-                    className={cn(btnSmall, isActiveH ? btnActive : btnInactive)}
-                  >
-                    {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                  </button>
-                );
-              })}
-            </div>
+            {showSideOptions ? (
+              <>
+                {(['left', 'whole', 'right'] as Side[]).map((side) => {
+                  const isWholeH = leftSpicy === 'hot' && rightSpicy === 'hot';
+                  const isActiveH = side === 'whole' ? isWholeH : side === 'left' ? leftSpicy === 'hot' && !isWholeH : rightSpicy === 'hot' && !isWholeH;
+                  return (
+                    <button
+                      key={side}
+                      onClick={() => {
+                        if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
+                        else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
+                        else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
+                      }}
+                      className={cn(btn, isActiveH ? btnActive : btnInactive)}
+                    >
+                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                    </button>
+                  );
+                })}
+              </>
+            ) : (
+              <button
+                onClick={() => { setLeftSpicy('hot'); setRightSpicy('hot'); }}
+                className={cn(btn, leftSpicy === 'hot' ? btnActive : btnInactive)}
+              >
+                Whole
+              </button>
+            )}
           </div>
 
           {/* Row 3: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-1.5 border-b bg-white flex-wrap">
+            <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-white flex-wrap">
               <span className="text-xs text-gray-600">Free Add-ons</span>
               {freeToppings.map((topping) => {
                 const sel = freeToppingSelections.find((f) => f.name === topping.name);
                 return (
-                  <div key={topping.id} className="flex items-center gap-0.5">
+                  <div key={topping.id} className="flex items-center gap-1">
                     <span className={cn('text-xs font-medium', sel ? 'text-[#1a8ccc]' : 'text-gray-700')}>
                       {topping.name}
                     </span>
-                    <div className="flex gap-0.5">
-                      {(['left', 'whole', 'right'] as Side[]).map((side) => (
-                        <button
-                          key={side}
-                          onClick={() => toggleFreeTopping(topping.name, side)}
-                          className={cn(btnSmall, sel?.side === side ? btnActive : btnInactive)}
-                        >
-                          {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                        </button>
-                      ))}
-                    </div>
+                    {showSideOptions ? (
+                      <>
+                        {(['left', 'whole', 'right'] as Side[]).map((side) => (
+                          <button
+                            key={side}
+                            onClick={() => toggleFreeTopping(topping.name, side)}
+                            className={cn(btn, sel?.side === side ? btnActive : btnInactive)}
+                          >
+                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                          </button>
+                        ))}
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => toggleFreeTopping(topping.name, 'whole')}
+                        className={cn(btn, sel?.side === 'whole' ? btnActive : btnInactive)}
+                      >
+                        Whole
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -438,7 +504,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <span className="text-xs text-gray-600">Sauce</span>
             <button
               onClick={() => setSelectedSauceId(null)}
-              className={cn(btn, !selectedSauceId ? 'text-[#1a8ccc] font-semibold border-[#1a8ccc]' : btnInactive)}
+              className={cn(btn, !selectedSauceId ? btnSelected : btnInactive)}
             >
               No Sauce
             </button>
@@ -446,20 +512,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <button
                 key={sauce.id}
                 onClick={() => setSelectedSauceId(sauce.id)}
-                className={cn(btn, selectedSauceId === sauce.id ? 'text-[#1a8ccc] font-semibold border-[#1a8ccc]' : btnInactive)}
+                className={cn(btn, selectedSauceId === sauce.id ? btnSelected : btnInactive)}
               >
                 {sauce.name}
               </button>
             ))}
-            <div className="flex gap-1 ml-4">
+            <div className="flex gap-1 ml-2">
               {['Less', 'Reg', 'Extra'].map((label) => {
                 const qty = label === 'Less' ? 'less' : label === 'Reg' ? 'normal' : 'extra';
                 return (
                   <button
                     key={label}
-                    onClick={() => selectedSauceId && setSauceQuantity(qty as any)}
-                    disabled={!selectedSauceId}
-                    className={cn(btn, !selectedSauceId ? 'opacity-40' : sauceQuantity === qty ? btnActive : btnInactive)}
+                    onClick={() => setSauceQuantity(qty as any)}
+                    className={cn(btn, sauceQuantity === qty ? btnActive : btnInactive)}
                   >
                     {label}
                   </button>
@@ -480,17 +545,17 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       <span className="text-sm font-medium text-gray-800">{topping.name}</span>
                     </div>
                     <div className="flex">
-                      {(['less', 'regular', 'extra'] as ToppingQuantity[]).map((qty) => (
+                      {(['less', 'regular', 'extra'] as ToppingQuantity[]).map((qty, idx) => (
                         <button
                           key={qty}
                           onClick={() => updateDefaultToppingQuantity(topping.id, qty)}
                           className={cn(
                             'flex-1 py-1 text-xs border font-medium transition-colors',
-                            qty === 'less' && 'rounded-l-md border-r-0',
-                            qty === 'extra' && 'rounded-r-md border-l-0',
-                            qty === 'regular' && 'border-x',
+                            idx === 0 && 'rounded-l-md border-r-0',
+                            idx === 2 && 'rounded-r-md border-l-0',
+                            idx === 1 && '',
                             topping.quantity === qty 
-                              ? 'border-[#1a8ccc] bg-[#1a8ccc]/10 text-[#1a8ccc]' 
+                              ? 'border-[#1a8ccc] bg-[#1a8ccc] text-white' 
                               : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                           )}
                         >
@@ -498,19 +563,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         </button>
                       ))}
                     </div>
-                    {isLargePizza && (
+                    {showSideOptions && (
                       <div className="flex mt-1">
-                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
+                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side, idx) => (
                           <button
                             key={side}
                             onClick={() => updateDefaultToppingSide(topping.id, side)}
                             className={cn(
                               'flex-1 py-1 text-xs border font-medium transition-colors',
-                              side === 'left' && 'rounded-l-md border-r-0',
-                              side === 'right' && 'rounded-r-md border-l-0',
-                              side === 'whole' && 'border-x',
+                              idx === 0 && 'rounded-l-md border-r-0',
+                              idx === 2 && 'rounded-r-md border-l-0',
+                              idx === 1 && '',
                               topping.side === side 
-                                ? 'border-[#1a8ccc] bg-[#1a8ccc]/10 text-[#1a8ccc]' 
+                                ? 'border-[#1a8ccc] bg-[#1a8ccc] text-white' 
                                 : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                             )}
                           >
@@ -527,7 +592,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Extra Toppings Section */}
           <div className="px-4 py-2 flex-1 overflow-auto bg-white">
-            <h3 className="text-xs font-semibold text-gray-700 mb-2">
+            <h3 className="text-xs text-gray-600 mb-2">
               Extra <span className="text-gray-500">(+${extraToppingPrice.toFixed(2)})</span>
             </h3>
             <div className="grid grid-cols-4 gap-x-4 gap-y-1">
@@ -539,17 +604,26 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     <span className={cn('text-xs flex-1 min-w-0', sel ? 'font-medium text-gray-900' : 'text-gray-700')}>
                       {topping.name}
                     </span>
-                    <div className="flex gap-0.5 flex-shrink-0">
-                      {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
-                        <button
-                          key={side}
-                          onClick={() => toggleExtraTopping(topping, side)}
-                          className={cn(btnSmall, sel?.side === side ? btnActive : btnInactive)}
-                        >
-                          {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                        </button>
-                      ))}
-                    </div>
+                    {showSideOptions ? (
+                      <div className="flex gap-0.5 flex-shrink-0">
+                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
+                          <button
+                            key={side}
+                            onClick={() => toggleExtraTopping(topping, side)}
+                            className={cn(btn, 'px-2 py-0.5 text-[11px]', sel?.side === side ? btnActive : btnInactive)}
+                          >
+                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => toggleExtraTopping(topping, 'whole')}
+                        className={cn(btn, 'px-3 py-0.5 text-[11px]', sel?.side === 'whole' ? btnActive : btnInactive)}
+                      >
+                        Whole
+                      </button>
+                    )}
                   </div>
                 );
               })}
