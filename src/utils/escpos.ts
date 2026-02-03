@@ -114,8 +114,8 @@ export const buildKitchenTicket = (order: {
   for (const item of order.items) {
     receipt += BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + LF;
     
-    // Show size for non-pizza items
-    if (item.selectedSize && !item.pizzaCustomization) {
+    // Show size for non-pizza items (excluding combos)
+    if (item.selectedSize && !item.pizzaCustomization && !(item as any).comboCustomization) {
       receipt += `   ${item.selectedSize}${LF}`;
     }
     
@@ -127,11 +127,11 @@ export const buildKitchenTicket = (order: {
       }
     }
     
-    // Combo customization details - show each selection with pizza details
+    // Combo customization details - show each selection with full details
     if ((item as any).comboCustomization) {
       const combo = (item as any).comboCustomization;
-      for (const selection of combo.selections) {
-        // Print each combo item
+      for (const selection of (combo.selections || [])) {
+        // Print each combo item with item type indication
         let selectionLine = `   - ${selection.itemName}`;
         if (selection.flavor) {
           selectionLine += ` (${selection.flavor})`;

@@ -189,7 +189,8 @@ const MyOrders = () => {
                         {order.items.slice(0, 3).map((item) => {
                           const customizations = item.customizations;
                           const hasPizzaCustomization = customizations?.size || customizations?.crust;
-                          const hasWingsCustomization = customizations?.flavor;
+                          const hasWingsCustomization = customizations?.flavor && !customizations?.comboId;
+                          const hasComboCustomization = customizations?.comboId || customizations?.selections;
                           
                           return (
                             <div key={item.id} className="text-sm">
@@ -200,8 +201,54 @@ const MyOrders = () => {
                                 <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
                               </div>
                               
-                              {/* Pizza Customization Details */}
-                              {hasPizzaCustomization && (
+                              {/* Combo Customization Details */}
+                              {hasComboCustomization && customizations.selections && (
+                                <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-2">
+                                  {customizations.selections.map((selection: any, idx: number) => (
+                                    <div key={idx} className="border-l-2 border-border pl-2">
+                                      <p className="font-medium text-foreground">
+                                        {selection.itemName}
+                                        {selection.flavor && <span className="text-muted-foreground"> - {selection.flavor}</span>}
+                                      </p>
+                                      
+                                      {/* Pizza customization within combo */}
+                                      {selection.pizzaCustomization && (
+                                        <div className="mt-0.5 space-y-0.5">
+                                          {/* Size & Crust */}
+                                          <p>
+                                            {selection.pizzaCustomization.size?.name || ''}{selection.pizzaCustomization.crust?.name ? `, ${selection.pizzaCustomization.crust.name}` : ''}
+                                          </p>
+                                          
+                                          {/* Spicy Level */}
+                                          {selection.pizzaCustomization.spicyLevel && (
+                                            <>
+                                              {typeof selection.pizzaCustomization.spicyLevel === 'string' && selection.pizzaCustomization.spicyLevel !== 'none' && (
+                                                <p>Spicy: {selection.pizzaCustomization.spicyLevel === 'medium' ? 'Medium Hot' : selection.pizzaCustomization.spicyLevel}</p>
+                                              )}
+                                              {typeof selection.pizzaCustomization.spicyLevel === 'object' && (selection.pizzaCustomization.spicyLevel.left !== 'none' || selection.pizzaCustomization.spicyLevel.right !== 'none') && (
+                                                <p>Spicy: {selection.pizzaCustomization.spicyLevel.left !== 'none' ? `L:${selection.pizzaCustomization.spicyLevel.left === 'medium' ? 'Med' : selection.pizzaCustomization.spicyLevel.left}` : ''} {selection.pizzaCustomization.spicyLevel.right !== 'none' ? `R:${selection.pizzaCustomization.spicyLevel.right === 'medium' ? 'Med' : selection.pizzaCustomization.spicyLevel.right}` : ''}</p>
+                                              )}
+                                            </>
+                                          )}
+                                          
+                                          {/* Extra Toppings */}
+                                          {selection.pizzaCustomization.extraToppings?.length > 0 && (
+                                            <p>+{selection.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                                          )}
+                                          
+                                          {/* Removed Default Toppings */}
+                                          {selection.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
+                                            <p>NO: {selection.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Pizza Customization Details (standalone) */}
+                              {hasPizzaCustomization && !hasComboCustomization && (
                                 <div className="mt-1 ml-4 text-xs text-muted-foreground space-y-0.5">
                                   {/* Size & Crust */}
                                   <p>

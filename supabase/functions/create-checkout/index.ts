@@ -61,6 +61,25 @@ const compressPizzaCustomization = (pc: any) => {
   return compressed;
 };
 
+// Compress combo customization to minimal keys
+const compressComboCustomization = (cc: any) => {
+  if (!cc) return null;
+  
+  return {
+    ci: cc.comboId,
+    cn: cc.comboName,
+    bp: cc.comboBasePrice,
+    te: cc.totalExtraCharge,
+    sl: cc.selections?.map((s: any) => ({
+      it: s.itemType,
+      in: s.itemName,
+      fl: s.flavor || undefined,
+      pc: s.pizzaCustomization ? compressPizzaCustomization(s.pizzaCustomization) : undefined,
+      ec: s.extraCharge || 0,
+    })) || [],
+  };
+};
+
 // Decompress back to full format (used by finalize-order)
 export const decompressPizzaCustomization = (c: any) => {
   if (!c) return null;
@@ -162,6 +181,8 @@ serve(async (req) => {
       pc: compressPizzaCustomization(item.pizzaCustomization),
       // Wings customization is already small
       wc: item.wingsCustomization ? { f: item.wingsCustomization.flavor, oi: item.wingsCustomization.originalItemId } : null,
+      // Combo customization - compress it
+      cc: compressComboCustomization(item.comboCustomization),
     }));
 
     // Split items into chunks that fit within 500 char limit
