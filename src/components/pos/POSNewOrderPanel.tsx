@@ -559,7 +559,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                         <button
                           key={item.id}
                           onClick={() => handleItemClick(item)}
-                          className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30 h-[76px] flex flex-col justify-between"
+                          className="p-1.5 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30 h-[66px] flex flex-col justify-between"
                         >
                           <p className="font-medium text-[11px] uppercase line-clamp-3 leading-tight">{displayName}</p>
                           <p className="text-xs text-primary font-bold mt-0.5">
