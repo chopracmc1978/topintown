@@ -160,12 +160,19 @@ serve(async (req) => {
       } else if (chunk._wc !== undefined) {
         // This is a wings customization chunk
         customizationChunks.push(chunk);
+      } else if (chunk._cc !== undefined || chunk._ccp !== undefined) {
+        // This is a combo customization chunk
+        customizationChunks.push(chunk);
+        console.log("Found combo chunk:", JSON.stringify(chunk).substring(0, 100));
       } else if (chunk.ci !== undefined) {
         // This is a basic item with customization index reference
-        itemsMap.set(chunk.ci, { ...chunk, pc: null, wc: null });
+        itemsMap.set(chunk.ci, { ...chunk, pc: null, wc: null, cc: null });
       } else {
-        // Regular complete item
+        // Regular complete item (may have cc directly)
         itemsMap.set(itemsMap.size, chunk);
+        if (chunk.cc) {
+          console.log("Item has direct combo:", chunk.n);
+        }
       }
     }
     
@@ -180,10 +187,19 @@ serve(async (req) => {
         if (cc._wc) {
           item.wc = cc._wc;
         }
+        if (cc._cc) {
+          item.cc = cc._cc;
+          console.log("Applied combo customization to item", itemIdx);
+        }
         // Handle split pizza customization parts
         if (cc._pcp !== undefined) {
           if (!item._pcParts) item._pcParts = [];
           item._pcParts[cc._pcp] = cc;
+        }
+        // Handle split combo customization parts
+        if (cc._ccp !== undefined) {
+          if (!item._ccParts) item._ccParts = [];
+          item._ccParts[cc._ccp] = cc;
         }
       }
     }
@@ -200,6 +216,19 @@ serve(async (req) => {
         }
         item.pc = merged;
         delete item._pcParts;
+      }
+      // Merge split combo parts
+      if (item._ccParts) {
+        const merged: any = {};
+        for (const part of item._ccParts) {
+          if (part) {
+            const { _ccp, _cct, _ci, ...rest } = part;
+            Object.assign(merged, rest);
+          }
+        }
+        item.cc = merged;
+        delete item._ccParts;
+        console.log("Merged combo parts for item", idx);
       }
     }
     
