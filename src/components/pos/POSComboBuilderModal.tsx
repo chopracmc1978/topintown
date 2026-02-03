@@ -291,7 +291,8 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
   return (
     <>
       <Dialog open={isOpen && !pizzaModalItem && !wingsModalItem} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+        {/* Fixed width/height so modal size never changes between categories */}
+        <DialogContent className="w-[95vw] h-[90vh] max-w-none overflow-hidden flex flex-col p-0 gap-0">
           {/* Header - Compact */}
           <div className="flex items-center justify-between px-3 py-2 border-b bg-secondary/30">
             <div>
@@ -300,9 +301,6 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                 ${combo.price.toFixed(2)} {totalExtraCharge > 0 && `+ $${totalExtraCharge.toFixed(2)} extras`}
               </p>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Step Indicator - Ultra Compact */}
