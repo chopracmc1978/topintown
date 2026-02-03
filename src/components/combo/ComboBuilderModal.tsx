@@ -426,47 +426,60 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
 
           {/* Items Grid */}
           <div className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-2">
-              {availableItems.map((item) => {
-                const isSelected = currentStepSelections.some(
-                  s => s.menuItem?.id === item.id || s.cartItem?.pizzaCustomization?.originalItemId === item.id
-                );
-                const canSelect = currentStepSelections.length < requiredCount;
+            {/* For pizzas, require subcategory selection first */}
+            {currentComboItem?.item_type === 'pizza' && !selectedSubcategory ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Pizza className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-lg font-medium text-muted-foreground mb-2">
+                  Select a pizza category above
+                </p>
+                <p className="text-sm text-muted-foreground/70">
+                  Choose Vegetarian, Paneer, Chicken, Meat, or Hawaiian to see available pizzas
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-2">
+                {availableItems.map((item) => {
+                  const isSelected = currentStepSelections.some(
+                    s => s.menuItem?.id === item.id || s.cartItem?.pizzaCustomization?.originalItemId === item.id
+                  );
+                  const canSelect = currentStepSelections.length < requiredCount;
 
-                return (
-                  <button
-                    key={item.id}
-                    disabled={!canSelect && !isSelected}
-                    onClick={() => {
-                      if (currentComboItem?.item_type === 'pizza') {
-                        handlePizzaSelect(item);
-                      } else if (currentComboItem?.item_type === 'wings') {
-                        handleWingsSelect(item);
-                      } else {
-                        handleSimpleSelect(item);
-                      }
-                    }}
-                    className={cn(
-                      "p-3 rounded-lg border-2 text-left transition-all",
-                      "hover:border-primary/50",
-                      !canSelect && !isSelected && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {item.image_url && (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-full h-20 object-cover rounded mb-2"
-                      />
-                    )}
-                    <p className="font-medium text-sm leading-tight line-clamp-2">{item.name}</p>
-                    {currentComboItem?.is_chargeable && (
-                      <p className="text-xs text-primary">+${item.base_price.toFixed(2)}</p>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <button
+                      key={item.id}
+                      disabled={!canSelect && !isSelected}
+                      onClick={() => {
+                        if (currentComboItem?.item_type === 'pizza') {
+                          handlePizzaSelect(item);
+                        } else if (currentComboItem?.item_type === 'wings') {
+                          handleWingsSelect(item);
+                        } else {
+                          handleSimpleSelect(item);
+                        }
+                      }}
+                      className={cn(
+                        "p-3 rounded-lg border-2 text-left transition-all",
+                        "hover:border-primary/50",
+                        !canSelect && !isSelected && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      {item.image_url && (
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="w-full h-20 object-cover rounded mb-2"
+                        />
+                      )}
+                      <p className="font-medium text-sm leading-tight line-clamp-2">{item.name}</p>
+                      {currentComboItem?.is_chargeable && (
+                        <p className="text-xs text-primary">+${item.base_price.toFixed(2)}</p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Selected Items for Current Step */}
             {currentStepSelections.length > 0 && (
