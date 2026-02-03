@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCart } from '@/contexts/CartContext';
 import { useLocation as useLocationContext } from '@/contexts/LocationContext';
 import { useCustomer } from '@/contexts/CustomerContext';
@@ -315,9 +314,6 @@ const Checkout = () => {
   const [showAuthOptions, setShowAuthOptions] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
-  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const placeOrderLock = useRef(false);
   
   // Coupon state
@@ -389,21 +385,7 @@ const Checkout = () => {
 
   const locationStatus = checkIfOpen();
 
-  const openPayment = () => {
-    if (!checkoutUrl) return;
-    const w = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-    if (!w) {
-      toast.error('Popups are blocked. Please allow popups, then tap Open Payment again.');
-    }
-  };
-
   const handleCheckoutClick = () => {
-    // If we already created a checkout session, show the payment dialog again.
-    if (checkoutUrl) {
-      setShowPaymentDialog(true);
-      return;
-    }
-
     if (items.length === 0) {
       toast.error('Your cart is empty!');
       return;
@@ -495,13 +477,9 @@ const Checkout = () => {
         throw new Error('No checkout URL returned');
       }
 
-      setCheckoutUrl(data.url);
-      setCheckoutSessionId(data.sessionId || null);
-      setShowPaymentDialog(true);
-
-      // Don't clear cart here; clear it only after successful payment on the confirmation page.
-      setPlacingOrder(false);
-      placeOrderLock.current = false;
+      // Redirect directly to secure payment (same-tab).
+      // Cart/checkout state stays saved until the confirmation page verifies payment.
+      window.location.assign(data.url);
       
     } catch (error: any) {
       console.error('Error placing order:', error);
@@ -796,28 +774,6 @@ const Checkout = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Payment Link Dialog */}
-      <Dialog open={showPaymentDialog && !!checkoutUrl} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Complete Your Payment</DialogTitle>
-            <DialogDescription>
-              Click the button below to open secure payment. After paying, you'll be automatically redirected to your order confirmation.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 py-2">
-            <Button variant="pizza" className="w-full text-lg py-6" onClick={openPayment}>
-              Pay Now
-            </Button>
-
-            <p className="text-xs text-muted-foreground text-center">
-              If nothing opens, please allow popups in your browser and try again.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
