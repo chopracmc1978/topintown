@@ -347,14 +347,13 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
 
           {/* Subcategory Filter for Pizzas - Inline */}
           {currentComboItem?.item_type === 'pizza' && (
-            <div className="flex flex-wrap justify-center gap-1 py-1.5 px-3 border-b">
+            <div className="flex flex-wrap justify-center gap-2 py-2 px-3 border-b">
               {PIZZA_SUBCATEGORIES.map(({ label, value }) => (
                 <Button
                   key={value}
                   variant={selectedSubcategory === value ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setSelectedSubcategory(selectedSubcategory === value ? null : value)}
-                  className="h-6 text-xs px-2.5 rounded-full"
+                  className="h-9 text-sm px-5 rounded-full font-medium"
                 >
                   {label}
                 </Button>
