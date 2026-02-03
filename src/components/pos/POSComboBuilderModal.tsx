@@ -388,13 +388,13 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         else handleSimpleSelect(item);
                       }}
                       className={cn(
-                        "p-2 rounded border text-left transition-all bg-secondary/30 h-[52px] flex flex-col justify-between",
+                        "p-2 rounded border text-left transition-all bg-secondary/30 min-h-[65px] flex flex-col justify-between",
                         canSelect && "hover:border-primary/50 hover:bg-secondary",
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <p className="font-medium text-[11px] uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
+                      <p className="font-medium text-xs uppercase leading-tight">{item.name}</p>
+                      <p className="text-sm text-primary font-bold mt-1">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
                     </button>
                   );
                 })}
