@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History } from 'lucide-react';
+import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
-import { CartItem, OrderType, OrderSource, CartPizzaCustomization, Order } from '@/types/menu';
+import { useActiveCombos, Combo } from '@/hooks/useCombos';
+import { CartItem, OrderType, OrderSource, CartPizzaCustomization, CartComboCustomization, ComboSelectionItem, Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
 import { POSWingsModal } from '@/components/pos/POSWingsModal';
 import { POSOrderHistoryDropdown } from '@/components/pos/POSOrderHistoryDropdown';
+import { POSComboBuilderModal } from '@/components/pos/POSComboBuilderModal';
 import { useCustomerLookup } from '@/hooks/useCustomerLookup';
 import { toast } from 'sonner';
 
@@ -130,6 +132,7 @@ interface POSNewOrderPanelProps {
 }
 
 const categories = [
+  { id: 'combos', label: 'Combos' },
   { id: 'pizza', label: 'Pizzas' },
   { id: 'chicken_wings', label: 'Chicken Wings' },
   { id: 'baked_lasagna', label: 'Baked Lasagna' },
@@ -151,7 +154,8 @@ const CUSTOMIZABLE_CATEGORIES = ['pizza', 'chicken_wings'];
 export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpdateOrder }: POSNewOrderPanelProps) => {
   const isEditMode = !!editingOrder;
   const { data: menuItems = [], isLoading } = useMenuItems();
-  const [activeCategory, setActiveCategory] = useState<string>('pizza');
+  const { data: activeCombos = [], isLoading: isCombosLoading } = useActiveCombos();
+  const [activeCategory, setActiveCategory] = useState<string>('combos');
   const [activeSubcategory, setActiveSubcategory] = useState<string>('vegetarian');
   const [searchQuery, setSearchQuery] = useState('');
   // Initialize cart with editing order's items or empty
@@ -160,6 +164,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   // Customization modal state
   const [selectedPizzaItem, setSelectedPizzaItem] = useState<MenuItem | null>(null);
   const [selectedWingsItem, setSelectedWingsItem] = useState<MenuItem | null>(null);
+  const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null);
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
   
@@ -316,6 +321,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
     setSelectedWingsItem(null);
     setEditingCartItem(null);
     setEditingCartIndex(null);
+  };
+
+  // Handle combo added from modal
+  const handleComboAdded = (comboItem: CartItem) => {
+    setCartItems(prev => [...prev, comboItem]);
+    setSelectedCombo(null);
   };
 
   const handleEditItem = (item: CartItem, index: number) => {
@@ -497,28 +508,59 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Menu Items Grid - 5 columns, ultra-compact cards to fit all without scroll */}
             <div className="flex-1 p-2 overflow-hidden">
-              {isLoading ? (
-                <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
-              ) : filteredItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
+              {activeCategory === 'combos' ? (
+                // Combos Grid
+                isCombosLoading ? (
+                  <div className="text-center py-8 text-muted-foreground text-lg">Loading combos...</div>
+                ) : activeCombos.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-lg">No active combos</div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 auto-rows-min">
+                    {activeCombos.map(combo => (
+                      <button
+                        key={combo.id}
+                        onClick={() => setSelectedCombo(combo)}
+                        className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg text-left hover:from-primary/20 hover:to-primary/10 transition-colors border-l-4 border-primary"
+                      >
+                        <div className="flex items-start gap-2">
+                          <Gift className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold text-sm line-clamp-2 leading-tight">{combo.name}</p>
+                            {combo.description && (
+                              <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">{combo.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-primary font-bold mt-1.5">${combo.price.toFixed(2)}</p>
+                      </button>
+                    ))}
+                  </div>
+                )
               ) : (
-                <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
-                  {filteredItems.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item)}
-                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
-                    >
-                      <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold mt-0.5">
-                        ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
-                        {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
-                        )}
-                      </p>
-                    </button>
-                  ))}
-                </div>
+                // Regular Menu Items Grid
+                isLoading ? (
+                  <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
+                ) : filteredItems.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
+                ) : (
+                  <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
+                    {filteredItems.map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(item)}
+                        className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
+                      >
+                        <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
+                        <p className="text-xs text-primary font-bold mt-0.5">
+                          ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
+                          {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
+                            <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
+                          )}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -705,6 +747,16 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             setEditingCartIndex(null);
           }}
           editingItem={editingCartItem}
+        />
+      )}
+
+      {/* Combo Builder Modal */}
+      {selectedCombo && (
+        <POSComboBuilderModal
+          combo={selectedCombo}
+          isOpen={!!selectedCombo}
+          onClose={() => setSelectedCombo(null)}
+          onComboAdded={handleComboAdded}
         />
       )}
     </>
