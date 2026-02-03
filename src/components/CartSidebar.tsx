@@ -224,14 +224,72 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
             <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
               <div className="font-medium text-primary mb-2">Combo Contents:</div>
               {comboCustomization.selections.map((selection, idx) => (
-                <div key={idx} className="flex justify-between py-1 border-b border-border/50 last:border-0">
-                  <div>
-                    <span className="capitalize text-muted-foreground">{selection.itemType.replace('_', ' ')}: </span>
-                    <span>{selection.itemName}</span>
-                    {selection.flavor && <span className="text-muted-foreground"> ({selection.flavor})</span>}
+                <div key={idx} className="py-1 border-b border-border/50 last:border-0">
+                  <div className="flex justify-between">
+                    <div>
+                      <span className="capitalize text-muted-foreground">{selection.itemType.replace('_', ' ')}: </span>
+                      <span className="font-medium">{selection.itemName}</span>
+                      {selection.flavor && <span className="text-muted-foreground"> ({selection.flavor})</span>}
+                    </div>
+                    {selection.extraCharge > 0 && (
+                      <span className="text-primary">+${selection.extraCharge.toFixed(2)}</span>
+                    )}
                   </div>
-                  {selection.extraCharge > 0 && (
-                    <span className="text-primary">+${selection.extraCharge.toFixed(2)}</span>
+                  
+                  {/* Show pizza customization details for combo pizzas */}
+                  {selection.pizzaCustomization && (
+                    <div className="mt-1 ml-4 space-y-0.5 text-muted-foreground">
+                      <div>{selection.pizzaCustomization.size.name} • {selection.pizzaCustomization.crust.name}</div>
+                      
+                      {/* Cheese changes */}
+                      {selection.pizzaCustomization.cheeseType !== 'mozzarella' && (
+                        <div>Cheese: {selection.pizzaCustomization.cheeseType.replace('-', ' ')}</div>
+                      )}
+                      
+                      {/* Sauce changes */}
+                      {selection.pizzaCustomization.sauceName?.toLowerCase() === 'no sauce' && (
+                        <div>No Sauce</div>
+                      )}
+                      {selection.pizzaCustomization.sauceQuantity === 'extra' && selection.pizzaCustomization.sauceName && (
+                        <div>Extra {selection.pizzaCustomization.sauceName}</div>
+                      )}
+                      
+                      {/* Spicy level */}
+                      {(selection.pizzaCustomization.spicyLevel?.left !== 'none' || selection.pizzaCustomization.spicyLevel?.right !== 'none') && (
+                        <div>
+                          Spicy: {selection.pizzaCustomization.spicyLevel.left === selection.pizzaCustomization.spicyLevel.right 
+                            ? selection.pizzaCustomization.spicyLevel.left 
+                            : `L:${selection.pizzaCustomization.spicyLevel.left} R:${selection.pizzaCustomization.spicyLevel.right}`}
+                        </div>
+                      )}
+                      
+                      {/* Free toppings */}
+                      {selection.pizzaCustomization.freeToppings?.length > 0 && (
+                        <div>Add: {selection.pizzaCustomization.freeToppings.join(', ')}</div>
+                      )}
+                      
+                      {/* Removed toppings */}
+                      {selection.pizzaCustomization.defaultToppings?.some(t => t.quantity === 'none') && (
+                        <div className="text-destructive">
+                          NO: {selection.pizzaCustomization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
+                        </div>
+                      )}
+                      
+                      {/* Modified default toppings */}
+                      {selection.pizzaCustomization.defaultToppings?.filter(t => t.quantity === 'less' || t.quantity === 'extra').map(t => (
+                        <div key={t.id}>{t.quantity} {t.name}{t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : ''}</div>
+                      ))}
+                      
+                      {/* Extra toppings */}
+                      {selection.pizzaCustomization.extraToppings?.length > 0 && (
+                        <div>+{selection.pizzaCustomization.extraToppings.map(t => `${t.name}${t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : ''}`).join(', ')}</div>
+                      )}
+                      
+                      {/* Note */}
+                      {selection.pizzaCustomization.note && (
+                        <div className="italic">Note: {selection.pizzaCustomization.note}</div>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
