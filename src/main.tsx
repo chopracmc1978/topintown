@@ -11,6 +11,40 @@ import "./index.css";
  * Capacitor native apps typically start at "/" (or "/index.html").
  * The POS tablet build must always start at "/pos".
  */
+function applyNativePosViewportFixes() {
+  try {
+    if (!Capacitor.isNativePlatform()) return;
+
+    // 1) Prevent Android WebView "text autosize" / font boosting that can
+    // completely change layout density versus desktop preview.
+    document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
+    document.documentElement.style.setProperty("text-size-adjust", "100%");
+
+    // 2) Force a stable tablet viewport for the POS UI.
+    // Many POS tablets report a smaller CSS width due to DPR/accessibility scaling,
+    // which makes the POS fall into a "mobile" layout and look totally different.
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute(
+        "content",
+        [
+          // Lock to our target POS design size
+          "width=1366",
+          "height=768",
+          // Prevent unexpected zoom/scale on older WebViews
+          "initial-scale=1",
+          "maximum-scale=1",
+          "user-scalable=no",
+          // Safe-area on newer devices (harmless on old ones)
+          "viewport-fit=cover",
+        ].join(", ")
+      );
+    }
+  } catch {
+    // never block boot
+  }
+}
+
 function forcePosRouteForNativeBoot() {
   try {
     if (!Capacitor.isNativePlatform()) return;
@@ -24,6 +58,7 @@ function forcePosRouteForNativeBoot() {
   }
 }
 
+applyNativePosViewportFixes();
 forcePosRouteForNativeBoot();
 
 type BootIssue = {
