@@ -175,7 +175,7 @@ const POS = () => {
     notes?: string;
   }) => {
     const subtotal = orderData.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const tax = subtotal * 0.08;
+    const tax = subtotal * 0.05; // 5% GST (Alberta)
     const total = subtotal + tax;
 
     const newOrder = await addOrder({

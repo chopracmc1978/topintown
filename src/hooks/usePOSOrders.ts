@@ -452,7 +452,7 @@ export const usePOSOrders = (locationId?: string) => {
   const updateOrder = async (orderNumber: string, updates: { items: CartItem[]; notes?: string }) => {
     try {
       const subtotal = updates.items.reduce((sum, item) => sum + item.totalPrice, 0);
-      const tax = subtotal * 0.08;
+      const tax = subtotal * 0.05; // 5% GST (Alberta)
       const total = subtotal + tax;
 
       // Get order ID from order_number

@@ -376,7 +376,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const discountAmount = parseFloat(manualDiscount) || 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const tax = discountedSubtotal * 0.08;
+  const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
   const total = discountedSubtotal + tax;
 
   const handleSubmit = async () => {
@@ -716,7 +716,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax (8%)</span>
+                <span className="text-muted-foreground">GST (5%)</span>
                 <span>${tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg pt-1">

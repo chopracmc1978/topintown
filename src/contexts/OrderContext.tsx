@@ -48,7 +48,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
         if (order.id !== orderId) return order;
         
         const subtotal = updates.items.reduce((sum, item) => sum + item.totalPrice, 0);
-        const tax = subtotal * 0.08;
+        const tax = subtotal * 0.05; // 5% GST (Alberta)
         const total = subtotal + tax;
         
         return {

@@ -350,8 +350,8 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <span>${(order.subtotal || order.total * 0.92).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Tax</span>
-            <span>${(order.tax || order.total * 0.08).toFixed(2)}</span>
+            <span className="text-muted-foreground">GST (5%)</span>
+            <span>${(order.tax || order.total * 0.05).toFixed(2)}</span>
           </div>
           <Separator className="my-2" />
           <div className="flex justify-between text-lg font-bold">
