@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
@@ -47,6 +51,7 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
         throw new Error('Invalid username or password');
       }
 
+      // Save location ID for POS
       if (data?.locationId) {
         localStorage.setItem('pos_location_id', data.locationId);
       }
@@ -74,126 +79,55 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px',
-      backgroundColor: '#1a8ccc'
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        padding: '32px'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <img 
-            src={logo} 
-            alt="Top In Town Pizza" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain', margin: '0 auto 16px' }} 
-          />
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: '600', 
-            color: '#1a1a1a',
-            fontFamily: 'Playfair Display, serif',
-            marginBottom: '8px'
-          }}>
-            Top In Town Pizza POS
-          </h1>
-          <p style={{ fontSize: '14px', color: '#666666' }}>
+    <div className="min-h-screen bg-primary flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src={logo} alt="Top In Town Pizza" className="w-20 h-20 object-contain" />
+          </div>
+          <CardTitle className="font-serif text-2xl">Top In Town Pizza POS</CardTitle>
+          <CardDescription>
             Sign in with your staff account to access the point of sale
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label 
-              htmlFor="username" 
-              style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#333', marginBottom: '6px' }}
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
-              autoFocus
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                fontSize: '16px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label 
-              htmlFor="password" 
-              style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#333', marginBottom: '6px' }}
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                fontSize: '16px',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#ffffff',
-              backgroundColor: loading ? '#6bb8de' : '#1a8ccc',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            {loading ? (
-              <>
-                <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} />
-                Signing in...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </button>
-        </form>
-      </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

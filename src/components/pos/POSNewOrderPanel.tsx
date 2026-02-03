@@ -415,7 +415,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               )}
             />
             {orderHistory.length > 0 && (
-              <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#1a8ccc' }} />
+              <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
             )}
             
             {/* Order History Dropdown */}
@@ -465,9 +465,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
                     "px-5 py-3 rounded-lg text-base font-medium whitespace-nowrap transition-colors",
-                    activeCategory !== cat.id && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    activeCategory === cat.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   )}
-                  style={activeCategory === cat.id ? { backgroundColor: '#1a8ccc', color: '#ffffff' } : undefined}
                 >
                   {cat.label}
                 </button>
@@ -483,9 +484,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     onClick={() => setActiveSubcategory(sub.id)}
                     className={cn(
                       "px-4 py-2 rounded-full text-base font-medium whitespace-nowrap transition-colors",
-                      activeSubcategory !== sub.id && "bg-card text-foreground border border-border hover:bg-secondary"
+                      activeSubcategory === sub.id
+                        ? "bg-primary/80 text-primary-foreground"
+                        : "bg-card text-foreground border border-border hover:bg-secondary"
                     )}
-                    style={activeSubcategory === sub.id ? { backgroundColor: 'rgba(26, 140, 204, 0.8)', color: '#ffffff' } : undefined}
                   >
                     {sub.label}
                   </button>
@@ -493,34 +495,25 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
             )}
 
-            {/* Menu Items Grid - responsive columns with minmax for tablet */}
-            <div className="flex-1 p-2 overflow-auto">
+            {/* Menu Items Grid - 5 columns, ultra-compact cards to fit all without scroll */}
+            <div className="flex-1 p-2 overflow-hidden">
               {isLoading ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
               ) : filteredItems.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
               ) : (
-                <div 
-                  className="grid gap-1.5"
-                  style={{ 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  }}
-                >
+                <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-2 rounded-md text-left hover:bg-gray-200 transition-colors border-l-2"
-                      style={{ 
-                        borderLeftColor: 'rgba(26, 140, 204, 0.3)',
-                        backgroundColor: 'rgba(0,0,0,0.03)'
-                      }}
+                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
                     >
                       <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs font-bold mt-0.5" style={{ color: '#1a8ccc' }}>
+                      <p className="text-xs text-primary font-bold mt-0.5">
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                          <span className="text-[10px] text-gray-500 font-normal ml-0.5">+</span>
+                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
                         )}
                       </p>
                     </button>
@@ -530,8 +523,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           </div>
 
-          {/* Order Summary - Narrower to give more space to menu */}
-          <div className="w-80 flex flex-col">
+          {/* Order Summary - Wider for tablet */}
+          <div className="w-96 flex flex-col">
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-4">
               {cartItems.length === 0 ? (
@@ -643,12 +636,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
               <div className="flex justify-between font-bold text-xl">
                 <span>Total</span>
-                <span style={{ color: '#1a8ccc' }}>${total.toFixed(2)}</span>
+                <span className="text-primary">${total.toFixed(2)}</span>
               </div>
               
               <Button 
-                className="w-full mt-3 text-lg py-4 h-auto text-white font-semibold"
-                style={{ background: 'linear-gradient(to right, #1a8ccc, #8b2500)' }}
+                variant="pizza" 
+                className="w-full mt-3 text-lg py-4 h-auto"
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >

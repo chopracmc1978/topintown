@@ -37,7 +37,7 @@ export const POSPrepTimeModal = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5" style={{ color: '#1a8ccc' }} />
+            <Clock className="w-5 h-5 text-primary" />
             Set Preparation Time
           </DialogTitle>
           <DialogDescription>
@@ -52,9 +52,10 @@ export const POSPrepTimeModal = ({
               onClick={() => setSelectedTime(time)}
               className={cn(
                 "py-3 px-4 rounded-lg text-center font-medium transition-all border-2",
-                selectedTime !== time && "bg-secondary/50 text-foreground border-border"
+                selectedTime === time
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/50 text-foreground border-border hover:border-primary/50"
               )}
-              style={selectedTime === time ? { backgroundColor: '#1a8ccc', color: '#ffffff', borderColor: '#1a8ccc' } : undefined}
             >
               {time} min
             </button>

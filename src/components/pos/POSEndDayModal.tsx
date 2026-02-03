@@ -71,7 +71,7 @@ export const POSEndDayModal = ({
             </div>
             <div className="flex justify-between">
               <span className="font-medium">End Day - Cash In Till:</span>
-              <span className="font-semibold" style={{ color: '#1a8ccc' }}>$ {expectedEndCash.toFixed(2)}</span>
+              <span className="font-semibold text-primary">$ {expectedEndCash.toFixed(2)}</span>
             </div>
           </div>
 

@@ -89,18 +89,14 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
-            <span className="text-xl font-bold" style={{ color: '#1a8ccc' }}>
+            <span className="text-xl font-bold text-primary">
               ${item.base_price.toFixed(2)}
             </span>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleAddToOrder}
-                className="text-white font-semibold"
-                style={{ background: 'linear-gradient(to right, #1a8ccc, #8b2500)' }}
-              >
+              <Button variant="pizza" onClick={handleAddToOrder}>
                 {editingItem ? 'Update' : 'Add to Order'}
               </Button>
             </div>

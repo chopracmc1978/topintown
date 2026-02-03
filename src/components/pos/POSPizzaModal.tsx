@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
 import { useToppings } from '@/hooks/useMenuItems';
@@ -22,23 +22,25 @@ const GLUTEN_FREE_PRICE = 2.5;
 type SpicyLevel = 'none' | 'medium' | 'hot';
 type Side = 'left' | 'whole' | 'right';
 
+const QUANTITY_OPTIONS: { value: ToppingQuantity; label: string }[] = [
+  { value: 'less', label: 'Less' },
+  { value: 'regular', label: 'Reg' },
+  { value: 'extra', label: 'Extra' },
+];
+
+const SIDE_OPTIONS: { value: Side; label: string }[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'whole', label: 'Whole' },
+  { value: 'right', label: 'Right' },
+];
+
 const getExtraToppingPrice = (sizeName: string): number => {
   if (sizeName.includes('Small')) return 2;
   if (sizeName.includes('Medium') || sizeName.toLowerCase().includes('gluten')) return 2.5;
-  return 3;
+  return 3; // Large
 };
 
-const getExtraCheesePrice = (sizeName: string): number => {
-  if (sizeName.includes('Small')) return 2;
-  if (sizeName.includes('Medium')) return 2.5;
-  return 3;
-};
-
-const getDairyFreePrice = (sizeName: string): number => {
-  if (sizeName.includes('Small')) return 2;
-  return 3;
-};
-
+// Free topping with side selection
 interface FreeToppingSelection {
   name: string;
   side: Side;
@@ -51,7 +53,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const { data: allToppings } = useToppings();
 
   const defaultSauceIds = useMemo(
-    () => item.default_global_sauces?.map((ds) => ds.global_sauce_id) || [],
+    () => item.default_global_sauces?.map(ds => ds.global_sauce_id) || [],
     [item.default_global_sauces]
   );
   const defaultSize = item.sizes?.[1] || item.sizes?.[0];
@@ -72,27 +74,31 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   );
   const [note, setNote] = useState<string>(editCustomization?.note || '');
   const [extraAmount, setExtraAmount] = useState<number>(editCustomization?.extraAmount || 0);
-
+  
+  // Spicy state - supports side-specific levels for large pizzas
   const [leftSpicy, setLeftSpicy] = useState<SpicyLevel>('none');
   const [rightSpicy, setRightSpicy] = useState<SpicyLevel>('none');
+  
+  // Default toppings state (from pizza's default_toppings)
   const [defaultToppings, setDefaultToppings] = useState<SelectedTopping[]>(editCustomization?.defaultToppings || []);
+  
+  // Extra toppings state
   const [extraToppings, setExtraToppings] = useState<SelectedTopping[]>(editCustomization?.extraToppings || []);
+  
+  // Free toppings with side selection
   const [freeToppingSelections, setFreeToppingSelections] = useState<FreeToppingSelection[]>([]);
 
-  // Only show Left/Whole/Right for Large pizza with Regular crust (not Gluten Free)
+  // Is large pizza (allows side selection)
   const isLargePizza = selectedSize?.name?.includes('Large') || selectedSize?.name?.includes('14"');
-  const isGlutenFree = selectedCrust?.name?.toLowerCase().includes('gluten');
-  const showSideOptions = isLargePizza && !isGlutenFree;
 
+  // Get pizza's default toppings from menu item
   const pizzaDefaultToppings = useMemo(() => {
-    return (
-      item.default_toppings?.map((dt) => ({
-        id: dt.topping_id,
-        name: dt.topping?.name || '',
-        isRemovable: dt.is_removable,
-        isVeg: dt.topping?.is_veg,
-      })) || []
-    );
+    return item.default_toppings?.map(dt => ({
+      id: dt.topping_id,
+      name: dt.topping?.name || '',
+      isRemovable: dt.is_removable,
+      isVeg: dt.topping?.is_veg,
+    })) || [];
   }, [item.default_toppings]);
 
   // Initialize defaults
@@ -113,8 +119,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       setSauceQuantity('normal');
       setExtraToppings([]);
       setFreeToppingSelections([]);
-
-      const initialDefaults: SelectedTopping[] = pizzaDefaultToppings.map((t) => ({
+      
+      // Initialize default toppings with 'regular' quantity
+      const initialDefaults: SelectedTopping[] = pizzaDefaultToppings.map(t => ({
         id: t.id,
         name: t.name,
         quantity: 'regular' as ToppingQuantity,
@@ -127,113 +134,146 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
     }
   }, [isOpen, editCustomization, defaultSize, defaultSauceIds, pizzaDefaultToppings]);
 
+  // Get available crusts for selected size
   const availableCrusts = useMemo(() => {
     if (!selectedSize || !sizeCrustAvailability) return [];
     return getCrustsForSize(sizeCrustAvailability, selectedSize.name);
   }, [selectedSize, sizeCrustAvailability]);
 
+  // Auto-select first crust when size changes
   useEffect(() => {
     if (availableCrusts.length > 0 && !editCustomization) {
-      const regularCrust = availableCrusts.find((c) => c.name.toLowerCase().includes('regular'));
+      const regularCrust = availableCrusts.find(c => c.name.toLowerCase().includes('regular'));
       setSelectedCrust(regularCrust || availableCrusts[0]);
     }
   }, [availableCrusts, editCustomization]);
 
-  // Reset side options when size/crust changes and sides are not available
+  // Reset sides when size changes (only large allows L/W/R)
   useEffect(() => {
-    if (!showSideOptions) {
+    if (!isLargePizza) {
+      // Reset spicy to whole (both sides same)
       setLeftSpicy('none');
       setRightSpicy('none');
-      setDefaultToppings((prev) => prev.map((t) => ({ ...t, side: 'whole' as PizzaSide })));
-      setExtraToppings((prev) => prev.map((t) => ({ ...t, side: 'whole' as PizzaSide })));
-      setFreeToppingSelections((prev) => prev.map((t) => ({ ...t, side: 'whole' as Side })));
+      // Reset all topping sides to whole
+      setDefaultToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
+      setExtraToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
+      setFreeToppingSelections(prev => prev.map(t => ({ ...t, side: 'whole' as Side })));
     }
-  }, [showSideOptions]);
+  }, [isLargePizza]);
 
-  const availableSauces = allSauces?.filter((s) => s.is_available) || [];
-
+  // Available sauces
+  const availableSauces = allSauces?.filter(s => s.is_available) || [];
+  
+  // Available extra toppings (sorted: veg first, then non-veg, excluding Cheese)
   const availableExtraToppings = useMemo(() => {
-    const toppings =
-      allToppings?.filter((t) => t.is_available && t.name.toLowerCase() !== 'cheese') || [];
+    const toppings = allToppings?.filter(t => 
+      t.is_available && t.name.toLowerCase() !== 'cheese'
+    ) || [];
     return [...toppings].sort((a, b) => {
       if (a.is_veg === b.is_veg) return a.sort_order - b.sort_order;
       return a.is_veg ? -1 : 1;
     });
   }, [allToppings]);
 
-  const freeToppings = freeToppingsData?.filter((t) => t.is_available) || [];
+  const freeToppings = freeToppingsData?.filter(t => t.is_available) || [];
 
+  // Update default topping quantity
   const updateDefaultToppingQuantity = (toppingId: string, quantity: ToppingQuantity) => {
-    setDefaultToppings((prev) => prev.map((t) => (t.id === toppingId ? { ...t, quantity } : t)));
+    setDefaultToppings(prev => prev.map(t => 
+      t.id === toppingId ? { ...t, quantity } : t
+    ));
   };
 
+  // Update default topping side
   const updateDefaultToppingSide = (toppingId: string, side: PizzaSide) => {
-    setDefaultToppings((prev) => prev.map((t) => (t.id === toppingId ? { ...t, side } : t)));
+    setDefaultToppings(prev => prev.map(t => 
+      t.id === toppingId ? { ...t, side } : t
+    ));
   };
 
-  const toggleExtraTopping = (topping: (typeof availableExtraToppings)[0], side: PizzaSide) => {
-    setExtraToppings((prev) => {
-      const existing = prev.find((t) => t.id === topping.id);
+  // Toggle extra topping
+  const toggleExtraTopping = (topping: typeof availableExtraToppings[0]) => {
+    setExtraToppings(prev => {
+      const existing = prev.find(t => t.id === topping.id);
       if (existing) {
-        if (existing.side === side) {
-          return prev.filter((t) => t.id !== topping.id);
-        }
-        return prev.map((t) => (t.id === topping.id ? { ...t, side } : t));
+        return prev.filter(t => t.id !== topping.id);
       }
       const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
-      return [
-        ...prev,
-        {
-          id: topping.id,
-          name: topping.name,
-          quantity: 'regular' as ToppingQuantity,
-          side,
-          isVeg: topping.is_veg,
-          price: toppingPrice,
-        },
-      ];
+      return [...prev, {
+        id: topping.id,
+        name: topping.name,
+        quantity: 'regular' as ToppingQuantity,
+        side: 'whole' as PizzaSide,
+        isVeg: topping.is_veg,
+        price: toppingPrice,
+      }];
     });
   };
 
-  const toggleFreeTopping = (name: string, side: Side) => {
-    setFreeToppingSelections((prev) => {
-      const existing = prev.find((t) => t.name === name);
+  // Update extra topping side
+  const updateExtraToppingSide = (toppingId: string, side: PizzaSide) => {
+    setExtraToppings(prev => prev.map(t => 
+      t.id === toppingId ? { ...t, side } : t
+    ));
+  };
+
+  // Toggle free topping
+  const toggleFreeTopping = (name: string) => {
+    setFreeToppingSelections(prev => {
+      const existing = prev.find(t => t.name === name);
       if (existing) {
-        if (existing.side === side) {
-          return prev.filter((t) => t.name !== name);
-        }
-        return prev.map((t) => (t.name === name ? { ...t, side } : t));
+        return prev.filter(t => t.name !== name);
       }
-      return [...prev, { name, side }];
+      return [...prev, { name, side: 'whole' as Side }];
     });
+  };
+
+  // Update free topping side
+  const updateFreeToppingSide = (name: string, side: Side) => {
+    setFreeToppingSelections(prev => prev.map(t => 
+      t.name === name ? { ...t, side } : t
+    ));
   };
 
   // Calculate price
   const calculatePrice = () => {
     let price = selectedSize?.price || 0;
-
-    if (isGlutenFree) {
+    
+    // Crust price (gluten free)
+    if (selectedCrust?.name.toLowerCase().includes('gluten')) {
       price += GLUTEN_FREE_PRICE;
     }
-
+    
+    // Cheese extra price
     if (selectedCheese === 'Dairy Free') {
-      price += getDairyFreePrice(selectedSize?.name || '');
+      price += selectedSize?.name === 'Small 10"' ? 2 : 3;
     }
-
+    
+    // Extra cheese price (Mozzarella Extra)
     if (selectedCheese === 'Mozzarella' && cheeseQuantity === 'extra') {
-      price += getExtraCheesePrice(selectedSize?.name || '');
+      if (selectedSize?.name?.includes('Small')) {
+        price += 2;
+      } else if (selectedSize?.name?.includes('Medium')) {
+        price += 2.5;
+      } else {
+        price += 3; // Large
+      }
     }
-
+    
+    // Extra default toppings (extra quantity costs extra)
     const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
-    defaultToppings.forEach((t) => {
+    defaultToppings.forEach(t => {
       if (t.quantity === 'extra') {
         price += toppingPrice;
       }
     });
-
+    
+    // Extra toppings price
     price += extraToppings.length * toppingPrice;
+    
+    // Extra amount for special requests
     price += extraAmount;
-
+    
     return price;
   };
 
@@ -242,8 +282,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const handleAddToOrder = () => {
     if (!selectedSize || !selectedCrust) return;
 
-    const sauceName = allSauces?.find((s) => s.id === selectedSauceId)?.name || 'No Sauce';
+    const sauceName = allSauces?.find(s => s.id === selectedSauceId)?.name || 'No Sauce';
 
+    // Build spicy level object from left/right state
     const spicyLevelObj = {
       left: leftSpicy,
       right: rightSpicy,
@@ -267,9 +308,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         sauceId: selectedSauceId,
         sauceName,
         sauceQuantity: sauceQuantity === 'extra' ? 'extra' : 'normal',
-        freeToppings: freeToppingSelections.map(
-          (f) => `${f.name}${showSideOptions && f.side !== 'whole' ? ` (${f.side})` : ''}`
-        ),
+        freeToppings: freeToppingSelections.map(f => `${f.name}${isLargePizza && f.side !== 'whole' ? ` (${f.side})` : ''}`),
         spicyLevel: spicyLevelObj,
         defaultToppings,
         extraToppings,
@@ -284,342 +323,297 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   };
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
-  const extraCheesePrice = getExtraCheesePrice(selectedSize?.name || '');
-  const dairyFreePrice = getDairyFreePrice(selectedSize?.name || '');
 
-  // Button styles with explicit hex colors for Android WebView
-  const btn = 'px-2.5 py-1 text-xs rounded border font-medium transition-colors cursor-pointer';
-  const btnActive = 'border-[#1a8ccc] bg-[#1a8ccc] text-white';
-  const btnInactive = 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700';
-  const btnSelected = 'border-[#1a8ccc] text-[#1a8ccc] bg-white font-semibold';
+  // Ultra-compact button style for no-scroll layout
+  const btnSmall = "px-2 py-1.5 text-xs rounded border font-medium transition-colors";
+  const btnActive = "border-primary bg-primary/10 text-primary";
+  const btnInactive = "border-border hover:bg-secondary";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] w-[1400px] max-h-[95vh] p-0 gap-0 overflow-hidden [&>button]:hidden">
-        <div className="flex flex-col h-full max-h-[95vh]">
-          {/* Row 1: Pizza Name + Size + Crust + Close */}
-          <div className="flex items-center gap-4 px-4 py-2 border-b bg-white">
-            <h2 className="font-serif text-base font-bold whitespace-nowrap" style={{ color: '#1a8ccc' }}>
-              {item.name}
-            </h2>
-            <span className="text-xs text-gray-500">Size</span>
-            <div className="flex gap-1">
-              {item.sizes?.map((size) => (
-                <button
-                  key={size.id}
-                  onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
-                  className={cn(
-                    'px-3 py-1 rounded border text-xs font-medium flex flex-col items-center',
-                    selectedSize?.id === size.id ? btnActive : btnInactive
-                  )}
-                >
-                  <span>{size.name}</span>
-                  <span>${size.price.toFixed(2)}</span>
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-gray-500">Crust</span>
-            <div className="flex-1 flex items-center gap-2">
-              <div className="flex-1 border rounded px-3 py-1.5 text-sm bg-white text-center">
-                {selectedCrust?.name || 'Regular'}
-              </div>
-              {availableCrusts.length > 1 && availableCrusts.map((crust) => {
-                if (crust.name.toLowerCase().includes('regular')) return null;
-                return (
+      <DialogContent className="max-w-6xl p-2 pt-1 gap-1 overflow-hidden">
+        {/* Header Row: Pizza Name + Size + Crust inline */}
+        <div className="flex items-center gap-3 pb-1.5 border-b pr-6">
+          <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
+          
+          {/* Size */}
+          <span className="text-xs text-muted-foreground">Size</span>
+          <div className="flex gap-1.5">
+            {item.sizes?.map(size => (
+              <button
+                key={size.id}
+                onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
+                className={cn(btnSmall, "py-1.5 px-3", selectedSize?.id === size.id ? btnActive : btnInactive)}
+              >
+                <div className="text-xs font-medium">{size.name}</div>
+                <div className="text-primary text-xs">${size.price.toFixed(2)}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Crust - inline on same row */}
+          {availableCrusts.length > 0 && (
+            <>
+              <span className="text-xs text-muted-foreground">Crust</span>
+              <div className="flex gap-1.5 flex-1">
+                {availableCrusts.map(crust => (
                   <button
                     key={crust.id}
                     onClick={() => setSelectedCrust(crust)}
-                    className={cn(btn, selectedCrust?.id === crust.id ? btnActive : btnInactive)}
+                    className={cn(btnSmall, "flex-1 py-1.5 px-3", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
                   >
-                    {crust.name} +${GLUTEN_FREE_PRICE}
+                    {crust.name}
+                    {crust.name.toLowerCase().includes('gluten') && (
+                      <span className="text-primary ml-1">+${GLUTEN_FREE_PRICE}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          {/* Row 1: Cheese + Spicy Level on same row */}
+          <div className="flex items-start gap-8">
+            {/* Cheese section */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Cheese</span>
+              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
+                <button
+                  key={cheese}
+                  onClick={() => {
+                    setSelectedCheese(cheese);
+                    if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
+                  }}
+                  className={cn(btnSmall, selectedCheese === cheese ? btnActive : btnInactive)}
+                >
+                  {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
+                  {cheese === 'Dairy Free' && (
+                    <span className="text-primary ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                  )}
+                </button>
+              ))}
+              {/* Quantity options inline */}
+              {(['less', 'normal', 'extra'] as const).map(qty => {
+                const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
+                                   selectedSize?.name?.includes('Medium') ? 2.5 : 3;
+                const isDisabled = selectedCheese === 'No Cheese';
+                return (
+                  <button
+                    key={qty}
+                    onClick={() => !isDisabled && setCheeseQuantity(qty)}
+                    disabled={isDisabled}
+                    className={cn(
+                      btnSmall,
+                      isDisabled ? "opacity-40 cursor-not-allowed" :
+                      cheeseQuantity === qty ? btnActive : btnInactive
+                    )}
+                  >
+                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
+                    {qty === 'extra' && <span className="text-primary ml-0.5">+${extraPrice}</span>}
                   </button>
                 );
               })}
-              {availableCrusts.length > 1 && selectedCrust && !selectedCrust.name.toLowerCase().includes('regular') && (
+            </div>
+            
+            {/* Spicy Level section - on same row */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Spicy Level</span>
+              {/* None button */}
+              <button
+                onClick={() => {
+                  setLeftSpicy('none');
+                  setRightSpicy('none');
+                }}
+                className={cn(
+                  btnSmall,
+                  leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive
+                )}
+              >
+                None
+              </button>
+
+              {/* Medium button with Left/Whole/Right for large pizza */}
+              {(() => {
+                const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
+                return (
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded transition-colors",
+                    hasMedium ? "bg-primary/10 text-primary" : ""
+                  )}>
+                    Med Hot
+                  </span>
+                );
+              })()}
+              {isLargePizza ? (
+                <div className="flex gap-0.5">
+                  {(['left', 'whole', 'right'] as Side[]).map(side => {
+                    const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
+                    const isActive = side === 'whole' 
+                      ? isWholeSelected
+                      : side === 'left' 
+                        ? leftSpicy === 'medium' && !isWholeSelected
+                        : rightSpicy === 'medium' && !isWholeSelected;
+                    
+                    const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
+                    let isDisabled = false;
+                    if (hotWhole) isDisabled = true;
+                    if (side === 'left' && leftSpicy === 'hot') isDisabled = true;
+                    if (side === 'right' && rightSpicy === 'hot') isDisabled = true;
+                    if (side === 'whole' && (leftSpicy === 'hot' || rightSpicy === 'hot')) isDisabled = true;
+                    
+                    return (
+                      <button
+                        key={side}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (side === 'whole') {
+                            setLeftSpicy('medium');
+                            setRightSpicy('medium');
+                          } else if (side === 'left') {
+                            setLeftSpicy('medium');
+                            if (rightSpicy !== 'hot') setRightSpicy('none');
+                          } else {
+                            setRightSpicy('medium');
+                            if (leftSpicy !== 'hot') setLeftSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          isActive ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
                 <button
                   onClick={() => {
-                    const regular = availableCrusts.find((c) => c.name.toLowerCase().includes('regular'));
-                    if (regular) setSelectedCrust(regular);
+                    setLeftSpicy('medium');
+                    setRightSpicy('medium');
                   }}
-                  className={cn(btn, btnInactive)}
+                  className={cn(btnSmall, leftSpicy === 'medium' ? btnActive : btnInactive)}
                 >
-                  Regular
+                  Whole
+                </button>
+              )}
+
+              {/* Hot button with Left/Whole/Right for large pizza */}
+              {(() => {
+                const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
+                return (
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded transition-colors",
+                    hasHot ? "bg-primary/10 text-primary" : ""
+                  )}>
+                    Hot
+                  </span>
+                );
+              })()}
+              {isLargePizza ? (
+                <div className="flex gap-0.5">
+                  {(['left', 'whole', 'right'] as Side[]).map(side => {
+                    const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
+                    const isActive = side === 'whole' 
+                      ? isWholeSelected
+                      : side === 'left' 
+                        ? leftSpicy === 'hot' && !isWholeSelected
+                        : rightSpicy === 'hot' && !isWholeSelected;
+                    
+                    const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
+                    let isDisabled = false;
+                    if (medWhole) isDisabled = true;
+                    if (side === 'left' && leftSpicy === 'medium') isDisabled = true;
+                    if (side === 'right' && rightSpicy === 'medium') isDisabled = true;
+                    if (side === 'whole' && (leftSpicy === 'medium' || rightSpicy === 'medium')) isDisabled = true;
+                    
+                    return (
+                      <button
+                        key={side}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (side === 'whole') {
+                            setLeftSpicy('hot');
+                            setRightSpicy('hot');
+                          } else if (side === 'left') {
+                            setLeftSpicy('hot');
+                            if (rightSpicy !== 'medium') setRightSpicy('none');
+                          } else {
+                            setRightSpicy('hot');
+                            if (leftSpicy !== 'medium') setLeftSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          isActive ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setLeftSpicy('hot');
+                    setRightSpicy('hot');
+                  }}
+                  className={cn(btnSmall, leftSpicy === 'hot' ? btnActive : btnInactive)}
+                >
+                  Whole
                 </button>
               )}
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
           </div>
 
-          {/* Row 2: Cheese + Spicy Level */}
-          <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-white flex-wrap">
-            <span className="text-xs text-gray-600">Cheese</span>
-            <button
-              onClick={() => { setSelectedCheese('No Cheese'); setCheeseQuantity('normal'); }}
-              className={cn(btn, selectedCheese === 'No Cheese' ? btnActive : btnInactive)}
-            >
-              None
-            </button>
-            <button
-              onClick={() => setSelectedCheese('Mozzarella')}
-              className={cn(btn, selectedCheese === 'Mozzarella' ? btnActive : btnInactive)}
-            >
-              Mozz
-            </button>
-            <button
-              onClick={() => { setSelectedCheese('Dairy Free'); setCheeseQuantity('normal'); }}
-              className={cn(btn, selectedCheese === 'Dairy Free' ? btnActive : btnInactive)}
-            >
-              Dairy Free +${dairyFreePrice}
-            </button>
-            <button
-              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('less')}
-              disabled={selectedCheese === 'No Cheese'}
-              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'less' ? btnActive : btnInactive)}
-            >
-              Less
-            </button>
-            <button
-              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('normal')}
-              disabled={selectedCheese === 'No Cheese'}
-              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'normal' ? btnActive : btnInactive)}
-            >
-              Norm
-            </button>
-            <button
-              onClick={() => selectedCheese !== 'No Cheese' && setCheeseQuantity('extra')}
-              disabled={selectedCheese === 'No Cheese'}
-              className={cn(btn, selectedCheese === 'No Cheese' ? 'opacity-40' : cheeseQuantity === 'extra' ? btnActive : btnInactive)}
-            >
-              Extra +${extraCheesePrice}
-            </button>
-
-            <span className="text-xs text-gray-600 ml-4">Spicy Level</span>
-            <button
-              onClick={() => { setLeftSpicy('none'); setRightSpicy('none'); }}
-              className={cn(btn, leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive)}
-            >
-              None
-            </button>
-            <span className="text-xs text-gray-600">Med Hot</span>
-            {showSideOptions ? (
-              <>
-                {(['left', 'whole', 'right'] as Side[]).map((side) => {
-                  const isWholeM = leftSpicy === 'medium' && rightSpicy === 'medium';
-                  const isActiveM = side === 'whole' ? isWholeM : side === 'left' ? leftSpicy === 'medium' && !isWholeM : rightSpicy === 'medium' && !isWholeM;
-                  return (
-                    <button
-                      key={side}
-                      onClick={() => {
-                        if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
-                        else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
-                        else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
-                      }}
-                      className={cn(btn, isActiveM ? btnActive : btnInactive)}
-                    >
-                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                    </button>
-                  );
-                })}
-              </>
-            ) : (
-              <button
-                onClick={() => { setLeftSpicy('medium'); setRightSpicy('medium'); }}
-                className={cn(btn, leftSpicy === 'medium' ? btnActive : btnInactive)}
-              >
-                Whole
-              </button>
-            )}
-            <span className="text-xs text-gray-600">Hot</span>
-            {showSideOptions ? (
-              <>
-                {(['left', 'whole', 'right'] as Side[]).map((side) => {
-                  const isWholeH = leftSpicy === 'hot' && rightSpicy === 'hot';
-                  const isActiveH = side === 'whole' ? isWholeH : side === 'left' ? leftSpicy === 'hot' && !isWholeH : rightSpicy === 'hot' && !isWholeH;
-                  return (
-                    <button
-                      key={side}
-                      onClick={() => {
-                        if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
-                        else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
-                        else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
-                      }}
-                      className={cn(btn, isActiveH ? btnActive : btnInactive)}
-                    >
-                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                    </button>
-                  );
-                })}
-              </>
-            ) : (
-              <button
-                onClick={() => { setLeftSpicy('hot'); setRightSpicy('hot'); }}
-                className={cn(btn, leftSpicy === 'hot' ? btnActive : btnInactive)}
-              >
-                Whole
-              </button>
-            )}
-          </div>
-
-          {/* Row 3: Free Add-ons */}
+          {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex items-center gap-3 px-4 py-1.5 border-b bg-white flex-wrap">
-              <span className="text-xs text-gray-600">Free Add-ons</span>
-              {freeToppings.map((topping) => {
-                const sel = freeToppingSelections.find((f) => f.name === topping.name);
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Free Add-ons</span>
+              {freeToppings.map(topping => {
+                const selection = freeToppingSelections.find(f => f.name === topping.name);
+                const isSelected = !!selection;
                 return (
                   <div key={topping.id} className="flex items-center gap-1">
-                    <span className={cn('text-xs font-medium', sel ? 'text-[#1a8ccc]' : 'text-gray-700')}>
+                    <button
+                      onClick={() => toggleFreeTopping(topping.name)}
+                      className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
+                    >
                       {topping.name}
-                    </span>
-                    {showSideOptions ? (
-                      <>
-                        {(['left', 'whole', 'right'] as Side[]).map((side) => (
+                    </button>
+                    {isLargePizza ? (
+                      <div className="flex gap-0.5">
+                        {(['left', 'whole', 'right'] as const).map(side => (
                           <button
                             key={side}
-                            onClick={() => toggleFreeTopping(topping.name, side)}
-                            className={cn(btn, sel?.side === side ? btnActive : btnInactive)}
-                          >
-                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                          </button>
-                        ))}
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => toggleFreeTopping(topping.name, 'whole')}
-                        className={cn(btn, sel?.side === 'whole' ? btnActive : btnInactive)}
-                      >
-                        Whole
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Row 4: Sauce */}
-          <div className="flex items-center gap-2 px-4 py-1.5 border-b bg-white flex-wrap">
-            <span className="text-xs text-gray-600">Sauce</span>
-            <button
-              onClick={() => setSelectedSauceId(null)}
-              className={cn(btn, !selectedSauceId ? btnSelected : btnInactive)}
-            >
-              No Sauce
-            </button>
-            {availableSauces.map((sauce) => (
-              <button
-                key={sauce.id}
-                onClick={() => setSelectedSauceId(sauce.id)}
-                className={cn(btn, selectedSauceId === sauce.id ? btnSelected : btnInactive)}
-              >
-                {sauce.name}
-              </button>
-            ))}
-            <div className="flex gap-1 ml-2">
-              {['Less', 'Reg', 'Extra'].map((label) => {
-                const qty = label === 'Less' ? 'less' : label === 'Reg' ? 'normal' : 'extra';
-                return (
-                  <button
-                    key={label}
-                    onClick={() => setSauceQuantity(qty as any)}
-                    className={cn(btn, sauceQuantity === qty ? btnActive : btnInactive)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Default Toppings Section */}
-          {pizzaDefaultToppings.length > 0 && (
-            <div className="px-4 py-2 border-b bg-white">
-              <h3 className="text-xs text-gray-600 mb-2">Default Toppings</h3>
-              <div className="grid grid-cols-5 gap-3">
-                {defaultToppings.map((topping) => (
-                  <div key={topping.id} className="border rounded-md p-2 bg-white">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <span className={cn('w-2 h-2 rounded-full', topping.isVeg ? 'bg-green-500' : 'bg-red-500')} />
-                      <span className="text-sm font-medium text-gray-800">{topping.name}</span>
-                    </div>
-                    <div className="flex">
-                      {(['less', 'regular', 'extra'] as ToppingQuantity[]).map((qty, idx) => (
-                        <button
-                          key={qty}
-                          onClick={() => updateDefaultToppingQuantity(topping.id, qty)}
-                          className={cn(
-                            'flex-1 py-1 text-xs border font-medium transition-colors',
-                            idx === 0 && 'rounded-l-md border-r-0',
-                            idx === 2 && 'rounded-r-md border-l-0',
-                            idx === 1 && '',
-                            topping.quantity === qty 
-                              ? 'border-[#1a8ccc] bg-[#1a8ccc] text-white' 
-                              : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                          )}
-                        >
-                          {qty === 'less' ? 'Less' : qty === 'regular' ? 'Reg' : 'Extra'}
-                        </button>
-                      ))}
-                    </div>
-                    {showSideOptions && (
-                      <div className="flex mt-1">
-                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side, idx) => (
-                          <button
-                            key={side}
-                            onClick={() => updateDefaultToppingSide(topping.id, side)}
+                            onClick={() => {
+                              if (!isSelected) toggleFreeTopping(topping.name);
+                              updateFreeToppingSide(topping.name, side);
+                            }}
                             className={cn(
-                              'flex-1 py-1 text-xs border font-medium transition-colors',
-                              idx === 0 && 'rounded-l-md border-r-0',
-                              idx === 2 && 'rounded-r-md border-l-0',
-                              idx === 1 && '',
-                              topping.side === side 
-                                ? 'border-[#1a8ccc] bg-[#1a8ccc] text-white' 
-                                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                              "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                              isSelected && selection?.side === side ? btnActive : btnInactive
                             )}
                           >
                             {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
                           </button>
                         ))}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Extra Toppings Section */}
-          <div className="px-4 py-2 flex-1 overflow-auto bg-white">
-            <h3 className="text-xs text-gray-600 mb-2">
-              Extra <span className="text-gray-500">(+${extraToppingPrice.toFixed(2)})</span>
-            </h3>
-            <div className="grid grid-cols-4 gap-x-4 gap-y-1">
-              {availableExtraToppings.map((topping) => {
-                const sel = extraToppings.find((t) => t.id === topping.id);
-                return (
-                  <div key={topping.id} className="flex items-center gap-2 py-0.5">
-                    <span className={cn('w-2 h-2 rounded-full flex-shrink-0', topping.is_veg ? 'bg-green-500' : 'bg-red-500')} />
-                    <span className={cn('text-xs flex-1 min-w-0', sel ? 'font-medium text-gray-900' : 'text-gray-700')}>
-                      {topping.name}
-                    </span>
-                    {showSideOptions ? (
-                      <div className="flex gap-0.5 flex-shrink-0">
-                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
-                          <button
-                            key={side}
-                            onClick={() => toggleExtraTopping(topping, side)}
-                            className={cn(btn, 'px-2 py-0.5 text-[11px]', sel?.side === side ? btnActive : btnInactive)}
-                          >
-                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                          </button>
-                        ))}
-                      </div>
                     ) : (
                       <button
-                        onClick={() => toggleExtraTopping(topping, 'whole')}
-                        className={cn(btn, 'px-3 py-0.5 text-[11px]', sel?.side === 'whole' ? btnActive : btnInactive)}
+                        onClick={() => {
+                          if (!isSelected) toggleFreeTopping(topping.name);
+                        }}
+                        className={cn(
+                          "px-2 py-1 text-xs rounded border font-medium transition-colors",
+                          isSelected ? btnActive : btnInactive
+                        )}
                       >
                         Whole
                       </button>
@@ -628,41 +622,237 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 );
               })}
             </div>
+          )}
+
+
+          {/* Sauce Selection - inline with quantity */}
+          <div>
+            <h3 className="font-medium text-xs mb-1">Sauce</h3>
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <button
+                onClick={() => setSelectedSauceId(null)}
+                className={cn(btnSmall, selectedSauceId === null ? btnActive : btnInactive)}
+              >
+                No Sauce
+              </button>
+              {availableSauces.map(sauce => (
+                <button
+                  key={sauce.id}
+                  onClick={() => setSelectedSauceId(sauce.id)}
+                  className={cn(btnSmall, selectedSauceId === sauce.id ? btnActive : btnInactive)}
+                >
+                  {sauce.name}
+                </button>
+              ))}
+              <div className="border-l border-border pl-2 ml-1 flex gap-1">
+                {(['less', 'normal', 'extra'] as const).map(qty => (
+                  <button
+                    key={qty}
+                    onClick={() => selectedSauceId && setSauceQuantity(qty)}
+                    disabled={!selectedSauceId}
+                    className={cn(
+                      btnSmall,
+                      !selectedSauceId 
+                        ? "opacity-50 cursor-not-allowed border-border text-muted-foreground"
+                        : sauceQuantity === qty ? btnActive : btnInactive
+                    )}
+                  >
+                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Reg' : 'Extra'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Footer: Notes + Extra $ + Price + Buttons */}
-          <div className="flex items-center gap-4 px-4 py-2 border-t bg-gray-50">
-            <span className="text-xs text-gray-600">Notes:</span>
+          {/* Default Toppings - 5 column grid for compactness */}
+          {pizzaDefaultToppings.length > 0 && (
+            <div>
+              <h3 className="font-medium text-xs mb-1">Default Toppings</h3>
+              <div className="grid grid-cols-5 gap-1.5">
+                {defaultToppings.map(topping => {
+                  const isRemoved = topping.quantity === 'none';
+                  return (
+                    <div key={topping.id} className={cn(
+                      "rounded p-1.5 border",
+                      isRemoved ? "border-destructive/30 bg-destructive/5" : "border-border"
+                    )}>
+                      {/* Name row - clickable to toggle */}
+                      <button
+                        onClick={() => updateDefaultToppingQuantity(
+                          topping.id, 
+                          isRemoved ? 'regular' : 'none'
+                        )}
+                        className="flex items-center gap-1.5 mb-1 w-full text-left"
+                      >
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                          topping.isVeg ? "bg-green-500" : "bg-red-500"
+                        )} />
+                        <span className={cn(
+                          "text-xs font-medium truncate",
+                          isRemoved && "line-through text-muted-foreground"
+                        )}>
+                          {topping.name}
+                        </span>
+                      </button>
+                      {/* Quantity: Less/Reg/Extra */}
+                      {!isRemoved && (
+                        <div className="flex gap-0.5 mb-0.5">
+                          {QUANTITY_OPTIONS.map(opt => (
+                            <button
+                              key={opt.value}
+                              onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
+                              className={cn(
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                topping.quantity === opt.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {/* Side: Left/Whole/Right (Large only) */}
+                      {!isRemoved && isLargePizza && (
+                        <div className="flex gap-0.5">
+                          {SIDE_OPTIONS.map(side => (
+                            <button
+                              key={side.value}
+                              onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                              className={cn(
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                topping.side === side.value ? btnActive : btnInactive
+                              )}
+                            >
+                              {side.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Extra Toppings - 4 column grid */}
+          {availableExtraToppings.length > 0 && (
+            <div>
+              <h3 className="font-medium text-xs mb-1">
+                Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
+              </h3>
+              <div className="grid grid-cols-4 gap-1.5">
+                {availableExtraToppings.map(topping => {
+                  const selected = extraToppings.find(t => t.id === topping.id);
+                  const isSelected = !!selected;
+                  return (
+                    <div 
+                      key={topping.id} 
+                      className={cn(
+                        "flex items-center gap-1.5 px-2 py-1 rounded border transition-colors",
+                        isSelected 
+                          ? "border-primary bg-primary/10" 
+                          : "border-border"
+                      )}
+                    >
+                      {/* Topping name with veg indicator */}
+                      <button
+                        onClick={() => toggleExtraTopping(topping)}
+                        className="flex items-center gap-1.5 flex-1 text-left min-w-0"
+                      >
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                          topping.is_veg ? "bg-green-500" : "bg-red-500"
+                        )} />
+                        <span className="text-xs truncate">{topping.name}</span>
+                      </button>
+
+                      {/* Side selection - Large pizza shows Left/Whole/Right, others show just Whole */}
+                      {isLargePizza ? (
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          {SIDE_OPTIONS.map(side => {
+                            const isThisSideActive = isSelected && (selected?.side || 'whole') === side.value;
+                            return (
+                              <button
+                                key={side.value}
+                                type="button"
+                                onClick={() => {
+                                  if (!isSelected) {
+                                    toggleExtraTopping(topping);
+                                    setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
+                                  } else {
+                                    updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                                  }
+                                }}
+                                className={cn(
+                                  "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
+                                  isThisSideActive ? btnActive : btnInactive
+                                )}
+                              >
+                                {side.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => toggleExtraTopping(topping)}
+                          className={cn(
+                            "px-2 py-0.5 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
+                            isSelected ? btnActive : btnInactive
+                          )}
+                        >
+                          Whole
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
+          <div className="flex items-center justify-between pt-2 border-t mt-1">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Special requests..."
-              className="flex-1 px-3 py-1.5 text-sm border rounded bg-white"
+              className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
             />
-            <span className="text-xs text-gray-600">Extra $</span>
+          </div>
+          <div className="flex items-center gap-1.5 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
             <input
               type="text"
               inputMode="decimal"
               value={extraAmount || ''}
-              onChange={(e) => setExtraAmount(parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, '');
+                setExtraAmount(parseFloat(val) || 0);
+              }}
               placeholder="0"
-              className="w-16 px-2 py-1.5 text-sm border rounded text-center bg-white"
+              className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
             />
-            <span className="text-xl font-bold" style={{ color: '#1a8ccc' }}>
-              ${totalPrice.toFixed(2)}
-            </span>
-            <Button variant="outline" onClick={onClose} className="px-6">
-              Cancel
-            </Button>
-            <Button
+          </div>
+          <span className="text-lg font-bold text-primary mr-4">
+            ${totalPrice.toFixed(2)}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="text-sm px-4 py-1.5 h-auto">Cancel</Button>
+            <Button 
+              variant="pizza" 
               onClick={handleAddToOrder}
               disabled={!selectedSize || !selectedCrust}
-              className="px-6 text-white font-semibold"
-              style={{ backgroundColor: '#1a8ccc' }}
+              className="text-sm px-4 py-1.5 h-auto"
             >
               {editingItem ? 'Update' : 'Add'}
             </Button>
+          </div>
           </div>
         </div>
       </DialogContent>

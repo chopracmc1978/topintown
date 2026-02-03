@@ -45,7 +45,7 @@ export const POSOrderHistoryDropdown = ({
     return (
       <div className="absolute top-full left-0 mt-1 w-96 bg-card border border-border rounded-lg shadow-xl z-50 p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full" style={{ borderColor: '#1a8ccc', borderTopColor: 'transparent' }} />
+          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
           <span className="text-sm">Searching orders...</span>
         </div>
       </div>
@@ -59,7 +59,7 @@ export const POSOrderHistoryDropdown = ({
   return (
     <div className="absolute top-full left-0 mt-1 w-[420px] bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
       <div className="bg-secondary/50 px-3 py-2 border-b border-border flex items-center gap-2">
-        <History className="w-4 h-4" style={{ color: '#1a8ccc' }} />
+        <History className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">Last {orders.length} Order{orders.length > 1 ? 's' : ''}</span>
       </div>
       
@@ -80,7 +80,7 @@ export const POSOrderHistoryDropdown = ({
                   )}
                   {/* Line 3: Order number + date */}
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold" style={{ color: '#1a8ccc' }}>{order.order_number}</span>
+                    <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(order.created_at), 'MMM d, h:mm a')}
                     </span>
@@ -95,7 +95,7 @@ export const POSOrderHistoryDropdown = ({
                   <p key={idx} className="truncate">{formatItemSummary(item)}</p>
                 ))}
                 {order.items.length > 3 && (
-                  <p style={{ color: '#1a8ccc' }}>+{order.items.length - 3} more items</p>
+                  <p className="text-primary">+{order.items.length - 3} more items</p>
                 )}
               </div>
               
