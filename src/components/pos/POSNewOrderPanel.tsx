@@ -495,25 +495,25 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
             )}
 
-            {/* Menu Items Grid - 4 columns, compact cards to fit all without scroll */}
-            <div className="flex-1 p-3 overflow-hidden">
+            {/* Menu Items Grid - 5 columns, ultra-compact cards to fit all without scroll */}
+            <div className="flex-1 p-2 overflow-hidden">
               {isLoading ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
               ) : filteredItems.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
               ) : (
-                <div className="grid grid-cols-4 gap-2 auto-rows-min">
+                <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-2.5 bg-secondary/30 rounded-lg text-left hover:bg-secondary transition-colors border-l-4 border-primary/30"
+                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
                     >
-                      <p className="font-medium text-sm uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-sm text-primary font-bold mt-0.5">
+                      <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
+                      <p className="text-xs text-primary font-bold mt-0.5">
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                          <span className="text-xs text-muted-foreground font-normal ml-1">+</span>
+                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
                         )}
                       </p>
                     </button>
