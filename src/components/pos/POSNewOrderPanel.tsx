@@ -493,26 +493,34 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
             )}
 
-            {/* Menu Items Grid - 5 columns, ultra-compact cards to fit all without scroll */}
-            <div className="flex-1 p-2 overflow-hidden">
+            {/* Menu Items Grid - responsive columns with minmax for tablet */}
+            <div className="flex-1 p-2 overflow-auto">
               {isLoading ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">Loading menu...</div>
               ) : filteredItems.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
               ) : (
-                <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
+                <div 
+                  className="grid gap-1.5"
+                  style={{ 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  }}
+                >
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2"
-                      style={{ borderLeftColor: 'rgba(26, 140, 204, 0.3)' }}
+                      className="p-2 rounded-md text-left hover:bg-gray-200 transition-colors border-l-2"
+                      style={{ 
+                        borderLeftColor: 'rgba(26, 140, 204, 0.3)',
+                        backgroundColor: 'rgba(0,0,0,0.03)'
+                      }}
                     >
                       <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
                       <p className="text-xs font-bold mt-0.5" style={{ color: '#1a8ccc' }}>
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                          <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
+                          <span className="text-[10px] text-gray-500 font-normal ml-0.5">+</span>
                         )}
                       </p>
                     </button>
@@ -522,8 +530,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           </div>
 
-          {/* Order Summary - Wider for tablet */}
-          <div className="w-96 flex flex-col">
+          {/* Order Summary - Narrower to give more space to menu */}
+          <div className="w-80 flex flex-col">
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-4">
               {cartItems.length === 0 ? (
