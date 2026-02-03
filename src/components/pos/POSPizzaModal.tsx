@@ -374,110 +374,52 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         </div>
 
         <div className="space-y-1.5">
-          {/* Row 1: Cheese (all inline: type + quantity) + Free Add-ons */}
-          <div className="flex items-start gap-6">
-            <div>
-              <h3 className="font-medium text-xs mb-1">Cheese</h3>
-              <div className="flex gap-1.5 items-center">
-                {/* Cheese type options */}
-                {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
+          {/* Row 1: Cheese + Spicy Level on same row */}
+          <div className="flex items-start gap-8">
+            {/* Cheese section */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Cheese</span>
+              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
+                <button
+                  key={cheese}
+                  onClick={() => {
+                    setSelectedCheese(cheese);
+                    if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
+                  }}
+                  className={cn(btnSmall, selectedCheese === cheese ? btnActive : btnInactive)}
+                >
+                  {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
+                  {cheese === 'Dairy Free' && (
+                    <span className="text-primary ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                  )}
+                </button>
+              ))}
+              {/* Quantity options inline */}
+              {(['less', 'normal', 'extra'] as const).map(qty => {
+                const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
+                                   selectedSize?.name?.includes('Medium') ? 2.5 : 3;
+                const isDisabled = selectedCheese === 'No Cheese';
+                return (
                   <button
-                    key={cheese}
-                    onClick={() => {
-                      setSelectedCheese(cheese);
-                      if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
-                    }}
-                    className={cn(btnSmall, selectedCheese === cheese ? btnActive : btnInactive)}
-                  >
-                    {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
-                    {cheese === 'Dairy Free' && (
-                      <span className="text-primary ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                    key={qty}
+                    onClick={() => !isDisabled && setCheeseQuantity(qty)}
+                    disabled={isDisabled}
+                    className={cn(
+                      btnSmall,
+                      isDisabled ? "opacity-40 cursor-not-allowed" :
+                      cheeseQuantity === qty ? btnActive : btnInactive
                     )}
+                  >
+                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
+                    {qty === 'extra' && <span className="text-primary ml-0.5">+${extraPrice}</span>}
                   </button>
-                ))}
-                {/* Quantity options - always visible */}
-                {(['less', 'normal', 'extra'] as const).map(qty => {
-                  const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
-                                     selectedSize?.name?.includes('Medium') ? 2.5 : 3;
-                  const isDisabled = selectedCheese === 'No Cheese';
-                  return (
-                    <button
-                      key={qty}
-                      onClick={() => !isDisabled && setCheeseQuantity(qty)}
-                      disabled={isDisabled}
-                      className={cn(
-                        btnSmall,
-                        isDisabled ? "opacity-40 cursor-not-allowed" :
-                        cheeseQuantity === qty ? btnActive : btnInactive
-                      )}
-                    >
-                      {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
-                      {qty === 'extra' && <span className="text-primary ml-0.5">+${extraPrice}</span>}
-                    </button>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
             
-            {/* Free Add-ons - inline on same row */}
-            {freeToppings.length > 0 && (
-              <div className="flex-1">
-                <h3 className="font-medium text-xs mb-1">Free Add-ons</h3>
-                <div className="flex gap-2">
-                  {freeToppings.map(topping => {
-                    const selection = freeToppingSelections.find(f => f.name === topping.name);
-                    const isSelected = !!selection;
-                    return (
-                      <div key={topping.id} className="flex items-center gap-1">
-                        <button
-                          onClick={() => toggleFreeTopping(topping.name)}
-                          className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
-                        >
-                          {topping.name}
-                        </button>
-                        {isLargePizza ? (
-                          <div className="flex gap-0.5">
-                            {(['left', 'whole', 'right'] as const).map(side => (
-                              <button
-                                key={side}
-                                onClick={() => {
-                                  if (!isSelected) toggleFreeTopping(topping.name);
-                                  updateFreeToppingSide(topping.name, side);
-                                }}
-                                className={cn(
-                                  "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
-                                  isSelected && selection?.side === side ? btnActive : btnInactive
-                                )}
-                              >
-                                {side === 'left' ? 'L' : side === 'whole' ? 'W' : 'R'}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              if (!isSelected) toggleFreeTopping(topping.name);
-                            }}
-                            className={cn(
-                              "px-2 py-1 text-xs rounded border font-medium transition-colors",
-                              isSelected ? btnActive : btnInactive
-                            )}
-                          >
-                            Whole
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Row 2: Spicy Level */}
-          <div>
-            <h3 className="font-medium text-xs mb-1">Spicy Level</h3>
+            {/* Spicy Level section - on same row */}
             <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Spicy Level</span>
               {/* None button */}
               <button
                 onClick={() => {
@@ -492,53 +434,51 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 None
               </button>
 
-              {/* Medium button with L/W/R for large pizza */}
+              {/* Medium button with Left/Whole/Right for large pizza */}
+              <span className="text-xs font-medium">Med Hot</span>
               {isLargePizza ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-foreground">Med Hot</span>
-                  <div className="flex gap-0.5">
+                <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
-                      const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
-                      const isActive = side === 'whole' 
-                        ? isWholeSelected
-                        : side === 'left' 
-                          ? leftSpicy === 'medium' && !isWholeSelected
-                          : rightSpicy === 'medium' && !isWholeSelected;
-                      
-                      const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
-                      let isDisabled = false;
-                      if (hotWhole) isDisabled = true;
-                      if (side === 'left' && leftSpicy === 'hot') isDisabled = true;
-                      if (side === 'right' && rightSpicy === 'hot') isDisabled = true;
-                      if (side === 'whole' && (leftSpicy === 'hot' || rightSpicy === 'hot')) isDisabled = true;
-                      
-                      return (
-                        <button
-                          key={side}
-                          disabled={isDisabled}
-                          onClick={() => {
-                            if (side === 'whole') {
-                              setLeftSpicy('medium');
-                              setRightSpicy('medium');
-                            } else if (side === 'left') {
-                              setLeftSpicy('medium');
-                              if (rightSpicy !== 'hot') setRightSpicy('none');
-                            } else {
-                              setRightSpicy('medium');
-                              if (leftSpicy !== 'hot') setLeftSpicy('none');
-                            }
-                          }}
-                          className={cn(
-                            "px-2 py-1 text-xs rounded border font-medium transition-colors",
-                            isActive ? btnActive : btnInactive,
-                            isDisabled && "opacity-40 cursor-not-allowed"
-                          )}
-                        >
-                          {side === 'left' ? 'L' : side === 'whole' ? 'W' : 'R'}
-                        </button>
-                      );
-                    })}
-                  </div>
+                    const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
+                    const isActive = side === 'whole' 
+                      ? isWholeSelected
+                      : side === 'left' 
+                        ? leftSpicy === 'medium' && !isWholeSelected
+                        : rightSpicy === 'medium' && !isWholeSelected;
+                    
+                    const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
+                    let isDisabled = false;
+                    if (hotWhole) isDisabled = true;
+                    if (side === 'left' && leftSpicy === 'hot') isDisabled = true;
+                    if (side === 'right' && rightSpicy === 'hot') isDisabled = true;
+                    if (side === 'whole' && (leftSpicy === 'hot' || rightSpicy === 'hot')) isDisabled = true;
+                    
+                    return (
+                      <button
+                        key={side}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (side === 'whole') {
+                            setLeftSpicy('medium');
+                            setRightSpicy('medium');
+                          } else if (side === 'left') {
+                            setLeftSpicy('medium');
+                            if (rightSpicy !== 'hot') setRightSpicy('none');
+                          } else {
+                            setRightSpicy('medium');
+                            if (leftSpicy !== 'hot') setLeftSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          isActive ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <button
@@ -548,57 +488,55 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   }}
                   className={cn(btnSmall, leftSpicy === 'medium' ? btnActive : btnInactive)}
                 >
-                  Medium Hot
+                  Whole
                 </button>
               )}
 
-              {/* Hot button with L/W/R for large pizza */}
+              {/* Hot button with Left/Whole/Right for large pizza */}
+              <span className="text-xs font-medium">Hot</span>
               {isLargePizza ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-foreground">Hot</span>
-                  <div className="flex gap-0.5">
+                <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
-                      const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
-                      const isActive = side === 'whole' 
-                        ? isWholeSelected
-                        : side === 'left' 
-                          ? leftSpicy === 'hot' && !isWholeSelected
-                          : rightSpicy === 'hot' && !isWholeSelected;
-                      
-                      const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
-                      let isDisabled = false;
-                      if (medWhole) isDisabled = true;
-                      if (side === 'left' && leftSpicy === 'medium') isDisabled = true;
-                      if (side === 'right' && rightSpicy === 'medium') isDisabled = true;
-                      if (side === 'whole' && (leftSpicy === 'medium' || rightSpicy === 'medium')) isDisabled = true;
-                      
-                      return (
-                        <button
-                          key={side}
-                          disabled={isDisabled}
-                          onClick={() => {
-                            if (side === 'whole') {
-                              setLeftSpicy('hot');
-                              setRightSpicy('hot');
-                            } else if (side === 'left') {
-                              setLeftSpicy('hot');
-                              if (rightSpicy !== 'medium') setRightSpicy('none');
-                            } else {
-                              setRightSpicy('hot');
-                              if (leftSpicy !== 'medium') setLeftSpicy('none');
-                            }
-                          }}
-                          className={cn(
-                            "px-2 py-1 text-xs rounded border font-medium transition-colors",
-                            isActive ? btnActive : btnInactive,
-                            isDisabled && "opacity-40 cursor-not-allowed"
-                          )}
-                        >
-                          {side === 'left' ? 'L' : side === 'whole' ? 'W' : 'R'}
-                        </button>
-                      );
-                    })}
-                  </div>
+                    const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
+                    const isActive = side === 'whole' 
+                      ? isWholeSelected
+                      : side === 'left' 
+                        ? leftSpicy === 'hot' && !isWholeSelected
+                        : rightSpicy === 'hot' && !isWholeSelected;
+                    
+                    const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
+                    let isDisabled = false;
+                    if (medWhole) isDisabled = true;
+                    if (side === 'left' && leftSpicy === 'medium') isDisabled = true;
+                    if (side === 'right' && rightSpicy === 'medium') isDisabled = true;
+                    if (side === 'whole' && (leftSpicy === 'medium' || rightSpicy === 'medium')) isDisabled = true;
+                    
+                    return (
+                      <button
+                        key={side}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (side === 'whole') {
+                            setLeftSpicy('hot');
+                            setRightSpicy('hot');
+                          } else if (side === 'left') {
+                            setLeftSpicy('hot');
+                            if (rightSpicy !== 'medium') setRightSpicy('none');
+                          } else {
+                            setRightSpicy('hot');
+                            if (leftSpicy !== 'medium') setLeftSpicy('none');
+                          }
+                        }}
+                        className={cn(
+                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          isActive ? btnActive : btnInactive,
+                          isDisabled && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <button
@@ -608,11 +546,64 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   }}
                   className={cn(btnSmall, leftSpicy === 'hot' ? btnActive : btnInactive)}
                 >
-                  Hot
+                  Whole
                 </button>
               )}
             </div>
           </div>
+
+          {/* Row 2: Free Add-ons */}
+          {freeToppings.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">Free Add-ons</span>
+              {freeToppings.map(topping => {
+                const selection = freeToppingSelections.find(f => f.name === topping.name);
+                const isSelected = !!selection;
+                return (
+                  <div key={topping.id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => toggleFreeTopping(topping.name)}
+                      className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
+                    >
+                      {topping.name}
+                    </button>
+                    {isLargePizza ? (
+                      <div className="flex gap-0.5">
+                        {(['left', 'whole', 'right'] as const).map(side => (
+                          <button
+                            key={side}
+                            onClick={() => {
+                              if (!isSelected) toggleFreeTopping(topping.name);
+                              updateFreeToppingSide(topping.name, side);
+                            }}
+                            className={cn(
+                              "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                              isSelected && selection?.side === side ? btnActive : btnInactive
+                            )}
+                          >
+                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (!isSelected) toggleFreeTopping(topping.name);
+                        }}
+                        className={cn(
+                          "px-2 py-1 text-xs rounded border font-medium transition-colors",
+                          isSelected ? btnActive : btnInactive
+                        )}
+                      >
+                        Whole
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
 
           {/* Sauce Selection - inline with quantity */}
           <div>
@@ -701,7 +692,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           ))}
                         </div>
                       )}
-                      {/* Side: L/W/R (Large only) */}
+                      {/* Side: Left/Whole/Right (Large only) */}
                       {!isRemoved && isLargePizza && (
                         <div className="flex gap-0.5">
                           {SIDE_OPTIONS.map(side => (
@@ -713,7 +704,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 topping.side === side.value ? btnActive : btnInactive
                               )}
                             >
-                              {side.value === 'left' ? 'L' : side.value === 'whole' ? 'W' : 'R'}
+                              {side.label}
                             </button>
                           ))}
                         </div>
@@ -757,7 +748,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <span className="text-xs truncate">{topping.name}</span>
                       </button>
 
-                      {/* Side selection - Large pizza shows L/W/R, others show just W */}
+                      {/* Side selection - Large pizza shows Left/Whole/Right, others show just Whole */}
                       {isLargePizza ? (
                         <div className="flex gap-0.5 flex-shrink-0">
                           {SIDE_OPTIONS.map(side => {
@@ -779,7 +770,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   isThisSideActive ? btnActive : btnInactive
                                 )}
                               >
-                                {side.value === 'left' ? 'L' : side.value === 'whole' ? 'W' : 'R'}
+                                {side.label}
                               </button>
                             );
                           })}
@@ -792,7 +783,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             isSelected ? btnActive : btnInactive
                           )}
                         >
-                          W
+                          Whole
                         </button>
                       )}
                     </div>
