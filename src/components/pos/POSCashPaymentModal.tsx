@@ -60,7 +60,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm }: POSCash
           {/* Total Due */}
           <div className="text-center p-4 bg-secondary/50 rounded-lg">
             <p className="text-sm text-muted-foreground">Total Due</p>
-            <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
+            <p className="text-3xl font-bold" style={{ color: '#1a8ccc' }}>${total.toFixed(2)}</p>
           </div>
 
           {/* Amount Received Input */}
