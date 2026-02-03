@@ -169,24 +169,40 @@ const OrderConfirmation = () => {
     );
   }
 
+  // Detect "Payment not completed" specifically so we can offer a retry
+  const isPaymentIncomplete = error === 'Payment not completed';
+
   if (error || !order) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <main className="flex-1 py-12">
-          <div className="container mx-auto px-4 text-center">
+          <div className="container mx-auto px-4 text-center max-w-md">
             <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-10 h-10 text-destructive" />
             </div>
-            <h1 className="font-serif text-3xl font-bold text-foreground mb-4">
-              {error || 'Order Not Found'}
+            <h1 className="font-serif text-2xl font-bold text-foreground mb-4">
+              {isPaymentIncomplete ? 'Payment Not Completed' : (error || 'Order Not Found')}
             </h1>
             <p className="text-muted-foreground mb-6">
-              {error ? 'Please contact support with your payment confirmation.' : "We couldn't find this order."}
+              {isPaymentIncomplete
+                ? 'It looks like your payment was not finished. Your cart is still saved — go back and try again.'
+                : error
+                ? 'Please contact support with your payment confirmation.'
+                : "We couldn't find this order."}
             </p>
-            <Link to="/menu">
-              <Button variant="pizza">Browse Menu</Button>
-            </Link>
+            <div className="flex flex-col gap-3">
+              {isPaymentIncomplete && (
+                <Link to="/checkout">
+                  <Button variant="pizza" className="w-full">Return to Checkout</Button>
+                </Link>
+              )}
+              <Link to="/menu">
+                <Button variant={isPaymentIncomplete ? 'outline' : 'pizza'} className="w-full">
+                  Browse Menu
+                </Button>
+              </Link>
+            </div>
           </div>
         </main>
         <Footer />
