@@ -23,11 +23,15 @@ interface POSOrderHistoryDropdownProps {
   onClose: () => void;
 }
 
-// Compact item summary
+// Compact item summary with customization details
 const formatItemSummary = (item: CartItem): string => {
   let summary = `${item.quantity}x ${item.name}`;
   
-  if (item.pizzaCustomization) {
+  if (item.comboCustomization) {
+    // Show combo with selection count
+    const selectionCount = item.comboCustomization.selections?.length || 0;
+    summary += ` (${selectionCount} items)`;
+  } else if (item.pizzaCustomization) {
     summary += ` (${item.pizzaCustomization.size.name})`;
   } else if (item.wingsCustomization) {
     summary += ` - ${item.wingsCustomization.flavor}`;
