@@ -12,9 +12,10 @@ import { cn } from '@/lib/utils';
 interface POSReportsPanelProps {
   locationId: string;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export const POSReportsPanel = ({ locationId, onClose }: POSReportsPanelProps) => {
+export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSReportsPanelProps) => {
   const {
     loading,
     fetchDailySales,
@@ -96,6 +97,471 @@ export const POSReportsPanel = ({ locationId, onClose }: POSReportsPanelProps) =
     { id: 'cancelled', label: 'Cancelled Orders', icon: XCircle },
   ];
 
+  // Embedded mode renders just the content without the full-screen wrapper
+  if (embedded) {
+    return (
+      <div className="space-y-4">
+        {/* Date Range Selector */}
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold text-lg">Reports</h3>
+          <Select value={dateRange} onValueChange={(v) => setDateRange(v as any)}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">Last 7 Days</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Report Type Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {reportButtons.map((report) => (
+            <button
+              key={report.id}
+              onClick={() => setActiveTab(report.id)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-colors",
+                activeTab === report.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              <report.icon className="w-3 h-3" />
+              {report.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Report Content - render the same content as below but without full-screen layout */}
+        <div className="min-h-[400px]">
+          {renderReportContent()}
+        </div>
+      </div>
+    );
+  }
+
+  // Helper function to render report content
+  function renderReportContent() {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {activeTab === 'daily' && renderDailyReport()}
+        {activeTab === 'category' && renderCategoryReport()}
+        {activeTab === 'products' && renderProductsReport()}
+        {activeTab === 'hourly' && renderHourlyReport()}
+        {activeTab === 'payment' && renderPaymentReport()}
+        {activeTab === 'sources' && renderSourcesReport()}
+        {activeTab === 'cancelled' && renderCancelledReport()}
+      </>
+    );
+  }
+
+  function renderDailyReport() {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Daily Sales Report</h2>
+        
+        {/* Summary Cards */}
+        <div className="grid grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Total Sales</div>
+              <div className="text-2xl font-bold text-primary">
+                ${dailySales.reduce((sum, d) => sum + d.totalSales, 0).toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Orders</div>
+              <div className="text-2xl font-bold">
+                {dailySales.reduce((sum, d) => sum + d.orderCount, 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Avg Ticket</div>
+              <div className="text-2xl font-bold">
+                ${(dailySales.reduce((sum, d) => sum + d.totalSales, 0) / Math.max(dailySales.reduce((sum, d) => sum + d.orderCount, 0), 1)).toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Cash Sales</div>
+              <div className="text-2xl font-bold text-green-600">
+                ${dailySales.reduce((sum, d) => sum + d.cashSales, 0).toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Daily breakdown table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Daily Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Date</th>
+                  <th className="text-right py-2">Orders</th>
+                  <th className="text-right py-2">Cash</th>
+                  <th className="text-right py-2">Card</th>
+                  <th className="text-right py-2">Total</th>
+                  <th className="text-right py-2">Avg</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailySales.map((day) => (
+                  <tr key={day.date} className="border-b">
+                    <td className="py-2">{format(new Date(day.date), 'MMM dd, yyyy')}</td>
+                    <td className="text-right py-2">{day.orderCount}</td>
+                    <td className="text-right py-2 text-green-600">${day.cashSales.toFixed(2)}</td>
+                    <td className="text-right py-2 text-blue-600">${day.cardSales.toFixed(2)}</td>
+                    <td className="text-right py-2 font-semibold">${day.totalSales.toFixed(2)}</td>
+                    <td className="text-right py-2">${day.avgTicket.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {dailySales.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">No sales data for this period</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  function renderCategoryReport() {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Category Wise Sales</h2>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {categorySales.map((cat) => (
+            <Card key={cat.category}>
+              <CardContent className="pt-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-medium">{cat.category}</div>
+                    <div className="text-sm text-muted-foreground">{cat.orderCount} items sold</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold">${cat.totalSales.toFixed(2)}</div>
+                    <div className="text-sm text-primary">{cat.percentage.toFixed(1)}%</div>
+                  </div>
+                </div>
+                <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary rounded-full" 
+                    style={{ width: `${cat.percentage}%` }} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {categorySales.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">No category data for this period</div>
+        )}
+      </div>
+    );
+  }
+
+  function renderProductsReport() {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-6">
+          {/* Best Selling */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-600">
+                <TrendingUp className="w-5 h-5" />
+                Best Selling
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {productSales.best.map((product, idx) => (
+                  <div key={product.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-medium">{product.name}</div>
+                        <div className="text-xs text-muted-foreground">{product.category}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{product.quantity} sold</div>
+                      <div className="text-sm text-muted-foreground">${product.totalSales.toFixed(2)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {productSales.best.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">No data</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Worst Selling */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <TrendingDown className="w-5 h-5" />
+                Lowest Selling
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {productSales.worst.map((product, idx) => (
+                  <div key={product.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-medium">{product.name}</div>
+                        <div className="text-xs text-muted-foreground">{product.category}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{product.quantity} sold</div>
+                      <div className="text-sm text-muted-foreground">${product.totalSales.toFixed(2)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {productSales.worst.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">No data</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  function renderHourlyReport() {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Hourly Sales</h2>
+        
+        <Card>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-6 gap-2">
+              {hourlySales.filter(h => h.hour >= 10 && h.hour <= 23).map((hour) => (
+                <div key={hour.hour} className="text-center p-3 rounded-lg bg-muted">
+                  <div className="text-xs text-muted-foreground">
+                    {hour.hour === 0 ? '12 AM' : hour.hour === 12 ? '12 PM' : hour.hour > 12 ? `${hour.hour - 12} PM` : `${hour.hour} AM`}
+                  </div>
+                  <div className="font-bold text-primary">${hour.totalSales.toFixed(0)}</div>
+                  <div className="text-xs text-muted-foreground">{hour.orderCount} orders</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Peak hours summary */}
+        <div className="grid grid-cols-3 gap-4">
+          {(() => {
+            const sorted = [...hourlySales].sort((a, b) => b.totalSales - a.totalSales);
+            const peak = sorted[0];
+            const total = hourlySales.reduce((sum, h) => sum + h.totalSales, 0);
+            const avgPerHour = total / 14;
+            
+            return (
+              <>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-sm text-muted-foreground">Peak Hour</div>
+                    <div className="text-xl font-bold">
+                      {peak ? (peak.hour === 0 ? '12 AM' : peak.hour === 12 ? '12 PM' : peak.hour > 12 ? `${peak.hour - 12} PM` : `${peak.hour} AM`) : '-'}
+                    </div>
+                    <div className="text-sm text-primary">${peak?.totalSales.toFixed(2) || '0.00'}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-sm text-muted-foreground">Total Hourly Sales</div>
+                    <div className="text-xl font-bold">${total.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="text-sm text-muted-foreground">Avg Per Hour</div>
+                    <div className="text-xl font-bold">${avgPerHour.toFixed(2)}</div>
+                  </CardContent>
+                </Card>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    );
+  }
+
+  function renderPaymentReport() {
+    const totalPayments = paymentTypes.reduce((sum, p) => sum + p.totalSales, 0);
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Payment Type Breakdown</h2>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {paymentTypes.map((payment) => (
+            <Card key={payment.paymentMethod}>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center",
+                    payment.paymentMethod === 'cash' ? "bg-green-100" : "bg-blue-100"
+                  )}>
+                    <CreditCard className={cn(
+                      "w-6 h-6",
+                      payment.paymentMethod === 'cash' ? "text-green-600" : "text-blue-600"
+                    )} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium capitalize">{payment.paymentMethod}</div>
+                    <div className="text-sm text-muted-foreground">{payment.orderCount} orders</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold">${payment.totalSales.toFixed(2)}</div>
+                    <div className="text-sm text-primary">
+                      {totalPayments > 0 ? ((payment.totalSales / totalPayments) * 100).toFixed(1) : 0}%
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {paymentTypes.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">No payment data for this period</div>
+        )}
+      </div>
+    );
+  }
+
+  function renderSourcesReport() {
+    const totalOrders = orderSources.reduce((sum, s) => sum + s.orderCount, 0);
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Order Source Distribution</h2>
+        
+        <div className="grid grid-cols-3 gap-4">
+          {orderSources.map((source) => (
+            <Card key={source.source}>
+              <CardContent className="pt-4">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                    <Store className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="font-medium capitalize">{source.source}</div>
+                  <div className="text-2xl font-bold text-primary">{source.orderCount}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {totalOrders > 0 ? ((source.orderCount / totalOrders) * 100).toFixed(1) : 0}% of orders
+                  </div>
+                  <div className="text-sm font-medium mt-1">${source.totalSales.toFixed(2)}</div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {orderSources.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">No order source data for this period</div>
+        )}
+      </div>
+    );
+  }
+
+  function renderCancelledReport() {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Cancelled Orders</h2>
+        
+        {/* Summary */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <XCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Cancelled Orders</div>
+                  <div className="text-2xl font-bold text-red-600">{cancelledOrders.count}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Revenue Lost</div>
+                  <div className="text-2xl font-bold text-red-600">${cancelledOrders.totalLost.toFixed(2)}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cancelled orders list */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Cancelled Orders List</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Order #</th>
+                  <th className="text-left py-2">Customer</th>
+                  <th className="text-left py-2">Date</th>
+                  <th className="text-right py-2">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cancelledOrders.orders.map((order) => (
+                  <tr key={order.id} className="border-b">
+                    <td className="py-2">{order.orderNumber}</td>
+                    <td className="py-2">{order.customerName || 'Walk-in'}</td>
+                    <td className="py-2">{format(new Date(order.createdAt), 'MMM dd, h:mm a')}</td>
+                    <td className="text-right py-2 text-red-600">${order.total.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {cancelledOrders.orders.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">No cancelled orders for this period</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
@@ -154,390 +620,7 @@ export const POSReportsPanel = ({ locationId, onClose }: POSReportsPanelProps) =
 
         {/* Main Content */}
         <ScrollArea className="flex-1 p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-muted-foreground">Loading...</div>
-            </div>
-          ) : (
-            <>
-              {/* Daily/Monthly Report */}
-              {activeTab === 'daily' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Daily Sales Report</h2>
-                  
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-4 gap-4">
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-muted-foreground">Total Sales</div>
-                        <div className="text-2xl font-bold text-primary">
-                          ${dailySales.reduce((sum, d) => sum + d.totalSales, 0).toFixed(2)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-muted-foreground">Orders</div>
-                        <div className="text-2xl font-bold">
-                          {dailySales.reduce((sum, d) => sum + d.orderCount, 0)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-muted-foreground">Avg Ticket</div>
-                        <div className="text-2xl font-bold">
-                          ${(dailySales.reduce((sum, d) => sum + d.totalSales, 0) / Math.max(dailySales.reduce((sum, d) => sum + d.orderCount, 0), 1)).toFixed(2)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-muted-foreground">Cash Sales</div>
-                        <div className="text-2xl font-bold text-green-600">
-                          ${dailySales.reduce((sum, d) => sum + d.cashSales, 0).toFixed(2)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Daily breakdown table */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Daily Breakdown</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2">Date</th>
-                            <th className="text-right py-2">Orders</th>
-                            <th className="text-right py-2">Cash</th>
-                            <th className="text-right py-2">Card</th>
-                            <th className="text-right py-2">Total</th>
-                            <th className="text-right py-2">Avg</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {dailySales.map((day) => (
-                            <tr key={day.date} className="border-b">
-                              <td className="py-2">{format(new Date(day.date), 'MMM dd, yyyy')}</td>
-                              <td className="text-right py-2">{day.orderCount}</td>
-                              <td className="text-right py-2 text-green-600">${day.cashSales.toFixed(2)}</td>
-                              <td className="text-right py-2 text-blue-600">${day.cardSales.toFixed(2)}</td>
-                              <td className="text-right py-2 font-semibold">${day.totalSales.toFixed(2)}</td>
-                              <td className="text-right py-2">${day.avgTicket.toFixed(2)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {dailySales.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">No sales data for this period</div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Category Wise Report */}
-              {activeTab === 'category' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Category Wise Sales</h2>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {categorySales.map((cat) => (
-                      <Card key={cat.category}>
-                        <CardContent className="pt-4">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium">{cat.category}</div>
-                              <div className="text-sm text-muted-foreground">{cat.orderCount} items sold</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-bold">${cat.totalSales.toFixed(2)}</div>
-                              <div className="text-sm text-primary">{cat.percentage.toFixed(1)}%</div>
-                            </div>
-                          </div>
-                          <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary rounded-full" 
-                              style={{ width: `${cat.percentage}%` }} 
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                  {categorySales.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">No category data for this period</div>
-                  )}
-                </div>
-              )}
-
-              {/* Best/Worst Selling Report */}
-              {activeTab === 'products' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-6">
-                    {/* Best Selling */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-green-600">
-                          <TrendingUp className="w-5 h-5" />
-                          Best Selling
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {productSales.best.map((product, idx) => (
-                            <div key={product.name} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">
-                                  {idx + 1}
-                                </span>
-                                <div>
-                                  <div className="font-medium">{product.name}</div>
-                                  <div className="text-xs text-muted-foreground">{product.category}</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-semibold">{product.quantity} sold</div>
-                                <div className="text-sm text-muted-foreground">${product.totalSales.toFixed(2)}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {productSales.best.length === 0 && (
-                          <div className="text-center py-4 text-muted-foreground">No data</div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Worst Selling */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-red-600">
-                          <TrendingDown className="w-5 h-5" />
-                          Lowest Selling
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {productSales.worst.map((product, idx) => (
-                            <div key={product.name} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">
-                                  {idx + 1}
-                                </span>
-                                <div>
-                                  <div className="font-medium">{product.name}</div>
-                                  <div className="text-xs text-muted-foreground">{product.category}</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-semibold">{product.quantity} sold</div>
-                                <div className="text-sm text-muted-foreground">${product.totalSales.toFixed(2)}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {productSales.worst.length === 0 && (
-                          <div className="text-center py-4 text-muted-foreground">No data</div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              )}
-
-              {/* Hourly Sales Report */}
-              {activeTab === 'hourly' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Hourly Sales</h2>
-                  
-                  <Card>
-                    <CardContent className="pt-4">
-                      <div className="grid grid-cols-6 gap-2">
-                        {hourlySales.filter(h => h.hour >= 10 && h.hour <= 23).map((hour) => (
-                          <div key={hour.hour} className="text-center p-3 rounded-lg bg-muted">
-                            <div className="text-xs text-muted-foreground">
-                              {hour.hour === 0 ? '12 AM' : hour.hour === 12 ? '12 PM' : hour.hour > 12 ? `${hour.hour - 12} PM` : `${hour.hour} AM`}
-                            </div>
-                            <div className="font-bold text-primary">${hour.totalSales.toFixed(0)}</div>
-                            <div className="text-xs text-muted-foreground">{hour.orderCount} orders</div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Peak hours summary */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {(() => {
-                      const sorted = [...hourlySales].sort((a, b) => b.totalSales - a.totalSales);
-                      const peak = sorted[0];
-                      const total = hourlySales.reduce((sum, h) => sum + h.totalSales, 0);
-                      const avgPerHour = total / 14; // Business hours (10 AM - 12 AM)
-                      
-                      return (
-                        <>
-                          <Card>
-                            <CardContent className="pt-4">
-                              <div className="text-sm text-muted-foreground">Peak Hour</div>
-                              <div className="text-2xl font-bold text-primary">
-                                {peak?.hour === 0 ? '12 AM' : peak?.hour === 12 ? '12 PM' : peak?.hour > 12 ? `${peak.hour - 12} PM` : `${peak?.hour} AM`}
-                              </div>
-                              <div className="text-sm">${peak?.totalSales.toFixed(2) || '0.00'}</div>
-                            </CardContent>
-                          </Card>
-                          <Card>
-                            <CardContent className="pt-4">
-                              <div className="text-sm text-muted-foreground">Total Sales</div>
-                              <div className="text-2xl font-bold">${total.toFixed(2)}</div>
-                            </CardContent>
-                          </Card>
-                          <Card>
-                            <CardContent className="pt-4">
-                              <div className="text-sm text-muted-foreground">Avg Per Hour</div>
-                              <div className="text-2xl font-bold">${avgPerHour.toFixed(2)}</div>
-                            </CardContent>
-                          </Card>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
-
-              {/* Payment Type Report */}
-              {activeTab === 'payment' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Payment Type Breakdown</h2>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {paymentTypes.map((payment) => (
-                      <Card key={payment.method}>
-                        <CardContent className="pt-4">
-                          <div className="flex items-center gap-4">
-                            <div className={cn(
-                              "w-12 h-12 rounded-full flex items-center justify-center",
-                              payment.method === 'Cash' ? "bg-green-100" : "bg-blue-100"
-                            )}>
-                              <CreditCard className={cn(
-                                "w-6 h-6",
-                                payment.method === 'Cash' ? "text-green-600" : "text-blue-600"
-                              )} />
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-medium">{payment.method}</div>
-                              <div className="text-sm text-muted-foreground">{payment.orderCount} orders</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-xl font-bold">${payment.totalSales.toFixed(2)}</div>
-                              <div className="text-sm text-primary">{payment.percentage.toFixed(1)}%</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                  {paymentTypes.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">No payment data for this period</div>
-                  )}
-                </div>
-              )}
-
-              {/* Order Sources Report */}
-              {activeTab === 'sources' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Order Sources</h2>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    {orderSources.map((source) => (
-                      <Card key={source.source}>
-                        <CardContent className="pt-4">
-                          <div className="text-center">
-                            <div className={cn(
-                              "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3",
-                              source.source === 'Walk-in' ? "bg-gray-100" :
-                              source.source === 'Website' ? "bg-blue-100" : "bg-purple-100"
-                            )}>
-                              <Store className={cn(
-                                "w-6 h-6",
-                                source.source === 'Walk-in' ? "text-gray-600" :
-                                source.source === 'Website' ? "text-blue-600" : "text-purple-600"
-                              )} />
-                            </div>
-                            <div className="font-medium">{source.source}</div>
-                            <div className="text-2xl font-bold mt-2">${source.totalSales.toFixed(2)}</div>
-                            <div className="text-sm text-muted-foreground">{source.orderCount} orders</div>
-                            <div className="text-sm text-primary">{source.percentage.toFixed(1)}%</div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                  {orderSources.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">No source data for this period</div>
-                  )}
-                </div>
-              )}
-
-              {/* Cancelled Orders Report */}
-              {activeTab === 'cancelled' && (
-                <div className="space-y-4">
-                  <h2 className="text-lg font-semibold">Cancelled Orders</h2>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="border-red-200 bg-red-50">
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-red-600">Cancelled Orders</div>
-                        <div className="text-3xl font-bold text-red-700">{cancelledOrders.count}</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-red-200 bg-red-50">
-                      <CardContent className="pt-4">
-                        <div className="text-sm text-red-600">Revenue Lost</div>
-                        <div className="text-3xl font-bold text-red-700">${cancelledOrders.totalLost.toFixed(2)}</div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Cancelled Orders List</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2">Order #</th>
-                            <th className="text-left py-2">Customer</th>
-                            <th className="text-left py-2">Source</th>
-                            <th className="text-left py-2">Date</th>
-                            <th className="text-right py-2">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cancelledOrders.orders.map((order) => (
-                            <tr key={order.order_number} className="border-b">
-                              <td className="py-2 font-mono">{order.order_number}</td>
-                              <td className="py-2">{order.customer_name || 'N/A'}</td>
-                              <td className="py-2">{order.source}</td>
-                              <td className="py-2">{format(new Date(order.created_at), 'MMM dd, h:mm a')}</td>
-                              <td className="text-right py-2 text-red-600 font-semibold">${order.total?.toFixed(2)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {cancelledOrders.orders.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">No cancelled orders for this period</div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </>
-          )}
+          {renderReportContent()}
         </ScrollArea>
       </div>
     </div>
