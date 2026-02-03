@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Pizza, Utensils, Drumstick, Coffee, Droplets } from 'lucide-react';
+import { Pizza, Utensils, Drumstick, Coffee, Droplets, Package } from 'lucide-react';
 
 const categories = [
   {
@@ -8,14 +8,19 @@ const categories = [
     link: '/menu?category=pizza',
   },
   {
-    name: 'Pasta',
-    icon: Utensils,
-    link: '/menu?category=baked_lasagna',
+    name: 'Combos',
+    icon: Package,
+    link: '/menu?category=combos',
   },
   {
     name: 'Wings',
     icon: Drumstick,
     link: '/menu?category=chicken_wings',
+  },
+  {
+    name: 'Pasta',
+    icon: Utensils,
+    link: '/menu?category=baked_lasagna',
   },
   {
     name: 'Beverages',
@@ -39,7 +44,7 @@ const FoodCategories = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 max-w-6xl mx-auto">
           {categories.map((category) => (
             <Link
               key={category.name}
@@ -49,7 +54,7 @@ const FoodCategories = () => {
               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <category.icon className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+              <h3 className="font-serif text-lg font-semibold text-foreground group-hover:text-primary transition-colors text-center">
                 {category.name}
               </h3>
             </Link>

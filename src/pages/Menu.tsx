@@ -4,6 +4,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MenuCardDB from '@/components/MenuCardDB';
 import { useMenuItems, type MenuCategory } from '@/hooks/useMenuItems';
+import { useActiveCombos, Combo } from '@/hooks/useCombos';
+import { ComboBuilderModal } from '@/components/combo/ComboBuilderModal';
+import { Button } from '@/components/ui/button';
+import { Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
@@ -12,6 +16,7 @@ const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] 
   { id: 'baked_lasagna', name: 'Baked Lasagna', dbCategory: 'baked_lasagna' },
   { id: 'drinks', name: 'Drinks', dbCategory: 'drinks' },
   { id: 'dipping_sauce', name: 'Dipping Sauces', dbCategory: 'dipping_sauce' },
+  { id: 'combos', name: 'Combos' },
 ];
 
 const pizzaSubCategories = [
@@ -34,6 +39,7 @@ const Menu = () => {
       : 'pizza';
   });
   const [activePizzaSubCategory, setActivePizzaSubCategory] = useState<string | null>(null);
+  const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null);
 
   // Scroll to top when page loads
   useEffect(() => {
@@ -53,9 +59,10 @@ const Menu = () => {
     }
   }, [categoryFromUrl]);
   
-  const selectedCategory = activeCategory as MenuCategory;
-  
-  const { data: menuItems, isLoading } = useMenuItems(selectedCategory);
+  // Only fetch menu items if not on combos tab
+  const selectedCategory = activeCategory !== 'combos' ? (activeCategory as MenuCategory) : 'pizza';
+  const { data: menuItems, isLoading: menuLoading } = useMenuItems(selectedCategory);
+  const { data: combos, isLoading: combosLoading } = useActiveCombos();
 
   // Filter pizzas by sub-category field
   const filteredItems = activePizzaSubCategory && activeCategory === 'pizza'
@@ -81,6 +88,8 @@ const Menu = () => {
       setActivePizzaSubCategory(subCategoryId);
     }
   };
+
+  const isLoading = activeCategory === 'combos' ? combosLoading : menuLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,7 +155,75 @@ const Menu = () => {
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
+          ) : activeCategory === 'combos' ? (
+            // Combos Grid
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {combos?.map((combo) => (
+                  <div
+                    key={combo.id}
+                    className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow"
+                  >
+                    {combo.image_url ? (
+                      <img
+                        src={combo.image_url}
+                        alt={combo.name}
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Package className="h-16 w-16 text-primary/50" />
+                      </div>
+                    )}
+                    
+                    <div className="p-4">
+                      <h3 className="font-serif text-xl font-bold text-foreground mb-2">
+                        {combo.name}
+                      </h3>
+                      {combo.description && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {combo.description}
+                        </p>
+                      )}
+                      
+                      {/* Show combo items */}
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {combo.combo_items?.map((item, i) => (
+                          <span
+                            key={i}
+                            className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full"
+                          >
+                            {item.quantity}x {item.item_type.replace('_', ' ')}
+                            {item.size_restriction && ` (${item.size_restriction})`}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-bold text-primary">
+                          ${combo.price.toFixed(2)}
+                        </span>
+                        <Button
+                          variant="pizza"
+                          onClick={() => setSelectedCombo(combo)}
+                        >
+                          Order Now
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {(!combos || combos.length === 0) && (
+                <div className="text-center py-12">
+                  <Package className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No combo deals available at the moment.</p>
+                </div>
+              )}
+            </>
           ) : (
+            // Regular Menu Items Grid
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredItems?.map((item) => (
@@ -167,6 +244,15 @@ const Menu = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Combo Builder Modal */}
+      {selectedCombo && (
+        <ComboBuilderModal
+          combo={selectedCombo}
+          isOpen={!!selectedCombo}
+          onClose={() => setSelectedCombo(null)}
+        />
+      )}
     </div>
   );
 };
