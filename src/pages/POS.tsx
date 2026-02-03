@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Volume2, VolumeX, Settings, CalendarClock, BarChart3 } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -279,34 +279,14 @@ const POS = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Top In Town Pizza" className="w-12 h-12 object-contain" />
-            <div>
-              <h1 className="font-serif text-xl font-bold text-foreground">Top In Town Pizza</h1>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4" />
-                <span>{LOCATION_NAMES[currentLocationId] || currentLocationId}</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-5 h-5 text-primary" />
+              <h1 className="font-serif text-xl font-bold text-foreground">{LOCATION_NAMES[currentLocationId] || currentLocationId}</h1>
             </div>
             {hasPendingRemoteOrders && (
               <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full animate-bounce">
                 <Bell className="w-5 h-5" />
                 <span className="font-semibold text-base">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
-              </div>
-            )}
-            {!isAudioEnabled && (
-              <Button
-                variant="outline"
-                size="default"
-                onClick={enableAudio}
-                className="bg-yellow-100 border-yellow-400 text-yellow-800 hover:bg-yellow-200 text-base px-4 py-2"
-              >
-                <VolumeX className="w-5 h-5 mr-2" />
-                Enable Sound
-              </Button>
-            )}
-            {isAudioEnabled && (
-              <div className="flex items-center gap-1.5 text-green-600 text-sm">
-                <Volume2 className="w-4 h-4" />
-                <span>Sound On</span>
               </div>
             )}
           </div>
@@ -349,16 +329,7 @@ const POS = () => {
             New Order
           </Button>
 
-          <Button 
-            variant="outline"
-            onClick={() => setShowReports(true)}
-            className="text-primary border-primary/30 hover:bg-primary/5 text-base px-4 py-3 h-auto"
-          >
-            <BarChart3 className="w-5 h-5 mr-2" />
-            Reports
-          </Button>
-
-          <Button 
+          <Button
             variant="outline"
             onClick={() => setShowEndDay(true)}
             className="text-orange-600 border-orange-300 hover:bg-orange-50 text-base px-4 py-3 h-auto"
@@ -489,6 +460,8 @@ const POS = () => {
         <POSSettingsPanel
           locationId={currentLocationId}
           onClose={() => setShowSettings(false)}
+          isAudioEnabled={isAudioEnabled}
+          onEnableAudio={enableAudio}
         />
       )}
 
