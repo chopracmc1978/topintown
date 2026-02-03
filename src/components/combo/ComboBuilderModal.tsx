@@ -146,7 +146,25 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
 
   // Count how many items have been selected for the current step
   const currentStepSelections = selections.filter(s => s.comboItemId === currentComboItem?.id);
-  const requiredCount = currentComboItem?.quantity || 1;
+  
+  // Calculate required count for wings based on pieces
+  // Each wings menu item is 12 pieces, so "24 Pieces" requires 2 selections
+  const requiredCount = useMemo(() => {
+    if (!currentComboItem) return 1;
+    
+    // For wings, check if size_restriction specifies pieces
+    if (currentComboItem.item_type === 'wings' && currentComboItem.size_restriction) {
+      const restriction = currentComboItem.size_restriction.toLowerCase();
+      const piecesMatch = restriction.match(/(\d+)\s*pieces?/i);
+      if (piecesMatch) {
+        const totalPieces = parseInt(piecesMatch[1], 10);
+        // Each wings item is 12 pieces
+        return Math.ceil(totalPieces / 12);
+      }
+    }
+    
+    return currentComboItem.quantity || 1;
+  }, [currentComboItem]);
   const isStepComplete = currentStepSelections.length >= requiredCount;
 
   // Calculate total extra charges
@@ -298,11 +316,23 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
     onClose();
   };
 
+  // Calculate required count for a step (handles wings pieces logic)
+  const getRequiredCountForStep = (step: ComboItem) => {
+    if (step.item_type === 'wings' && step.size_restriction) {
+      const piecesMatch = step.size_restriction.toLowerCase().match(/(\d+)\s*pieces?/i);
+      if (piecesMatch) {
+        const totalPieces = parseInt(piecesMatch[1], 10);
+        return Math.ceil(totalPieces / 12);
+      }
+    }
+    return step.quantity || 1;
+  };
+
   // Check if all required steps are complete
   const allStepsComplete = steps.every(step => {
     if (!step.is_required) return true;
     const stepSelections = selections.filter(s => s.comboItemId === step.id);
-    return stepSelections.length >= step.quantity;
+    return stepSelections.length >= getRequiredCountForStep(step);
   });
 
   // Can we skip this step? (optional items)
@@ -321,7 +351,8 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
           <div className="flex items-center justify-center gap-2 py-4">
             {steps.map((step, index) => {
               const stepSelections = selections.filter(s => s.comboItemId === step.id);
-              const isComplete = stepSelections.length >= step.quantity;
+              const stepRequiredCount = getRequiredCountForStep(step);
+              const isComplete = stepSelections.length >= stepRequiredCount;
               const isCurrent = index === currentStep;
 
               return (
@@ -363,8 +394,8 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
               <div className="flex items-center justify-center gap-2 text-lg font-semibold">
                 {ITEM_ICONS[currentComboItem.item_type]}
                 <span>
-                  Select {currentComboItem.quantity} {ITEM_LABELS[currentComboItem.item_type]}
-                  {currentComboItem.quantity > 1 ? 's' : ''}
+                  Select {requiredCount} {ITEM_LABELS[currentComboItem.item_type]}
+                  {requiredCount > 1 ? 's' : ''}
                   {currentComboItem.size_restriction && ` (${currentComboItem.size_restriction})`}
                 </span>
               </div>
