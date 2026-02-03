@@ -388,12 +388,15 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         else handleSimpleSelect(item);
                       }}
                       className={cn(
-                        "p-2 rounded border text-left transition-all bg-secondary/30 min-h-[65px] flex flex-col justify-between",
+                        // Fixed height ensures consistent card size across subcategories (Veg/Meat/etc.)
+                        "p-2 rounded border text-left transition-all bg-secondary/30 h-[92px] flex flex-col justify-between",
                         canSelect && "hover:border-primary/50 hover:bg-secondary",
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <p className="font-medium text-xs uppercase leading-tight">{item.name}</p>
+                      <p className="font-medium text-[11px] uppercase leading-[1.15] whitespace-normal break-words">
+                        {item.name}
+                      </p>
                       <p className="text-sm text-primary font-bold mt-1">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
                     </button>
                   );
