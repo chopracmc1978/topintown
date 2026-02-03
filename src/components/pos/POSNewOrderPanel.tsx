@@ -134,10 +134,10 @@ interface POSNewOrderPanelProps {
 const categories = [
   { id: 'combos', label: 'Combos' },
   { id: 'pizza', label: 'Pizzas' },
-  { id: 'chicken_wings', label: 'Chicken Wings' },
-  { id: 'baked_lasagna', label: 'Baked Lasagna' },
+  { id: 'chicken_wings', label: 'Wings' },
+  { id: 'baked_lasagna', label: 'Lasagna' },
   { id: 'drinks', label: 'Drinks' },
-  { id: 'dipping_sauce', label: 'Dipping Sauces' },
+  { id: 'dipping_sauce', label: 'Dipping' },
 ] as const;
 
 const pizzaSubcategories = [
