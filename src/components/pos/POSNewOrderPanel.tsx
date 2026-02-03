@@ -550,21 +550,27 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
                 ) : (
                   <div className="grid grid-cols-5 gap-1.5 auto-rows-min">
-                    {filteredItems.map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => handleItemClick(item)}
-                        className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
-                      >
-                        <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                        <p className="text-xs text-primary font-bold mt-0.5">
-                          ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
-                          {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                            <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
-                          )}
-                        </p>
-                      </button>
-                    ))}
+                    {filteredItems.map(item => {
+                      // Remove trailing "PIZZA" from pizza names to save space
+                      const displayName = item.category === 'pizza' 
+                        ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
+                        : item.name;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleItemClick(item)}
+                          className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
+                        >
+                          <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{displayName}</p>
+                          <p className="text-xs text-primary font-bold mt-0.5">
+                            ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
+                            {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
+                              <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
+                            )}
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
                 )
               )}
