@@ -1,9 +1,10 @@
 import { format } from 'date-fns';
-import { History, ChevronRight, ShoppingCart, Edit2 } from 'lucide-react';
+import { History, ShoppingCart, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CartItem, CartPizzaCustomization } from '@/types/menu';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface OrderHistory {
   id: string;
@@ -43,7 +44,7 @@ export const POSOrderHistoryDropdown = ({
 }: POSOrderHistoryDropdownProps) => {
   if (isSearching) {
     return (
-      <div className="absolute top-full left-0 mt-1 w-96 bg-card border border-border rounded-lg shadow-xl z-50 p-4">
+      <div className="fixed top-24 right-8 w-[420px] bg-card border border-border rounded-lg shadow-xl z-50 p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
           <span className="text-sm">Searching orders...</span>
@@ -57,13 +58,13 @@ export const POSOrderHistoryDropdown = ({
   }
 
   return (
-    <div className="absolute top-full left-0 mt-1 w-[420px] bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+    <div className="fixed top-24 right-8 w-[420px] bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
       <div className="bg-secondary/50 px-3 py-2 border-b border-border flex items-center gap-2">
         <History className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">Last {orders.length} Order{orders.length > 1 ? 's' : ''}</span>
       </div>
       
-      <ScrollArea className="max-h-80">
+      <ScrollArea className="max-h-[420px]">
         <div className="divide-y divide-border">
           {orders.map((order) => (
             <div key={order.id} className="p-3 hover:bg-secondary/30 transition-colors">
