@@ -314,6 +314,7 @@ const Checkout = () => {
   const [showAuthOptions, setShowAuthOptions] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
   const placeOrderLock = useRef(false);
   
   // Coupon state
@@ -477,14 +478,24 @@ const Checkout = () => {
         throw new Error('No checkout URL returned');
       }
 
-      // Redirect directly to secure payment (same-tab).
-      // Cart/checkout state stays saved until the confirmation page verifies payment.
-      window.location.assign(data.url);
+      // Store the URL in case redirect fails
+      setStripeCheckoutUrl(data.url);
+
+      // Try to redirect - use a small delay to ensure state is updated
+      setTimeout(() => {
+        try {
+          window.location.href = data.url;
+        } catch (redirectError) {
+          console.error('Redirect failed:', redirectError);
+          // URL is stored in state, fallback UI will show
+        }
+      }, 100);
       
     } catch (error: any) {
       console.error('Error placing order:', error);
       toast.error(error.message || 'Failed to start checkout');
       setPlacingOrder(false);
+      setStripeCheckoutUrl(null);
       placeOrderLock.current = false;
     }
   };
@@ -771,6 +782,42 @@ const Checkout = () => {
             <AlertDialogAction onClick={handleConfirmLocation} className="bg-primary hover:bg-primary/90">
               Confirm & Continue
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Fallback Payment Dialog - shows if redirect didn't work */}
+      <AlertDialog open={!!stripeCheckoutUrl && placingOrder} onOpenChange={(open) => {
+        if (!open) {
+          setStripeCheckoutUrl(null);
+          setPlacingOrder(false);
+          placeOrderLock.current = false;
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Complete Your Payment
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Click the button below to open the secure payment page. You'll be redirected to Stripe to complete your order.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button 
+              variant="pizza" 
+              className="w-full"
+              onClick={() => {
+                if (stripeCheckoutUrl) {
+                  window.open(stripeCheckoutUrl, '_blank');
+                }
+              }}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Open Payment Page
+            </Button>
+            <AlertDialogCancel className="w-full mt-0">Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
