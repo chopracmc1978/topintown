@@ -52,9 +52,13 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       className={cn(
         "p-4 rounded-xl border-2 cursor-pointer transition-all",
         isSelected
-          ? "border-primary bg-primary/5 shadow-md"
-          : "border-border bg-card hover:border-primary/50 hover:shadow-sm"
+          ? "shadow-md"
+          : "border-border bg-card hover:shadow-sm"
       )}
+      style={isSelected ? { 
+        borderColor: '#1a8ccc', 
+        backgroundColor: 'rgba(26, 140, 204, 0.05)' 
+      } : undefined}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
@@ -106,7 +110,7 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-border">
-        <span className="text-lg font-bold text-primary">${order.total.toFixed(2)}</span>
+        <span className="text-lg font-bold" style={{ color: '#1a8ccc' }}>${order.total.toFixed(2)}</span>
         <Badge 
           variant={order.paymentStatus === 'paid' ? 'default' : 'outline'}
           className={order.paymentStatus === 'paid' ? 'bg-green-600' : 'text-orange-600 border-orange-300'}

@@ -415,7 +415,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               )}
             />
             {orderHistory.length > 0 && (
-              <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#1a8ccc' }} />
             )}
             
             {/* Order History Dropdown */}
@@ -465,10 +465,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
                     "px-5 py-3 rounded-lg text-base font-medium whitespace-nowrap transition-colors",
-                    activeCategory === cat.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    activeCategory !== cat.id && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                   )}
+                  style={activeCategory === cat.id ? { backgroundColor: '#1a8ccc', color: '#ffffff' } : undefined}
                 >
                   {cat.label}
                 </button>
@@ -484,10 +483,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     onClick={() => setActiveSubcategory(sub.id)}
                     className={cn(
                       "px-4 py-2 rounded-full text-base font-medium whitespace-nowrap transition-colors",
-                      activeSubcategory === sub.id
-                        ? "bg-primary/80 text-primary-foreground"
-                        : "bg-card text-foreground border border-border hover:bg-secondary"
+                      activeSubcategory !== sub.id && "bg-card text-foreground border border-border hover:bg-secondary"
                     )}
+                    style={activeSubcategory === sub.id ? { backgroundColor: 'rgba(26, 140, 204, 0.8)', color: '#ffffff' } : undefined}
                   >
                     {sub.label}
                   </button>
@@ -507,10 +505,11 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     <button
                       key={item.id}
                       onClick={() => handleItemClick(item)}
-                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30"
+                      className="p-2 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2"
+                      style={{ borderLeftColor: 'rgba(26, 140, 204, 0.3)' }}
                     >
                       <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold mt-0.5">
+                      <p className="text-xs font-bold mt-0.5" style={{ color: '#1a8ccc' }}>
                         ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                         {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
                           <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
@@ -636,12 +635,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
               <div className="flex justify-between font-bold text-xl">
                 <span>Total</span>
-                <span className="text-primary">${total.toFixed(2)}</span>
+                <span style={{ color: '#1a8ccc' }}>${total.toFixed(2)}</span>
               </div>
               
               <Button 
-                variant="pizza" 
-                className="w-full mt-3 text-lg py-4 h-auto"
+                className="w-full mt-3 text-lg py-4 h-auto text-white font-semibold"
+                style={{ background: 'linear-gradient(to right, #1a8ccc, #8b2500)' }}
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >

@@ -326,7 +326,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   // Ultra-compact button style for no-scroll layout
   const btnSmall = "px-2 py-1.5 text-xs rounded border font-medium transition-colors";
-  const btnActive = "border-primary bg-primary/10 text-primary";
+  // Note: Using inline styles where needed for Android WebView compatibility
+  const btnActive = "border-[#1a8ccc] bg-[#1a8ccc]/10 text-[#1a8ccc]"; // Explicit hex for Android
   const btnInactive = "border-border hover:bg-secondary";
 
   return (
@@ -334,7 +335,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       <DialogContent className="max-w-6xl p-2 pt-1 gap-1 overflow-hidden">
         {/* Header Row: Pizza Name + Size + Crust inline */}
         <div className="flex items-center gap-3 pb-1.5 border-b pr-6">
-          <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
+          <h2 className="font-serif text-base font-semibold whitespace-nowrap" style={{ color: '#1a8ccc' }}>{item.name}</h2>
           
           {/* Size */}
           <span className="text-xs text-muted-foreground">Size</span>
@@ -346,7 +347,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 className={cn(btnSmall, "py-1.5 px-3", selectedSize?.id === size.id ? btnActive : btnInactive)}
               >
                 <div className="text-xs font-medium">{size.name}</div>
-                <div className="text-primary text-xs">${size.price.toFixed(2)}</div>
+                <div className="text-xs" style={{ color: '#1a8ccc' }}>${size.price.toFixed(2)}</div>
               </button>
             ))}
           </div>
@@ -364,7 +365,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   >
                     {crust.name}
                     {crust.name.toLowerCase().includes('gluten') && (
-                      <span className="text-primary ml-1">+${GLUTEN_FREE_PRICE}</span>
+                      <span className="ml-1" style={{ color: '#1a8ccc' }}>+${GLUTEN_FREE_PRICE}</span>
                     )}
                   </button>
                 ))}
@@ -390,7 +391,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 >
                   {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
                   {cheese === 'Dairy Free' && (
-                    <span className="text-primary ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                    <span className="ml-1" style={{ color: '#1a8ccc' }}>+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
                   )}
                 </button>
               ))}
@@ -411,7 +412,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     )}
                   >
                     {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
-                    {qty === 'extra' && <span className="text-primary ml-0.5">+${extraPrice}</span>}
+                    {qty === 'extra' && <span className="ml-0.5" style={{ color: '#1a8ccc' }}>+${extraPrice}</span>}
                   </button>
                 );
               })}
@@ -438,10 +439,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {(() => {
                 const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
                 return (
-                  <span className={cn(
-                    "text-xs font-medium px-2 py-1 rounded transition-colors",
-                    hasMedium ? "bg-primary/10 text-primary" : ""
-                  )}>
+                  <span 
+                    className="text-xs font-medium px-2 py-1 rounded transition-colors"
+                    style={hasMedium ? { backgroundColor: 'rgba(26, 140, 204, 0.1)', color: '#1a8ccc' } : undefined}
+                  >
                     Med Hot
                   </span>
                 );
@@ -506,10 +507,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {(() => {
                 const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
                 return (
-                  <span className={cn(
-                    "text-xs font-medium px-2 py-1 rounded transition-colors",
-                    hasHot ? "bg-primary/10 text-primary" : ""
-                  )}>
+                  <span 
+                    className="text-xs font-medium px-2 py-1 rounded transition-colors"
+                    style={hasHot ? { backgroundColor: 'rgba(26, 140, 204, 0.1)', color: '#1a8ccc' } : undefined}
+                  >
                     Hot
                   </span>
                 );
@@ -751,10 +752,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       key={topping.id} 
                       className={cn(
                         "flex items-center gap-1.5 px-2 py-1 rounded border transition-colors",
-                        isSelected 
-                          ? "border-primary bg-primary/10" 
-                          : "border-border"
+                        !isSelected && "border-border"
                       )}
+                      style={isSelected 
+                        ? { borderColor: '#1a8ccc', backgroundColor: 'rgba(26, 140, 204, 0.1)' } 
+                        : undefined}
                     >
                       {/* Topping name with veg indicator */}
                       <button
@@ -839,16 +841,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
             />
           </div>
-          <span className="text-lg font-bold text-primary mr-4">
+          <span className="text-lg font-bold mr-4" style={{ color: '#1a8ccc' }}>
             ${totalPrice.toFixed(2)}
           </span>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose} className="text-sm px-4 py-1.5 h-auto">Cancel</Button>
             <Button 
-              variant="pizza" 
               onClick={handleAddToOrder}
               disabled={!selectedSize || !selectedCrust}
-              className="text-sm px-4 py-1.5 h-auto"
+              className="text-sm px-4 py-1.5 h-auto text-white font-semibold"
+              style={{ background: 'linear-gradient(to right, #1a8ccc, #8b2500)' }}
             >
               {editingItem ? 'Update' : 'Add'}
             </Button>

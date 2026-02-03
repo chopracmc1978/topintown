@@ -272,10 +272,14 @@ const POS = () => {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header - Tablet optimized with larger touch targets */}
-      <header className={cn(
-        "border-b border-border py-3 px-5 flex-shrink-0 shadow-sm transition-colors",
-        hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : "bg-white"
-      )}>
+      <header 
+        className={cn(
+          "border-b border-border py-3 px-5 flex-shrink-0 shadow-sm transition-colors",
+        )}
+        style={{ 
+          backgroundColor: hasPendingRemoteOrders ? '#fed7aa' : '#ffffff' // Explicit hex for Android WebView
+        }}
+      >
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
             <img src={logo} alt="Top In Town Pizza" className="w-12 h-12 object-contain" />
@@ -300,18 +304,22 @@ const POS = () => {
                 className={cn(
                   "flex items-center gap-2 px-5 py-3 rounded-lg text-base font-medium transition-colors",
                   activeTab === tab.id
-                    ? "bg-primary text-primary-foreground"
+                    ? "text-white"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
+                style={activeTab === tab.id ? { backgroundColor: '#1a8ccc' } : undefined}
               >
                 <tab.icon className="w-5 h-5" />
                 {tab.label}
-                <span className={cn(
-                  "text-sm px-2 py-1 rounded-full min-w-[24px] text-center",
-                  activeTab === tab.id
-                    ? "bg-primary-foreground text-primary"
-                    : "bg-background"
-                )}>
+                <span 
+                  className={cn(
+                    "text-sm px-2 py-1 rounded-full min-w-[24px] text-center",
+                    activeTab === tab.id
+                      ? "text-primary"
+                      : "bg-background"
+                  )}
+                  style={activeTab === tab.id ? { backgroundColor: '#ffffff' } : undefined}
+                >
                   {counts[tab.id as keyof typeof counts]}
                 </span>
               </button>
@@ -323,7 +331,8 @@ const POS = () => {
               setShowNewOrder(true);
               setSelectedOrderId(null);
             }}
-            className="text-base px-5 py-3 h-auto"
+            className="text-base px-5 py-3 h-auto text-white"
+            style={{ backgroundColor: '#1a8ccc' }}
           >
             <Plus className="w-5 h-5 mr-2" />
             New Order
