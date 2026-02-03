@@ -161,6 +161,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
               const customizations = item.customizations;
               const hasPizzaCustomization = customizations?.size?.name || customizations?.crust?.name;
               const hasWingsCustomization = customizations?.flavor;
+              const hasComboCustomization = customizations?.comboId || customizations?.comboName || customizations?.selections;
               
               // Build size/crust line only if both exist and have names
               const sizeCrustParts: string[] = [];
@@ -171,7 +172,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
               // Build customization lines for pizza
               const customizationLines: string[] = [];
               
-              if (hasPizzaCustomization) {
+              if (hasPizzaCustomization && !hasComboCustomization) {
                 // Sauce (only if non-default)
                 if (customizations?.sauceName && customizations.sauceName !== 'Pizza Sauce') {
                   const sauceText = customizations.sauceQuantity === 'extra' 
@@ -255,17 +256,50 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                     <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
                   </div>
                   
-                  {/* Pizza Customizations */}
-                  {sizeCrustLine && (
+                  {/* Pizza Customizations (standalone pizzas only) */}
+                  {!hasComboCustomization && sizeCrustLine && (
                     <p className="text-xs text-gray-600 ml-3">{sizeCrustLine}</p>
                   )}
-                  {customizationLines.map((line, idx) => (
+                  {!hasComboCustomization && customizationLines.map((line, idx) => (
                     <p key={idx} className="text-xs text-gray-600 ml-3">{line}</p>
                   ))}
                   
-                  {/* Wings Flavor */}
-                  {hasWingsCustomization && (
+                  {/* Wings Flavor (standalone only) */}
+                  {!hasComboCustomization && hasWingsCustomization && (
                     <p className="text-xs text-gray-600 ml-3">{customizations.flavor}</p>
+                  )}
+                  
+                  {/* Combo Selections with full details */}
+                  {hasComboCustomization && customizations?.selections && (
+                    <div className="ml-3 mt-1">
+                      {customizations.selections.map((selection: any, selIdx: number) => (
+                        <div key={selIdx} className="text-xs text-gray-600">
+                          <span>- {selection.itemName}{selection.flavor ? ` (${selection.flavor})` : ''}</span>
+                          {selection.pizzaCustomization && (
+                            <div className="ml-3">
+                              {selection.pizzaCustomization.size?.name && (
+                                <p>{selection.pizzaCustomization.size.name}, {selection.pizzaCustomization.crust?.name || 'Regular'}</p>
+                              )}
+                              {selection.pizzaCustomization.spicyLevel && (
+                                typeof selection.pizzaCustomization.spicyLevel === 'object' ? (
+                                  (selection.pizzaCustomization.spicyLevel.left !== 'none' || selection.pizzaCustomization.spicyLevel.right !== 'none') && (
+                                    <p>Spicy: {selection.pizzaCustomization.spicyLevel.left !== 'none' ? `L:${selection.pizzaCustomization.spicyLevel.left}` : ''} {selection.pizzaCustomization.spicyLevel.right !== 'none' ? `R:${selection.pizzaCustomization.spicyLevel.right}` : ''}</p>
+                                  )
+                                ) : selection.pizzaCustomization.spicyLevel !== 'none' && (
+                                  <p>Spicy: {selection.pizzaCustomization.spicyLevel}</p>
+                                )
+                              )}
+                              {selection.pizzaCustomization.extraToppings?.length > 0 && (
+                                <p>+{selection.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                              )}
+                              {selection.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
+                                <p>NO: {selection.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               );

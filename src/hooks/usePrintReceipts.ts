@@ -97,7 +97,15 @@ export const usePrintReceipts = (locationId: string) => {
       subtotal: order.subtotal,
       tax: order.tax,
       total: order.total,
-      items: order.items,
+      items: order.items.map(item => ({
+        quantity: item.quantity,
+        name: item.name,
+        totalPrice: item.totalPrice,
+        pizzaCustomization: item.pizzaCustomization,
+        wingsCustomization: item.wingsCustomization,
+        comboCustomization: (item as any).comboCustomization,
+        selectedSize: item.selectedSize,
+      })),
     }, {
       name: location?.name,
       address: location?.address,
