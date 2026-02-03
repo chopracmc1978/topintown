@@ -331,9 +331,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl p-3 overflow-hidden">
+      <DialogContent className="max-w-6xl p-2 pt-1 gap-1 overflow-hidden">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-3 pb-2 border-b pr-8">
+        <div className="flex items-center gap-3 pb-1.5 border-b pr-6">
           <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
@@ -373,7 +373,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-2 mt-2">
+        <div className="space-y-1.5">
           {/* Row 1: Cheese (all inline: type + quantity) + Free Add-ons */}
           <div className="flex items-start gap-6">
             <div>
