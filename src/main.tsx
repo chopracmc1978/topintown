@@ -28,9 +28,9 @@ function applyNativePosViewportFixes() {
       meta.setAttribute(
         "content",
         [
-          // Lock to our target POS design size
-          "width=1366",
-          "height=768",
+          // Lock to actual tablet resolution (1280x800 for 16:10 POS tablets)
+          "width=1280",
+          "height=800",
           // Prevent unexpected zoom/scale on older WebViews
           "initial-scale=1",
           "maximum-scale=1",
