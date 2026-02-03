@@ -331,22 +331,22 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl p-2 pt-1 gap-1 overflow-hidden">
+      <DialogContent className="max-w-6xl p-2 pt-1 gap-0.5 overflow-hidden max-h-[calc(100vh-24px)]">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-3 pb-1.5 border-b pr-6">
-          <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
+        <div className="flex items-center gap-3 pb-1 border-b pr-6">
+          <h2 className="font-serif text-sm font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
-          <span className="text-xs text-muted-foreground">Size</span>
-          <div className="flex gap-1.5">
+          <span className="text-[10px] text-muted-foreground">Size</span>
+          <div className="flex gap-1">
             {item.sizes?.map(size => (
               <button
                 key={size.id}
                 onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
-                className={cn(btnSmall, "py-1.5 px-3", selectedSize?.id === size.id ? btnActive : btnInactive)}
+                className={cn(btnSmall, "py-1 px-2", selectedSize?.id === size.id ? btnActive : btnInactive)}
               >
-                <div className="text-xs font-medium">{size.name}</div>
-                <div className="text-primary text-xs">${size.price.toFixed(2)}</div>
+                <div className="text-[10px] font-medium">{size.name}</div>
+                <div className="text-primary text-[10px]">${size.price.toFixed(2)}</div>
               </button>
             ))}
           </div>
@@ -354,13 +354,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Crust - inline on same row */}
           {availableCrusts.length > 0 && (
             <>
-              <span className="text-xs text-muted-foreground">Crust</span>
-              <div className="flex gap-1.5 flex-1">
+              <span className="text-[10px] text-muted-foreground">Crust</span>
+              <div className="flex gap-1 flex-1">
                 {availableCrusts.map(crust => (
                   <button
                     key={crust.id}
                     onClick={() => setSelectedCrust(crust)}
-                    className={cn(btnSmall, "flex-1 py-1.5 px-3", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
+                    className={cn(btnSmall, "flex-1 py-1 px-2", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
                   >
                     {crust.name}
                     {crust.name.toLowerCase().includes('gluten') && (
@@ -373,7 +373,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {/* Row 1: Cheese + Spicy Level on same row */}
           <div className="flex items-start gap-8">
             {/* Cheese section */}
@@ -627,7 +627,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Sauce Selection - inline with quantity */}
           <div>
-            <h3 className="font-medium text-xs mb-1">Sauce</h3>
+            <h3 className="font-medium text-[10px] mb-0.5">Sauce</h3>
             <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 onClick={() => setSelectedSauceId(null)}
@@ -667,8 +667,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Default Toppings - 5 column grid for compactness */}
           {pizzaDefaultToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-xs mb-1">Default Toppings</h3>
-              <div className="grid grid-cols-5 gap-1.5">
+              <h3 className="font-medium text-[10px] mb-0.5">Default Toppings</h3>
+              <div className="grid grid-cols-5 gap-1">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
@@ -739,10 +739,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Extra Toppings - 4 column grid */}
           {availableExtraToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-xs mb-1">
+              <h3 className="font-medium text-[10px] mb-0.5">
                 Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-4 gap-1">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -814,7 +814,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
-          <div className="flex items-center justify-between pt-2 border-t mt-1">
+          <div className="flex items-center justify-between pt-1.5 border-t mt-0.5">
           <div className="flex items-center gap-2 flex-1 mr-4">
             <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
             <input
