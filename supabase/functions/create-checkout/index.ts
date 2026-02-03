@@ -171,19 +171,33 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
 
     // Store compressed item data in metadata
-    const minimalItems = items.map((item: any) => ({
-      n: item.name,
-      q: item.quantity || 1,
-      p: item.price || 0,
-      t: item.totalPrice || 0,
-      sz: item.selectedSize || null,
+    const minimalItems = items.map((item: any) => {
+      const compressed: any = {
+        n: item.name,
+        q: item.quantity || 1,
+        p: item.price || 0,
+        t: item.totalPrice || 0,
+        sz: item.selectedSize || null,
+      };
+      
       // Compress pizza customization to reduce size
-      pc: compressPizzaCustomization(item.pizzaCustomization),
+      if (item.pizzaCustomization) {
+        compressed.pc = compressPizzaCustomization(item.pizzaCustomization);
+      }
+      
       // Wings customization is already small
-      wc: item.wingsCustomization ? { f: item.wingsCustomization.flavor, oi: item.wingsCustomization.originalItemId } : null,
+      if (item.wingsCustomization) {
+        compressed.wc = { f: item.wingsCustomization.flavor, oi: item.wingsCustomization.originalItemId };
+      }
+      
       // Combo customization - compress it
-      cc: compressComboCustomization(item.comboCustomization),
-    }));
+      if (item.comboCustomization) {
+        compressed.cc = compressComboCustomization(item.comboCustomization);
+        console.log("Compressed combo:", JSON.stringify(compressed.cc).length, "chars");
+      }
+      
+      return compressed;
+    });
 
     // Split items into chunks that fit within 500 char limit
     // Each item must be its own chunk if it's large
@@ -191,28 +205,44 @@ serve(async (req) => {
     
     for (const item of minimalItems) {
       const itemStr = JSON.stringify([item]);
+      console.log("Item", item.n, "size:", itemStr.length, "chars", item.cc ? "(has combo)" : "");
       
       if (itemStr.length > 490) {
         // Single item too large - need to split customization separately
         // Store basic item info and customization reference
-        const basicItem = { n: item.n, q: item.q, p: item.p, t: item.t, sz: item.sz, ci: itemChunks.length };
+        const basicItem: any = { n: item.n, q: item.q, p: item.p, t: item.t, sz: item.sz, ci: itemChunks.length };
         itemChunks.push([basicItem]);
+        const basicItemIdx = itemChunks.length - 1;
         
         // Store customization in separate chunk(s)
         if (item.pc) {
-          const pcStr = JSON.stringify({ _pc: item.pc, _ci: itemChunks.length - 1 });
+          const pcStr = JSON.stringify({ _pc: item.pc, _ci: basicItemIdx });
           if (pcStr.length <= 490) {
-            itemChunks.push([{ _pc: item.pc, _ci: itemChunks.length - 1 }]);
+            itemChunks.push([{ _pc: item.pc, _ci: basicItemIdx }]);
           } else {
             // Even compressed is too big - split into parts
             const parts = splitLargeObject(item.pc, 450);
             parts.forEach((part, idx) => {
-              itemChunks.push([{ _pcp: idx, _pct: parts.length, _ci: itemChunks.length - parts.length, ...part }]);
+              itemChunks.push([{ _pcp: idx, _pct: parts.length, _ci: basicItemIdx, ...part }]);
             });
           }
         }
         if (item.wc) {
-          itemChunks.push([{ _wc: item.wc, _ci: itemChunks.length - 1 }]);
+          itemChunks.push([{ _wc: item.wc, _ci: basicItemIdx }]);
+        }
+        if (item.cc) {
+          const ccStr = JSON.stringify({ _cc: item.cc, _ci: basicItemIdx });
+          console.log("Combo chunk size:", ccStr.length);
+          if (ccStr.length <= 490) {
+            itemChunks.push([{ _cc: item.cc, _ci: basicItemIdx }]);
+          } else {
+            // Combo too big - split it
+            const parts = splitLargeObject(item.cc, 450);
+            console.log("Splitting combo into", parts.length, "parts");
+            parts.forEach((part, idx) => {
+              itemChunks.push([{ _ccp: idx, _cct: parts.length, _ci: basicItemIdx, ...part }]);
+            });
+          }
         }
       } else {
         // Item fits in a chunk - try to combine with previous
