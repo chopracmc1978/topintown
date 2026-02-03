@@ -374,7 +374,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-1.5">
                 {availableItems.map((item) => {
                   const canSelect = currentStepSelections.length < requiredCount;
                   return (
@@ -388,13 +388,13 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         else handleSimpleSelect(item);
                       }}
                       className={cn(
-                        "p-1.5 rounded border text-left transition-all bg-secondary/30",
+                        "p-2 rounded border text-left transition-all bg-secondary/30 h-[52px] flex flex-col justify-between",
                         canSelect && "hover:border-primary/50 hover:bg-secondary",
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <p className="font-medium text-[10px] uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-[10px] text-primary font-bold">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
+                      <p className="font-medium text-[11px] uppercase line-clamp-2 leading-tight">{item.name}</p>
+                      <p className="text-xs text-primary font-bold">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
                     </button>
                   );
                 })}
