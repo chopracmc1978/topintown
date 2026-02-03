@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronLeft, ChevronRight, Pizza, Drumstick, GlassWater, Droplet, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,7 +9,6 @@ import { CartItem, CartPizzaCustomization, CartComboCustomization, ComboSelectio
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
 import { POSWingsModal } from '@/components/pos/POSWingsModal';
 import { toast } from 'sonner';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface POSComboBuilderModalProps {
   combo: Combo;
@@ -292,23 +291,22 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
   return (
     <>
       <Dialog open={isOpen && !pizzaModalItem && !wingsModalItem} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col p-0">
-          <DialogHeader className="px-4 py-3 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-lg font-bold">{combo.name}</DialogTitle>
-                <p className="text-sm text-muted-foreground">
-                  ${combo.price.toFixed(2)} {totalExtraCharge > 0 && `+ $${totalExtraCharge.toFixed(2)} extras`}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={onClose}>
-                <X className="h-5 w-5" />
-              </Button>
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+          {/* Header - Compact */}
+          <div className="flex items-center justify-between px-3 py-2 border-b bg-secondary/30">
+            <div>
+              <h2 className="text-base font-bold">{combo.name}</h2>
+              <p className="text-xs text-muted-foreground">
+                ${combo.price.toFixed(2)} {totalExtraCharge > 0 && `+ $${totalExtraCharge.toFixed(2)} extras`}
+              </p>
             </div>
-          </DialogHeader>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
-          {/* Step Indicator - Compact */}
-          <div className="flex items-center justify-center gap-1 py-2 border-b bg-secondary/30">
+          {/* Step Indicator - Ultra Compact */}
+          <div className="flex items-center justify-center gap-1 py-1.5 border-b bg-secondary/20">
             {steps.map((step, index) => {
               const stepSelections = selections.filter(s => s.comboItemId === step.id);
               const stepRequiredCount = getRequiredCountForStep(step);
@@ -320,47 +318,45 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                   key={step.id}
                   onClick={() => setCurrentStep(index)}
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all text-xs",
+                    "w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all text-xs",
                     isCurrent && "border-primary bg-primary text-primary-foreground",
                     isComplete && !isCurrent && "border-green-500 bg-green-500 text-white",
                     !isCurrent && !isComplete && "border-muted-foreground/30"
                   )}
                 >
-                  {isComplete ? <Check className="h-4 w-4" /> : ITEM_ICONS[step.item_type]}
+                  {isComplete ? <Check className="h-3 w-3" /> : ITEM_ICONS[step.item_type]}
                 </button>
               );
             })}
           </div>
 
-          {/* Current Step Label */}
+          {/* Current Step Label - Compact */}
           {currentComboItem && (
-            <div className="text-center py-2 px-4 bg-secondary/20">
-              <div className="flex items-center justify-center gap-2 text-base font-semibold">
+            <div className="text-center py-1.5 px-3 bg-secondary/10 border-b">
+              <div className="flex items-center justify-center gap-1.5 text-sm font-semibold">
                 {ITEM_ICONS[currentComboItem.item_type]}
                 <span>
                   Select {requiredCount} {ITEM_LABELS[currentComboItem.item_type]}
                   {requiredCount > 1 ? 's' : ''}
                   {currentComboItem.size_restriction && ` (${currentComboItem.size_restriction})`}
                 </span>
+                <span className="text-xs text-muted-foreground font-normal ml-2">
+                  ({currentStepSelections.length}/{requiredCount})
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {currentStepSelections.length}/{requiredCount} selected
-                {currentComboItem.is_chargeable && ' • Extra $'}
-                {!currentComboItem.is_required && ' • Optional'}
-              </p>
             </div>
           )}
 
-          {/* Subcategory Filter for Pizzas */}
+          {/* Subcategory Filter for Pizzas - Inline */}
           {currentComboItem?.item_type === 'pizza' && (
-            <div className="flex flex-wrap justify-center gap-1.5 py-2 px-4 border-b">
+            <div className="flex flex-wrap justify-center gap-1 py-1.5 px-3 border-b">
               {PIZZA_SUBCATEGORIES.map(({ label, value }) => (
                 <Button
                   key={value}
                   variant={selectedSubcategory === value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedSubcategory(selectedSubcategory === value ? null : value)}
-                  className="h-7 text-xs px-3 rounded-full"
+                  className="h-6 text-xs px-2.5 rounded-full"
                 >
                   {label}
                 </Button>
@@ -368,17 +364,17 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
             </div>
           )}
 
-          {/* Items Grid */}
-          <ScrollArea className="flex-1 p-2">
+          {/* Items Grid - Fill remaining space */}
+          <div className="flex-1 overflow-y-auto p-2">
             {currentComboItem?.item_type === 'pizza' && !selectedSubcategory ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Pizza className="h-10 w-10 text-muted-foreground/50 mb-3" />
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <Pizza className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground">
                   Select a pizza category above
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-1">
                 {availableItems.map((item) => {
                   const canSelect = currentStepSelections.length < requiredCount;
                   return (
@@ -392,62 +388,59 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         else handleSimpleSelect(item);
                       }}
                       className={cn(
-                        "p-2 rounded-md border text-left transition-all bg-secondary/30",
+                        "p-1.5 rounded border text-left transition-all bg-secondary/30",
                         canSelect && "hover:border-primary/50 hover:bg-secondary",
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <p className="font-medium text-xs uppercase line-clamp-2 leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold mt-0.5">
-                        ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
-                      </p>
+                      <p className="font-medium text-[10px] uppercase line-clamp-2 leading-tight">{item.name}</p>
+                      <p className="text-[10px] text-primary font-bold">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
                     </button>
                   );
                 })}
               </div>
             )}
-          </ScrollArea>
+          </div>
 
-          {/* Current Step Selections */}
+          {/* Current Step Selections - Compact inline */}
           {currentStepSelections.length > 0 && (
-            <div className="px-4 py-2 border-t bg-secondary/20">
-              <p className="text-xs font-medium mb-1">Selected:</p>
-              <div className="flex flex-wrap gap-1">
-                {currentStepSelections.map((sel, idx) => {
-                  const globalIdx = selections.findIndex(s => s === sel);
-                  return (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded text-xs"
-                    >
-                      {sel.menuItem?.name || sel.cartItem?.name}
-                      {sel.flavor && ` (${sel.flavor})`}
-                      {sel.extraCharge > 0 && ` +$${sel.extraCharge.toFixed(2)}`}
-                      <button onClick={() => removeSelection(globalIdx)} className="hover:text-destructive">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
+            <div className="px-3 py-1.5 border-t bg-secondary/20 flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-medium text-muted-foreground">Selected:</span>
+              {currentStepSelections.map((sel, idx) => {
+                const globalIdx = selections.findIndex(s => s === sel);
+                return (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-[10px]"
+                  >
+                    {sel.menuItem?.name || sel.cartItem?.name}
+                    {sel.flavor && ` (${sel.flavor})`}
+                    {sel.extraCharge > 0 && ` +$${sel.extraCharge.toFixed(2)}`}
+                    <button onClick={() => removeSelection(globalIdx)} className="hover:text-destructive">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between px-4 py-3 border-t bg-card">
+          {/* Navigation - Compact */}
+          <div className="flex items-center justify-between px-3 py-2 border-t bg-card">
             <Button
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 0}
               size="sm"
+              className="h-7 text-xs"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
+              <ChevronLeft className="h-3 w-3 mr-1" />
               Back
             </Button>
 
             <div className="flex gap-2">
               {canSkipStep && !isStepComplete && (
-                <Button variant="ghost" size="sm" onClick={nextStep}>
+                <Button variant="ghost" size="sm" onClick={nextStep} className="h-7 text-xs">
                   Skip
                 </Button>
               )}
@@ -457,18 +450,19 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                   onClick={nextStep}
                   disabled={currentComboItem?.is_required && !isStepComplete}
                   size="sm"
+                  className="h-7 text-xs"
                 >
                   Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-3 w-3 ml-1" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleComplete}
                   disabled={!allStepsComplete}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 h-7 text-xs"
                   size="sm"
                 >
-                  Add to Order - ${(combo.price + totalExtraCharge).toFixed(2)}
+                  Add - ${(combo.price + totalExtraCharge).toFixed(2)}
                 </Button>
               )}
             </div>
