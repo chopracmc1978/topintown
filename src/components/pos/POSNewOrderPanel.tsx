@@ -155,7 +155,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const isEditMode = !!editingOrder;
   const { data: menuItems = [], isLoading } = useMenuItems();
   const { data: activeCombos = [], isLoading: isCombosLoading } = useActiveCombos();
-  const [activeCategory, setActiveCategory] = useState<string>('combos');
+  const [activeCategory, setActiveCategory] = useState<string>('');
   const [activeSubcategory, setActiveSubcategory] = useState<string>('vegetarian');
   const [searchQuery, setSearchQuery] = useState('');
   // Initialize cart with editing order's items or empty
