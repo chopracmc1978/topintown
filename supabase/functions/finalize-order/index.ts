@@ -51,13 +51,30 @@ const decompressComboCustomization = (c: any) => {
     comboName: c.cn || c.comboName || '',
     comboBasePrice: c.bp || c.comboBasePrice || 0,
     totalExtraCharge: c.te || c.totalExtraCharge || 0,
-    selections: (c.sl || c.selections || []).map((s: any) => ({
-      itemType: s.it || s.itemType || '',
-      itemName: s.in || s.itemName || '',
-      flavor: s.fl || s.flavor || undefined,
-      pizzaCustomization: s.pc ? decompressPizzaCustomization(s.pc) : (s.pizzaCustomization || undefined),
-      extraCharge: s.ec || s.extraCharge || 0,
-    })),
+    selections: (c.sl || c.selections || []).map((s: any) => {
+      const selection: any = {
+        itemType: s.it || s.itemType || '',
+        itemName: s.in || s.itemName || '',
+        flavor: s.fl || s.flavor || undefined,
+        extraCharge: s.ec || s.extraCharge || 0,
+      };
+      
+      // Handle full pizza customization (old format) or just pizza name (new format)
+      if (s.pc) {
+        selection.pizzaCustomization = decompressPizzaCustomization(s.pc);
+      } else if (s.pizzaCustomization) {
+        selection.pizzaCustomization = s.pizzaCustomization;
+      } else if (s.pn) {
+        // New minimal format - just store the size/crust as text
+        const [size, crust] = (s.pn || '').split(', ');
+        selection.pizzaCustomization = {
+          size: { id: '', name: size || '', price: 0 },
+          crust: { id: '', name: crust || 'Regular', price: 0 },
+        };
+      }
+      
+      return selection;
+    }),
   };
 };
 
