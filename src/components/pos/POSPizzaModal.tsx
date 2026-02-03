@@ -471,36 +471,54 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Default Toppings Section */}
           {pizzaDefaultToppings.length > 0 && (
             <div className="px-4 py-2 border-b bg-white">
-              <h3 className="text-xs font-semibold text-gray-700 mb-2">Default Toppings</h3>
-              <div className="grid grid-cols-5 gap-x-4 gap-y-2">
+              <h3 className="text-xs text-gray-600 mb-2">Default Toppings</h3>
+              <div className="grid grid-cols-5 gap-3">
                 {defaultToppings.map((topping) => (
-                  <div key={topping.id} className="flex flex-col">
-                    <div className="flex items-center gap-1 mb-1">
+                  <div key={topping.id} className="border rounded-md p-2 bg-white">
+                    <div className="flex items-center gap-1.5 mb-2">
                       <span className={cn('w-2 h-2 rounded-full', topping.isVeg ? 'bg-green-500' : 'bg-red-500')} />
-                      <span className="text-xs font-medium text-gray-800">{topping.name}</span>
+                      <span className="text-sm font-medium text-gray-800">{topping.name}</span>
                     </div>
-                    <div className="flex gap-0.5 mb-0.5">
+                    <div className="flex">
                       {(['less', 'regular', 'extra'] as ToppingQuantity[]).map((qty) => (
                         <button
                           key={qty}
                           onClick={() => updateDefaultToppingQuantity(topping.id, qty)}
-                          className={cn(btnSmall, 'min-w-[40px]', topping.quantity === qty ? btnActive : btnInactive)}
+                          className={cn(
+                            'flex-1 py-1 text-xs border font-medium transition-colors',
+                            qty === 'less' && 'rounded-l-md border-r-0',
+                            qty === 'extra' && 'rounded-r-md border-l-0',
+                            qty === 'regular' && 'border-x',
+                            topping.quantity === qty 
+                              ? 'border-[#1a8ccc] bg-[#1a8ccc]/10 text-[#1a8ccc]' 
+                              : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                          )}
                         >
                           {qty === 'less' ? 'Less' : qty === 'regular' ? 'Reg' : 'Extra'}
                         </button>
                       ))}
                     </div>
-                    <div className="flex gap-0.5">
-                      {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
-                        <button
-                          key={side}
-                          onClick={() => updateDefaultToppingSide(topping.id, side)}
-                          className={cn(btnSmall, 'min-w-[40px]', topping.side === side ? btnActive : btnInactive)}
-                        >
-                          {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                        </button>
-                      ))}
-                    </div>
+                    {isLargePizza && (
+                      <div className="flex mt-1">
+                        {(['left', 'whole', 'right'] as PizzaSide[]).map((side) => (
+                          <button
+                            key={side}
+                            onClick={() => updateDefaultToppingSide(topping.id, side)}
+                            className={cn(
+                              'flex-1 py-1 text-xs border font-medium transition-colors',
+                              side === 'left' && 'rounded-l-md border-r-0',
+                              side === 'right' && 'rounded-r-md border-l-0',
+                              side === 'whole' && 'border-x',
+                              topping.side === side 
+                                ? 'border-[#1a8ccc] bg-[#1a8ccc]/10 text-[#1a8ccc]' 
+                                : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                            )}
+                          >
+                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
