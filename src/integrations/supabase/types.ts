@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_drafts: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          payload: Json
+          status: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload: Json
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload?: Json
+          status?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
       cheese_options: {
         Row: {
           created_at: string
