@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCart } from '@/contexts/CartContext';
 import { useLocation as useLocationContext } from '@/contexts/LocationContext';
 import { useCustomer } from '@/contexts/CustomerContext';
@@ -315,6 +316,8 @@ const Checkout = () => {
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const placeOrderLock = useRef(false);
   
   // Coupon state
@@ -386,14 +389,18 @@ const Checkout = () => {
 
   const locationStatus = checkIfOpen();
 
+  const openPayment = () => {
+    if (!checkoutUrl) return;
+    const w = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+    if (!w) {
+      toast.error('Popups are blocked. Please allow popups, then tap Open Payment again.');
+    }
+  };
+
   const handleCheckoutClick = () => {
-    // If we already created a checkout session, just re-open it.
-    // (This prevents creating multiple sessions and avoids getting stuck in the preview iframe.)
+    // If we already created a checkout session, show the payment dialog again.
     if (checkoutUrl) {
-      const w = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-      if (!w) {
-        toast.error('Please allow popups to open the payment page');
-      }
+      setShowPaymentDialog(true);
       return;
     }
 
@@ -434,9 +441,6 @@ const Checkout = () => {
     if (placeOrderLock.current) return;
     placeOrderLock.current = true;
     setPlacingOrder(true);
-
-    // Open a new tab immediately (still in the click gesture) to avoid popup blockers / iframe restrictions.
-    const paymentWindow = window.open('', '_blank', 'noopener,noreferrer');
     
     try {
       const locationId = selectedLocation?.id || 'calgary';
@@ -492,21 +496,12 @@ const Checkout = () => {
       }
 
       setCheckoutUrl(data.url);
-
-      // Open payment in a new tab (works reliably in preview and mobile)
-      if (paymentWindow) {
-        paymentWindow.location.href = data.url;
-        paymentWindow.focus?.();
-      } else {
-        const w = window.open(data.url, '_blank', 'noopener,noreferrer');
-        if (!w) {
-          // As a last resort, try same-tab navigation.
-          window.location.href = data.url;
-        }
-      }
+      setCheckoutSessionId(data.sessionId || null);
+      setShowPaymentDialog(true);
 
       // Don't clear cart here; clear it only after successful payment on the confirmation page.
       setPlacingOrder(false);
+      placeOrderLock.current = false;
       
     } catch (error: any) {
       console.error('Error placing order:', error);
@@ -801,6 +796,46 @@ const Checkout = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Payment Link Dialog */}
+      <Dialog open={showPaymentDialog && !!checkoutUrl} onOpenChange={setShowPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Open secure payment</DialogTitle>
+            <DialogDescription>
+              Your payment link is ready. Tap “Open Payment” to complete your order.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Button variant="pizza" className="w-full" onClick={openPayment}>
+              Open Payment
+            </Button>
+
+            {checkoutSessionId && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate(`/order-confirmation?session_id=${checkoutSessionId}`)}
+              >
+                I already paid (show my order)
+              </Button>
+            )}
+
+            {checkoutUrl && (
+              <p className="text-xs text-muted-foreground">
+                If nothing opens, please allow popups in your browser, then tap Open Payment again.
+              </p>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
