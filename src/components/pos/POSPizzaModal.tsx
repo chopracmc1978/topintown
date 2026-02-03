@@ -324,29 +324,29 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
-  // Compact button style - Tablet optimized with larger text
-  const btnSmall = "px-3 py-2 text-sm rounded border font-medium transition-colors";
+  // Ultra-compact button style for no-scroll layout
+  const btnSmall = "px-2 py-1.5 text-xs rounded border font-medium transition-colors";
   const btnActive = "border-primary bg-primary/10 text-primary";
   const btnInactive = "border-border hover:bg-secondary";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-5">
+      <DialogContent className="max-w-6xl p-3 overflow-hidden">
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-4 pb-3 border-b pr-8">
-          <h2 className="font-serif text-lg font-semibold text-primary whitespace-nowrap">{item.name}</h2>
+        <div className="flex items-center gap-3 pb-2 border-b pr-8">
+          <h2 className="font-serif text-base font-semibold text-primary whitespace-nowrap">{item.name}</h2>
           
           {/* Size */}
-          <span className="text-sm text-muted-foreground">Size</span>
-          <div className="flex gap-2">
+          <span className="text-xs text-muted-foreground">Size</span>
+          <div className="flex gap-1.5">
             {item.sizes?.map(size => (
               <button
                 key={size.id}
                 onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
-                className={cn(btnSmall, "py-2 px-4", selectedSize?.id === size.id ? btnActive : btnInactive)}
+                className={cn(btnSmall, "py-1.5 px-3", selectedSize?.id === size.id ? btnActive : btnInactive)}
               >
-                <div className="text-sm font-medium">{size.name}</div>
-                <div className="text-primary text-sm">${size.price.toFixed(2)}</div>
+                <div className="text-xs font-medium">{size.name}</div>
+                <div className="text-primary text-xs">${size.price.toFixed(2)}</div>
               </button>
             ))}
           </div>
@@ -354,13 +354,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Crust - inline on same row */}
           {availableCrusts.length > 0 && (
             <>
-              <span className="text-sm text-muted-foreground">Crust</span>
-              <div className="flex gap-2 flex-1">
+              <span className="text-xs text-muted-foreground">Crust</span>
+              <div className="flex gap-1.5 flex-1">
                 {availableCrusts.map(crust => (
                   <button
                     key={crust.id}
                     onClick={() => setSelectedCrust(crust)}
-                    className={cn(btnSmall, "flex-1 py-2 px-4", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
+                    className={cn(btnSmall, "flex-1 py-1.5 px-3", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
                   >
                     {crust.name}
                     {crust.name.toLowerCase().includes('gluten') && (
@@ -373,12 +373,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-2 mt-2">
           {/* Row 1: Cheese (all inline: type + quantity) + Free Add-ons */}
-          <div className="flex items-start gap-8">
+          <div className="flex items-start gap-6">
             <div>
-              <h3 className="font-medium text-sm mb-2">Cheese</h3>
-              <div className="flex gap-2 items-center">
+              <h3 className="font-medium text-xs mb-1">Cheese</h3>
+              <div className="flex gap-1.5 items-center">
                 {/* Cheese type options */}
                 {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
                   <button
@@ -406,13 +406,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       onClick={() => !isDisabled && setCheeseQuantity(qty)}
                       disabled={isDisabled}
                       className={cn(
-                        "px-4 py-2 text-sm rounded border font-medium transition-colors",
+                        btnSmall,
                         isDisabled ? "opacity-40 cursor-not-allowed" :
                         cheeseQuantity === qty ? btnActive : btnInactive
                       )}
                     >
-                      {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
-                      {qty === 'extra' && <span className="text-primary ml-1">+${extraPrice}</span>}
+                      {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
+                      {qty === 'extra' && <span className="text-primary ml-0.5">+${extraPrice}</span>}
                     </button>
                   );
                 })}
@@ -422,13 +422,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             {/* Free Add-ons - inline on same row */}
             {freeToppings.length > 0 && (
               <div className="flex-1">
-                <h3 className="font-medium text-sm mb-2">Free Add-ons</h3>
-                <div className="flex gap-4">
+                <h3 className="font-medium text-xs mb-1">Free Add-ons</h3>
+                <div className="flex gap-2">
                   {freeToppings.map(topping => {
                     const selection = freeToppingSelections.find(f => f.name === topping.name);
                     const isSelected = !!selection;
                     return (
-                      <div key={topping.id} className="flex items-center gap-2">
+                      <div key={topping.id} className="flex items-center gap-1">
                         <button
                           onClick={() => toggleFreeTopping(topping.name)}
                           className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
@@ -436,7 +436,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           {topping.name}
                         </button>
                         {isLargePizza ? (
-                          <div className="flex gap-1">
+                          <div className="flex gap-0.5">
                             {(['left', 'whole', 'right'] as const).map(side => (
                               <button
                                 key={side}
@@ -445,7 +445,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   updateFreeToppingSide(topping.name, side);
                                 }}
                                 className={cn(
-                                  "px-2 py-1.5 text-sm rounded border font-medium transition-colors",
+                                  "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
                                   isSelected && selection?.side === side ? btnActive : btnInactive
                                 )}
                               >
@@ -459,7 +459,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               if (!isSelected) toggleFreeTopping(topping.name);
                             }}
                             className={cn(
-                              "px-3 py-1.5 text-sm rounded border font-medium transition-colors",
+                              "px-2 py-1 text-xs rounded border font-medium transition-colors",
                               isSelected ? btnActive : btnInactive
                             )}
                           >
@@ -476,16 +476,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Row 2: Spicy Level */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Spicy Level</h3>
-            <div className="flex items-center gap-3">
-              {/* None button - always enabled so user can reset */}
+            <h3 className="font-medium text-xs mb-1">Spicy Level</h3>
+            <div className="flex items-center gap-2">
+              {/* None button */}
               <button
                 onClick={() => {
                   setLeftSpicy('none');
                   setRightSpicy('none');
                 }}
                 className={cn(
-                  "px-4 py-2 text-sm rounded border font-medium transition-colors min-w-[60px]",
+                  btnSmall,
                   leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive
                 )}
               >
@@ -494,9 +494,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
               {/* Medium button with L/W/R for large pizza */}
               {isLargePizza ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground min-w-[80px]">Medium Hot</span>
-                  <div className="flex gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-foreground">Med Hot</span>
+                  <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
                       const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
                       const isActive = side === 'whole' 
@@ -529,7 +529,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             }
                           }}
                           className={cn(
-                            "px-3 py-2 text-sm rounded border font-medium transition-colors min-w-[50px]",
+                            "px-2 py-1 text-xs rounded border font-medium transition-colors",
                             isActive ? btnActive : btnInactive,
                             isDisabled && "opacity-40 cursor-not-allowed"
                           )}
@@ -546,10 +546,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setLeftSpicy('medium');
                     setRightSpicy('medium');
                   }}
-                  className={cn(
-                    "px-4 py-2 text-sm rounded border font-medium transition-colors min-w-[90px]",
-                    leftSpicy === 'medium' ? btnActive : btnInactive
-                  )}
+                  className={cn(btnSmall, leftSpicy === 'medium' ? btnActive : btnInactive)}
                 >
                   Medium Hot
                 </button>
@@ -557,9 +554,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
               {/* Hot button with L/W/R for large pizza */}
               {isLargePizza ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground min-w-[40px]">Hot</span>
-                  <div className="flex gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-foreground">Hot</span>
+                  <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
                       const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
                       const isActive = side === 'whole' 
@@ -592,7 +589,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             }
                           }}
                           className={cn(
-                            "px-3 py-2 text-sm rounded border font-medium transition-colors min-w-[50px]",
+                            "px-2 py-1 text-xs rounded border font-medium transition-colors",
                             isActive ? btnActive : btnInactive,
                             isDisabled && "opacity-40 cursor-not-allowed"
                           )}
@@ -609,10 +606,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setLeftSpicy('hot');
                     setRightSpicy('hot');
                   }}
-                  className={cn(
-                    "px-4 py-2 text-sm rounded border font-medium transition-colors min-w-[60px]",
-                    leftSpicy === 'hot' ? btnActive : btnInactive
-                  )}
+                  className={cn(btnSmall, leftSpicy === 'hot' ? btnActive : btnInactive)}
                 >
                   Hot
                 </button>
@@ -620,10 +614,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Sauce Selection - 2 rows with 5 columns */}
+          {/* Sauce Selection - inline with quantity */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Sauce</h3>
-            <div className="grid grid-cols-5 gap-2">
+            <h3 className="font-medium text-xs mb-1">Sauce</h3>
+            <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 onClick={() => setSelectedSauceId(null)}
                 className={cn(btnSmall, selectedSauceId === null ? btnActive : btnInactive)}
@@ -639,15 +633,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   {sauce.name}
                 </button>
               ))}
-              {/* Quantity buttons inline */}
-              <div className="flex gap-2 items-center">
+              <div className="border-l border-border pl-2 ml-1 flex gap-1">
                 {(['less', 'normal', 'extra'] as const).map(qty => (
                   <button
                     key={qty}
                     onClick={() => selectedSauceId && setSauceQuantity(qty)}
                     disabled={!selectedSauceId}
                     className={cn(
-                      "flex-1 px-3 py-2 text-sm rounded border font-medium transition-colors",
+                      btnSmall,
                       !selectedSauceId 
                         ? "opacity-50 cursor-not-allowed border-border text-muted-foreground"
                         : sauceQuantity === qty ? btnActive : btnInactive
@@ -660,32 +653,32 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Default Toppings - 4 column grid for better readability */}
+          {/* Default Toppings - 5 column grid for compactness */}
           {pizzaDefaultToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-sm mb-2">Default Toppings</h3>
-              <div className="grid grid-cols-4 gap-2">
+              <h3 className="font-medium text-xs mb-1">Default Toppings</h3>
+              <div className="grid grid-cols-5 gap-1.5">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
                     <div key={topping.id} className={cn(
-                      "rounded p-2 border",
+                      "rounded p-1.5 border",
                       isRemoved ? "border-destructive/30 bg-destructive/5" : "border-border"
                     )}>
-                      {/* Name row - entire row is clickable to toggle */}
+                      {/* Name row - clickable to toggle */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className="flex items-center gap-2 mb-2 w-full text-left"
+                        className="flex items-center gap-1.5 mb-1 w-full text-left"
                       >
                         <span className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0",
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0",
                           topping.isVeg ? "bg-green-500" : "bg-red-500"
                         )} />
                         <span className={cn(
-                          "text-sm font-medium truncate",
+                          "text-xs font-medium truncate",
                           isRemoved && "line-through text-muted-foreground"
                         )}>
                           {topping.name}
@@ -693,13 +686,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       </button>
                       {/* Quantity: Less/Reg/Extra */}
                       {!isRemoved && (
-                        <div className="flex gap-1 mb-1">
+                        <div className="flex gap-0.5 mb-0.5">
                           {QUANTITY_OPTIONS.map(opt => (
                             <button
                               key={opt.value}
                               onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
                               className={cn(
-                                "flex-1 px-2 py-1.5 text-sm rounded border font-medium transition-colors",
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
                                 topping.quantity === opt.value ? btnActive : btnInactive
                               )}
                             >
@@ -710,13 +703,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       )}
                       {/* Side: L/W/R (Large only) */}
                       {!isRemoved && isLargePizza && (
-                        <div className="flex gap-1">
+                        <div className="flex gap-0.5">
                           {SIDE_OPTIONS.map(side => (
                             <button
                               key={side.value}
                               onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
                               className={cn(
-                                "flex-1 px-2 py-1.5 text-sm rounded border font-medium transition-colors",
+                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
                                 topping.side === side.value ? btnActive : btnInactive
                               )}
                             >
@@ -732,13 +725,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Extra Toppings - 3 column grid with larger text */}
+          {/* Extra Toppings - 4 column grid */}
           {availableExtraToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-sm mb-2">
+              <h3 className="font-medium text-xs mb-1">
                 Extra <span className="text-muted-foreground font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -746,7 +739,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     <div 
                       key={topping.id} 
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded border transition-colors",
+                        "flex items-center gap-1.5 px-2 py-1 rounded border transition-colors",
                         isSelected 
                           ? "border-primary bg-primary/10" 
                           : "border-border"
@@ -755,18 +748,18 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       {/* Topping name with veg indicator */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className="flex items-center gap-2 flex-1 text-left"
+                        className="flex items-center gap-1.5 flex-1 text-left min-w-0"
                       >
                         <span className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0",
+                          "w-1.5 h-1.5 rounded-full flex-shrink-0",
                           topping.is_veg ? "bg-green-500" : "bg-red-500"
                         )} />
-                        <span className="text-sm truncate">{topping.name}</span>
+                        <span className="text-xs truncate">{topping.name}</span>
                       </button>
 
                       {/* Side selection - Large pizza shows L/W/R, others show just W */}
                       {isLargePizza ? (
-                        <div className="flex gap-1 flex-shrink-0">
+                        <div className="flex gap-0.5 flex-shrink-0">
                           {SIDE_OPTIONS.map(side => {
                             const isThisSideActive = isSelected && (selected?.side || 'whole') === side.value;
                             return (
@@ -782,7 +775,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   }
                                 }}
                                 className={cn(
-                                  "px-2 py-1.5 text-sm rounded border font-medium transition-colors",
+                                  "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
                                   isThisSideActive ? btnActive : btnInactive
                                 )}
                               >
@@ -795,11 +788,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <button
                           onClick={() => toggleExtraTopping(topping)}
                           className={cn(
-                            "px-3 py-1.5 text-sm rounded border font-medium transition-colors flex-shrink-0",
+                            "px-2 py-0.5 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
                             isSelected ? btnActive : btnInactive
                           )}
                         >
-                          Whole
+                          W
                         </button>
                       )}
                     </div>
@@ -810,19 +803,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
-          <div className="flex items-center justify-between pt-4 border-t mt-2">
-          <div className="flex items-center gap-3 flex-1 mr-6">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Notes:</span>
+          <div className="flex items-center justify-between pt-2 border-t mt-1">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Notes:</span>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Special requests..."
-              className="flex-1 px-3 py-2 text-sm border rounded bg-background"
+              className="flex-1 px-2 py-1.5 text-xs border rounded bg-background"
             />
           </div>
-          <div className="flex items-center gap-2 mr-6">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Extra $</span>
+          <div className="flex items-center gap-1.5 mr-4">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Extra $</span>
             <input
               type="text"
               inputMode="decimal"
@@ -832,21 +825,21 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 setExtraAmount(parseFloat(val) || 0);
               }}
               placeholder="0"
-              className="w-16 px-3 py-2 text-sm border rounded bg-background text-center"
+              className="w-14 px-2 py-1.5 text-xs border rounded bg-background text-center"
             />
           </div>
-          <span className="text-xl font-bold text-primary mr-6">
+          <span className="text-lg font-bold text-primary mr-4">
             ${totalPrice.toFixed(2)}
           </span>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="text-base px-5 py-2 h-auto">Cancel</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="text-sm px-4 py-1.5 h-auto">Cancel</Button>
             <Button 
               variant="pizza" 
               onClick={handleAddToOrder}
               disabled={!selectedSize || !selectedCrust}
-              className="text-base px-5 py-2 h-auto"
+              className="text-sm px-4 py-1.5 h-auto"
             >
-              {editingItem ? 'Update' : 'Add to Order'}
+              {editingItem ? 'Update' : 'Add'}
             </Button>
           </div>
           </div>
