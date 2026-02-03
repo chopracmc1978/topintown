@@ -42,6 +42,25 @@ const decompressWingsCustomization = (c: any) => {
   };
 };
 
+// Decompress combo customization back to full format
+const decompressComboCustomization = (c: any) => {
+  if (!c) return null;
+  
+  return {
+    comboId: c.ci || c.comboId || '',
+    comboName: c.cn || c.comboName || '',
+    comboBasePrice: c.bp || c.comboBasePrice || 0,
+    totalExtraCharge: c.te || c.totalExtraCharge || 0,
+    selections: (c.sl || c.selections || []).map((s: any) => ({
+      itemType: s.it || s.itemType || '',
+      itemName: s.in || s.itemName || '',
+      flavor: s.fl || s.flavor || undefined,
+      pizzaCustomization: s.pc ? decompressPizzaCustomization(s.pc) : (s.pizzaCustomization || undefined),
+      extraCharge: s.ec || s.extraCharge || 0,
+    })),
+  };
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -238,6 +257,19 @@ serve(async (req) => {
         // Decompress customizations
         const pizzaCustomization = decompressPizzaCustomization(item.pc);
         const wingsCustomization = decompressWingsCustomization(item.wc);
+        const comboCustomization = decompressComboCustomization(item.cc);
+        
+        // Determine which customization to store (prioritize combo, then pizza, then wings)
+        let finalCustomization = null;
+        if (comboCustomization?.comboId) {
+          finalCustomization = comboCustomization;
+        } else if (pizzaCustomization?.size) {
+          finalCustomization = pizzaCustomization;
+        } else if (wingsCustomization?.flavor) {
+          finalCustomization = wingsCustomization;
+        } else if (item.sz) {
+          finalCustomization = { size: item.sz };
+        }
         
         return {
           order_id: order.id,
@@ -246,7 +278,7 @@ serve(async (req) => {
           quantity: item.q || item.quantity || 1,
           unit_price: item.p || item.price || 0,
           total_price: item.t || item.totalPrice || 0,
-          customizations: pizzaCustomization || wingsCustomization || (item.sz ? { size: item.sz } : null),
+          customizations: finalCustomization,
         };
       });
 

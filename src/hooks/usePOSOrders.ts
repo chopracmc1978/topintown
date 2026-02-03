@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Order, OrderStatus, PaymentStatus, PaymentMethod, CartItem, OrderType, OrderSource, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
+import { Order, OrderStatus, PaymentStatus, PaymentMethod, CartItem, OrderType, OrderSource, CartPizzaCustomization, CartWingsCustomization, CartComboCustomization } from '@/types/menu';
 import { toast } from 'sonner';
 import { LOCATIONS } from '@/contexts/LocationContext';
 
@@ -43,8 +43,27 @@ interface DBOrderItem {
 const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
   const items: CartItem[] = dbItems.map(item => {
     const customizations = item.customizations;
-    const pizzaCustomization = customizations?.size ? customizations as CartPizzaCustomization : undefined;
-    const wingsCustomization = customizations?.flavor && !customizations?.size ? customizations as CartWingsCustomization : undefined;
+    
+    // Check for combo customization first (has comboId or selections)
+    const comboCustomization = customizations?.comboId || customizations?.selections 
+      ? customizations as CartComboCustomization 
+      : undefined;
+    
+    // Then check for pizza customization (has size object)
+    const pizzaCustomization = !comboCustomization && customizations?.size 
+      ? customizations as CartPizzaCustomization 
+      : undefined;
+    
+    // Finally wings customization (has flavor but no size)
+    const wingsCustomization = !comboCustomization && !pizzaCustomization && customizations?.flavor 
+      ? customizations as CartWingsCustomization 
+      : undefined;
+
+    // Determine category based on customization type
+    let category: CartItem['category'] = 'sides';
+    if (comboCustomization) category = 'pizza'; // Combos can be treated as pizza category
+    else if (pizzaCustomization) category = 'pizza';
+    else if (wingsCustomization) category = 'chicken_wings';
 
     return {
       id: item.menu_item_id || item.id,
@@ -52,11 +71,12 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
       description: '',
       price: item.unit_price,
       image: '',
-      category: pizzaCustomization ? 'pizza' : wingsCustomization ? 'chicken_wings' : 'sides',
+      category,
       quantity: item.quantity,
       totalPrice: item.total_price,
       pizzaCustomization,
       wingsCustomization,
+      comboCustomization,
     };
   });
 
@@ -318,7 +338,7 @@ export const usePOSOrders = (locationId?: string) => {
 
       if (orderError) throw orderError;
 
-      // Insert order items
+      // Insert order items - include combo customization
       const orderItems = orderData.items.map(item => ({
         order_id: newOrder.id,
         menu_item_id: item.pizzaCustomization?.originalItemId || item.wingsCustomization?.originalItemId || null,
@@ -326,7 +346,9 @@ export const usePOSOrders = (locationId?: string) => {
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.totalPrice,
-        customizations: item.pizzaCustomization 
+        customizations: item.comboCustomization 
+          ? JSON.parse(JSON.stringify(item.comboCustomization))
+          : item.pizzaCustomization 
           ? JSON.parse(JSON.stringify(item.pizzaCustomization))
           : item.wingsCustomization 
           ? JSON.parse(JSON.stringify(item.wingsCustomization))
@@ -466,7 +488,9 @@ export const usePOSOrders = (locationId?: string) => {
         quantity: item.quantity,
         unit_price: item.price,
         total_price: item.totalPrice,
-        customizations: item.pizzaCustomization 
+        customizations: item.comboCustomization 
+          ? JSON.parse(JSON.stringify(item.comboCustomization))
+          : item.pizzaCustomization 
           ? JSON.parse(JSON.stringify(item.pizzaCustomization))
           : item.wingsCustomization 
           ? JSON.parse(JSON.stringify(item.wingsCustomization))

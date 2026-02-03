@@ -1,13 +1,46 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface OrderItemCustomization {
+  // Pizza customization
+  size?: { id: string; name: string; price: number };
+  crust?: { id: string; name: string; price: number };
+  cheeseType?: string;
+  cheeseSides?: { side: string; quantity: string }[];
+  sauceId?: string | null;
+  sauceName?: string;
+  sauceQuantity?: string;
+  spicyLevel?: { left: string; right: string } | string;
+  freeToppings?: string[];
+  defaultToppings?: { id: string; name: string; quantity: string; side?: string }[];
+  extraToppings?: { id: string; name: string; price: number; side?: string }[];
+  note?: string;
+  
+  // Wings customization
+  flavor?: string;
+  originalItemId?: string;
+  
+  // Combo customization
+  comboId?: string;
+  comboName?: string;
+  comboBasePrice?: number;
+  totalExtraCharge?: number;
+  selections?: {
+    itemType: string;
+    itemName: string;
+    flavor?: string;
+    pizzaCustomization?: any;
+    extraCharge: number;
+  }[];
+}
+
 export interface OrderItem {
   id: string;
   name: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-  customizations: any;
+  customizations: OrderItemCustomization | null;
 }
 
 export interface CustomerOrder {
@@ -75,7 +108,7 @@ export const useCustomerOrders = (customerId: string | undefined) => {
               quantity: item.quantity,
               unitPrice: Number(item.unit_price),
               totalPrice: Number(item.total_price),
-              customizations: item.customizations,
+              customizations: item.customizations as OrderItemCustomization | null,
             })),
           };
         })
