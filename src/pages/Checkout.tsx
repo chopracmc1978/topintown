@@ -799,41 +799,23 @@ const Checkout = () => {
 
       {/* Payment Link Dialog */}
       <Dialog open={showPaymentDialog && !!checkoutUrl} onOpenChange={setShowPaymentDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Open secure payment</DialogTitle>
+            <DialogTitle>Complete Your Payment</DialogTitle>
             <DialogDescription>
-              Your payment link is ready. Tap “Open Payment” to complete your order.
+              Click the button below to open secure payment. After paying, you'll be automatically redirected to your order confirmation.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <Button variant="pizza" className="w-full" onClick={openPayment}>
-              Open Payment
+          <div className="space-y-3 py-2">
+            <Button variant="pizza" className="w-full text-lg py-6" onClick={openPayment}>
+              Pay Now
             </Button>
 
-            {checkoutSessionId && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate(`/order-confirmation?session_id=${checkoutSessionId}`)}
-              >
-                I already paid (show my order)
-              </Button>
-            )}
-
-            {checkoutUrl && (
-              <p className="text-xs text-muted-foreground">
-                If nothing opens, please allow popups in your browser, then tap Open Payment again.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground text-center">
+              If nothing opens, please allow popups in your browser and try again.
+            </p>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
