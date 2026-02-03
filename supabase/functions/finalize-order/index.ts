@@ -230,12 +230,27 @@ serve(async (req) => {
       // Merge split combo parts
       if (item._ccParts) {
         const merged: any = {};
+        const mergedSelections: any[] = [];
+
         for (const part of item._ccParts) {
-          if (part) {
-            const { _ccp, _cct, _ci, ...rest } = part;
-            Object.assign(merged, rest);
+          if (!part) continue;
+
+          const { _ccp, _cct, _ci, ...rest } = part;
+
+          // If selections are split across parts, concatenate them in-order.
+          const partSelections = (rest as any).sl;
+          if (Array.isArray(partSelections)) {
+            mergedSelections.push(...partSelections);
+            delete (rest as any).sl;
           }
+
+          Object.assign(merged, rest);
         }
+
+        if (mergedSelections.length > 0) {
+          merged.sl = mergedSelections;
+        }
+
         item.cc = merged;
         delete item._ccParts;
         console.log("Merged combo parts for item", idx);
