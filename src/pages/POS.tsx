@@ -364,8 +364,8 @@ const POS = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Order List - Wider for tablet */}
-        <div className="w-96 border-r border-border flex flex-col bg-secondary/20">
+        {/* Left Panel - Order List - Narrower to give more space for menu */}
+        <div className="w-72 border-r border-border flex flex-col bg-secondary/20">
           <ScrollArea className="flex-1 p-4">
             {loading ? (
               <div className="text-center py-12 text-muted-foreground">
