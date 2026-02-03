@@ -302,7 +302,7 @@ const OrderItemCard = ({
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, total, clearCart } = useCart();
+  const { items, total } = useCart();
   const { selectedLocation } = useLocationContext();
   const { customer } = useCustomer();
   const { data: menuItems } = useMenuItems();
@@ -314,6 +314,7 @@ const Checkout = () => {
   const [showAuthOptions, setShowAuthOptions] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const placeOrderLock = useRef(false);
   
   // Coupon state
@@ -373,11 +374,6 @@ const Checkout = () => {
     localStorage.setItem(CHECKOUT_STATE_KEY, JSON.stringify(state));
   }, [scheduledDate, scheduledTime, formData]);
 
-  // Clear checkout state after successful order
-  const clearCheckoutState = () => {
-    localStorage.removeItem(CHECKOUT_STATE_KEY);
-  };
-
   // Find the original menu item for editing pizza
   const originalPizzaMenuItem = editingPizzaItem?.pizzaCustomization 
     ? menuItems?.find(m => m.id === editingPizzaItem.pizzaCustomization?.originalItemId)
@@ -391,6 +387,16 @@ const Checkout = () => {
   const locationStatus = checkIfOpen();
 
   const handleCheckoutClick = () => {
+    // If we already created a checkout session, just re-open it.
+    // (This prevents creating multiple sessions and avoids getting stuck in the preview iframe.)
+    if (checkoutUrl) {
+      const w = window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      if (!w) {
+        toast.error('Please allow popups to open the payment page');
+      }
+      return;
+    }
+
     if (items.length === 0) {
       toast.error('Your cart is empty!');
       return;
@@ -428,6 +434,9 @@ const Checkout = () => {
     if (placeOrderLock.current) return;
     placeOrderLock.current = true;
     setPlacingOrder(true);
+
+    // Open a new tab immediately (still in the click gesture) to avoid popup blockers / iframe restrictions.
+    const paymentWindow = window.open('', '_blank', 'noopener,noreferrer');
     
     try {
       const locationId = selectedLocation?.id || 'calgary';
@@ -482,12 +491,22 @@ const Checkout = () => {
         throw new Error('No checkout URL returned');
       }
 
-      // Clear cart and checkout state before redirecting
-      clearCart();
-      clearCheckoutState();
-      
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
+      setCheckoutUrl(data.url);
+
+      // Open payment in a new tab (works reliably in preview and mobile)
+      if (paymentWindow) {
+        paymentWindow.location.href = data.url;
+        paymentWindow.focus?.();
+      } else {
+        const w = window.open(data.url, '_blank', 'noopener,noreferrer');
+        if (!w) {
+          // As a last resort, try same-tab navigation.
+          window.location.href = data.url;
+        }
+      }
+
+      // Don't clear cart here; clear it only after successful payment on the confirmation page.
+      setPlacingOrder(false);
       
     } catch (error: any) {
       console.error('Error placing order:', error);
