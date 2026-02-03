@@ -314,7 +314,9 @@ const Checkout = () => {
   const [showAuthOptions, setShowAuthOptions] = useState(false);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const placeOrderLock = useRef(false);
+  const paymentWindowRef = useRef<Window | null>(null);
   
   // Coupon state
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -386,6 +388,7 @@ const Checkout = () => {
   const locationStatus = checkIfOpen();
 
   const handleCheckoutClick = () => {
+    setPaymentUrl(null);
     if (items.length === 0) {
       toast.error('Your cart is empty!');
       return;
@@ -423,6 +426,28 @@ const Checkout = () => {
     if (placeOrderLock.current) return;
     placeOrderLock.current = true;
     setPlacingOrder(true);
+    setPaymentUrl(null);
+
+    // In the Lovable preview (runs inside an iframe), Stripe Checkout can't load inside the iframe.
+    // Pre-open a new tab while we still have a user gesture so we can safely redirect there.
+    const isEmbedded = (() => {
+      try {
+        return window.self !== window.top;
+      } catch {
+        // If cross-origin access is blocked, assume embedded.
+        return true;
+      }
+    })();
+
+    if (isEmbedded) {
+      try {
+        paymentWindowRef.current = window.open('about:blank', '_blank', 'noopener,noreferrer');
+      } catch {
+        paymentWindowRef.current = null;
+      }
+    } else {
+      paymentWindowRef.current = null;
+    }
     
     try {
       const locationId = selectedLocation?.id || 'calgary';
@@ -478,8 +503,34 @@ const Checkout = () => {
       }
 
       console.log('Redirecting to Stripe:', data.url);
+
+      // Save URL so we can show a manual fallback if navigation is blocked for any reason.
+      setPaymentUrl(data.url);
+
+      // If we’re still on /checkout shortly after, the redirect likely got blocked.
+      // Stop the spinner and show a clickable “Continue to Payment” fallback.
+      setTimeout(() => {
+        try {
+          if (window.location.pathname.includes('/checkout')) {
+            setPlacingOrder(false);
+            placeOrderLock.current = false;
+          }
+        } catch {
+          // ignore
+        }
+      }, 1500);
       
-      // Direct redirect - no setTimeout, no state updates
+      // If we pre-opened a tab (iframe preview), navigate that tab.
+      if (paymentWindowRef.current && !paymentWindowRef.current.closed) {
+        paymentWindowRef.current.location.href = data.url;
+        // Keep the checkout page usable (don’t get stuck in Processing...)
+        setPlacingOrder(false);
+        placeOrderLock.current = false;
+        toast.success('Payment opened in a new tab');
+        return;
+      }
+
+      // Normal full-page redirect
       window.location.href = data.url;
       
     } catch (error: any) {
@@ -487,6 +538,13 @@ const Checkout = () => {
       toast.error(error.message || 'Failed to start checkout');
       setPlacingOrder(false);
       placeOrderLock.current = false;
+      setPaymentUrl(null);
+      try {
+        paymentWindowRef.current?.close();
+      } catch {
+        // ignore
+      }
+      paymentWindowRef.current = null;
     }
   };
 
@@ -646,6 +704,28 @@ const Checkout = () => {
                         `Continue - $${grandTotal.toFixed(2)}`
                       )}
                     </Button>
+
+                    {/* Fallback in case browser blocks navigation (common in iframe preview) */}
+                    {paymentUrl && !placingOrder && (
+                      <div className="mt-3 rounded-lg border border-border bg-secondary/30 p-3">
+                        <p className="text-xs text-muted-foreground">
+                          If you weren’t redirected automatically, continue to payment:
+                        </p>
+                        <div className="mt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => {
+                              // User gesture fallback
+                              window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                          >
+                            Continue to Payment
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
