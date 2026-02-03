@@ -435,7 +435,17 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               </button>
 
               {/* Medium button with Left/Whole/Right for large pizza */}
-              <span className="text-xs font-medium">Med Hot</span>
+              {(() => {
+                const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
+                return (
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded transition-colors",
+                    hasMedium ? "bg-primary/10 text-primary" : ""
+                  )}>
+                    Med Hot
+                  </span>
+                );
+              })()}
               {isLargePizza ? (
                 <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
@@ -493,7 +503,17 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               )}
 
               {/* Hot button with Left/Whole/Right for large pizza */}
-              <span className="text-xs font-medium">Hot</span>
+              {(() => {
+                const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
+                return (
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded transition-colors",
+                    hasHot ? "bg-primary/10 text-primary" : ""
+                  )}>
+                    Hot
+                  </span>
+                );
+              })()}
               {isLargePizza ? (
                 <div className="flex gap-0.5">
                   {(['left', 'whole', 'right'] as Side[]).map(side => {
