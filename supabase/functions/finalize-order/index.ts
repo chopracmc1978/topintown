@@ -59,18 +59,11 @@ const decompressComboCustomization = (c: any) => {
         extraCharge: s.ec || s.extraCharge || 0,
       };
       
-      // Handle full pizza customization (old format) or just pizza name (new format)
+      // Handle full pizza customization (compressed format)
       if (s.pc) {
         selection.pizzaCustomization = decompressPizzaCustomization(s.pc);
       } else if (s.pizzaCustomization) {
         selection.pizzaCustomization = s.pizzaCustomization;
-      } else if (s.pn) {
-        // New minimal format - just store the size/crust as text
-        const [size, crust] = (s.pn || '').split(', ');
-        selection.pizzaCustomization = {
-          size: { id: '', name: size || '', price: 0 },
-          crust: { id: '', name: crust || 'Regular', price: 0 },
-        };
       }
       
       return selection;

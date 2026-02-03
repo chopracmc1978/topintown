@@ -61,26 +61,28 @@ const compressPizzaCustomization = (pc: any) => {
   return compressed;
 };
 
-// Compress combo customization to minimal keys - simplified for metadata limits
+// Compress combo customization - keep FULL pizza customization details
 const compressComboCustomization = (cc: any) => {
   if (!cc) return null;
   
-  // Only store essential info - drop nested pizza customizations for metadata
-  // The full data will be reconstructed from the line items description
   return {
     ci: cc.comboId,
-    cn: cc.comboName?.substring(0, 30),
+    cn: cc.comboName,
     bp: cc.comboBasePrice,
     te: cc.totalExtraCharge,
-    // Minimal selection data - just names and types
-    sl: cc.selections?.map((s: any) => ({
-      it: s.itemType?.substring(0, 15),
-      in: s.itemName?.substring(0, 30),
-      fl: s.flavor ? s.flavor.substring(0, 20) : undefined,
-      // Store pizza size/crust only (not full customization to save space)
-      pn: s.pizzaCustomization?.size?.name ? `${s.pizzaCustomization.size.name}, ${s.pizzaCustomization.crust?.name || 'Reg'}` : undefined,
-      ec: s.extraCharge || 0,
-    })) || [],
+    sl: cc.selections?.map((s: any) => {
+      const selection: any = {
+        it: s.itemType,
+        in: s.itemName,
+        ec: s.extraCharge || 0,
+      };
+      if (s.flavor) selection.fl = s.flavor;
+      // Include FULL compressed pizza customization
+      if (s.pizzaCustomization) {
+        selection.pc = compressPizzaCustomization(s.pizzaCustomization);
+      }
+      return selection;
+    }) || [],
   };
 };
 
