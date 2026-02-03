@@ -390,7 +390,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      <p className="font-semibold text-xs uppercase leading-tight">
+                      <p className="font-semibold text-[11px] uppercase leading-tight line-clamp-3">
                         {item.name}
                       </p>
                       <p className="text-sm text-primary font-bold">${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}</p>
