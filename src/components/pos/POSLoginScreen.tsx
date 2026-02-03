@@ -79,7 +79,10 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center p-4">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: '#1a8ccc' }} // Explicit hex for Android WebView compatibility
+    >
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

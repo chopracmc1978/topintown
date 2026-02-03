@@ -265,7 +265,10 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
         
         {/* Advance Order Pickup Time */}
         {order.pickupTime && (
-          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-lg w-fit">
+          <div 
+            className="mt-2 flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg w-fit"
+            style={{ color: '#1a8ccc', backgroundColor: 'rgba(26, 140, 204, 0.1)' }}
+          >
             <CalendarDays className="w-4 h-4" />
             <span>Scheduled Pickup: {formatPickupDateTime(order.pickupTime)}</span>
           </div>
@@ -303,7 +306,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <div key={`${item.id}-${index}`} className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary">{item.quantity}×</span>
+                  <span className="font-bold" style={{ color: '#1a8ccc' }}>{item.quantity}×</span>
                   <span className="font-medium">{item.name}</span>
                 </div>
                 {item.selectedSize && !item.pizzaCustomization && (
@@ -356,7 +359,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
           <Separator className="my-2" />
           <div className="flex justify-between text-lg font-bold">
             <span>Total</span>
-            <span className="text-primary">${order.total.toFixed(2)}</span>
+            <span style={{ color: '#1a8ccc' }}>${order.total.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -409,8 +412,8 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
           
           {nextStatus && (
             <Button 
-              variant="pizza" 
-              className="flex-1"
+              className="flex-1 text-white font-semibold shadow-lg"
+              style={{ background: 'linear-gradient(to right, #1a8ccc, #8b2500)' }}
               onClick={() => onUpdateStatus(nextStatus)}
             >
               {order.status === 'pending' ? (
