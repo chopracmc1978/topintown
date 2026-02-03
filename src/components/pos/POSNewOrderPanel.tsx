@@ -681,12 +681,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 className="h-9 text-sm flex-1"
               />
               <Input
-                placeholder="Discount $"
-                type="number"
-                min="0"
-                step="0.01"
+                placeholder="Discount"
+                inputMode="decimal"
                 value={manualDiscount}
-                onChange={(e) => setManualDiscount(e.target.value)}
+                onChange={(e) => {
+                  // Allow only numbers and decimal point
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  setManualDiscount(val);
+                }}
                 className="h-9 text-sm w-24"
               />
             </div>
