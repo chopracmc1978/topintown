@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,18 +10,20 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
-import Index from "./pages/Index";
-import Menu from "./pages/Menu";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import OrderConfirmation from "./pages/OrderConfirmation";
-import POS from "./pages/POS";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import CustomerLogin from "./pages/CustomerLogin";
-import MyOrders from "./pages/MyOrders";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
+
+// Lazy load pages for code-splitting
+const Index = lazy(() => import("./pages/Index"));
+const Menu = lazy(() => import("./pages/Menu"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
+const POS = lazy(() => import("./pages/POS"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Admin = lazy(() => import("./pages/Admin"));
+const CustomerLogin = lazy(() => import("./pages/CustomerLogin"));
+const MyOrders = lazy(() => import("./pages/MyOrders"));
+const Profile = lazy(() => import("./pages/Profile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +33,13 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Loading fallback for lazy-loaded pages
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 /**
  * IMPORTANT (native stability):
@@ -82,27 +91,29 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              {/* POS is isolated for native stability */}
-              <Route path="/pos" element={<POS />} />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* POS is isolated for native stability */}
+                <Route path="/pos" element={<POS />} />
 
-              {/* Public site + admin routes */}
-              <Route element={<PublicProvidersLayout />}>
-                <Route index element={<Index />} />
-                <Route path="menu" element={<Menu />} />
-                <Route path="cart" element={<Cart />} />
-                <Route path="checkout" element={<Checkout />} />
-                <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
-                <Route path="order-confirmation" element={<OrderConfirmation />} />
-                <Route path="auth" element={<Auth />} />
-                <Route path="admin" element={<Admin />} />
-                <Route path="customer-login" element={<CustomerLogin />} />
-                <Route path="my-orders" element={<MyOrders />} />
-                <Route path="profile" element={<Profile />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
+                {/* Public site + admin routes */}
+                <Route element={<PublicProvidersLayout />}>
+                  <Route index element={<Index />} />
+                  <Route path="menu" element={<Menu />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="checkout" element={<Checkout />} />
+                  <Route path="order-confirmation/:orderId" element={<OrderConfirmation />} />
+                  <Route path="order-confirmation" element={<OrderConfirmation />} />
+                  <Route path="auth" element={<Auth />} />
+                  <Route path="admin" element={<Admin />} />
+                  <Route path="customer-login" element={<CustomerLogin />} />
+                  <Route path="my-orders" element={<MyOrders />} />
+                  <Route path="profile" element={<Profile />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
