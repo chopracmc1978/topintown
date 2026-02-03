@@ -119,16 +119,37 @@ export const buildKitchenTicket = (order: {
       receipt += `   ${item.selectedSize}${LF}`;
     }
     
-    // Pizza customization details
-    if (item.pizzaCustomization) {
+    // Pizza customization details (for standalone pizzas)
+    if (item.pizzaCustomization && !(item as any).comboCustomization) {
       const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
       for (const detail of details) {
         receipt += `   ${detail}${LF}`;
       }
     }
     
-    // Wings/chicken customization - show flavor if selected
-    if (item.wingsCustomization?.flavor) {
+    // Combo customization details - show each selection with pizza details
+    if ((item as any).comboCustomization) {
+      const combo = (item as any).comboCustomization;
+      for (const selection of combo.selections) {
+        // Print each combo item
+        let selectionLine = `   - ${selection.itemName}`;
+        if (selection.flavor) {
+          selectionLine += ` (${selection.flavor})`;
+        }
+        receipt += selectionLine + LF;
+        
+        // If this combo selection has pizza customization, print the details
+        if (selection.pizzaCustomization) {
+          const pizzaDetails = formatPizzaDetailsForPrint(selection.pizzaCustomization);
+          for (const detail of pizzaDetails) {
+            receipt += `      ${detail}${LF}`;
+          }
+        }
+      }
+    }
+    
+    // Wings/chicken customization - show flavor if selected (for standalone items)
+    if (item.wingsCustomization?.flavor && !(item as any).comboCustomization) {
       receipt += `   ${item.wingsCustomization.flavor}${LF}`;
     }
     
