@@ -50,66 +50,63 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
     <div
       onClick={onClick}
       className={cn(
-        "p-4 rounded-xl border-2 cursor-pointer transition-all",
+        "p-3 rounded-xl border-2 cursor-pointer transition-all",
         isSelected
           ? "border-primary bg-primary/5 shadow-md"
           : "border-border bg-card hover:border-primary/50 hover:shadow-sm"
       )}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-bold text-lg">{order.id}</span>
-          <Badge variant="outline" className={cn("text-xs px-1.5 py-0", source.color)}>
-            <SourceIcon className="w-3 h-3 mr-1" />
-            {source.label}
-          </Badge>
-        </div>
-        <Badge variant="outline" className={cn("text-xs", statusColors[order.status])}>
+      {/* Order ID - Full width */}
+      <div className="font-mono font-bold text-sm mb-2 truncate">{order.id}</div>
+      
+      {/* Badges Row */}
+      <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", source.color)}>
+          <SourceIcon className="w-2.5 h-2.5 mr-0.5" />
+          {source.label}
+        </Badge>
+        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", statusColors[order.status])}>
           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
         </Badge>
       </div>
 
       {/* Customer */}
-      <div className="mb-3">
-        <p className="font-medium text-foreground truncate">{order.customerName || 'Walk-in Customer'}</p>
-        {order.customerPhone && (
-          <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
-        )}
+      <div className="mb-2">
+        <p className="font-medium text-sm text-foreground truncate">{order.customerName || 'Walk-in Customer'}</p>
       </div>
 
-      {/* Order Info */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-        <div className="flex items-center gap-1">
-          <TypeIcon className="w-4 h-4" />
+      {/* Order Info - Compact */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+        <div className="flex items-center gap-0.5">
+          <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
         </div>
-        {order.tableNumber && (
-          <span>Table {order.tableNumber}</span>
-        )}
-        <div className="flex items-center gap-1">
-          <Clock className="w-4 h-4" />
+        <div className="flex items-center gap-0.5">
+          <Clock className="w-3 h-3" />
           <span>{getTimeSince(order.createdAt)}</span>
         </div>
       </div>
 
       {/* Items Preview */}
-      <div className="text-sm text-muted-foreground mb-3">
+      <div className="text-xs text-muted-foreground mb-2 truncate">
         {itemCount} item{itemCount !== 1 ? 's' : ''}
         {order.items.length > 0 && (
           <span className="ml-1">
-            • {order.items.slice(0, 2).map(i => i.name).join(', ')}
-            {order.items.length > 2 && ` +${order.items.length - 2} more`}
+            • {order.items[0]?.name}
+            {order.items.length > 1 && ` +${order.items.length - 1}`}
           </span>
         )}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-border">
-        <span className="text-lg font-bold text-primary">${order.total.toFixed(2)}</span>
+      <div className="flex items-center justify-between pt-2 border-t border-border">
+        <span className="text-base font-bold text-primary">${order.total.toFixed(2)}</span>
         <Badge 
           variant={order.paymentStatus === 'paid' ? 'default' : 'outline'}
-          className={order.paymentStatus === 'paid' ? 'bg-green-600' : 'text-orange-600 border-orange-300'}
+          className={cn(
+            "text-[10px] px-1.5",
+            order.paymentStatus === 'paid' ? 'bg-green-600' : 'text-orange-600 border-orange-300'
+          )}
         >
           {order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
         </Badge>
