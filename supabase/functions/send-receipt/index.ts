@@ -10,6 +10,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface ComboSelection {
+  itemType: string;
+  itemName: string;
+  flavor?: string;
+  pizzaCustomization?: {
+    size?: { name: string };
+    crust?: { name: string };
+    extraToppings?: { name: string; side?: string }[];
+    defaultToppings?: { name: string; quantity: string }[];
+    spicyLevel?: { left: string; right: string } | string;
+  };
+  extraCharge?: number;
+}
+
 interface OrderItem {
   id: string;
   name: string;
@@ -20,6 +34,17 @@ interface OrderItem {
     size?: { name: string };
     crust?: { name: string };
     flavor?: string;
+    comboId?: string;
+    comboName?: string;
+    selections?: ComboSelection[];
+    extraToppings?: { name: string; side?: string }[];
+    defaultToppings?: { name: string; quantity: string }[];
+    spicyLevel?: { left: string; right: string } | string;
+    sauceName?: string;
+    sauceQuantity?: string;
+    cheeseType?: string;
+    freeToppings?: string[];
+    note?: string;
   };
 }
 
@@ -70,17 +95,63 @@ const formatPickupTime = (dateString: string): string => {
 const buildEmailHtml = (data: SendReceiptRequest): string => {
   const itemsHtml = data.items.map(item => {
     let customization = '';
-    if (item.customizations?.size && item.customizations?.crust) {
-      customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${item.customizations.size.name}, ${item.customizations.crust.name}</span>`;
+    const hasCombo = item.customizations?.selections && item.customizations.selections.length > 0;
+    
+    if (hasCombo) {
+      // Build combo selections HTML
+      const selectionsHtml = item.customizations!.selections!.map(sel => {
+        let selDetail = `<div style="color: #666; font-size: 12px; margin-left: 15px;">- ${sel.itemName}${sel.flavor ? ` (${sel.flavor})` : ''}</div>`;
+        
+        if (sel.pizzaCustomization) {
+          const pc = sel.pizzaCustomization;
+          const pizzaDetails: string[] = [];
+          
+          if (pc.size?.name) {
+            pizzaDetails.push(`${pc.size.name}, ${pc.crust?.name || 'Regular'}`);
+          }
+          if (pc.extraToppings && pc.extraToppings.length > 0) {
+            pizzaDetails.push(`+${pc.extraToppings.map(t => t.name).join(', ')}`);
+          }
+          if (pc.defaultToppings) {
+            const removed = pc.defaultToppings.filter(t => t.quantity === 'none');
+            if (removed.length > 0) {
+              pizzaDetails.push(`NO: ${removed.map(t => t.name).join(', ')}`);
+            }
+          }
+          
+          if (pizzaDetails.length > 0) {
+            selDetail += `<div style="color: #888; font-size: 11px; margin-left: 25px;">${pizzaDetails.join(' | ')}</div>`;
+          }
+        }
+        return selDetail;
+      }).join('');
+      customization = selectionsHtml;
+    } else if (item.customizations?.size && item.customizations?.crust) {
+      // Standalone pizza
+      const details: string[] = [`${item.customizations.size.name}, ${item.customizations.crust.name}`];
+      
+      if (item.customizations.extraToppings && item.customizations.extraToppings.length > 0) {
+        details.push(`+${item.customizations.extraToppings.map(t => t.name).join(', ')}`);
+      }
+      if (item.customizations.defaultToppings) {
+        const removed = item.customizations.defaultToppings.filter(t => t.quantity === 'none');
+        if (removed.length > 0) {
+          details.push(`NO: ${removed.map(t => t.name).join(', ')}`);
+        }
+      }
+      
+      customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${details.join(' | ')}</span>`;
     } else if (item.customizations?.flavor) {
+      // Standalone wings
       customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${item.customizations.flavor}</span>`;
     }
+    
     return `
       <tr>
         <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
           ${item.quantity}× ${item.name}${customization}
         </td>
-        <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">
+        <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right; vertical-align: top;">
           $${item.totalPrice.toFixed(2)}
         </td>
       </tr>

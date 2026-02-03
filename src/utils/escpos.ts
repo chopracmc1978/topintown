@@ -202,6 +202,10 @@ export const buildCustomerReceipt = (order: {
     quantity: number;
     name: string;
     totalPrice: number;
+    pizzaCustomization?: any;
+    wingsCustomization?: any;
+    comboCustomization?: any;
+    selectedSize?: string;
   }>;
 }, location?: {
   name?: string;
@@ -315,6 +319,45 @@ export const buildCustomerReceipt = (order: {
     const itemName = `${item.quantity}x ${item.name}`;
     const price = `$${item.totalPrice.toFixed(2)}`;
     receipt += formatItemLine(itemName, price) + LF;
+    
+    // Show size for non-pizza items (excluding combos)
+    if (item.selectedSize && !item.pizzaCustomization && !item.comboCustomization) {
+      receipt += `   ${item.selectedSize}${LF}`;
+    }
+    
+    // Pizza customization details (for standalone pizzas)
+    if (item.pizzaCustomization && !item.comboCustomization) {
+      const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
+      for (const detail of details) {
+        receipt += `   ${detail}${LF}`;
+      }
+    }
+    
+    // Wings/chicken customization - show flavor if selected (for standalone items)
+    if (item.wingsCustomization?.flavor && !item.comboCustomization) {
+      receipt += `   ${item.wingsCustomization.flavor}${LF}`;
+    }
+    
+    // Combo customization details - show each selection with full details
+    if (item.comboCustomization) {
+      const combo = item.comboCustomization;
+      for (const selection of (combo.selections || [])) {
+        // Print each combo item with item type indication
+        let selectionLine = `   - ${selection.itemName}`;
+        if (selection.flavor) {
+          selectionLine += ` (${selection.flavor})`;
+        }
+        receipt += selectionLine + LF;
+        
+        // If this combo selection has pizza customization, print the details
+        if (selection.pizzaCustomization) {
+          const pizzaDetails = formatPizzaDetailsForPrint(selection.pizzaCustomization);
+          for (const detail of pizzaDetails) {
+            receipt += `      ${detail}${LF}`;
+          }
+        }
+      }
+    }
   }
   
   receipt += LINE + LF;

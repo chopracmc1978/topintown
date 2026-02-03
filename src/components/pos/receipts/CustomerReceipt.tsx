@@ -89,29 +89,64 @@ export const CustomerReceipt = ({
       
       {/* Items */}
       <div className="space-y-2">
-        {order.items.map((item, index) => (
-          <div key={`${item.id}-${index}`}>
-            <div className="flex justify-between">
-              <div className="flex-1">
-                <span>{item.quantity}× {item.name}</span>
-                {item.pizzaCustomization && (
-                  <p className="text-xs text-gray-600 ml-3">
-                    {item.pizzaCustomization.size.name}, {item.pizzaCustomization.crust.name}
-                  </p>
-                )}
-                {item.wingsCustomization && (
-                  <p className="text-xs text-gray-600 ml-3">
-                    {item.wingsCustomization.flavor}
-                  </p>
-                )}
-                {item.selectedSize && !item.pizzaCustomization && (
-                  <p className="text-xs text-gray-600 ml-3">{item.selectedSize}</p>
-                )}
+        {order.items.map((item, index) => {
+          const comboCustomization = (item as any).comboCustomization;
+          const hasCombo = comboCustomization?.selections?.length > 0;
+          
+          return (
+            <div key={`${item.id}-${index}`}>
+              <div className="flex justify-between">
+                <div className="flex-1">
+                  <span>{item.quantity}× {item.name}</span>
+                </div>
+                <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
               </div>
-              <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
+              
+              {/* Standalone Pizza details */}
+              {item.pizzaCustomization && !hasCombo && (
+                <p className="text-xs text-gray-600 ml-3">
+                  {item.pizzaCustomization.size.name}, {item.pizzaCustomization.crust.name}
+                </p>
+              )}
+              
+              {/* Standalone Wings details */}
+              {item.wingsCustomization && !hasCombo && (
+                <p className="text-xs text-gray-600 ml-3">
+                  {item.wingsCustomization.flavor}
+                </p>
+              )}
+              
+              {/* Non-pizza/combo size */}
+              {item.selectedSize && !item.pizzaCustomization && !hasCombo && (
+                <p className="text-xs text-gray-600 ml-3">{item.selectedSize}</p>
+              )}
+              
+              {/* Combo selections with full details */}
+              {hasCombo && (
+                <div className="ml-3 mt-1">
+                  {comboCustomization.selections.map((selection: any, selIdx: number) => (
+                    <div key={selIdx} className="text-xs text-gray-600">
+                      <span>- {selection.itemName}{selection.flavor ? ` (${selection.flavor})` : ''}</span>
+                      {selection.pizzaCustomization && (
+                        <div className="ml-3">
+                          {selection.pizzaCustomization.size?.name && (
+                            <p>{selection.pizzaCustomization.size.name}, {selection.pizzaCustomization.crust?.name || 'Regular'}</p>
+                          )}
+                          {selection.pizzaCustomization.extraToppings?.length > 0 && (
+                            <p>+{selection.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                          )}
+                          {selection.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
+                            <p>NO: {selection.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       <Separator className="border-dashed border-black my-3" />
