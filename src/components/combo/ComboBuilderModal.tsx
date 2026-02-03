@@ -439,17 +439,17 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-2">
-                {availableItems.map((item) => {
-                  const isSelected = currentStepSelections.some(
-                    s => s.menuItem?.id === item.id || s.cartItem?.pizzaCustomization?.originalItemId === item.id
-                  );
+              {availableItems.map((item) => {
                   const canSelect = currentStepSelections.length < requiredCount;
 
                   return (
                     <button
                       key={item.id}
-                      disabled={!canSelect && !isSelected}
+                      disabled={!canSelect}
                       onClick={() => {
+                        // Don't allow selection if step is complete
+                        if (!canSelect) return;
+                        
                         if (currentComboItem?.item_type === 'pizza') {
                           handlePizzaSelect(item);
                         } else if (currentComboItem?.item_type === 'wings') {
@@ -460,8 +460,8 @@ export const ComboBuilderModal = ({ combo, isOpen, onClose }: ComboBuilderModalP
                       }}
                       className={cn(
                         "p-3 rounded-lg border-2 text-left transition-all",
-                        "hover:border-primary/50",
-                        !canSelect && !isSelected && "opacity-50 cursor-not-allowed"
+                        canSelect && "hover:border-primary/50",
+                        !canSelect && "opacity-50 cursor-not-allowed"
                       )}
                     >
                       {item.image_url && (
