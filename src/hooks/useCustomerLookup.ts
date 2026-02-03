@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { CartItem, CartPizzaCustomization, CartWingsCustomization } from '@/types/menu';
+import { CartItem, CartPizzaCustomization, CartWingsCustomization, CartComboCustomization } from '@/types/menu';
 
 interface CustomerOrderHistory {
   id: string;
@@ -80,8 +80,30 @@ export const useCustomerLookup = () => {
           .filter(item => item.order_id === order.id)
           .map(item => {
             const customizations = item.customizations as any;
-            const pizzaCustomization = customizations?.size ? customizations as CartPizzaCustomization : undefined;
-            const wingsCustomization = customizations?.flavor && !customizations?.size ? customizations as CartWingsCustomization : undefined;
+            
+            // Detect customization type
+            let pizzaCustomization: CartPizzaCustomization | undefined;
+            let wingsCustomization: CartWingsCustomization | undefined;
+            let comboCustomization: CartComboCustomization | undefined;
+            let category: string = 'sides';
+
+            if (customizations) {
+              // Check for combo (has comboId and selections array)
+              if (customizations.comboId && customizations.selections) {
+                comboCustomization = customizations as CartComboCustomization;
+                category = 'combo';
+              }
+              // Check for pizza (has size object)
+              else if (customizations.size && typeof customizations.size === 'object') {
+                pizzaCustomization = customizations as CartPizzaCustomization;
+                category = 'pizza';
+              }
+              // Check for wings (has flavor but no size)
+              else if (customizations.flavor && !customizations.size) {
+                wingsCustomization = customizations as CartWingsCustomization;
+                category = 'chicken_wings';
+              }
+            }
 
             return {
               id: item.menu_item_id || item.id,
@@ -89,11 +111,12 @@ export const useCustomerLookup = () => {
               description: '',
               price: item.unit_price,
               image: '',
-              category: pizzaCustomization ? 'pizza' : wingsCustomization ? 'chicken_wings' : 'sides',
+              category,
               quantity: item.quantity,
               totalPrice: item.total_price,
               pizzaCustomization,
               wingsCustomization,
+              comboCustomization,
             } as CartItem;
           });
 
