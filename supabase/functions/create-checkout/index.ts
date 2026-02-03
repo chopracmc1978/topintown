@@ -242,11 +242,11 @@ serve(async (req) => {
           if (ccStr.length <= 490) {
             itemChunks.push([{ _cc: item.cc, _ci: basicItemIdx }]);
           } else {
-            // Combo too big - split it
-            const parts = splitLargeObject(item.cc, 450);
-            console.log("Splitting combo into", parts.length, "parts");
-            parts.forEach((part, idx) => {
-              itemChunks.push([{ _ccp: idx, _cct: parts.length, _ci: basicItemIdx, ...part }]);
+            // Combo too big - split selections into multiple parts so each chunk stays under 500 chars.
+            const partObjects = splitComboCustomizationBySelections(item.cc, basicItemIdx, 490);
+            console.log("Splitting combo into", partObjects.length, "parts");
+            partObjects.forEach((obj) => {
+              itemChunks.push([obj]);
             });
           }
         }
@@ -283,7 +283,9 @@ serve(async (req) => {
     itemChunks.forEach((chunk, index) => {
       const chunkStr = JSON.stringify(chunk);
       if (chunkStr.length > 500) {
-        console.warn(`Chunk ${index} is ${chunkStr.length} chars - may cause issues`);
+        // Stripe hard-limits metadata values to 500 chars.
+        console.warn(`Chunk ${index} is ${chunkStr.length} chars - will fail Stripe metadata limit`);
+        throw new Error(`Checkout payload too large (chunk ${index}: ${chunkStr.length} chars)`);
       }
       metadata[`items${index}`] = chunkStr;
     });
@@ -348,4 +350,72 @@ function splitLargeObject(obj: any, maxSize: number): any[] {
   }
   
   return parts;
+}
+
+// Split combo customization into multiple parts by slicing the selections array (sl)
+// so each resulting metadata chunk stays under Stripe's 500-char metadata value limit.
+function splitComboCustomizationBySelections(
+  combo: any,
+  basicItemIdx: number,
+  maxChunkLen = 490
+): any[] {
+  const base: any = {
+    ci: combo?.ci ?? combo?.comboId,
+    cn: combo?.cn ?? combo?.comboName,
+    bp: combo?.bp ?? combo?.comboBasePrice,
+    te: combo?.te ?? combo?.totalExtraCharge,
+  };
+
+  const selections: any[] = combo?.sl ?? combo?.selections ?? [];
+  const parts: any[][] = [];
+  let current: any[] = [];
+
+  // Use an intentionally large placeholder for _cct so our length check is conservative.
+  const estimateLen = (sl: any[], partIndex: number) =>
+    JSON.stringify([
+      {
+        _ccp: partIndex,
+        _cct: 999,
+        _ci: basicItemIdx,
+        ...base,
+        sl,
+      },
+    ]).length;
+
+  for (const sel of selections) {
+    const candidate = [...current, sel];
+    const candidateLen = estimateLen(candidate, parts.length);
+
+    if (candidateLen <= maxChunkLen) {
+      current = candidate;
+      continue;
+    }
+
+    if (current.length > 0) {
+      parts.push(current);
+      current = [];
+    }
+
+    // If a single selection is too large, we have no safe way to split it further
+    // without redesigning the payload format; fail fast with a clear error.
+    const singleLen = estimateLen([sel], parts.length);
+    if (singleLen > maxChunkLen) {
+      throw new Error(
+        `Combo selection too large for metadata (${singleLen} chars). Please reduce customizations or contact support.`
+      );
+    }
+
+    current = [sel];
+  }
+
+  if (current.length > 0) parts.push(current);
+
+  const total = parts.length;
+  return parts.map((sl, idx) => ({
+    _ccp: idx,
+    _cct: total,
+    _ci: basicItemIdx,
+    ...base,
+    sl,
+  }));
 }
