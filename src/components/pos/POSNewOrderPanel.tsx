@@ -555,11 +555,15 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const displayName = item.category === 'pizza' 
                         ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
                         : item.name;
+                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[77px]' : 'h-[66px]';
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleItemClick(item)}
-                          className="p-1.5 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30 h-[66px] flex flex-col justify-between"
+                          className={cn(
+                            "p-1.5 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30 flex flex-col justify-between",
+                            cardHeight
+                          )}
                         >
                           <p className="font-medium text-[11px] uppercase line-clamp-3 leading-tight">{displayName}</p>
                           <p className="text-xs text-primary font-bold mt-0.5">
