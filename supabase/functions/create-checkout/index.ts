@@ -61,20 +61,24 @@ const compressPizzaCustomization = (pc: any) => {
   return compressed;
 };
 
-// Compress combo customization to minimal keys
+// Compress combo customization to minimal keys - simplified for metadata limits
 const compressComboCustomization = (cc: any) => {
   if (!cc) return null;
   
+  // Only store essential info - drop nested pizza customizations for metadata
+  // The full data will be reconstructed from the line items description
   return {
     ci: cc.comboId,
-    cn: cc.comboName,
+    cn: cc.comboName?.substring(0, 30),
     bp: cc.comboBasePrice,
     te: cc.totalExtraCharge,
+    // Minimal selection data - just names and types
     sl: cc.selections?.map((s: any) => ({
-      it: s.itemType,
-      in: s.itemName,
-      fl: s.flavor || undefined,
-      pc: s.pizzaCustomization ? compressPizzaCustomization(s.pizzaCustomization) : undefined,
+      it: s.itemType?.substring(0, 15),
+      in: s.itemName?.substring(0, 30),
+      fl: s.flavor ? s.flavor.substring(0, 20) : undefined,
+      // Store pizza size/crust only (not full customization to save space)
+      pn: s.pizzaCustomization?.size?.name ? `${s.pizzaCustomization.size.name}, ${s.pizzaCustomization.crust?.name || 'Reg'}` : undefined,
       ec: s.extraCharge || 0,
     })) || [],
   };
