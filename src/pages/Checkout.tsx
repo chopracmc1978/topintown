@@ -38,7 +38,119 @@ const OrderItemCard = ({
   const [expanded, setExpanded] = useState(false);
   const pizzaCustomization = item.pizzaCustomization;
   const wingsCustomization = item.wingsCustomization;
-  const hasCustomization = pizzaCustomization || wingsCustomization;
+  const comboCustomization = item.comboCustomization;
+  const hasCustomization = pizzaCustomization || wingsCustomization || comboCustomization;
+
+  // Helper to render pizza customization details
+  const renderPizzaDetails = (customization: CartItem['pizzaCustomization']) => {
+    if (!customization) return null;
+    
+    return (
+      <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
+        {/* Cheese */}
+        <div>
+          <span className="font-medium text-muted-foreground">Cheese: </span>
+          <span className="capitalize">{customization.cheeseType.replace('-', ' ')}</span>
+          {customization.cheeseSides.length > 0 && customization.cheeseType !== 'no-cheese' && (
+            <span className="text-muted-foreground">
+              {' '}({customization.cheeseSides.map(cs => `${cs.side}: ${cs.quantity}`).join(', ')})
+            </span>
+          )}
+        </div>
+
+        {/* Sauce */}
+        {customization.sauceName && (
+          <div>
+            <span className="font-medium text-muted-foreground">Sauce: </span>
+            <span>{customization.sauceName}</span>
+            {customization.sauceQuantity === 'extra' && (
+              <span className="text-primary"> (Extra)</span>
+            )}
+          </div>
+        )}
+
+        {/* Spicy Level */}
+        {(customization.spicyLevel.left !== 'none' || customization.spicyLevel.right !== 'none') && (
+          <div>
+            <span className="font-medium text-muted-foreground">Spicy: </span>
+            {customization.spicyLevel.left === customization.spicyLevel.right ? (
+              <span className="capitalize">{customization.spicyLevel.left}</span>
+            ) : (
+              <span>
+                L: {customization.spicyLevel.left === 'none' ? 'No Spicy' : customization.spicyLevel.left}, 
+                R: {customization.spicyLevel.right === 'none' ? 'No Spicy' : customization.spicyLevel.right}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Free Toppings */}
+        {customization.freeToppings.length > 0 && (
+          <div>
+            <span className="font-medium text-muted-foreground">Free Add-ons: </span>
+            <span>{customization.freeToppings.join(', ')}</span>
+          </div>
+        )}
+
+        {/* Default Toppings */}
+        {customization.defaultToppings.length > 0 && (
+          <div>
+            <span className="font-medium text-muted-foreground">Toppings: </span>
+            <div className="mt-1 space-y-0.5">
+              {customization.defaultToppings
+                .filter(t => t.quantity !== 'none')
+                .map(t => (
+                  <div key={t.id} className="flex justify-between text-muted-foreground">
+                    <span>{t.name}</span>
+                    <span>
+                      {t.quantity !== 'regular' && <span className="capitalize">{t.quantity}</span>}
+                      {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
+                    </span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Removed Toppings */}
+        {customization.defaultToppings.some(t => t.quantity === 'none') && (
+          <div>
+            <span className="font-medium text-destructive">Removed: </span>
+            <span className="text-muted-foreground line-through">
+              {customization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
+            </span>
+          </div>
+        )}
+
+        {/* Extra Toppings */}
+        {customization.extraToppings.length > 0 && (
+          <div>
+            <span className="font-medium text-primary">Extra Toppings: </span>
+            <div className="mt-1 space-y-0.5">
+              {customization.extraToppings.map(t => (
+                <div key={t.id} className="flex justify-between text-muted-foreground">
+                  <span>{t.name}</span>
+                  <span>
+                    +${t.price.toFixed(2)}
+                    {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Note */}
+        {customization.note && (
+          <div className="border-t pt-2 mt-2">
+            <span className="font-medium text-muted-foreground">Note: </span>
+            <span className="italic">{customization.note}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="p-4 bg-secondary/30 rounded-lg space-y-3">
@@ -74,7 +186,9 @@ const OrderItemCard = ({
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {pizzaCustomization 
+            {comboCustomization 
+              ? `Combo Deal • ${comboCustomization.selections.length} items`
+              : pizzaCustomization 
               ? `${pizzaCustomization.size.name} • ${pizzaCustomization.crust.name} • Qty: ${item.quantity}`
               : wingsCustomization
               ? `Flavor: ${wingsCustomization.flavor} • Qty: ${item.quantity}`
@@ -96,117 +210,87 @@ const OrderItemCard = ({
             {expanded ? 'Hide details' : 'Show details'}
           </button>
 
-          {expanded && pizzaCustomization && (
-            <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
-              {/* Cheese */}
-              <div>
-                <span className="font-medium text-muted-foreground">Cheese: </span>
-                <span className="capitalize">{pizzaCustomization.cheeseType.replace('-', ' ')}</span>
-                {pizzaCustomization.cheeseSides.length > 0 && pizzaCustomization.cheeseType !== 'no-cheese' && (
-                  <span className="text-muted-foreground">
-                    {' '}({pizzaCustomization.cheeseSides.map(cs => `${cs.side}: ${cs.quantity}`).join(', ')})
-                  </span>
-                )}
-              </div>
-
-              {/* Sauce */}
-              {pizzaCustomization.sauceName && (
-                <div>
-                  <span className="font-medium text-muted-foreground">Sauce: </span>
-                  <span>{pizzaCustomization.sauceName}</span>
-                  {pizzaCustomization.sauceQuantity === 'extra' && (
-                    <span className="text-primary"> (Extra)</span>
-                  )}
-                </div>
-              )}
-
-              {/* Spicy Level */}
-              {(pizzaCustomization.spicyLevel.left !== 'none' || pizzaCustomization.spicyLevel.right !== 'none') && (
-                <div>
-                  <span className="font-medium text-muted-foreground">Spicy: </span>
-                  {pizzaCustomization.spicyLevel.left === pizzaCustomization.spicyLevel.right ? (
-                    <span className="capitalize">{pizzaCustomization.spicyLevel.left}</span>
-                  ) : (
-                    <span>
-                      L: {pizzaCustomization.spicyLevel.left === 'none' ? 'No Spicy' : pizzaCustomization.spicyLevel.left}, 
-                      R: {pizzaCustomization.spicyLevel.right === 'none' ? 'No Spicy' : pizzaCustomization.spicyLevel.right}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Free Toppings */}
-              {pizzaCustomization.freeToppings.length > 0 && (
-                <div>
-                  <span className="font-medium text-muted-foreground">Free Add-ons: </span>
-                  <span>{pizzaCustomization.freeToppings.join(', ')}</span>
-                </div>
-              )}
-
-              {/* Default Toppings */}
-              {pizzaCustomization.defaultToppings.length > 0 && (
-                <div>
-                  <span className="font-medium text-muted-foreground">Toppings: </span>
-                  <div className="mt-1 space-y-0.5">
-                    {pizzaCustomization.defaultToppings
-                      .filter(t => t.quantity !== 'none')
-                      .map(t => (
-                        <div key={t.id} className="flex justify-between text-muted-foreground">
-                          <span>{t.name}</span>
-                          <span>
-                            {t.quantity !== 'regular' && <span className="capitalize">{t.quantity}</span>}
-                            {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
-                          </span>
-                        </div>
-                      ))
-                    }
-                  </div>
-                </div>
-              )}
-
-              {/* Removed Toppings */}
-              {pizzaCustomization.defaultToppings.some(t => t.quantity === 'none') && (
-                <div>
-                  <span className="font-medium text-destructive">Removed: </span>
-                  <span className="text-muted-foreground line-through">
-                    {pizzaCustomization.defaultToppings.filter(t => t.quantity === 'none').map(t => t.name).join(', ')}
-                  </span>
-                </div>
-              )}
-
-              {/* Extra Toppings */}
-              {pizzaCustomization.extraToppings.length > 0 && (
-                <div>
-                  <span className="font-medium text-primary">Extra Toppings: </span>
-                  <div className="mt-1 space-y-0.5">
-                    {pizzaCustomization.extraToppings.map(t => (
-                      <div key={t.id} className="flex justify-between text-muted-foreground">
-                        <span>{t.name}</span>
-                        <span>
-                          +${t.price.toFixed(2)}
-                          {t.side !== 'whole' && <span className="ml-1">({t.side === 'left' ? 'L' : 'R'})</span>}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Note */}
-              {pizzaCustomization.note && (
-                <div className="border-t pt-2 mt-2">
-                  <span className="font-medium text-muted-foreground">Note: </span>
-                  <span className="italic">{pizzaCustomization.note}</span>
-                </div>
-              )}
-            </div>
-          )}
+          {expanded && pizzaCustomization && renderPizzaDetails(pizzaCustomization)}
 
           {expanded && wingsCustomization && (
             <div className="text-xs space-y-2 p-3 bg-background/50 rounded-lg">
               <div>
                 <span className="font-medium text-muted-foreground">Flavor: </span>
                 <span>{wingsCustomization.flavor}</span>
+              </div>
+            </div>
+          )}
+
+          {expanded && comboCustomization && (
+            <div className="text-xs space-y-3 p-3 bg-background/50 rounded-lg">
+              <p className="font-semibold text-primary">Combo Contents:</p>
+              
+              {comboCustomization.selections.map((selection, idx) => (
+                <div key={idx} className="border-b border-border pb-2 last:border-0 last:pb-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <span className="font-medium capitalize">{selection.itemType}: </span>
+                      <span>{selection.itemName}</span>
+                      {selection.flavor && <span className="text-muted-foreground"> ({selection.flavor})</span>}
+                    </div>
+                    {selection.extraCharge > 0 && (
+                      <span className="text-primary font-medium">+${selection.extraCharge.toFixed(2)}</span>
+                    )}
+                  </div>
+                  
+                  {/* Show pizza customization details within combo */}
+                  {selection.pizzaCustomization && (
+                    <div className="mt-2 ml-4 space-y-1 text-muted-foreground">
+                      <p>{selection.pizzaCustomization.size.name}, {selection.pizzaCustomization.crust.name}</p>
+                      
+                      {selection.pizzaCustomization.cheeseType.toLowerCase() !== 'mozzarella' && (
+                        <p>Cheese: {selection.pizzaCustomization.cheeseType}</p>
+                      )}
+                      
+                      {selection.pizzaCustomization.sauceName && (
+                        <p>Sauce: {selection.pizzaCustomization.sauceName}
+                          {selection.pizzaCustomization.sauceQuantity === 'extra' && ' (Extra)'}
+                        </p>
+                      )}
+                      
+                      {(selection.pizzaCustomization.spicyLevel.left !== 'none' || selection.pizzaCustomization.spicyLevel.right !== 'none') && (
+                        <p>Spicy: {
+                          selection.pizzaCustomization.spicyLevel.left === selection.pizzaCustomization.spicyLevel.right 
+                            ? selection.pizzaCustomization.spicyLevel.left
+                            : `L:${selection.pizzaCustomization.spicyLevel.left} R:${selection.pizzaCustomization.spicyLevel.right}`
+                        }</p>
+                      )}
+                      
+                      {selection.pizzaCustomization.freeToppings.length > 0 && (
+                        <p>Add-ons: {selection.pizzaCustomization.freeToppings.join(', ')}</p>
+                      )}
+                      
+                      {selection.pizzaCustomization.defaultToppings.some(t => t.quantity === 'none') && (
+                        <p className="text-destructive">NO: {
+                          selection.pizzaCustomization.defaultToppings
+                            .filter(t => t.quantity === 'none')
+                            .map(t => t.name)
+                            .join(', ')
+                        }</p>
+                      )}
+                      
+                      {selection.pizzaCustomization.extraToppings.length > 0 && (
+                        <p className="text-primary">Extra: {
+                          selection.pizzaCustomization.extraToppings.map(t => t.name).join(', ')
+                        }</p>
+                      )}
+                      
+                      {selection.pizzaCustomization.note && (
+                        <p className="italic">Note: {selection.pizzaCustomization.note}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              <div className="border-t border-border pt-2 flex justify-between">
+                <span className="font-medium">Base Price:</span>
+                <span>${comboCustomization.comboBasePrice.toFixed(2)}</span>
               </div>
             </div>
           )}
