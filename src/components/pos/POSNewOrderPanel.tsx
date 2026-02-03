@@ -175,6 +175,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const [orderType, setOrderType] = useState<OrderType>(editingOrder?.orderType || 'pickup');
   const [tableNumber, setTableNumber] = useState(editingOrder?.tableNumber || '');
   const [notes, setNotes] = useState(editingOrder?.notes || '');
+  
+  // Discount fields
+  const [couponCode, setCouponCode] = useState('');
+  const [manualDiscount, setManualDiscount] = useState('');
 
   // Customer lookup state
   const { isSearching, orderHistory, customerInfo, searchByPhone, saveCustomer, clearSearch } = useCustomerLookup();
@@ -370,8 +374,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
+  const discountAmount = parseFloat(manualDiscount) || 0;
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const tax = discountedSubtotal * 0.08;
+  const total = discountedSubtotal + tax;
 
   const handleSubmit = async () => {
     if (cartItems.length === 0) return;
@@ -666,24 +672,49 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               />
             </div>
 
+            {/* Coupon & Discount */}
+            <div className="px-4 py-2 border-t border-border flex gap-2">
+              <Input
+                placeholder="Coupon code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="h-9 text-sm flex-1"
+              />
+              <Input
+                placeholder="Discount $"
+                type="number"
+                min="0"
+                step="0.01"
+                value={manualDiscount}
+                onChange={(e) => setManualDiscount(e.target.value)}
+                className="h-9 text-sm w-24"
+              />
+            </div>
+
             {/* Totals & Submit */}
-            <div className="p-4 border-t border-border bg-secondary/30 space-y-3">
-              <div className="flex justify-between text-base">
+            <div className="px-4 py-2 border-t border-border bg-secondary/30 space-y-1">
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-base">
-                <span className="text-muted-foreground">Tax</span>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount</span>
+                  <span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tax (8%)</span>
                 <span>${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-bold text-xl">
+              <div className="flex justify-between font-bold text-lg pt-1">
                 <span>Total</span>
                 <span className="text-primary">${total.toFixed(2)}</span>
               </div>
               
               <Button 
                 variant="pizza" 
-                className="w-full mt-3 text-lg py-4 h-auto"
+                className="w-full mt-2 text-base py-2 h-auto"
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >
