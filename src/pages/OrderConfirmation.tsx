@@ -1,10 +1,11 @@
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, Clock, MapPin, Phone, Loader2, AlertCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useCart } from '@/contexts/CartContext';
 
 interface OrderData {
   id: string;
@@ -32,11 +33,26 @@ const OrderConfirmation = () => {
   const { orderId } = useParams();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
+
+  const { clearCart } = useCart();
+  const didClearRef = useRef(false);
   
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
+
+  // Once we have an order, we can safely clear the cart and any saved checkout state.
+  useEffect(() => {
+    if (!order || didClearRef.current) return;
+    didClearRef.current = true;
+    try {
+      clearCart();
+      localStorage.removeItem('checkout_state');
+    } catch {
+      // ignore
+    }
+  }, [order, clearCart]);
 
   useEffect(() => {
     const finalizeAndFetchOrder = async () => {
