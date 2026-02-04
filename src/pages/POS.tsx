@@ -270,7 +270,9 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-muted p-2 overflow-hidden">
+      {/* Main POS container with rounded corners */}
+      <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm">
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
         "border-b border-border py-3 px-5 flex-shrink-0 shadow-sm transition-colors",
@@ -490,6 +492,7 @@ const POS = () => {
           onClose={() => setShowReports(false)}
         />
       )}
+      </div>
     </div>
   );
 };
