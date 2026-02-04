@@ -118,16 +118,14 @@ export const usePrintReceipts = (locationId: string) => {
       return false;
     }
 
-    // Show loading toast
-    const loadingToast = toast.loading('Sending to printer...');
+    // Use info toast instead of loading toast to avoid UI blocking
+    toast.info('Sending to printer...', { duration: 1500 });
 
     try {
       const [kitchenResult, customerResult] = await Promise.all([
         printKitchenTicket(order),
         printCustomerReceipt(order),
       ]);
-
-      toast.dismiss(loadingToast);
 
       if (kitchenResult && customerResult) {
         toast.success('Printed: Kitchen Ticket + Customer Receipt');
@@ -143,7 +141,6 @@ export const usePrintReceipts = (locationId: string) => {
         return false;
       }
     } catch (error) {
-      toast.dismiss(loadingToast);
       toast.error('Print failed. Check printer connection.');
       console.error('Print error:', error);
       return false;
