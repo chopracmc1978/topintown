@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History, Gift } from 'lucide-react';
+import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History, Gift, Check, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
 import { useActiveCombos, Combo } from '@/hooks/useCombos';
+import { useValidateCoupon } from '@/hooks/useCoupons';
 import { CartItem, OrderType, OrderSource, CartPizzaCustomization, CartComboCustomization, ComboSelectionItem, Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 import { POSPizzaModal } from '@/components/pos/POSPizzaModal';
@@ -179,6 +181,11 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   // Discount fields
   const [couponCode, setCouponCode] = useState('');
   const [manualDiscount, setManualDiscount] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [showDiscountKeypad, setShowDiscountKeypad] = useState(false);
+  
+  // Coupon validation
+  const validateCouponMutation = useValidateCoupon();
 
   // Customer lookup state
   const { isSearching, orderHistory, customerInfo, searchByPhone, saveCustomer, clearSearch } = useCustomerLookup();
@@ -374,10 +381,59 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
-  const discountAmount = parseFloat(manualDiscount) || 0;
+  // Use coupon discount if applied, otherwise manual discount
+  const discountAmount = appliedCoupon ? appliedCoupon.discount : (parseFloat(manualDiscount) || 0);
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
   const total = discountedSubtotal + tax;
+
+  // Apply coupon handler
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+    
+    try {
+      const result = await validateCouponMutation.mutateAsync({
+        code: couponCode,
+        subtotal,
+      });
+      setAppliedCoupon({
+        code: result.coupon.code,
+        discount: result.discount,
+      });
+      setManualDiscount(''); // Clear manual discount when coupon applied
+      toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid coupon');
+    }
+  };
+
+  // Clear coupon
+  const handleClearCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+  };
+
+  // Discount keypad handler
+  const handleDiscountKeyPress = (key: string) => {
+    if (appliedCoupon) return; // Don't allow manual discount when coupon is applied
+    
+    if (key === 'C') {
+      setManualDiscount('');
+    } else if (key === 'DEL') {
+      setManualDiscount(prev => prev.slice(0, -1));
+    } else if (key === '.') {
+      if (!manualDiscount.includes('.')) {
+        setManualDiscount(prev => prev + '.');
+      }
+    } else {
+      const parts = manualDiscount.split('.');
+      if (parts[1] && parts[1].length >= 2) return;
+      setManualDiscount(prev => prev + key);
+    }
+  };
 
   const handleSubmit = async () => {
     if (cartItems.length === 0) return;
@@ -683,24 +739,96 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
 
             {/* Coupon & Discount */}
-            <div className="px-4 py-2 border-t border-border flex gap-2">
-              <Input
-                placeholder="Coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="h-9 text-sm flex-1"
-              />
-              <Input
-                placeholder="Discount"
-                inputMode="decimal"
-                value={manualDiscount}
-                onChange={(e) => {
-                  // Allow only numbers and decimal point
-                  const val = e.target.value.replace(/[^0-9.]/g, '');
-                  setManualDiscount(val);
-                }}
-                className="h-9 text-sm w-24"
-              />
+            <div className="px-4 py-2 border-t border-border flex gap-2 items-center">
+              {appliedCoupon ? (
+                <div className="flex items-center gap-2 flex-1 bg-green-50 border border-green-200 rounded px-3 py-1.5">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">{appliedCoupon.code}</span>
+                  <span className="text-sm text-green-600">-${appliedCoupon.discount.toFixed(2)}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearCoupon}
+                    className="ml-auto h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    placeholder="Coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    className="h-9 text-sm flex-1"
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleApplyCoupon}
+                    disabled={!couponCode.trim() || validateCouponMutation.isPending}
+                    className="h-9 px-3 text-green-600 border-green-300 hover:bg-green-50"
+                  >
+                    {validateCouponMutation.isPending ? '...' : 'Apply'}
+                  </Button>
+                </>
+              )}
+              
+              {/* Discount with Keypad Popover */}
+              <Popover open={showDiscountKeypad} onOpenChange={setShowDiscountKeypad}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "h-9 w-28 justify-start text-sm font-normal",
+                      appliedCoupon && "opacity-50 cursor-not-allowed"
+                    )}
+                    disabled={!!appliedCoupon}
+                  >
+                    {manualDiscount ? `$${manualDiscount}` : 'Discount'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'white' }}>
+                  <div className="space-y-2">
+                    <div className="text-center p-2 bg-secondary/50 rounded text-lg font-bold">
+                      ${manualDiscount || '0.00'}
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'].map((key) => (
+                        <Button
+                          key={key}
+                          variant="outline"
+                          onClick={() => handleDiscountKeyPress(key)}
+                          className={cn(
+                            "h-10 text-base font-semibold",
+                            key === 'C' && "text-red-500 hover:bg-red-50"
+                          )}
+                          style={{ backgroundColor: 'white' }}
+                        >
+                          {key}
+                        </Button>
+                      ))}
+                      <Button
+                        variant="outline"
+                        onClick={() => handleDiscountKeyPress('DEL')}
+                        className="col-span-2 h-10 text-orange-500 hover:bg-orange-50"
+                        style={{ backgroundColor: 'white' }}
+                      >
+                        <Delete className="w-4 h-4 mr-1" />
+                        Del
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={() => setShowDiscountKeypad(false)}
+                        className="h-10"
+                      >
+                        OK
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Totals & Submit */}
