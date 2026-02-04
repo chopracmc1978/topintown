@@ -46,9 +46,12 @@ export const POSOrderHistoryDropdown = ({
   onSelectOrder,
   onClose,
 }: POSOrderHistoryDropdownProps) => {
+  // Limit to 3 orders
+  const displayOrders = orders.slice(0, 3);
+
   if (isSearching) {
     return (
-      <div className="fixed top-16 left-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] p-4">
+      <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] p-4">
         <div className="flex items-center gap-2 text-muted-foreground">
           <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
           <span className="text-sm">Searching orders...</span>
@@ -62,15 +65,15 @@ export const POSOrderHistoryDropdown = ({
   }
 
   return (
-    <div className="fixed top-16 left-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden">
+    <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden">
       <div className="bg-secondary px-3 py-2 border-b border-border flex items-center gap-2">
         <History className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium">Last {orders.length} Order{orders.length > 1 ? 's' : ''}</span>
+        <span className="text-sm font-medium">Last {displayOrders.length} Order{displayOrders.length > 1 ? 's' : ''}</span>
       </div>
       
       <ScrollArea className="max-h-[calc(100vh-160px)]">
         <div className="divide-y divide-border">
-          {orders.map((order) => (
+          {displayOrders.map((order) => (
             <div key={order.id} className="p-3 hover:bg-secondary/30 transition-colors">
               {/* Customer Info - Phone first, then name, then order # */}
               <div className="flex items-start justify-between mb-2">
