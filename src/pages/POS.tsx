@@ -280,7 +280,20 @@ const POS = () => {
       )}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="font-serif text-xl font-bold text-foreground">{LOCATION_NAMES[currentLocationId] || currentLocationId}</h1>
+            <button
+              onClick={() => {
+                // Reset to home state - close all modals/panels
+                setSelectedOrderId(null);
+                setShowNewOrder(false);
+                setEditingOrder(null);
+                setShowSettings(false);
+                setShowReports(false);
+                setActiveTab('all');
+              }}
+              className="font-serif text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer outline-none focus:outline-none"
+            >
+              {LOCATION_NAMES[currentLocationId] || currentLocationId}
+            </button>
             {hasPendingRemoteOrders && (
               <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full animate-bounce">
                 <Bell className="w-5 h-5" />
