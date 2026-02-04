@@ -146,6 +146,22 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     }
   }, [isAudioEnabled, pendingRemoteOrders.length, startSound]);
 
+  // Disable audio (user toggled off)
+  const disableAudio = useCallback(() => {
+    setIsAudioEnabled(false);
+    stopSound();
+    console.log('🔕 Audio disabled by user');
+  }, [stopSound]);
+
+  // Toggle audio on/off
+  const toggleAudio = useCallback((enabled: boolean) => {
+    if (enabled) {
+      enableAudio();
+    } else {
+      disableAudio();
+    }
+  }, [enableAudio, disableAudio]);
+
   // Listen for any user interaction to enable audio
   useEffect(() => {
     const handleInteraction = () => {
@@ -210,5 +226,7 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     pendingCount: pendingRemoteOrders.length,
     isAudioEnabled,
     enableAudio,
+    disableAudio,
+    toggleAudio,
   };
 };
