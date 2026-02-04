@@ -13,10 +13,10 @@ interface POSSettingsPanelProps {
   locationId: string;
   onClose: () => void;
   isAudioEnabled?: boolean;
-  onEnableAudio?: () => void;
+  onToggleAudio?: (enabled: boolean) => void;
 }
 
-export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, onEnableAudio }: POSSettingsPanelProps) => {
+export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, onToggleAudio }: POSSettingsPanelProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -137,24 +137,13 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                   </div>
                   <Switch 
                     checked={isAudioEnabled} 
-                    onCheckedChange={() => {
-                      if (!isAudioEnabled && onEnableAudio) {
-                        onEnableAudio();
+                    onCheckedChange={(checked) => {
+                      if (onToggleAudio) {
+                        onToggleAudio(checked);
                       }
                     }}
                   />
                 </div>
-
-                {!isAudioEnabled && (
-                  <Button 
-                    onClick={onEnableAudio}
-                    className="w-full"
-                    size="lg"
-                  >
-                    <Volume2 className="w-5 h-5 mr-2" />
-                    Enable Sound Notifications
-                  </Button>
-                )}
               </div>
             </TabsContent>
           </Tabs>
