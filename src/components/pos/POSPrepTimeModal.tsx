@@ -52,6 +52,8 @@ export const POSPrepTimeModal = ({
               onClick={() => setSelectedTime(time)}
               className={cn(
                 "py-3 px-4 rounded-lg text-center font-medium transition-all border-2",
+                "outline-none focus:outline-none focus-visible:outline-none",
+                "[&:focus]:ring-0 [&:focus]:border-inherit",
                 selectedTime === time
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-secondary/50 text-foreground border-border hover:border-primary/50"
