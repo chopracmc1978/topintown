@@ -4,55 +4,45 @@ import { Order } from '@/types/menu';
 export const usePOSNotificationSound = (orders: Order[]) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true); // Default to true
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false); // Start false until user enables
+  const [volume, setVolume] = useState(0.8); // Volume 0-1
+  const [isAudioReady, setIsAudioReady] = useState(false); // Whether AudioContext is initialized
   const previousPendingIdsRef = useRef<Set<string>>(new Set());
-  const initAttemptedRef = useRef(false);
+  const userToggledOffRef = useRef(false); // Track if user explicitly disabled
 
   // Track pending web/app orders (not walk-in)
   const pendingRemoteOrders = orders.filter(
     o => o.status === 'pending' && (o.source === 'web' || o.source === 'app')
   );
 
-  // Try to initialize AudioContext immediately on mount
-  useEffect(() => {
-    if (initAttemptedRef.current) return;
-    initAttemptedRef.current = true;
-
+  // Initialize AudioContext (doesn't mean audio is enabled)
+  const initAudioContext = useCallback(() => {
+    if (audioContextRef.current) return true;
+    
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       audioContextRef.current = new AudioContextClass();
       
-      // Try to resume immediately (may work if user has interacted before)
       if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume().then(() => {
-          console.log('✅ Audio auto-enabled successfully');
-          setIsAudioEnabled(true);
-        }).catch(() => {
-          console.log('⚠️ Audio requires user interaction to enable');
-          setIsAudioEnabled(false);
-        });
-      } else {
-        setIsAudioEnabled(true);
+        audioContextRef.current.resume();
       }
+      
+      setIsAudioReady(true);
+      console.log('✅ AudioContext initialized');
+      return true;
     } catch (e) {
       console.error('Failed to create AudioContext:', e);
-      setIsAudioEnabled(false);
+      return false;
     }
   }, []);
 
   // Play a loud, attention-grabbing notification sound
   const playNotificationTone = useCallback(() => {
     if (!audioContextRef.current) {
-      try {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        audioContextRef.current = new AudioContextClass();
-      } catch (e) {
-        console.error('Failed to create AudioContext:', e);
-        return;
-      }
+      if (!initAudioContext()) return;
     }
 
-    const ctx = audioContextRef.current;
+    const ctx = audioContextRef.current!;
     
     // Resume if suspended
     if (ctx.state === 'suspended') {
@@ -60,9 +50,10 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     }
 
     const now = ctx.currentTime;
+    const currentVolume = volume;
     
     // Create a LOUD alarm-style sound sequence
-    const playTone = (freq: number, startTime: number, duration: number, volume: number = 0.8) => {
+    const playTone = (freq: number, startTime: number, duration: number) => {
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -72,10 +63,10 @@ export const usePOSNotificationSound = (orders: Order[]) => {
       oscillator.type = 'square'; // Harsh, attention-grabbing
       oscillator.frequency.setValueAtTime(freq, startTime);
       
-      // Loud attack, quick decay
+      // Use current volume setting
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-      gainNode.gain.setValueAtTime(volume, startTime + duration - 0.05);
+      gainNode.gain.linearRampToValueAtTime(currentVolume, startTime + 0.01);
+      gainNode.gain.setValueAtTime(currentVolume, startTime + duration - 0.05);
       gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
       
       oscillator.start(startTime);
@@ -92,11 +83,11 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     ];
 
     pattern.forEach(({ freq, time, dur }) => {
-      playTone(freq, now + time, dur, 0.9);
+      playTone(freq, now + time, dur);
     });
 
-    console.log('🔔 Playing notification sound');
-  }, []);
+    console.log('🔔 Playing notification sound at volume:', currentVolume);
+  }, [volume, initAudioContext]);
 
   // Stop the looping sound
   const stopSound = useCallback(() => {
@@ -122,32 +113,22 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     console.log('🔔 Started notification loop');
   }, [playNotificationTone]);
 
-  // Enable audio on user interaction
+  // Enable audio (user toggled on)
   const enableAudio = useCallback(() => {
-    if (isAudioEnabled) return;
+    userToggledOffRef.current = false;
+    initAudioContext();
+    setIsAudioEnabled(true);
+    console.log('✅ Audio enabled by user');
     
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      audioContextRef.current = new AudioContextClass();
-      
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
-      
-      setIsAudioEnabled(true);
-      console.log('✅ Audio enabled after user interaction');
-      
-      // If there are already pending orders, start sound now
-      if (pendingRemoteOrders.length > 0) {
-        startSound();
-      }
-    } catch (e) {
-      console.error('Failed to enable audio:', e);
+    // If there are already pending orders, start sound now
+    if (pendingRemoteOrders.length > 0) {
+      startSound();
     }
-  }, [isAudioEnabled, pendingRemoteOrders.length, startSound]);
+  }, [pendingRemoteOrders.length, startSound, initAudioContext]);
 
   // Disable audio (user toggled off)
   const disableAudio = useCallback(() => {
+    userToggledOffRef.current = true;
     setIsAudioEnabled(false);
     stopSound();
     console.log('🔕 Audio disabled by user');
@@ -162,24 +143,36 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     }
   }, [enableAudio, disableAudio]);
 
-  // Listen for any user interaction to enable audio
+  // Adjust volume
+  const adjustVolume = useCallback((newVolume: number) => {
+    const clamped = Math.max(0, Math.min(1, newVolume));
+    setVolume(clamped);
+    console.log('🔊 Volume set to:', Math.round(clamped * 100) + '%');
+  }, []);
+
+  // Play test sound
+  const playTestSound = useCallback(() => {
+    initAudioContext();
+    playNotificationTone();
+  }, [initAudioContext, playNotificationTone]);
+
+  // Initialize AudioContext on first user interaction (for browser policy)
   useEffect(() => {
-    const handleInteraction = () => {
-      enableAudio();
+    const handleFirstInteraction = () => {
+      if (!audioContextRef.current) {
+        initAudioContext();
+      }
     };
     
-    // Multiple event types for better coverage
-    const events = ['click', 'touchstart', 'keydown', 'mousedown'];
-    events.forEach(event => {
-      document.addEventListener(event, handleInteraction, { once: false, passive: true });
-    });
+    // Only need once
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('touchstart', handleFirstInteraction, { once: true });
     
     return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleInteraction);
-      });
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
     };
-  }, [enableAudio]);
+  }, [initAudioContext]);
 
   // Detect NEW orders (not just existing pending ones)
   useEffect(() => {
@@ -225,8 +218,11 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     hasPendingRemoteOrders: pendingRemoteOrders.length > 0,
     pendingCount: pendingRemoteOrders.length,
     isAudioEnabled,
+    volume,
     enableAudio,
     disableAudio,
     toggleAudio,
+    adjustVolume,
+    playTestSound,
   };
 };

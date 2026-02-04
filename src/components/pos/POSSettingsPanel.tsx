@@ -1,8 +1,9 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { POSHoursSettings } from './POSHoursSettings';
 import { POSPrinterSettings } from './POSPrinterSettings';
 import { POSReceiptSettings } from './POSReceiptSettings';
@@ -13,10 +14,13 @@ interface POSSettingsPanelProps {
   locationId: string;
   onClose: () => void;
   isAudioEnabled?: boolean;
+  volume?: number;
   onToggleAudio?: (enabled: boolean) => void;
+  onVolumeChange?: (volume: number) => void;
+  onTestSound?: () => void;
 }
 
-export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, onToggleAudio }: POSSettingsPanelProps) => {
+export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, volume = 0.8, onToggleAudio, onVolumeChange, onTestSound }: POSSettingsPanelProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -118,6 +122,7 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                   </p>
                 </div>
                 
+                {/* Enable/Disable Toggle */}
                 <div
                   className="flex items-center justify-between p-4 border rounded-lg"
                   style={{ backgroundColor: 'hsl(0, 0%, 98%)' }}
@@ -144,6 +149,50 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                     }}
                   />
                 </div>
+
+                {/* Volume Control */}
+                <div
+                  className="p-4 border rounded-lg space-y-4"
+                  style={{ backgroundColor: 'hsl(0, 0%, 98%)' }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Volume1 className="w-6 h-6 text-muted-foreground" />
+                    <div>
+                      <Label className="text-base font-medium">Volume Level</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {Math.round(volume * 100)}%
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <VolumeX className="w-5 h-5 text-muted-foreground" />
+                    <Slider
+                      value={[volume * 100]}
+                      onValueChange={(values) => {
+                        if (onVolumeChange) {
+                          onVolumeChange(values[0] / 100);
+                        }
+                      }}
+                      max={100}
+                      min={0}
+                      step={5}
+                      className="flex-1"
+                    />
+                    <Volume2 className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Test Sound Button */}
+                <Button 
+                  onClick={onTestSound}
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Test Sound
+                </Button>
               </div>
             </TabsContent>
           </Tabs>
