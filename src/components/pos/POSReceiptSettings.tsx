@@ -450,7 +450,7 @@ export const POSReceiptSettings = ({ locationId }: POSReceiptSettingsProps) => {
   );
 };
 
-// Font field row component with size dropdown and bold checkbox
+// Font field row component with button group (tablet-friendly)
 const FontFieldRow = ({ 
   label, 
   sizeValue, 
@@ -465,19 +465,29 @@ const FontFieldRow = ({
   onBoldChange: (checked: boolean) => void;
 }) => (
   <div className="flex items-center gap-4 py-2 border-b border-gray-100">
-    <div className="w-40 font-medium text-sm">{label}</div>
+    <div className="w-36 font-medium text-sm">{label}</div>
     <div className="flex items-center gap-2">
-      <Label className="text-xs text-muted-foreground w-10">Size:</Label>
-      <Select value={sizeValue} onValueChange={onSizeChange}>
-        <SelectTrigger className="w-24" style={{ backgroundColor: '#ffffff' }}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {FONT_SIZES.map(size => (
-            <SelectItem key={size.value} value={size.value}>{size.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Label className="text-xs text-muted-foreground">Size:</Label>
+      <div className="flex rounded-lg overflow-hidden border border-gray-300">
+        {FONT_SIZES.map(size => (
+          <button
+            key={size.value}
+            type="button"
+            onClick={() => onSizeChange(size.value)}
+            className={`px-4 py-2 text-sm font-medium transition-colors outline-none focus:outline-none ${
+              sizeValue === size.value
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+            style={{ 
+              backgroundColor: sizeValue === size.value ? undefined : '#ffffff',
+              minWidth: '48px'
+            }}
+          >
+            {size.value}
+          </button>
+        ))}
+      </div>
     </div>
     <div className="flex items-center gap-2">
       <Checkbox 
