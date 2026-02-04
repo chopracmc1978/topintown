@@ -63,7 +63,7 @@ const POS = () => {
   const [showReports, setShowReports] = useState(false);
   
   // Notification sound for new web/app orders
-  const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, enableAudio, toggleAudio } = usePOSNotificationSound(orders);
+  const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
   
   // Print receipts hook
   const { printKitchenTicket, printCustomerReceipt } = usePrintReceipts(currentLocationId);
@@ -459,7 +459,10 @@ const POS = () => {
           locationId={currentLocationId}
           onClose={() => setShowSettings(false)}
           isAudioEnabled={isAudioEnabled}
+          volume={volume}
           onToggleAudio={toggleAudio}
+          onVolumeChange={adjustVolume}
+          onTestSound={playTestSound}
         />
       )}
 
