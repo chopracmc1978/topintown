@@ -21,16 +21,15 @@ function applyNativePosViewportFixes() {
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
     // 2) Force a stable tablet viewport for the POS UI.
-    // Many POS tablets report a smaller CSS width due to DPR/accessibility scaling,
-    // which makes the POS fall into a "mobile" layout and look totally different.
+    // Target tablet: 1608x904 with DPR 0.85
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute(
         "content",
         [
-          // Lock to actual tablet resolution (1280x800 for 16:10 POS tablets)
-          "width=1280",
-          "height=800",
+          // Lock to actual tablet resolution (1608x904 for the POS tablet)
+          "width=1608",
+          "height=904",
           // Prevent unexpected zoom/scale on older WebViews
           "initial-scale=1",
           "maximum-scale=1",
