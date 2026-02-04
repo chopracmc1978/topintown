@@ -1022,6 +1022,123 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_settings: {
+        Row: {
+          created_at: string
+          customer_detail_font_height: number | null
+          customer_detail_font_width: number | null
+          customer_header_font_height: number | null
+          customer_header_font_width: number | null
+          customer_show_customer_name: boolean | null
+          customer_show_customer_phone: boolean | null
+          customer_show_logo: boolean | null
+          customer_show_notes: boolean | null
+          customer_show_order_date: boolean | null
+          customer_show_order_id: boolean | null
+          customer_show_order_type: boolean | null
+          customer_show_payment_method: boolean | null
+          customer_show_printed_on: boolean | null
+          customer_show_store_address: boolean | null
+          customer_show_store_email: boolean | null
+          customer_show_store_name: boolean | null
+          customer_show_store_phone: boolean | null
+          footer_text: string | null
+          id: string
+          kitchen_detail_font_height: number | null
+          kitchen_detail_font_width: number | null
+          kitchen_header_font_height: number | null
+          kitchen_header_font_width: number | null
+          kitchen_show_cashier: boolean | null
+          kitchen_show_customer_name: boolean | null
+          kitchen_show_customer_phone: boolean | null
+          kitchen_show_notes: boolean | null
+          kitchen_show_order_date: boolean | null
+          kitchen_show_order_id: boolean | null
+          kitchen_show_order_number: boolean | null
+          kitchen_show_order_type: boolean | null
+          kitchen_show_prep_time: boolean | null
+          location_id: string
+          logo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_detail_font_height?: number | null
+          customer_detail_font_width?: number | null
+          customer_header_font_height?: number | null
+          customer_header_font_width?: number | null
+          customer_show_customer_name?: boolean | null
+          customer_show_customer_phone?: boolean | null
+          customer_show_logo?: boolean | null
+          customer_show_notes?: boolean | null
+          customer_show_order_date?: boolean | null
+          customer_show_order_id?: boolean | null
+          customer_show_order_type?: boolean | null
+          customer_show_payment_method?: boolean | null
+          customer_show_printed_on?: boolean | null
+          customer_show_store_address?: boolean | null
+          customer_show_store_email?: boolean | null
+          customer_show_store_name?: boolean | null
+          customer_show_store_phone?: boolean | null
+          footer_text?: string | null
+          id?: string
+          kitchen_detail_font_height?: number | null
+          kitchen_detail_font_width?: number | null
+          kitchen_header_font_height?: number | null
+          kitchen_header_font_width?: number | null
+          kitchen_show_cashier?: boolean | null
+          kitchen_show_customer_name?: boolean | null
+          kitchen_show_customer_phone?: boolean | null
+          kitchen_show_notes?: boolean | null
+          kitchen_show_order_date?: boolean | null
+          kitchen_show_order_id?: boolean | null
+          kitchen_show_order_number?: boolean | null
+          kitchen_show_order_type?: boolean | null
+          kitchen_show_prep_time?: boolean | null
+          location_id: string
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_detail_font_height?: number | null
+          customer_detail_font_width?: number | null
+          customer_header_font_height?: number | null
+          customer_header_font_width?: number | null
+          customer_show_customer_name?: boolean | null
+          customer_show_customer_phone?: boolean | null
+          customer_show_logo?: boolean | null
+          customer_show_notes?: boolean | null
+          customer_show_order_date?: boolean | null
+          customer_show_order_id?: boolean | null
+          customer_show_order_type?: boolean | null
+          customer_show_payment_method?: boolean | null
+          customer_show_printed_on?: boolean | null
+          customer_show_store_address?: boolean | null
+          customer_show_store_email?: boolean | null
+          customer_show_store_name?: boolean | null
+          customer_show_store_phone?: boolean | null
+          footer_text?: string | null
+          id?: string
+          kitchen_detail_font_height?: number | null
+          kitchen_detail_font_width?: number | null
+          kitchen_header_font_height?: number | null
+          kitchen_header_font_width?: number | null
+          kitchen_show_cashier?: boolean | null
+          kitchen_show_customer_name?: boolean | null
+          kitchen_show_customer_phone?: boolean | null
+          kitchen_show_notes?: boolean | null
+          kitchen_show_order_date?: boolean | null
+          kitchen_show_order_id?: boolean | null
+          kitchen_show_order_number?: boolean | null
+          kitchen_show_order_type?: boolean | null
+          kitchen_show_prep_time?: boolean | null
+          location_id?: string
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sauce_groups: {
         Row: {
           created_at: string
