@@ -249,48 +249,46 @@ export const buildCustomerReceipt = (order: {
     return left + ' '.repeat(padding) + right;
   };
 
-  // Helper to format item line - separates variant info to next line if needed
-  const formatItemLine = (itemName: string, price: string): string => {
-    // Check if item has variant info in parentheses
-    const parenMatch = itemName.match(/^(.+?)(\s*\([^)]+\))$/);
+  // Helper to wrap text into lines of max width, with indent for subsequent lines
+  const wrapText = (text: string, maxWidth: number, prefix: string = ''): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = prefix;
     
-    if (parenMatch) {
-      // Has variant info - put main name + price on line 1, variant indented on line 2
-      const mainName = parenMatch[1].trim();
-      const variant = parenMatch[2].trim();
-      const line1 = formatLine(mainName, price);
-      const line2 = '   ' + variant; // Indented variant
-      return line1 + LF + line2;
+    for (const word of words) {
+      if (currentLine.length === 0 || currentLine === prefix) {
+        currentLine = prefix + word;
+      } else if (currentLine.length + 1 + word.length <= maxWidth) {
+        currentLine += ' ' + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = '  ' + word; // Indent continuation lines
+      }
     }
-    
-    // No variant - check if it fits on one line
-    const minGap = 2;
-    const available = RECEIPT_WIDTH - price.length - minGap;
-    
-    if (itemName.length <= available) {
-      return formatLine(itemName, price);
-    } else {
-      // Too long - put price on next line, right-aligned
-      const pricePadding = RECEIPT_WIDTH - price.length;
-      return itemName + LF + ' '.repeat(pricePadding) + price;
+    if (currentLine.length > 0) {
+      lines.push(currentLine);
     }
+    return lines;
   };
 
   let receipt = INIT;
   
-  // ===== HEADER (matching sample) =====
+  // ===== HEADER =====
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'TOP IN TOWN PIZZA LTD.' + BOLD_OFF + NORMAL_SIZE + LF;
-  receipt += LF; // Gap after store name
-  receipt += '3250 60 ST NE' + LF;
-  receipt += 'CALGARY, AB T1Y 3T5' + LF;
-  receipt += '4032807373' + LF;
-  receipt += 'http://www.Topintownpizza.ca' + LF;
+  // Store name - single line
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'TOP IN TOWN PIZZA LTD' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Light gap after store name
+  
+  // Address lines
+  receipt += 'Unit 5, 3250 - 60 St NE' + LF;
+  receipt += 'Calgary AB T1Y 3T5' + LF;
+  receipt += '403 280 7272 EXT - 1' + LF;
+  receipt += 'web: www.topintownpizza.ca' + LF;
   receipt += LF; // Gap before line
   receipt += LINE + LF;
   receipt += LF; // Gap after line
   
-  // ===== ORDER INFO SECTION (matching kitchen ticket style) =====
+  // ===== ORDER INFO SECTION =====
   receipt += ALIGN_LEFT;
   
   // Order number - double height, bold
@@ -318,50 +316,47 @@ export const buildCustomerReceipt = (order: {
   receipt += LINE + LF;
   receipt += LF; // Gap after line
   
-  // ===== ITEMS SECTION (matching kitchen ticket style) =====
+  // ===== ITEMS SECTION =====
   for (const item of order.items) {
     const price = `$${item.totalPrice.toFixed(2)}`;
+    const itemName = `${item.quantity}x ${item.name.toUpperCase()}`;
     
-    // Item name - double size (like kitchen ticket) for prominence
-    receipt += DOUBLE_SIZE_ON + BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + NORMAL_SIZE + LF;
+    // Item name on one line with price right-aligned
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + formatLine(itemName, price) + BOLD_OFF + NORMAL_SIZE + LF;
     
-    // Price on separate line, right aligned with double height
-    receipt += DOUBLE_HEIGHT_ON + formatLine('', price) + NORMAL_SIZE + LF;
+    // Pizza customization details (for standalone pizzas)
+    if (item.pizzaCustomization && !item.comboCustomization) {
+      const customDetails = formatPizzaDetailsForReceipt(item.pizzaCustomization, RECEIPT_WIDTH);
+      for (const line of customDetails) {
+        receipt += line + LF;
+      }
+    }
     
     // Show size for non-pizza items (excluding combos)
     if (item.selectedSize && !item.pizzaCustomization && !item.comboCustomization) {
-      receipt += DOUBLE_HEIGHT_ON + `   ${item.selectedSize}` + NORMAL_SIZE + LF;
-    }
-    
-    // Pizza customization details (for standalone pizzas) - double height
-    if (item.pizzaCustomization && !item.comboCustomization) {
-      const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
-      for (const detail of details) {
-        receipt += DOUBLE_HEIGHT_ON + `   ${detail}` + NORMAL_SIZE + LF;
-      }
+      receipt += `  ${item.selectedSize}` + LF;
     }
     
     // Wings/chicken customization - show flavor if selected (for standalone items)
     if (item.wingsCustomization?.flavor && !item.comboCustomization) {
-      receipt += DOUBLE_HEIGHT_ON + `   ${item.wingsCustomization.flavor}` + NORMAL_SIZE + LF;
+      receipt += `  ${item.wingsCustomization.flavor}` + LF;
     }
     
     // Combo customization details - show each selection with full details
     if (item.comboCustomization) {
       const combo = item.comboCustomization;
       for (const selection of (combo.selections || [])) {
-        // Print each combo item with item type indication - double height
-        let selectionLine = `   - ${selection.itemName}`;
+        let selectionLine = `  - ${selection.itemName}`;
         if (selection.flavor) {
           selectionLine += ` (${selection.flavor})`;
         }
-        receipt += DOUBLE_HEIGHT_ON + selectionLine + NORMAL_SIZE + LF;
+        receipt += selectionLine + LF;
         
         // If this combo selection has pizza customization, print the details
         if (selection.pizzaCustomization) {
-          const pizzaDetails = formatPizzaDetailsForPrint(selection.pizzaCustomization);
-          for (const detail of pizzaDetails) {
-            receipt += DOUBLE_HEIGHT_ON + `      ${detail}` + NORMAL_SIZE + LF;
+          const pizzaDetails = formatPizzaDetailsForReceipt(selection.pizzaCustomization, RECEIPT_WIDTH);
+          for (const line of pizzaDetails) {
+            receipt += '  ' + line + LF;
           }
         }
       }
@@ -372,29 +367,29 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // ===== TOTALS SECTION (double height) =====
+  // ===== TOTALS SECTION (label left, amount right on same line) =====
   const subtotal = order.subtotal || order.total * 0.95;
   const tax = order.tax || order.total * 0.05;
   
-  receipt += DOUBLE_HEIGHT_ON + formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + NORMAL_SIZE + LF;
-  receipt += DOUBLE_HEIGHT_ON + formatLine('GST (5%):', `$${tax.toFixed(2)}`) + NORMAL_SIZE + LF;
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + LF;
+  receipt += formatLine('GST (5%):', `$${tax.toFixed(2)}`) + LF;
+  receipt += BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
   
   receipt += LINE + LF;
   
-  // Payment - double height
+  // Payment
   receipt += ALIGN_CENTER;
   if (order.paymentStatus === 'paid') {
-    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + NORMAL_SIZE + LF;
+    receipt += BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + LF;
   } else {
-    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'PAYMENT DUE' + BOLD_OFF + NORMAL_SIZE + LF;
+    receipt += BOLD_ON + 'PAYMENT DUE' + BOLD_OFF + LF;
   }
   
   receipt += LF; // Gap before footer
   receipt += LINE + LF;
   receipt += LF; // Gap after line
   
-  // ===== FOOTER (matching sample) =====
+  // ===== FOOTER =====
   receipt += 'GST#742820897RT0001' + LF;
   receipt += 'Thanks You for Shopping at' + LF;
   receipt += 'Top In Town Pizza Ltd.' + LF;
@@ -409,6 +404,136 @@ export const buildCustomerReceipt = (order: {
   receipt += CUT;
   
   return receipt;
+};
+
+// Helper to format pizza customization for receipt with proper line wrapping
+const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): string[] => {
+  const lines: string[] = [];
+  
+  // Size and Crust - left aligned on one line
+  const sizeName = typeof customization.size === 'object' ? customization.size?.name : customization.size;
+  const crustName = typeof customization.crust === 'object' ? customization.crust?.name : customization.crust;
+  if (sizeName || crustName) {
+    lines.push(`  ${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
+  }
+  
+  // Cheese - only show if NOT regular/normal
+  if (customization.cheeseType) {
+    if (customization.cheeseType.toLowerCase() === 'no cheese') {
+      lines.push('  No Cheese');
+    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
+      lines.push('  Dairy Free Cheese');
+    }
+  }
+  
+  // Sauce - only show if changed from default
+  if (customization.sauceName?.toLowerCase() === 'no sauce') {
+    lines.push('  No Sauce');
+  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
+    lines.push(`  ${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+  }
+  
+  // Spicy Level - only show if not 'none'
+  const leftSpicy = customization.spicyLevel?.left;
+  const rightSpicy = customization.spicyLevel?.right;
+  
+  const spicyDisplayName = (level: string) => {
+    if (level === 'medium') return 'Medium Hot';
+    if (level === 'hot') return 'Hot';
+    return level;
+  };
+  
+  const hasLeftSpicy = leftSpicy && leftSpicy !== 'none';
+  const hasRightSpicy = rightSpicy && rightSpicy !== 'none';
+  
+  if (hasLeftSpicy || hasRightSpicy) {
+    if (leftSpicy === rightSpicy) {
+      lines.push(`  Spicy: ${spicyDisplayName(leftSpicy!)}`);
+    } else {
+      const parts: string[] = [];
+      if (hasLeftSpicy) parts.push(`L:${spicyDisplayName(leftSpicy!)}`);
+      if (hasRightSpicy) parts.push(`R:${spicyDisplayName(rightSpicy!)}`);
+      lines.push(`  Spicy: ${parts.join(' ')}`);
+    }
+  }
+  
+  // Free Toppings (Add:) - wrap properly
+  if (customization.freeToppings?.length > 0) {
+    const addPrefix = 'Add: ';
+    const toppings = customization.freeToppings.join(', ');
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    for (const line of wrappedLines) {
+      lines.push('  ' + line);
+    }
+  }
+  
+  // Extra Toppings (+) - wrap properly
+  if (customization.extraToppings?.length > 0) {
+    const extraList = customization.extraToppings.map((t: any) => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      return `${t.name}${sideInfo}`;
+    });
+    const addPrefix = 'Add: ';
+    const toppings = extraList.join(', ');
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    for (const line of wrappedLines) {
+      lines.push('  ' + line);
+    }
+  }
+  
+  // Default Toppings Removed - wrap properly
+  const removedToppings = customization.defaultToppings?.filter((t: any) => t.quantity === 'none');
+  if (removedToppings?.length > 0) {
+    const removePrefix = 'Remove: ';
+    const toppings = removedToppings.map((t: any) => t.name).join(', ');
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, removePrefix);
+    for (const line of wrappedLines) {
+      lines.push('  ' + line);
+    }
+  }
+  
+  // Default Toppings Modified (less/extra)
+  const modifiedDefaults = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'less' || t.quantity === 'extra'
+  );
+  if (modifiedDefaults?.length > 0) {
+    modifiedDefaults.forEach((t: any) => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      lines.push(`  ${t.quantity} ${t.name}${sideInfo}`);
+    });
+  }
+  
+  // Note - only show if present
+  if (customization.note) {
+    lines.push(`  Note: ${customization.note}`);
+  }
+  
+  return lines;
+};
+
+// Helper to wrap text with a prefix on first line, indent continuation lines
+const wrapTextForReceipt = (text: string, maxWidth: number, prefix: string): string[] => {
+  const words = text.split(', ');
+  const lines: string[] = [];
+  let currentLine = prefix;
+  
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const separator = i === 0 ? '' : ', ';
+    
+    if (currentLine === prefix) {
+      currentLine = prefix + word;
+    } else if (currentLine.length + separator.length + word.length <= maxWidth) {
+      currentLine += separator + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = '  ' + word; // Indent continuation lines
+    }
+  }
+  if (currentLine.length > 0 && currentLine !== prefix) {
+    lines.push(currentLine);
+  }
+  return lines;
 };
 
 // Helper to format pizza customization for print (only show non-default changes)
