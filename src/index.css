@@ -284,6 +284,9 @@
 .pos-no-focus-ring,
 .pos-no-focus-ring *,
 .pos-no-focus-ring button,
+.pos-no-focus-ring input,
+.pos-no-focus-ring textarea,
+.pos-no-focus-ring select,
 .pos-no-focus-ring [role="button"] {
   outline: none !important;
   -webkit-tap-highlight-color: transparent !important;
@@ -294,8 +297,15 @@
 .pos-no-focus-ring button:focus-visible,
 .pos-no-focus-ring button:active,
 .pos-no-focus-ring [role="button"]:focus,
-.pos-no-focus-ring [role="button"]:focus-visible {
+.pos-no-focus-ring [role="button"]:focus-visible,
+.pos-no-focus-ring input:focus,
+.pos-no-focus-ring input:focus-visible,
+.pos-no-focus-ring textarea:focus,
+.pos-no-focus-ring textarea:focus-visible,
+.pos-no-focus-ring select:focus,
+.pos-no-focus-ring select:focus-visible {
   outline: none !important;
   box-shadow: none !important;
   ring: none !important;
+  border-color: #d1d5db !important;
 }
