@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Loader2, Printer as PrinterIcon, Check, X, Server, ExternalLink, TestTube } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, Edit2, Loader2, Printer as PrinterIcon, Check, X, TestTube } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { usePrinters, PRINTER_STATIONS, PAPER_WIDTHS, type PrinterInsert, type Printer } from '@/hooks/usePrinters';
+import { usePrinters, PRINTER_STATIONS, PAPER_WIDTHS, type Printer } from '@/hooks/usePrinters';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { DEFAULT_PRINT_SERVER_URL, getPrintServerUrl, normalizePrintServerUrl, savePrintServerUrl } from '@/utils/printServer';
+import { sendToPrinterDirect, isNativePlatform } from '@/utils/directPrint';
 
 interface POSPrinterSettingsProps {
   locationId: string;
@@ -18,65 +18,24 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
   const { printers, isLoading, addPrinter, updatePrinter, deletePrinter } = usePrinters(locationId);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [printServerUrl, setPrintServerUrl] = useState(
-    getPrintServerUrl()
-  );
-  const [serverStatus, setServerStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
-  const [formData, setFormData] = useState<PrinterInsert>({
+  const [formData, setFormData] = useState({
     location_id: locationId,
     name: '',
     ip_address: '',
+    port: 9100,
     station: 'Kitchen',
     paper_width: 80,
     auto_cut: true,
     is_active: true,
   });
 
-  // Check print server status
-  const checkServerStatus = async () => {
-    setServerStatus('checking');
-    try {
-      const baseUrl = normalizePrintServerUrl(printServerUrl);
-      if (!baseUrl) {
-        setServerStatus('offline');
-        return;
-      }
-
-      const response = await fetch(`${baseUrl}/health`, { 
-        method: 'GET',
-        signal: AbortSignal.timeout(3000),
-      });
-
-      if (!response.ok) {
-        setServerStatus('offline');
-        return;
-      }
-
-      // Guard against false-positives (e.g., HTML page returning 200).
-      const json = await response.json().catch(() => null);
-      setServerStatus(json?.status === 'ok' ? 'online' : 'offline');
-    } catch {
-      setServerStatus('offline');
-    }
-  };
-
-  useEffect(() => {
-    checkServerStatus();
-  }, [printServerUrl]);
-
-  const handleSavePrintServerUrl = () => {
-    const normalized = savePrintServerUrl(printServerUrl);
-    if (!normalized) {
-      toast.error('Enter a valid Print Server URL');
+  const handleTestPrint = async (printer: Printer) => {
+    if (!isNativePlatform()) {
+      toast.error('Printing only works in native app');
       return;
     }
-    setPrintServerUrl(normalized);
-    toast.success('Print server URL saved');
-    checkServerStatus();
-  };
 
-  const handleTestPrint = async (printer: Printer) => {
     const loadingToast = toast.loading('Sending test print...');
     
     try {
@@ -88,6 +47,7 @@ export const POSPrinterSettings = ({ locationId }: POSPrinterSettingsProps) => {
 \x1Ba\x00
 Printer: ${printer.name}
 IP: ${printer.ip_address}
+Port: ${printer.port}
 Station: ${printer.station}
 Time: ${new Date().toLocaleTimeString()}
 --------------------------------
@@ -98,31 +58,21 @@ If you see this, printing works!
 \x1DVA
 `;
       
-      const baseUrl = normalizePrintServerUrl(printServerUrl);
-      if (!baseUrl) throw new Error('Missing print server URL');
-
-      const response = await fetch(`${baseUrl}/print`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          printer_ip: printer.ip_address,
-          port: 9100,
-          data: testData,
-          auto_cut: printer.auto_cut,
-        }),
-      });
+      const result = await sendToPrinterDirect(
+        { ip: printer.ip_address, port: printer.port, name: printer.name },
+        testData
+      );
 
       toast.dismiss(loadingToast);
       
-      if (response.ok) {
+      if (result.success) {
         toast.success('Test print sent!');
       } else {
-        const error = await response.json();
-        toast.error(`Print failed: ${error.error || 'Unknown error'}`);
+        toast.error(`Print failed: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error('Could not reach print server');
+      toast.error('Could not connect to printer');
     }
   };
 
@@ -131,6 +81,7 @@ If you see this, printing works!
       location_id: locationId,
       name: '',
       ip_address: '',
+      port: 9100,
       station: 'Kitchen',
       paper_width: 80,
       auto_cut: true,
@@ -141,12 +92,28 @@ If you see this, printing works!
   };
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.ip_address) return;
+    if (!formData.ip_address) {
+      toast.error('IP Address is required');
+      return;
+    }
+
+    // Validate IP address format
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(formData.ip_address)) {
+      toast.error('Invalid IP address format');
+      return;
+    }
+
+    // Use IP as name if name is empty
+    const printerData = {
+      ...formData,
+      name: formData.name || formData.ip_address,
+    };
 
     if (editingId) {
-      updatePrinter({ id: editingId, ...formData });
+      updatePrinter({ id: editingId, ...printerData });
     } else {
-      addPrinter(formData);
+      addPrinter(printerData);
     }
     resetForm();
   };
@@ -156,6 +123,7 @@ If you see this, printing works!
       location_id: printer.location_id,
       name: printer.name,
       ip_address: printer.ip_address,
+      port: printer.port,
       station: printer.station,
       paper_width: printer.paper_width,
       auto_cut: printer.auto_cut,
@@ -181,54 +149,21 @@ If you see this, printing works!
 
   return (
     <div className="space-y-6">
-      {/* Print Server Configuration */}
-      <div className="p-4 border border-border rounded-lg bg-secondary/30 space-y-3">
-        <div className="flex items-center gap-2">
-          <Server className="w-5 h-5 text-primary" />
-          <span className="font-medium">Print Server</span>
-          <div className={cn(
-            "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full",
-            serverStatus === 'online' && "bg-green-100 text-green-700",
-            serverStatus === 'offline' && "bg-red-100 text-red-700",
-            serverStatus === 'checking' && "bg-yellow-100 text-yellow-700",
-          )}>
-            <div className={cn(
-              "w-2 h-2 rounded-full",
-              serverStatus === 'online' && "bg-green-500",
-              serverStatus === 'offline' && "bg-red-500",
-              serverStatus === 'checking' && "bg-yellow-500 animate-pulse",
-            )} />
-            {serverStatus === 'online' ? 'Connected' : serverStatus === 'offline' ? 'Offline' : 'Checking...'}
-          </div>
-        </div>
-        
-        <p className="text-sm text-muted-foreground">
-          Run the print server on a computer on your local network to forward print jobs to your thermal printers.
-        </p>
-        
-        <div className="flex gap-2">
-          <Input
-            placeholder={DEFAULT_PRINT_SERVER_URL}
-            value={printServerUrl}
-            onChange={(e) => setPrintServerUrl(e.target.value)}
-            className="flex-1"
-          />
-          <Button variant="outline" onClick={handleSavePrintServerUrl}>
-            Save
-          </Button>
-          <Button variant="outline" onClick={checkServerStatus}>
-            Test
-          </Button>
-        </div>
-        
-        <div className="text-xs text-muted-foreground flex items-center gap-1">
-          <ExternalLink className="w-3 h-3" />
-          Download print-server.js from /print-server.js and run with Node.js
-        </div>
+      {/* Platform Info */}
+      <div className={cn(
+        "p-3 rounded-lg text-sm",
+        isNativePlatform() 
+          ? "bg-green-100 text-green-800" 
+          : "bg-yellow-100 text-yellow-800"
+      )}>
+        {isNativePlatform() 
+          ? "✓ Running in native app - Direct printing enabled"
+          : "⚠ Running in browser - Printing requires native app"
+        }
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Configure thermal printers for order tickets. Add printers for kitchen, counter, or any station.
+        Add thermal printers by entering their IP address and port. Default port is 9100.
       </div>
 
       {/* Printer List */}
@@ -243,6 +178,7 @@ If you see this, printing works!
                   ? "bg-card border-border" 
                   : "bg-secondary/50 border-secondary opacity-60"
               )}
+              style={{ backgroundColor: 'white' }}
             >
               <PrinterIcon className={cn(
                 "w-8 h-8",
@@ -262,7 +198,7 @@ If you see this, printing works!
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground flex items-center gap-3">
-                  <span>IP: {printer.ip_address}</span>
+                  <span>{printer.ip_address}:{printer.port}</span>
                   <span>•</span>
                   <span>{printer.paper_width}mm</span>
                   <span>•</span>
@@ -276,6 +212,7 @@ If you see this, printing works!
                   size="icon"
                   onClick={() => handleTestPrint(printer)}
                   title="Test print"
+                  style={{ backgroundColor: 'white' }}
                 >
                   <TestTube className="w-4 h-4" />
                 </Button>
@@ -283,6 +220,7 @@ If you see this, printing works!
                   variant="ghost" 
                   size="icon"
                   onClick={() => handleEdit(printer)}
+                  style={{ backgroundColor: 'white' }}
                 >
                   <Edit2 className="w-4 h-4" />
                 </Button>
@@ -291,6 +229,7 @@ If you see this, printing works!
                   size="icon"
                   onClick={() => handleDelete(printer.id)}
                   className="text-destructive hover:text-destructive"
+                  style={{ backgroundColor: 'white' }}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -308,103 +247,124 @@ If you see this, printing works!
         </div>
       )}
 
-      {/* Add/Edit Form */}
+      {/* Add/Edit Form - Simplified like the screenshot */}
       {showAddForm && (
-        <div className="p-4 border border-border rounded-lg bg-secondary/30 space-y-4">
-          <div className="font-medium">
-            {editingId ? 'Edit Printer' : 'Add New Printer'}
+        <div className="p-4 border border-border rounded-lg bg-card space-y-4" style={{ backgroundColor: 'white' }}>
+          <div className="font-medium text-center text-lg">
+            {editingId ? 'Edit Printer' : 'Add Printer'}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Printer Name</Label>
               <Input
-                placeholder="e.g., Kitchen Main"
+                placeholder="Enter Name (Optional)"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="border-0 border-b border-border rounded-none focus-visible:ring-0 px-0"
+                style={{ backgroundColor: 'white' }}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>IP Address</Label>
               <Input
-                placeholder="e.g., 192.168.1.100"
+                placeholder="Enter IP Address"
                 value={formData.ip_address}
                 onChange={(e) => setFormData({ ...formData, ip_address: e.target.value })}
+                className="border-0 border-b border-border rounded-none focus-visible:ring-0 px-0"
+                style={{ backgroundColor: 'white' }}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Station</Label>
-              <Select
-                value={formData.station}
-                onValueChange={(value) => setFormData({ ...formData, station: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRINTER_STATIONS.map((station) => (
-                    <SelectItem key={station} value={station}>
-                      {station}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                type="number"
+                placeholder="Enter Port"
+                value={formData.port}
+                onChange={(e) => setFormData({ ...formData, port: parseInt(e.target.value) || 9100 })}
+                className="border-0 border-b border-border rounded-none focus-visible:ring-0 px-0"
+                style={{ backgroundColor: 'white' }}
+              />
             </div>
 
-            <div className="space-y-2">
-              <Label>Paper Width</Label>
-              <Select
-                value={formData.paper_width.toString()}
-                onValueChange={(value) => setFormData({ ...formData, paper_width: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAPER_WIDTHS.map((width) => (
-                    <SelectItem key={width} value={width.toString()}>
-                      {width}mm
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Advanced options - collapsed by default */}
+            <details className="text-sm">
+              <summary className="cursor-pointer text-muted-foreground">Advanced Options</summary>
+              <div className="mt-3 space-y-3 pl-2">
+                <div className="space-y-2">
+                  <Label>Station</Label>
+                  <Select
+                    value={formData.station}
+                    onValueChange={(value) => setFormData({ ...formData, station: value })}
+                  >
+                    <SelectTrigger style={{ backgroundColor: 'white' }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRINTER_STATIONS.map((station) => (
+                        <SelectItem key={station} value={station}>
+                          {station}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Paper Width</Label>
+                  <Select
+                    value={formData.paper_width.toString()}
+                    onValueChange={(value) => setFormData({ ...formData, paper_width: parseInt(value) })}
+                  >
+                    <SelectTrigger style={{ backgroundColor: 'white' }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAPER_WIDTHS.map((width) => (
+                        <SelectItem key={width} value={width.toString()}>
+                          {width}mm
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={formData.auto_cut}
+                      onCheckedChange={(checked) => setFormData({ ...formData, auto_cut: checked })}
+                    />
+                    <Label className="text-sm">Auto-cut paper</Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                    />
+                    <Label className="text-sm">Active</Label>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.auto_cut}
-                  onCheckedChange={(checked) => setFormData({ ...formData, auto_cut: checked })}
-                />
-                <Label className="text-sm">Auto-cut paper</Label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-                <Label className="text-sm">Active</Label>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={resetForm}>
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={!formData.name || !formData.ip_address}
-              >
-                <Check className="w-4 h-4 mr-1" />
-                {editingId ? 'Save Changes' : 'Add Printer'}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button 
+              variant="ghost" 
+              onClick={resetForm}
+              className="text-destructive"
+              style={{ backgroundColor: 'white' }}
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!formData.ip_address}
+              className="bg-green-600 hover:bg-green-700 text-white px-6"
+            >
+              Done
+            </Button>
           </div>
         </div>
       )}
@@ -415,6 +375,7 @@ If you see this, printing works!
           onClick={() => setShowAddForm(true)}
           variant="outline"
           className="w-full"
+          style={{ backgroundColor: 'white' }}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Printer

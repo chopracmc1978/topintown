@@ -7,6 +7,7 @@ export interface Printer {
   location_id: string;
   name: string;
   ip_address: string;
+  port: number;
   station: string;
   paper_width: number;
   auto_cut: boolean;
