@@ -435,16 +435,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
             )}
             
-            {/* Order History Dropdown */}
+            {/* Order History Dropdown - Fixed positioned over left panel */}
             {showOrderHistory && (
-              <div className="absolute top-full left-0 mt-1">
-                <POSOrderHistoryDropdown
-                  orders={orderHistory}
-                  isSearching={isSearching}
-                  onSelectOrder={handleSelectPastOrder}
-                  onClose={() => setShowOrderHistory(false)}
-                />
-              </div>
+              <POSOrderHistoryDropdown
+                orders={orderHistory}
+                isSearching={isSearching}
+                onSelectOrder={handleSelectPastOrder}
+                onClose={() => setShowOrderHistory(false)}
+              />
             )}
           </div>
           
