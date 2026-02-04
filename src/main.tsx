@@ -25,21 +25,14 @@ function applyNativePosViewportFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // 2) Force HD rendering at native device resolution
-    const dpr = window.devicePixelRatio || 1;
-    const screenWidth = window.screen.width * dpr;
-    const screenHeight = window.screen.height * dpr;
-    
-    // Use actual screen dimensions for maximum clarity
-    const targetWidth = Math.max(screenWidth, 1920);
-    
+    // 2) Force Full HD 1920x1080 rendering
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute(
         "content",
         [
-          // Use device's native width for HD rendering
-          `width=${targetWidth}`,
+          // Force Full HD width
+          "width=1920",
           // Force 1:1 pixel mapping (no scaling)
           "initial-scale=1.0",
           "maximum-scale=1.0",
