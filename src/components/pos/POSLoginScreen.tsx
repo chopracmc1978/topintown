@@ -80,7 +80,7 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
 
   return (
     <div className="min-h-screen bg-primary flex items-center justify-center p-4">
-      <Card className="w-full max-w-md" style={{ backgroundColor: '#ffffff' }}>
+      <Card className="w-full max-w-md" style={{ backgroundColor: '#e8f4fc' }}>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img src={logo} alt="Top In Town Pizza" className="w-20 h-20 object-contain" />
