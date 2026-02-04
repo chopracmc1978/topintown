@@ -15,6 +15,19 @@ export interface PrinterConfig {
   name?: string;
 }
 
+const withTimeout = async <T>(promise: Promise<T>, ms: number, message: string): Promise<T> => {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<T>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(message)), ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }
+};
+
 /**
  * Check if we're running in a native Capacitor environment
  */
@@ -59,44 +72,20 @@ export const sendToPrinterDirect = async (
 
   try {
     console.log(`[DirectPrint] Sending to ${printer.ip}:${printer.port}`);
-    
-    // For Android/iOS native apps, we can use a WebSocket or HTTP bridge
-    // that's built into the native layer. However, the most reliable approach
-    // for Capacitor is to use a native plugin.
-    
-    // Try using the raw TCP approach via fetch to a local print handler
-    // This assumes the native app has a TCP handler registered
-    const printUrl = `http://${printer.ip}:${printer.port}`;
-    
-    // Create a timeout promise
-    const timeoutPromise = new Promise<Response>((_, reject) => {
-      setTimeout(() => reject(new Error('Connection timeout')), 5000);
-    });
 
-    // For raw socket printing, we encode the ESC/POS data and send it
-    // directly to the printer's IP:Port
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+    // 1) Preferred: native TCP socket plugin
     try {
-      // Try to establish a connection using the native TCP bridge
-      // This uses Android's native socket API through Capacitor
-      const response = await Promise.race([
-        sendViaNativeSocket(printer.ip, printer.port, data),
-        timeoutPromise,
-      ]);
-      
-      clearTimeout(timeoutId);
+      await withTimeout(sendViaNativeSocket(printer.ip, printer.port, data), 7000, 'TCP connection timeout');
       return { success: true };
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      
-      // If native socket fails, try WebSocket bridge (some printer apps support this)
+    } catch (tcpError) {
+      // 2) Fallback: WebSocket (rare; some printer gateways support ws://)
       try {
-        await sendViaWebSocket(printer.ip, printer.port, data);
+        await withTimeout(sendViaWebSocket(printer.ip, printer.port, data), 7000, 'WebSocket connection timeout');
         return { success: true };
       } catch (wsError) {
-        throw new Error(`Failed to connect: ${(fetchError as Error).message}`);
+        const tcpMsg = tcpError instanceof Error ? tcpError.message : String(tcpError);
+        const wsMsg = wsError instanceof Error ? wsError.message : String(wsError);
+        throw new Error(`TCP failed: ${tcpMsg}. WebSocket failed: ${wsMsg}`);
       }
     }
   } catch (error) {
@@ -117,6 +106,31 @@ const sendViaNativeSocket = async (
   port: number,
   data: string
 ): Promise<void> => {
+  // Best supported path in this app: capacitor-tcp-socket
+  try {
+    const mod = await import('capacitor-tcp-socket');
+    const TcpSocket = mod.TcpSocket;
+    const DataEncoding = mod.DataEncoding;
+
+    const connection = await TcpSocket.connect({ ipAddress: ip, port });
+    try {
+      await TcpSocket.send({
+        client: connection.client,
+        data: stringToBase64(data),
+        encoding: DataEncoding.BASE64,
+      });
+    } finally {
+      try {
+        await TcpSocket.disconnect({ client: connection.client });
+      } catch {
+        // ignore disconnect errors
+      }
+    }
+    return;
+  } catch (e) {
+    // Continue to legacy fallbacks below
+  }
+
   // Check if the native TCP plugin is available
   if (typeof (window as any).CapacitorTCP !== 'undefined') {
     const TCP = (window as any).CapacitorTCP;
