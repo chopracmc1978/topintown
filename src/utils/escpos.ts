@@ -524,31 +524,31 @@ export const buildCustomerReceipt = (order: {
   return receipt;
 };
 
-// Helper to format pizza customization for receipt with proper line wrapping
+// Helper to format pizza customization for receipt - NO INDENT (left edge aligned like reference)
 const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): string[] => {
   const lines: string[] = [];
   
-  // Size and Crust - left aligned on one line
+  // Size and Crust - left aligned on one line (NO indent)
   const sizeName = typeof customization.size === 'object' ? customization.size?.name : customization.size;
   const crustName = typeof customization.crust === 'object' ? customization.crust?.name : customization.crust;
   if (sizeName || crustName) {
-    lines.push(`  ${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
+    lines.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
   // Cheese - only show if NOT regular/normal
   if (customization.cheeseType) {
     if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      lines.push('  No Cheese');
+      lines.push('No Cheese');
     } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      lines.push('  Dairy Free Cheese');
+      lines.push('Dairy Free Cheese');
     }
   }
   
   // Sauce - only show if changed from default
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
-    lines.push('  No Sauce');
+    lines.push('No Sauce');
   } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
-    lines.push(`  ${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+    lines.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
   }
   
   // Spicy Level - only show if not 'none'
@@ -566,47 +566,47 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
   
   if (hasLeftSpicy || hasRightSpicy) {
     if (leftSpicy === rightSpicy) {
-      lines.push(`  Spicy: ${spicyDisplayName(leftSpicy!)}`);
+      lines.push(`Spicy : ${spicyDisplayName(leftSpicy!)}`);
     } else {
       const parts: string[] = [];
       if (hasLeftSpicy) parts.push(`L:${spicyDisplayName(leftSpicy!)}`);
       if (hasRightSpicy) parts.push(`R:${spicyDisplayName(rightSpicy!)}`);
-      lines.push(`  Spicy: ${parts.join(' ')}`);
+      lines.push(`Spicy : ${parts.join(' ')}`);
     }
   }
   
-  // Free Toppings (Add:) - wrap properly
+  // Free Toppings (Add:) - wrap properly, NO indent
   if (customization.freeToppings?.length > 0) {
-    const addPrefix = 'Add: ';
+    const addPrefix = 'Add : ';
     const toppings = customization.freeToppings.join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, addPrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
-  // Extra Toppings (+) - wrap properly
+  // Extra Toppings (+) - wrap properly, NO indent
   if (customization.extraToppings?.length > 0) {
     const extraList = customization.extraToppings.map((t: any) => {
       const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
       return `${t.name}${sideInfo}`;
     });
-    const addPrefix = 'Add: ';
+    const addPrefix = 'Add : ';
     const toppings = extraList.join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, addPrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
-  // Default Toppings Removed - wrap properly
+  // Default Toppings Removed - wrap properly, NO indent
   const removedToppings = customization.defaultToppings?.filter((t: any) => t.quantity === 'none');
   if (removedToppings?.length > 0) {
-    const removePrefix = 'Remove: ';
+    const removePrefix = 'Remove : ';
     const toppings = removedToppings.map((t: any) => t.name).join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, removePrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, removePrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
@@ -617,13 +617,13 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
   if (modifiedDefaults?.length > 0) {
     modifiedDefaults.forEach((t: any) => {
       const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
-      lines.push(`  ${t.quantity} ${t.name}${sideInfo}`);
+      lines.push(`${t.quantity} ${t.name}${sideInfo}`);
     });
   }
   
   // Note - only show if present
   if (customization.note) {
-    lines.push(`  Note: ${customization.note}`);
+    lines.push(`Note : ${customization.note}`);
   }
   
   return lines;
