@@ -279,3 +279,23 @@
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* POS Touch Interface - Remove all focus outlines for tablet touch experience */
+.pos-no-focus-ring,
+.pos-no-focus-ring *,
+.pos-no-focus-ring button,
+.pos-no-focus-ring [role="button"] {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-focus-ring-color: transparent !important;
+}
+
+.pos-no-focus-ring button:focus,
+.pos-no-focus-ring button:focus-visible,
+.pos-no-focus-ring button:active,
+.pos-no-focus-ring [role="button"]:focus,
+.pos-no-focus-ring [role="button"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+}
