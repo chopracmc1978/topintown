@@ -170,6 +170,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* HD image rendering */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
   }
 
   body {
@@ -178,6 +181,15 @@
     /* Ensure sharp rendering on Android tablets */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Subpixel antialiasing for sharper text */
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-smooth: always;
+  }
+
+  /* Force HD rendering on images and icons */
+  img, svg, canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
   }
 
   h1, h2, h3, h4, h5, h6 {
