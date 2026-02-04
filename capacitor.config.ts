@@ -21,6 +21,15 @@ const config: CapacitorConfig = {
     // Force native WebView to render at device's native resolution (HD)
     webContentsDebuggingEnabled: false,
     allowMixedContent: true,
+    // Use hardware acceleration for smoother HD rendering
+    useLegacyBridge: false,
+  },
+  // Ensure proper viewport handling
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: true,
+      androidScaleType: 'CENTER_CROP',
+    },
   },
   server: serverUrl
     ? {

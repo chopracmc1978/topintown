@@ -21,30 +21,41 @@ function applyNativePosViewportFixes() {
   try {
     if (!Capacitor.isNativePlatform()) return;
 
-    // 1) Prevent Android WebView "text autosize" / font boosting that can
-    // completely change layout density versus desktop preview.
+    // 1) Prevent Android WebView "text autosize" / font boosting
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // 2) Force a stable tablet viewport for the POS UI.
-    // Target tablet: 1608x904 with DPR 0.85
+    // 2) Force HD rendering at native device resolution
+    const dpr = window.devicePixelRatio || 1;
+    const screenWidth = window.screen.width * dpr;
+    const screenHeight = window.screen.height * dpr;
+    
+    // Use actual screen dimensions for maximum clarity
+    const targetWidth = Math.max(screenWidth, 1920);
+    
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute(
         "content",
         [
-          // Lock to actual tablet resolution (1608x904 for the POS tablet)
-          "width=1608",
-          "height=904",
-          // Prevent unexpected zoom/scale on older WebViews
-          "initial-scale=1",
-          "maximum-scale=1",
+          // Use device's native width for HD rendering
+          `width=${targetWidth}`,
+          // Force 1:1 pixel mapping (no scaling)
+          "initial-scale=1.0",
+          "maximum-scale=1.0",
+          "minimum-scale=1.0",
           "user-scalable=no",
-          // Safe-area on newer devices (harmless on old ones)
+          // HD density hint for legacy Android WebViews
+          "target-densitydpi=device-dpi",
+          // Safe-area on newer devices
           "viewport-fit=cover",
         ].join(", ")
       );
     }
+
+    // 3) Force crisp rendering on the root element
+    document.documentElement.style.setProperty("image-rendering", "crisp-edges");
+    document.documentElement.style.setProperty("-webkit-image-rendering", "crisp-edges");
   } catch {
     // never block boot
   }
