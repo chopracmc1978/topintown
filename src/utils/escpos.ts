@@ -4,12 +4,9 @@ export const GS = '\x1D';
 export const LF = '\x0A';
 
 export const ESCPOS = {
-  // Initialize printer with high quality settings
-  INIT: `${ESC}@${ESC}t\x00`,  // Init + select character code table (PC437)
-  
-  // Print quality - high density for sharper text
-  HIGH_QUALITY: `${GS}L\x01\x00${GS}W\xA0\x01`,  // Set left margin and print area width
-  PRINT_DENSITY: `${GS}(\x00\x02\x00\x0C\x0F`,  // Max print density for darker text
+  // Initialize printer
+  // NOTE: Avoid forcing print-area width here; it can cause “half width” printing on 80mm printers.
+  INIT: `${ESC}@${ESC}t\x00`, // Init + select character code table (PC437)
   
   // Text formatting
   BOLD_ON: `${ESC}E\x01`,
@@ -20,10 +17,6 @@ export const ESCPOS = {
   NORMAL_SIZE: `${GS}!\x00`,
   UNDERLINE_ON: `${ESC}-\x01`,
   UNDERLINE_OFF: `${ESC}-\x00`,
-  
-  // Character spacing for crispness
-  CHAR_SPACING: `${ESC} \x00`,  // No extra character spacing
-  LINE_SPACING: `${ESC}3\x18`,  // 24 dots line spacing for cleaner lines
   
   // Alignment
   ALIGN_LEFT: `${ESC}a\x00`,
@@ -39,6 +32,15 @@ export const ESCPOS = {
   LINE: '--------------------------------',
   DASHED_LINE: '- - - - - - - - - - - - - - - - ',
 };
+
+const getCharsPerLine = (paperWidthMm?: number): number => {
+  // Typical ESC/POS character widths (Font A):
+  // - 58mm paper: ~32 columns
+  // - 80mm paper: ~48 columns
+  return paperWidthMm === 80 ? 48 : 32;
+};
+
+const makeLine = (width: number): string => '-'.repeat(width);
 
 // Build ESC/POS kitchen ticket
 export const buildKitchenTicket = (order: {
@@ -62,8 +64,10 @@ export const buildKitchenTicket = (order: {
   tax?: number;
   total?: number;
   paymentStatus?: string;
-}): string => {
-  const { INIT, CUT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, LINE } = ESCPOS;
+}, options?: { paperWidthMm?: number }): string => {
+  const { INIT, CUT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT } = ESCPOS;
+  const WIDTH = getCharsPerLine(options?.paperWidthMm);
+  const LINE_STR = makeLine(WIDTH);
   
   let receipt = INIT;
   
@@ -72,29 +76,36 @@ export const buildKitchenTicket = (order: {
   
   // Header - centered
   receipt += ALIGN_CENTER;
-  receipt += BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + LF;
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
   receipt += LF;
-  
-  // Order info - label left, value right on same line using spaces
-  const formatLabelValue = (label: string, value: string): string => {
-    const totalWidth = 32;
-    const labelWithColon = label + ' :';
-    const spaces = totalWidth - labelWithColon.length - value.length;
-    return labelWithColon + ' '.repeat(Math.max(1, spaces)) + value;
+
+  const formatLine = (left: string, right: string): string => {
+    const padding = WIDTH - left.length - right.length;
+    if (padding < 1) return left + ' ' + right;
+    return left + ' '.repeat(padding) + right;
+  };
+
+  // Order info: fixed value column (like your reference screenshot)
+  const LABEL_WIDTH = 14; // values start at a consistent column
+  const formatOrderInfo = (label: string, value: string): string => {
+    const paddedLabel = label.padEnd(LABEL_WIDTH, ' ');
+    return BOLD_ON + paddedLabel + BOLD_OFF + value;
+  };
+
+  const formatDateShort = (date: Date): string => {
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const year = date.getFullYear();
+    return `${month} ${day} ${weekday} ${year}`;
   };
   
   receipt += ALIGN_LEFT;
-  receipt += BOLD_ON + formatLabelValue('Order No', order.id) + BOLD_OFF + LF;
+  receipt += formatOrderInfo('Order No :', order.id) + LF;
   
   // Format date
   const date = new Date(order.createdAt);
-  const dateStr = date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    weekday: 'short',
-    year: 'numeric'
-  });
-  receipt += BOLD_ON + formatLabelValue('Date', dateStr) + BOLD_OFF + LF;
+  receipt += formatOrderInfo('Date :', formatDateShort(date)) + LF;
   
   // Format time
   const timeStr = date.toLocaleTimeString('en-US', {
@@ -102,15 +113,15 @@ export const buildKitchenTicket = (order: {
     minute: '2-digit',
     hour12: true,
   });
-  receipt += BOLD_ON + formatLabelValue('Time', timeStr) + BOLD_OFF + LF;
+  receipt += formatOrderInfo('Time :', timeStr) + LF;
   
   // Order type
   const typeStr = order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1);
-  receipt += BOLD_ON + formatLabelValue('Type', typeStr) + BOLD_OFF + LF;
+  receipt += formatOrderInfo('Type :', typeStr) + LF;
   
   // Table number if present
   if (order.tableNumber) {
-    receipt += BOLD_ON + formatLabelValue('Table', order.tableNumber) + BOLD_OFF + LF;
+    receipt += formatOrderInfo('Table :', order.tableNumber) + LF;
   }
   
   // Pickup time if present
@@ -121,27 +132,25 @@ export const buildKitchenTicket = (order: {
       minute: '2-digit',
       hour12: true,
     });
-    receipt += BOLD_ON + formatLabelValue('Pickup', pickupTimeStr) + BOLD_OFF + LF;
+    receipt += formatOrderInfo('Pickup :', pickupTimeStr) + LF;
   }
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
   // Items
   for (const item of order.items) {
     // Item name with quantity and price on same line
     const itemName = `${item.quantity}X ${item.name.toUpperCase()}`;
     const priceStr = item.totalPrice ? `$${item.totalPrice.toFixed(2)}` : '';
-    const itemSpaces = 32 - itemName.length - priceStr.length;
-    
-    receipt += BOLD_ON + itemName + BOLD_OFF;
     if (priceStr) {
-      receipt += ' '.repeat(Math.max(1, itemSpaces)) + priceStr;
+      receipt += BOLD_ON + formatLine(itemName, priceStr) + BOLD_OFF + LF;
+    } else {
+      receipt += BOLD_ON + itemName + BOLD_OFF + LF;
     }
-    receipt += LF;
     
     // Pizza customization details
     if (item.pizzaCustomization) {
-      const details = formatPizzaDetailsForKitchen(item.pizzaCustomization, 32);
+      const details = formatPizzaDetailsForKitchen(item.pizzaCustomization, WIDTH);
       for (const line of details) {
         receipt += line + LF;
       }
@@ -149,21 +158,22 @@ export const buildKitchenTicket = (order: {
     
     // Wings customization
     if (item.wingsCustomization?.flavor) {
-      receipt += `Flavor: ${item.wingsCustomization.flavor}` + LF;
+      receipt += `Flavor : ${item.wingsCustomization.flavor}` + LF;
     }
     
     // Combo customization
     if (item.comboCustomization?.selections) {
       for (const selection of item.comboCustomization.selections) {
-        receipt += `  - ${selection.itemName}` + LF;
+        receipt += `- ${selection.itemName}` + LF;
         if (selection.pizzaCustomization) {
-          const comboDetails = formatPizzaDetailsForKitchen(selection.pizzaCustomization, 32);
+          const comboDetails = formatPizzaDetailsForKitchen(selection.pizzaCustomization, WIDTH);
           for (const line of comboDetails) {
-            receipt += '    ' + line + LF;
+            // keep a small indent for nested combo lines
+            receipt += '  ' + line + LF;
           }
         }
         if (selection.flavor) {
-          receipt += `    Flavor: ${selection.flavor}` + LF;
+          receipt += `  Flavor : ${selection.flavor}` + LF;
         }
       }
     }
@@ -182,24 +192,18 @@ export const buildKitchenTicket = (order: {
     receipt += LF;
   }
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
-  // Totals section (if provided)
-  if (order.subtotal !== undefined) {
-    const formatTotal = (label: string, amount: number): string => {
-      const amountStr = `$${amount.toFixed(2)}`;
-      const spaces = 32 - label.length - amountStr.length;
-      return BOLD_ON + label + BOLD_OFF + ' '.repeat(Math.max(1, spaces)) + amountStr;
-    };
-    
-    receipt += formatTotal('Subtotal :', order.subtotal) + LF;
-    receipt += formatTotal('GST (5%) :', order.tax || 0) + LF;
-    receipt += formatTotal('TOTAL :', order.total || 0) + LF;
-    
-    receipt += LF + LINE + LF;
-    
-    // Payment status
-    receipt += ALIGN_CENTER;
+  // Totals section (match your reference kitchen ticket)
+  if (order.total !== undefined) {
+    const subtotal = order.subtotal ?? order.total * 0.95;
+    const tax = order.tax ?? order.total * 0.05;
+    receipt += BOLD_ON + formatLine('Subtotal :', `$${subtotal.toFixed(2)}`) + BOLD_OFF + LF;
+    receipt += BOLD_ON + formatLine('GST (5%) :', `$${tax.toFixed(2)}`) + BOLD_OFF + LF;
+    receipt += BOLD_ON + formatLine('TOTAL :', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
+    receipt += LINE_STR + LF;
+
+    receipt += ALIGN_CENTER + LF;
     const paymentStatus = order.paymentStatus === 'paid' ? 'PAID' : 'PAYMENT DUE';
     receipt += BOLD_ON + paymentStatus + BOLD_OFF + LF;
   }
@@ -225,23 +229,23 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
   const sizeName = typeof customization.size === 'object' ? customization.size?.name : customization.size;
   const crustName = typeof customization.crust === 'object' ? customization.crust?.name : customization.crust;
   if (sizeName || crustName) {
-    lines.push(`  ${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
+    lines.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
   // Cheese - only show if NOT regular/normal
   if (customization.cheeseType) {
     if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      lines.push('  No Cheese');
+      lines.push('No Cheese');
     } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      lines.push('  Dairy Free Cheese');
+      lines.push('Dairy Free Cheese');
     }
   }
   
   // Sauce - only show if changed from default
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
-    lines.push('  No Sauce');
+    lines.push('No Sauce');
   } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
-    lines.push(`  ${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+    lines.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
   }
   
   // Spicy Level - only show if not 'none'
@@ -259,22 +263,22 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
   
   if (hasLeftSpicy || hasRightSpicy) {
     if (leftSpicy === rightSpicy) {
-      lines.push(`  Spicy: ${spicyDisplayName(leftSpicy!)}`);
+      lines.push(`Spicy : ${spicyDisplayName(leftSpicy!)}`);
     } else {
       const parts: string[] = [];
       if (hasLeftSpicy) parts.push(`L:${spicyDisplayName(leftSpicy!)}`);
       if (hasRightSpicy) parts.push(`R:${spicyDisplayName(rightSpicy!)}`);
-      lines.push(`  Spicy: ${parts.join(' ')}`);
+      lines.push(`Spicy : ${parts.join(' ')}`);
     }
   }
   
   // Free Toppings (Add:) - wrap properly
   if (customization.freeToppings?.length > 0) {
-    const addPrefix = 'Add: ';
+    const addPrefix = 'Add : ';
     const toppings = customization.freeToppings.join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, addPrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
@@ -284,22 +288,22 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
       const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
       return `${t.name}${sideInfo}`;
     });
-    const addPrefix = 'Add: ';
+    const addPrefix = 'Add : ';
     const toppings = extraList.join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, addPrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, addPrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
   // Default Toppings Removed - wrap properly with Remove: prefix
   const removedToppings = customization.defaultToppings?.filter((t: any) => t.quantity === 'none');
   if (removedToppings?.length > 0) {
-    const removePrefix = 'Remove: ';
+    const removePrefix = 'Remove : ';
     const toppings = removedToppings.map((t: any) => t.name).join(', ');
-    const wrappedLines = wrapTextForReceipt(toppings, maxWidth - 2, removePrefix);
+    const wrappedLines = wrapTextForReceipt(toppings, maxWidth, removePrefix);
     for (const line of wrappedLines) {
-      lines.push('  ' + line);
+      lines.push(line);
     }
   }
   
@@ -310,13 +314,13 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
   if (modifiedDefaults?.length > 0) {
     modifiedDefaults.forEach((t: any) => {
       const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
-      lines.push(`  ${t.quantity} ${t.name}${sideInfo}`);
+      lines.push(`${t.quantity} ${t.name}${sideInfo}`);
     });
   }
   
   // Note - only show if present
   if (customization.note) {
-    lines.push(`  Note: ${customization.note}`);
+    lines.push(`Note : ${customization.note}`);
   }
   
   return lines;
@@ -398,11 +402,8 @@ export const buildCustomerReceipt = (order: {
   };
 
   let receipt = INIT;
-  
-  // Apply high quality print settings for sharper output
-  receipt += ESCPOS.HIGH_QUALITY;
-  receipt += ESCPOS.CHAR_SPACING;
-  receipt += ESCPOS.LINE_SPACING;
+  // Intentionally do not force print-area width/spacing here.
+  // Different 80mm printers interpret those commands differently and it can cause “half width” output.
   
   // ===== HEADER (centered) =====
   receipt += ALIGN_CENTER;
@@ -629,8 +630,9 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
   return lines;
 };
 
-// Helper to wrap text with a prefix on first line, indent continuation lines
-const wrapTextForReceipt = (text: string, maxWidth: number, prefix: string): string[] => {
+// Helper to wrap text with a prefix on first line
+// (Reference receipts use NO indent on continuation lines)
+const wrapTextForReceipt = (text: string, maxWidth: number, prefix: string, continuationPrefix: string = ''): string[] => {
   const words = text.split(', ');
   const lines: string[] = [];
   let currentLine = prefix;
@@ -645,7 +647,7 @@ const wrapTextForReceipt = (text: string, maxWidth: number, prefix: string): str
       currentLine += separator + word;
     } else {
       lines.push(currentLine);
-      currentLine = '  ' + word; // Indent continuation lines
+      currentLine = continuationPrefix + word;
     }
   }
   if (currentLine.length > 0 && currentLine !== prefix) {
