@@ -418,7 +418,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             onChange={(e) => setCustomerName(e.target.value)}
             className="h-10 text-base w-40"
           />
-          <div className="relative">
+          <div className="relative z-[100]">
             <Input
               ref={phoneInputRef}
               placeholder="Phone number"
@@ -437,12 +437,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             
             {/* Order History Dropdown */}
             {showOrderHistory && (
-              <POSOrderHistoryDropdown
-                orders={orderHistory}
-                isSearching={isSearching}
-                onSelectOrder={handleSelectPastOrder}
-                onClose={() => setShowOrderHistory(false)}
-              />
+              <div className="absolute top-full left-0 mt-1">
+                <POSOrderHistoryDropdown
+                  orders={orderHistory}
+                  isSearching={isSearching}
+                  onSelectOrder={handleSelectPastOrder}
+                  onClose={() => setShowOrderHistory(false)}
+                />
+              </div>
             )}
           </div>
           
