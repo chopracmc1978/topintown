@@ -35,7 +35,7 @@ export const ESCPOS = {
 // Build ESC/POS kitchen ticket
 export const buildKitchenTicket = (order: {
   id: string;
-  createdAt: Date | string;
+  createdAt: Date;
   orderType: string;
   tableNumber?: string;
   pickupTime?: string;
@@ -44,154 +44,166 @@ export const buildKitchenTicket = (order: {
   items: Array<{
     quantity: number;
     name: string;
+    totalPrice?: number;
     selectedSize?: string;
     pizzaCustomization?: any;
     wingsCustomization?: any;
+    comboCustomization?: any;
   }>;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  paymentStatus?: string;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
-  const RECEIPT_WIDTH = 32;
+  const { INIT, CUT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, LINE } = ESCPOS;
   
-  const formatTime = (date: Date | string) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  const formatDateOnly = (date: Date | string) => {
-    const d = new Date(date);
-    const month = d.toLocaleDateString('en-US', { month: 'short' });
-    const day = d.getDate().toString().padStart(2, '0');
-    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const year = d.getFullYear();
-    return `${month} ${day} - ${weekday} - ${year}`;
-  };
-
-  const formatPickupDateTime = (date: Date | string) => {
-    const d = new Date(date);
-    const month = d.toLocaleDateString('en-US', { month: 'short' });
-    const day = d.getDate().toString().padStart(2, '0');
-    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const year = d.getFullYear();
-    const time = d.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    return { date: `${month} ${day} ${weekday} ${year}`, time };
-  };
-
   let receipt = INIT;
   
-  // ===== HEADER: KITCHEN ORDER (centered, bold, one line) =====
+  // Extra space on top (5 blank lines)
+  receipt += LF + LF + LF + LF + LF;
+  
+  // Header - centered
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
-  receipt += LF; // Light gap after header
+  receipt += BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + LF;
+  receipt += LF;
   
-  // ===== ORDER INFO SECTION (each on its own line) =====
+  // Order info - label left, value right on same line using spaces
+  const formatLabelValue = (label: string, value: string): string => {
+    const totalWidth = 32;
+    const labelWithColon = label + ' :';
+    const spaces = totalWidth - labelWithColon.length - value.length;
+    return labelWithColon + ' '.repeat(Math.max(1, spaces)) + value;
+  };
+  
   receipt += ALIGN_LEFT;
+  receipt += BOLD_ON + formatLabelValue('Order No', order.id) + BOLD_OFF + LF;
   
-  // Order No - one line
-  receipt += BOLD_ON + `Order No: ${order.id}` + BOLD_OFF + LF;
+  // Format date
+  const date = new Date(order.createdAt);
+  const dateStr = date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    weekday: 'short',
+    year: 'numeric'
+  });
+  receipt += BOLD_ON + formatLabelValue('Date', dateStr) + BOLD_OFF + LF;
   
-  // Date - one line
-  receipt += `Date: ${formatDateOnly(order.createdAt)}` + LF;
+  // Format time
+  const timeStr = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  receipt += BOLD_ON + formatLabelValue('Time', timeStr) + BOLD_OFF + LF;
   
-  // Time - one line
-  receipt += `Time: ${formatTime(order.createdAt)}` + LF;
+  // Order type
+  const typeStr = order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1);
+  receipt += BOLD_ON + formatLabelValue('Type', typeStr) + BOLD_OFF + LF;
   
-  // Type - one line
-  receipt += BOLD_ON + `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}` + BOLD_OFF + LF;
-  
-  // For advance orders, show scheduled pickup date/time
-  if (order.pickupTime) {
-    const pickup = formatPickupDateTime(order.pickupTime);
-    receipt += BOLD_ON + `Pickup: ${pickup.date}` + BOLD_OFF + LF;
-    receipt += BOLD_ON + `Time: ${pickup.time}` + BOLD_OFF + LF;
+  // Table number if present
+  if (order.tableNumber) {
+    receipt += BOLD_ON + formatLabelValue('Table', order.tableNumber) + BOLD_OFF + LF;
   }
   
-  if (order.tableNumber) {
-    receipt += `Table: ${order.tableNumber}` + LF;
+  // Pickup time if present
+  if (order.pickupTime) {
+    const pickupDate = new Date(order.pickupTime);
+    const pickupTimeStr = pickupDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    receipt += BOLD_ON + formatLabelValue('Pickup', pickupTimeStr) + BOLD_OFF + LF;
   }
   
   receipt += LINE + LF;
-  receipt += LF; // Gap after line
   
-  // ===== ITEMS SECTION =====
+  // Items
   for (const item of order.items) {
-    // Item name - bold, one line (use normal size to fit)
-    receipt += BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + LF;
+    // Item name with quantity and price on same line
+    const itemName = `${item.quantity}X ${item.name.toUpperCase()}`;
+    const priceStr = item.totalPrice ? `$${item.totalPrice.toFixed(2)}` : '';
+    const itemSpaces = 32 - itemName.length - priceStr.length;
     
-    // Show size for non-pizza items (excluding combos) - left aligned
-    if (item.selectedSize && !item.pizzaCustomization && !(item as any).comboCustomization) {
-      receipt += `  ${item.selectedSize}` + LF;
+    receipt += BOLD_ON + itemName + BOLD_OFF;
+    if (priceStr) {
+      receipt += ' '.repeat(Math.max(1, itemSpaces)) + priceStr;
     }
+    receipt += LF;
     
-    // Pizza customization details (for standalone pizzas)
-    if (item.pizzaCustomization && !(item as any).comboCustomization) {
-      const details = formatPizzaDetailsForKitchen(item.pizzaCustomization, RECEIPT_WIDTH);
-      for (const detail of details) {
-        receipt += detail + LF;
+    // Pizza customization details
+    if (item.pizzaCustomization) {
+      const details = formatPizzaDetailsForKitchen(item.pizzaCustomization, 32);
+      for (const line of details) {
+        receipt += line + LF;
       }
     }
     
-    // Combo customization details - show each selection with full details
-    if ((item as any).comboCustomization) {
-      const combo = (item as any).comboCustomization;
-      for (const selection of (combo.selections || [])) {
-        // Print each combo item with item type indication
-        let selectionLine = `  - ${selection.itemName}`;
-        if (selection.flavor) {
-          selectionLine += ` (${selection.flavor})`;
-        }
-        receipt += selectionLine + LF;
-        
-        // If this combo selection has pizza customization, print the details
+    // Wings customization
+    if (item.wingsCustomization?.flavor) {
+      receipt += `Flavor: ${item.wingsCustomization.flavor}` + LF;
+    }
+    
+    // Combo customization
+    if (item.comboCustomization?.selections) {
+      for (const selection of item.comboCustomization.selections) {
+        receipt += `  - ${selection.itemName}` + LF;
         if (selection.pizzaCustomization) {
-          const pizzaDetails = formatPizzaDetailsForKitchen(selection.pizzaCustomization, RECEIPT_WIDTH);
-          for (const detail of pizzaDetails) {
-            receipt += '  ' + detail + LF;
+          const comboDetails = formatPizzaDetailsForKitchen(selection.pizzaCustomization, 32);
+          for (const line of comboDetails) {
+            receipt += '    ' + line + LF;
           }
         }
+        if (selection.flavor) {
+          receipt += `    Flavor: ${selection.flavor}` + LF;
+        }
       }
     }
     
-    // Wings/chicken customization - show flavor if selected (for standalone items)
-    if (item.wingsCustomization?.flavor && !(item as any).comboCustomization) {
-      receipt += `  ${item.wingsCustomization.flavor}` + LF;
-    }
-    
-    // Generic sauce selection (for items with sauce groups like dipping sauces)
-    if ((item as any).selectedSauces?.length > 0) {
-      receipt += `  ${(item as any).selectedSauces.join(', ')}` + LF;
-    }
-    
-    // Any custom notes on the item
-    if ((item as any).itemNote) {
-      receipt += `  Note: ${(item as any).itemNote}` + LF;
+    // Size if no pizza customization
+    if (item.selectedSize && !item.pizzaCustomization) {
+      receipt += item.selectedSize + LF;
     }
     
     receipt += LF; // Gap between items
   }
   
-  // Notes
+  // Order notes
   if (order.notes) {
-    receipt += LINE + LF;
-    receipt += BOLD_ON + 'ORDER NOTE:' + BOLD_OFF + LF;
-    receipt += order.notes + LF;
+    receipt += 'NOTE: ' + order.notes + LF;
+    receipt += LF;
   }
   
-  // ===== CUSTOMER SECTION (one line) =====
-  if (order.customerName) {
-    receipt += LINE + LF;
-    receipt += LF; // Gap before customer
+  receipt += LINE + LF;
+  
+  // Totals section (if provided)
+  if (order.subtotal !== undefined) {
+    const formatTotal = (label: string, amount: number): string => {
+      const amountStr = `$${amount.toFixed(2)}`;
+      const spaces = 32 - label.length - amountStr.length;
+      return BOLD_ON + label + BOLD_OFF + ' '.repeat(Math.max(1, spaces)) + amountStr;
+    };
+    
+    receipt += formatTotal('Subtotal :', order.subtotal) + LF;
+    receipt += formatTotal('GST (5%) :', order.tax || 0) + LF;
+    receipt += formatTotal('TOTAL :', order.total || 0) + LF;
+    
+    receipt += LF + LINE + LF;
+    
+    // Payment status
     receipt += ALIGN_CENTER;
-    receipt += BOLD_ON + `Customer: ${order.customerName}` + BOLD_OFF + LF;
+    const paymentStatus = order.paymentStatus === 'paid' ? 'PAID' : 'PAYMENT DUE';
+    receipt += BOLD_ON + paymentStatus + BOLD_OFF + LF;
   }
   
-  receipt += FEED_LINES(3);
+  // Customer name at end
+  if (order.customerName) {
+    receipt += LF;
+    receipt += ALIGN_CENTER;
+    receipt += 'Customer: ' + order.customerName + LF;
+  }
+  
+  receipt += LF + LF + LF;
   receipt += CUT;
   
   return receipt;
