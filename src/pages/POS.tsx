@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -66,7 +66,7 @@ const POS = () => {
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
   
   // Print receipts hook
-  const { printKitchenTicket, printCustomerReceipt } = usePrintReceipts(currentLocationId);
+  const { printKitchenTicket, printCustomerReceipt, openTill, hasPrinters } = usePrintReceipts(currentLocationId);
   
   // POS Session management
   const { 
@@ -326,6 +326,18 @@ const POS = () => {
             <Plus className="w-5 h-5 mr-2" />
             New Order
           </Button>
+
+          {hasPrinters && (
+            <Button 
+              variant="outline"
+              onClick={() => openTill()}
+              className="text-base px-4 py-3 h-auto border-green-300 text-green-700 hover:bg-green-50"
+              title="Open Cash Drawer"
+            >
+              <DollarSign className="w-5 h-5 mr-2" />
+              Till
+            </Button>
+          )}
 
           <Button
             variant="outline"

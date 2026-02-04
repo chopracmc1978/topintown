@@ -261,3 +261,21 @@ If you see this, printing works!
   
   return sendToPrinterDirect(printer, testData);
 };
+
+/**
+ * Open cash drawer via ESC/POS command
+ * Standard command: ESC p m t1 t2
+ * - ESC p (1B 70) = cash drawer kick
+ * - m = pin (0 or 1)
+ * - t1, t2 = pulse timing
+ */
+export const openCashDrawer = async (
+  printer: PrinterConfig
+): Promise<{ success: boolean; error?: string }> => {
+  // ESC/POS cash drawer kick command
+  // Pin 2 (drawer 1): \x1B\x70\x00\x19\xFA
+  // Pin 5 (drawer 2): \x1B\x70\x01\x19\xFA
+  const drawerCommand = '\x1B\x70\x00\x19\xFA';
+  
+  return sendToPrinterDirect(printer, drawerCommand);
+};
