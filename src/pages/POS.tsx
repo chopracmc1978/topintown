@@ -271,16 +271,16 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring">
-      {/* Main POS container with rounded corners */}
-      <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm">
+    <div className="h-screen w-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring" style={{ minHeight: '100vh', minWidth: '100vw' }}>
+      {/* Main POS container with rounded corners - full viewport */}
+      <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm w-full h-full">
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
-        "border-b border-border py-3 px-5 flex-shrink-0 shadow-sm transition-colors",
+        "border-b border-border py-2 px-3 flex-shrink-0 shadow-sm transition-colors",
         hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : "bg-white"
       )}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => {
                 // Reset to home state - close all modals/panels
@@ -291,26 +291,26 @@ const POS = () => {
                 setShowReports(false);
                 setActiveTab('all');
               }}
-              className="font-serif text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer outline-none focus:outline-none"
+              className="font-serif text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer outline-none focus:outline-none whitespace-nowrap"
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
             </button>
             {hasPendingRemoteOrders && (
-              <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full animate-bounce">
-                <Bell className="w-5 h-5" />
-                <span className="font-semibold text-base">{pendingCount} New Online Order{pendingCount > 1 ? 's' : ''}!</span>
+              <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
+                <Bell className="w-4 h-4" />
+                <span className="font-semibold">{pendingCount} New!</span>
               </div>
             )}
           </div>
           
-          {/* Status Tabs - Larger for tablet touch */}
-          <div className="flex gap-2 flex-1">
+          {/* Status Tabs - Flexible sizing */}
+          <div className="flex gap-1 flex-1 justify-center">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-3 rounded-lg text-base font-medium transition-colors",
+                  "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   "outline-none focus:outline-none focus-visible:outline-none",
                   "border-none focus:ring-0 focus-visible:ring-0",
                   "[&:focus]:outline-none [&:active]:outline-none",
@@ -319,10 +319,10 @@ const POS = () => {
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className="w-4 h-4" />
                 {tab.label}
                 <span className={cn(
-                  "text-sm px-2 py-1 rounded-full min-w-[24px] text-center",
+                  "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
                   activeTab === tab.id
                     ? "bg-primary-foreground text-primary"
                     : "bg-background"
@@ -333,83 +333,85 @@ const POS = () => {
             ))}
           </div>
 
-          <Button 
-            onClick={() => {
-              setShowNewOrder(true);
-              setSelectedOrderId(null);
-            }}
-            className="text-base px-5 py-3 h-auto"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            New Order
-          </Button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button 
+              onClick={() => {
+                setShowNewOrder(true);
+                setSelectedOrderId(null);
+              }}
+              className="text-sm px-3 py-2 h-auto"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              New Order
+            </Button>
 
-          <Button 
-            variant="outline"
-            onClick={() => {
-              if (hasPrinters) {
-                openTill();
-              } else {
-                toast.info('No printers configured. Add a printer in Settings to use Till.');
-              }
-            }}
-            className="text-base px-4 py-3 h-auto border-green-300 text-green-700 hover:bg-green-50"
-            title="Open Cash Drawer"
-          >
-            <DollarSign className="w-5 h-5 mr-2" />
-            Till
-          </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                if (hasPrinters) {
+                  openTill();
+                } else {
+                  toast.info('No printers configured. Add a printer in Settings to use Till.');
+                }
+              }}
+              className="text-sm px-2 py-2 h-auto border-green-300 text-green-700 hover:bg-green-50"
+              title="Open Cash Drawer"
+            >
+              <DollarSign className="w-4 h-4 mr-1" />
+              Till
+            </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setShowEndDay(true)}
-            className="text-orange-600 border-orange-300 hover:bg-orange-50 text-base px-4 py-3 h-auto"
-          >
-            <CalendarClock className="w-5 h-5 mr-2" />
-            End Day
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowEndDay(true)}
+              className="text-orange-600 border-orange-300 hover:bg-orange-50 text-sm px-2 py-2 h-auto"
+            >
+              <CalendarClock className="w-4 h-4 mr-1" />
+              End Day
+            </Button>
 
-          <Button 
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            title="Settings"
-            className="h-12 w-12"
-          >
-            <Settings className="w-6 h-6" />
-          </Button>
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
+              className="h-10 w-10"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
 
-          <Button 
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              localStorage.removeItem('pos_location_id');
-              signOut();
-            }}
-            className="text-muted-foreground hover:text-foreground h-12 w-12"
-          >
-            <LogOut className="w-5 h-5" />
-          </Button>
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                localStorage.removeItem('pos_location_id');
+                signOut();
+              }}
+              className="text-muted-foreground hover:text-foreground h-10 w-10"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Order List - Narrower to give more space for menu */}
-        <div className="w-72 border-r border-border flex flex-col bg-secondary/20">
-          <ScrollArea className="flex-1 p-4">
+      {/* Main Content - Full remaining height */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Left Panel - Order List - Percentage based width */}
+        <div className="w-[18%] min-w-[200px] max-w-[280px] border-r border-border flex flex-col bg-secondary/20">
+          <ScrollArea className="flex-1 p-2">
             {loading ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin" />
-                <p className="text-lg">Loading orders...</p>
+              <div className="text-center py-8 text-muted-foreground">
+                <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
+                <p className="text-sm">Loading orders...</p>
               </div>
             ) : filteredOrders.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No orders</p>
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No orders</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {filteredOrders.map(order => (
                   <POSOrderCard
                     key={order.id}
@@ -426,8 +428,8 @@ const POS = () => {
           </ScrollArea>
         </div>
 
-        {/* Right Panel - Detail, Edit, or New Order */}
-        <div className="flex-1 p-4 overflow-auto">
+        {/* Right Panel - Detail, Edit, or New Order - Fill remaining space */}
+        <div className="flex-1 p-3 overflow-auto min-h-0">
           {editingOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
@@ -456,8 +458,8 @@ const POS = () => {
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">
               <div className="text-center">
-                <Package className="w-20 h-20 mx-auto mb-6 opacity-50" />
-                <p className="text-xl">Select an order or create a new one</p>
+                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Select an order or create a new one</p>
               </div>
             </div>
           )}
