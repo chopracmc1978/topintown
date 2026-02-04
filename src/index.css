@@ -326,10 +326,45 @@
   /* Ensure proper color rendering */
   -webkit-filter: none;
   filter: none;
+  /* Force crisp pixel rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
-/* Ensure all POS text is sharp */
+/* Ensure all POS text is sharp and crisp */
 .pos-no-focus-ring * {
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  font-smooth: always;
+  /* Prevent subpixel antialiasing issues */
+  -webkit-text-stroke: 0;
+}
+
+/* POS High-DPI text optimization */
+.pos-hd-text {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  font-smooth: always;
+  /* Force sharp edges on text */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Improve contrast on Android WebView */
+  font-synthesis: none;
+  font-kerning: normal;
+}
+
+/* Force sharp borders and shadows in POS */
+.pos-no-focus-ring .border,
+.pos-no-focus-ring [class*="border"] {
+  border-style: solid;
+  border-width: 1px;
+}
+
+/* Ensure buttons have crisp edges */
+.pos-no-focus-ring button,
+.pos-no-focus-ring [role="button"] {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }

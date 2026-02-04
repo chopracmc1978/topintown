@@ -271,7 +271,7 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring" style={{ minHeight: '100vh', minWidth: '100vw' }}>
+    <div className="h-screen w-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring pos-hd-text" style={{ minHeight: '100vh', minWidth: '100vw' }}>
       {/* Main POS container with rounded corners - full viewport */}
       <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm w-full h-full">
       {/* Header - Tablet optimized with larger touch targets */}
