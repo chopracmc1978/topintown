@@ -418,20 +418,26 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // ===== ORDER INFO SECTION (left aligned, label : value format) =====
+  // ===== ORDER INFO SECTION (bold label, regular value, right-aligned) =====
   receipt += ALIGN_LEFT;
   
-  // Order No - bold label with value right-aligned
-  receipt += BOLD_ON + formatLine('Order No :', order.id) + BOLD_OFF + LF;
+  // Helper to format label:value with bold label only
+  const formatLabelValue = (label: string, value: string): string => {
+    const labelPart = BOLD_ON + label + BOLD_OFF;
+    const padding = RECEIPT_WIDTH - label.length - value.length;
+    return labelPart + ' '.repeat(Math.max(1, padding)) + value;
+  };
+  
+  // Order No - bold label, regular value right-aligned
+  receipt += formatLabelValue('Order No :', order.id) + LF;
   
   // Date - format: Feb 4 Wed 2026
-  receipt += formatLine('Date :', formatDateShort(order.createdAt)) + LF;
+  receipt += formatLabelValue('Date :', formatDateShort(order.createdAt)) + LF;
   
   // Time
-  receipt += formatLine('Time :', formatTime(order.createdAt)) + LF;
+  receipt += formatLabelValue('Time :', formatTime(order.createdAt)) + LF;
   
   receipt += LINE + LF;
-  receipt += LF; // Gap after line
   
   // ===== ITEMS SECTION =====
   for (const item of order.items) {
