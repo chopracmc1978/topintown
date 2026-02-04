@@ -418,24 +418,25 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // ===== ORDER INFO SECTION (bold label, regular value, right-aligned) =====
+  // ===== ORDER INFO SECTION (bold label fixed width, value left-aligned at column 14) =====
   receipt += ALIGN_LEFT;
   
-  // Helper to format label:value with bold label only
-  const formatLabelValue = (label: string, value: string): string => {
-    const labelPart = BOLD_ON + label + BOLD_OFF;
-    const padding = RECEIPT_WIDTH - label.length - value.length;
-    return labelPart + ' '.repeat(Math.max(1, padding)) + value;
+  // Helper to format label:value with bold label at fixed column (like reference image)
+  // Label is padded to fixed width, value starts at same column for all rows
+  const LABEL_WIDTH = 14; // Fixed column where values start
+  const formatOrderInfo = (label: string, value: string): string => {
+    const paddedLabel = label.padEnd(LABEL_WIDTH, ' ');
+    return BOLD_ON + paddedLabel + BOLD_OFF + value;
   };
   
-  // Order No - bold label, regular value right-aligned
-  receipt += formatLabelValue('Order No :', order.id) + LF;
+  // Order No - bold label at fixed column, value left-aligned after
+  receipt += formatOrderInfo('Order No :', order.id) + LF;
   
   // Date - format: Feb 4 Wed 2026
-  receipt += formatLabelValue('Date :', formatDateShort(order.createdAt)) + LF;
+  receipt += formatOrderInfo('Date :', formatDateShort(order.createdAt)) + LF;
   
   // Time
-  receipt += formatLabelValue('Time :', formatTime(order.createdAt)) + LF;
+  receipt += formatOrderInfo('Time :', formatTime(order.createdAt)) + LF;
   
   receipt += LINE + LF;
   
