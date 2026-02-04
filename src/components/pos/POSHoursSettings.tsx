@@ -42,11 +42,13 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
           <div 
             key={dayHours.id} 
             className={cn(
-              "flex items-center gap-4 p-4 rounded-lg border transition-colors",
-              dayHours.is_open 
-                ? "bg-card border-border" 
-                : "bg-secondary/50 border-secondary"
+              "flex items-center gap-4 p-4 rounded-lg border transition-colors"
             )}
+            style={
+              dayHours.is_open
+                ? { backgroundColor: 'hsl(0, 0%, 100%)', borderColor: 'hsla(240, 5%, 10%, 0.12)' }
+                : { backgroundColor: 'hsl(0, 0%, 98%)', borderColor: 'hsla(240, 5%, 10%, 0.08)' }
+            }
           >
             {/* Day Name */}
             <div className="w-28 font-medium">
@@ -101,7 +103,10 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
         ))}
       </div>
 
-      <div className="text-xs text-muted-foreground mt-4 p-3 bg-secondary/30 rounded-lg">
+      <div
+        className="text-xs text-muted-foreground mt-4 p-3 rounded-lg"
+        style={{ backgroundColor: 'hsl(0, 0%, 98%)' }}
+      >
         <strong>Note:</strong> All times are in Mountain Time (MST/MDT). Changes are saved automatically.
       </div>
     </div>
