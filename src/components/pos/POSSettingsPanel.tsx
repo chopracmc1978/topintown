@@ -1,10 +1,11 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { POSHoursSettings } from './POSHoursSettings';
 import { POSPrinterSettings } from './POSPrinterSettings';
+import { POSReceiptSettings } from './POSReceiptSettings';
 import { POSOrderHistory } from './POSOrderHistory';
 import { POSReportsPanel } from './POSReportsPanel';
 
@@ -47,6 +48,13 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                   Printers
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="receipts" 
+                  className="data-[state=active]:bg-primary/10 gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Receipts
+                </TabsTrigger>
+                <TabsTrigger
                   value="history" 
                   className="data-[state=active]:bg-primary/10 gap-2"
                 >
@@ -76,6 +84,10 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
 
             <TabsContent value="printers" className="p-4 mt-0">
               <POSPrinterSettings locationId={locationId} />
+            </TabsContent>
+
+            <TabsContent value="receipts" className="p-4 mt-0">
+              <POSReceiptSettings locationId={locationId} />
             </TabsContent>
 
             <TabsContent value="history" className="p-4 mt-0">
