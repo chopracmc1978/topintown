@@ -1,6 +1,12 @@
 // Polyfill AbortController for older Android WebViews (pre-Chrome 66)
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
 
+// Polyfill ResizeObserver for older Android WebViews (pre-Chrome 64)
+import ResizeObserver from 'resize-observer-polyfill';
+if (typeof window !== 'undefined' && !window.ResizeObserver) {
+  window.ResizeObserver = ResizeObserver;
+}
+
 import { Capacitor } from "@capacitor/core";
 import { createRoot } from "react-dom/client";
 import "./index.css";
