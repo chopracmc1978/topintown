@@ -280,11 +280,7 @@ const POS = () => {
       )}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Top In Town Pizza" className="w-12 h-12 object-contain" />
-            <div className="flex items-center gap-1.5">
-              <MapPin className="w-5 h-5 text-primary" />
-              <h1 className="font-serif text-xl font-bold text-foreground">{LOCATION_NAMES[currentLocationId] || currentLocationId}</h1>
-            </div>
+            <h1 className="font-serif text-xl font-bold text-foreground">{LOCATION_NAMES[currentLocationId] || currentLocationId}</h1>
             {hasPendingRemoteOrders && (
               <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full animate-bounce">
                 <Bell className="w-5 h-5" />
