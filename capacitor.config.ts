@@ -17,6 +17,11 @@ const config: CapacitorConfig = {
   appId: 'com.topintown.pos',
   appName: 'topintown',
   webDir: 'dist',
+  android: {
+    // Force native WebView to render at device's native resolution (HD)
+    webContentsDebuggingEnabled: false,
+    allowMixedContent: true,
+  },
   server: serverUrl
     ? {
         url: serverUrl,
