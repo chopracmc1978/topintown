@@ -3,7 +3,7 @@ import { Order } from '@/types/menu';
 import { toast } from 'sonner';
 import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
 import { LOCATIONS } from '@/contexts/LocationContext';
-import { getPrintServerUrl, savePrintServerUrl } from '@/utils/printServer';
+import { sendToPrinterDirect, isNativePlatform } from '@/utils/directPrint';
 
 export const usePrintReceipts = (locationId: string) => {
   const { printers } = usePrinters(locationId);
@@ -15,38 +15,23 @@ export const usePrintReceipts = (locationId: string) => {
 
   const sendToPrinter = async (printer: Printer, data: string): Promise<boolean> => {
     try {
-      console.log(`Sending print job to ${printer.name} (${printer.ip_address})`);
+      console.log(`Sending print job to ${printer.name} (${printer.ip_address}:${printer.port})`);
 
-      const printServerUrl = getPrintServerUrl();
-      
-      // Try to send to local print server
-      const response = await fetch(`${printServerUrl}/print`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          printer_ip: printer.ip_address,
-          port: 9100,
-          data: data,
-          auto_cut: printer.auto_cut,
-        }),
-      });
+      // Use direct TCP printing for native apps
+      const result = await sendToPrinterDirect(
+        { ip: printer.ip_address, port: printer.port, name: printer.name },
+        data
+      );
 
-      if (!response.ok) {
-        throw new Error(`Print server error: ${response.statusText}`);
+      if (result.success) {
+        console.log(`Print job sent successfully to ${printer.name}`);
+        return true;
+      } else {
+        console.error(`Print failed: ${result.error}`);
+        return false;
       }
-
-      console.log(`Print job sent successfully to ${printer.name}`);
-      return true;
     } catch (error) {
       console.error(`Failed to print to ${printer.name}:`, error);
-      
-      // Check if it's a network error (print server not running)
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        console.error('Print server not reachable. Make sure the print server is running.');
-      }
-      
       return false;
     }
   };
@@ -127,6 +112,12 @@ export const usePrintReceipts = (locationId: string) => {
       return false;
     }
 
+    // Check if we're in native environment
+    if (!isNativePlatform()) {
+      toast.error('Printing only available in the native app');
+      return false;
+    }
+
     // Show loading toast
     const loadingToast = toast.loading('Sending to printer...');
 
@@ -148,19 +139,15 @@ export const usePrintReceipts = (locationId: string) => {
         toast.success('Printed: Customer Receipt');
         return true;
       } else {
-        toast.error('Print failed. Check if print server is running.');
+        toast.error('Print failed. Check printer connection.');
         return false;
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error('Print failed. Check print server connection.');
+      toast.error('Print failed. Check printer connection.');
       console.error('Print error:', error);
       return false;
     }
-  };
-
-  const setPrintServerUrl = (url: string) => {
-    savePrintServerUrl(url);
   };
 
   return {
@@ -170,7 +157,6 @@ export const usePrintReceipts = (locationId: string) => {
     printKitchenTicket,
     printCustomerReceipt,
     printBothReceipts,
-    setPrintServerUrl,
-    printServerUrl: getPrintServerUrl(),
+    isNativePlatform: isNativePlatform(),
   };
 };

@@ -885,6 +885,7 @@ export type Database = {
           location_id: string
           name: string
           paper_width: number
+          port: number
           station: string
           updated_at: string
         }
@@ -897,6 +898,7 @@ export type Database = {
           location_id: string
           name: string
           paper_width?: number
+          port?: number
           station?: string
           updated_at?: string
         }
@@ -909,6 +911,7 @@ export type Database = {
           location_id?: string
           name?: string
           paper_width?: number
+          port?: number
           station?: string
           updated_at?: string
         }
