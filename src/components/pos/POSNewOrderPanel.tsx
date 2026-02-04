@@ -418,7 +418,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             onChange={(e) => setCustomerName(e.target.value)}
             className="h-10 text-base w-40"
           />
-          <div className="relative z-[100]">
+          <div className="relative z-10">
             <Input
               ref={phoneInputRef}
               placeholder="Phone number"
