@@ -49,7 +49,7 @@ export const buildKitchenTicket = (order: {
     wingsCustomization?: any;
   }>;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
   
   const formatTime = (date: Date | string) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -84,46 +84,54 @@ export const buildKitchenTicket = (order: {
 
   let receipt = INIT;
   
-  // Header - Line 1: KITCHEN ORDER (double height only, not double width - fits on one line)
+  // ===== HEADER: KITCHEN ORDER (double size, bold, centered) =====
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after header
   
-  // Line 2: Order No
+  // ===== ORDER INFO SECTION (double height for larger text) =====
   receipt += ALIGN_LEFT;
-  receipt += `Order No: ${order.id}${LF}`;
   
-  // Line 3: Date and Time
-  receipt += `Date: ${formatDateFull(order.createdAt)}, Time: ${formatTime(order.createdAt)}${LF}`;
+  // Order No - double height, bold
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Order No: ${order.id}` + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after order no
   
-  // Line 4: Type
-  receipt += `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
+  // Date and Time - double height
+  receipt += DOUBLE_HEIGHT_ON + `Date: ${formatDateFull(order.createdAt)}, Time: ${formatTime(order.createdAt)}` + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after date
   
-  // Line 5: For advance orders, show scheduled pickup date/time
+  // Type - double height, bold
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}` + BOLD_OFF + NORMAL_SIZE + LF;
+  
+  // For advance orders, show scheduled pickup date/time
   if (order.pickupTime) {
     const pickup = formatPickupDateTime(order.pickupTime);
-    receipt += BOLD_ON + `Pickup: ${pickup.date} Time: ${pickup.time}` + BOLD_OFF + LF;
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Pickup: ${pickup.date} Time: ${pickup.time}` + BOLD_OFF + NORMAL_SIZE + LF;
   }
   
   if (order.tableNumber) {
-    receipt += `Table: ${order.tableNumber}${LF}`;
+    receipt += DOUBLE_HEIGHT_ON + `Table: ${order.tableNumber}` + NORMAL_SIZE + LF;
   }
   
+  receipt += LF; // Gap before line
   receipt += LINE + LF;
+  receipt += LF; // Gap after line
   
-  // Items
+  // ===== ITEMS SECTION =====
   for (const item of order.items) {
-    receipt += BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + LF;
+    // Item name - double size (like header) for prominence
+    receipt += DOUBLE_SIZE_ON + BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + NORMAL_SIZE + LF;
     
     // Show size for non-pizza items (excluding combos)
     if (item.selectedSize && !item.pizzaCustomization && !(item as any).comboCustomization) {
-      receipt += `   ${item.selectedSize}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   ${item.selectedSize}` + NORMAL_SIZE + LF;
     }
     
-    // Pizza customization details (for standalone pizzas)
+    // Pizza customization details (for standalone pizzas) - double height
     if (item.pizzaCustomization && !(item as any).comboCustomization) {
       const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
       for (const detail of details) {
-        receipt += `   ${detail}${LF}`;
+        receipt += DOUBLE_HEIGHT_ON + `   ${detail}` + NORMAL_SIZE + LF;
       }
     }
     
@@ -131,18 +139,18 @@ export const buildKitchenTicket = (order: {
     if ((item as any).comboCustomization) {
       const combo = (item as any).comboCustomization;
       for (const selection of (combo.selections || [])) {
-        // Print each combo item with item type indication
+        // Print each combo item with item type indication - double height
         let selectionLine = `   - ${selection.itemName}`;
         if (selection.flavor) {
           selectionLine += ` (${selection.flavor})`;
         }
-        receipt += selectionLine + LF;
+        receipt += DOUBLE_HEIGHT_ON + selectionLine + NORMAL_SIZE + LF;
         
         // If this combo selection has pizza customization, print the details
         if (selection.pizzaCustomization) {
           const pizzaDetails = formatPizzaDetailsForPrint(selection.pizzaCustomization);
           for (const detail of pizzaDetails) {
-            receipt += `      ${detail}${LF}`;
+            receipt += DOUBLE_HEIGHT_ON + `      ${detail}` + NORMAL_SIZE + LF;
           }
         }
       }
@@ -150,34 +158,36 @@ export const buildKitchenTicket = (order: {
     
     // Wings/chicken customization - show flavor if selected (for standalone items)
     if (item.wingsCustomization?.flavor && !(item as any).comboCustomization) {
-      receipt += `   ${item.wingsCustomization.flavor}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   ${item.wingsCustomization.flavor}` + NORMAL_SIZE + LF;
     }
     
     // Generic sauce selection (for items with sauce groups like dipping sauces)
     if ((item as any).selectedSauces?.length > 0) {
-      receipt += `   ${(item as any).selectedSauces.join(', ')}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   ${(item as any).selectedSauces.join(', ')}` + NORMAL_SIZE + LF;
     }
     
     // Any custom notes on the item
     if ((item as any).itemNote) {
-      receipt += `   Note: ${(item as any).itemNote}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   Note: ${(item as any).itemNote}` + NORMAL_SIZE + LF;
     }
     
-    receipt += LF;
+    receipt += LF; // Gap between items
+    receipt += LF; // Extra gap between items
   }
   
   // Notes
   if (order.notes) {
     receipt += LINE + LF;
-    receipt += BOLD_ON + 'ORDER NOTE:' + BOLD_OFF + LF;
-    receipt += order.notes + LF;
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'ORDER NOTE:' + BOLD_OFF + NORMAL_SIZE + LF;
+    receipt += DOUBLE_HEIGHT_ON + order.notes + NORMAL_SIZE + LF;
   }
   
-  // Customer
+  // ===== CUSTOMER SECTION (double height) =====
   if (order.customerName) {
     receipt += LINE + LF;
+    receipt += LF; // Gap before customer
     receipt += ALIGN_CENTER;
-    receipt += `Customer: ${order.customerName}${LF}`;
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Customer: ${order.customerName}` + BOLD_OFF + NORMAL_SIZE + LF;
   }
   
   receipt += FEED_LINES(3);
