@@ -482,6 +482,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               onChange={(e) => handlePhoneChange(e.target.value)}
               onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
               onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
+              inputMode="tel"
+              type="tel"
               className={cn(
                 "h-10 text-base w-40 pr-8",
                 orderHistory.length > 0 && "border-primary"
