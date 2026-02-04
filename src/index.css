@@ -173,6 +173,9 @@
     /* HD image rendering */
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
+    /* Prevent color washing on Android WebView */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 
   body {
@@ -181,9 +184,12 @@
     /* Ensure sharp rendering on Android tablets */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    /* Subpixel antialiasing for sharper text */
-    -webkit-font-smoothing: subpixel-antialiased;
+    /* Force crisp font rendering on Android */
+    -webkit-font-smoothing: antialiased;
     font-smooth: always;
+    /* Hardware acceleration for better rendering */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 
   /* Force HD rendering on images and icons */
@@ -308,4 +314,22 @@
   box-shadow: none !important;
   ring: none !important;
   border-color: #d1d5db !important;
+}
+
+/* POS Sharp Rendering - Fix washed-out colors on legacy Android WebView */
+.pos-no-focus-ring {
+  /* Force hardware acceleration and sharp rendering */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* Ensure proper color rendering */
+  -webkit-filter: none;
+  filter: none;
+}
+
+/* Ensure all POS text is sharp */
+.pos-no-focus-ring * {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }

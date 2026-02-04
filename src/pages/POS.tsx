@@ -17,6 +17,7 @@ import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
@@ -343,17 +344,21 @@ const POS = () => {
             New Order
           </Button>
 
-          {hasPrinters && (
-            <Button 
-              variant="outline"
-              onClick={() => openTill()}
-              className="text-base px-4 py-3 h-auto border-green-300 text-green-700 hover:bg-green-50"
-              title="Open Cash Drawer"
-            >
-              <DollarSign className="w-5 h-5 mr-2" />
-              Till
-            </Button>
-          )}
+          <Button 
+            variant="outline"
+            onClick={() => {
+              if (hasPrinters) {
+                openTill();
+              } else {
+                toast.info('No printers configured. Add a printer in Settings to use Till.');
+              }
+            }}
+            className="text-base px-4 py-3 h-auto border-green-300 text-green-700 hover:bg-green-50"
+            title="Open Cash Drawer"
+          >
+            <DollarSign className="w-5 h-5 mr-2" />
+            Till
+          </Button>
 
           <Button
             variant="outline"
