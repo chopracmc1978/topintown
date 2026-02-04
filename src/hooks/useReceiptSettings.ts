@@ -8,6 +8,48 @@ export interface ReceiptSettings {
   logo_url: string | null;
   footer_text: string;
   
+  // Custom Header/Footer Text per Location
+  header_line1: string;
+  header_line2: string;
+  header_line3: string;
+  header_address: string;
+  header_phone: string;
+  header_email: string;
+  header_website: string;
+  footer_line1: string;
+  footer_line2: string;
+  footer_line3: string;
+  footer_gst: string;
+  footer_social: string;
+  
+  // Per-field font settings (size 1-4, bold boolean)
+  store_name_size: number;
+  store_name_bold: boolean;
+  store_address_size: number;
+  store_address_bold: boolean;
+  store_phone_size: number;
+  store_phone_bold: boolean;
+  order_id_size: number;
+  order_id_bold: boolean;
+  order_date_size: number;
+  order_date_bold: boolean;
+  order_type_size: number;
+  order_type_bold: boolean;
+  customer_name_size: number;
+  customer_name_bold: boolean;
+  customer_phone_size: number;
+  customer_phone_bold: boolean;
+  item_name_size: number;
+  item_name_bold: boolean;
+  item_details_size: number;
+  item_details_bold: boolean;
+  item_price_size: number;
+  item_price_bold: boolean;
+  totals_size: number;
+  totals_bold: boolean;
+  footer_size: number;
+  footer_bold: boolean;
+  
   // Customer Receipt Header
   customer_header_font_height: number;
   customer_header_font_width: number;
@@ -54,6 +96,48 @@ export const DEFAULT_RECEIPT_SETTINGS: Omit<ReceiptSettings, 'id' | 'created_at'
   location_id: '',
   logo_url: null,
   footer_text: 'Thanks For Ordering!',
+  
+  // Custom Header/Footer Text
+  header_line1: 'TOP IN TOWN PIZZA LTD.',
+  header_line2: '',
+  header_line3: '',
+  header_address: '',
+  header_phone: '',
+  header_email: '',
+  header_website: 'www.topintownpizza.com',
+  footer_line1: 'Thank You!',
+  footer_line2: '',
+  footer_line3: '',
+  footer_gst: '',
+  footer_social: '',
+  
+  // Per-field font settings
+  store_name_size: 2,
+  store_name_bold: true,
+  store_address_size: 1,
+  store_address_bold: false,
+  store_phone_size: 1,
+  store_phone_bold: false,
+  order_id_size: 2,
+  order_id_bold: true,
+  order_date_size: 1,
+  order_date_bold: false,
+  order_type_size: 2,
+  order_type_bold: true,
+  customer_name_size: 2,
+  customer_name_bold: true,
+  customer_phone_size: 1,
+  customer_phone_bold: false,
+  item_name_size: 2,
+  item_name_bold: true,
+  item_details_size: 1,
+  item_details_bold: false,
+  item_price_size: 1,
+  item_price_bold: false,
+  totals_size: 2,
+  totals_bold: true,
+  footer_size: 1,
+  footer_bold: false,
   
   customer_header_font_height: 1,
   customer_header_font_width: 1,
