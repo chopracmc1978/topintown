@@ -4,8 +4,12 @@ export const GS = '\x1D';
 export const LF = '\x0A';
 
 export const ESCPOS = {
-  // Initialize printer
-  INIT: `${ESC}@`,
+  // Initialize printer with high quality settings
+  INIT: `${ESC}@${ESC}t\x00`,  // Init + select character code table (PC437)
+  
+  // Print quality - high density for sharper text
+  HIGH_QUALITY: `${GS}L\x01\x00${GS}W\xA0\x01`,  // Set left margin and print area width
+  PRINT_DENSITY: `${GS}(\x00\x02\x00\x0C\x0F`,  // Max print density for darker text
   
   // Text formatting
   BOLD_ON: `${ESC}E\x01`,
@@ -16,6 +20,10 @@ export const ESCPOS = {
   NORMAL_SIZE: `${GS}!\x00`,
   UNDERLINE_ON: `${ESC}-\x01`,
   UNDERLINE_OFF: `${ESC}-\x00`,
+  
+  // Character spacing for crispness
+  CHAR_SPACING: `${ESC} \x00`,  // No extra character spacing
+  LINE_SPACING: `${ESC}3\x18`,  // 24 dots line spacing for cleaner lines
   
   // Alignment
   ALIGN_LEFT: `${ESC}a\x00`,
@@ -391,6 +399,11 @@ export const buildCustomerReceipt = (order: {
 
   let receipt = INIT;
   
+  // Apply high quality print settings for sharper output
+  receipt += ESCPOS.HIGH_QUALITY;
+  receipt += ESCPOS.CHAR_SPACING;
+  receipt += ESCPOS.LINE_SPACING;
+  
   // ===== HEADER (centered) =====
   receipt += ALIGN_CENTER;
   // Store name - bold, large, single line
@@ -471,25 +484,24 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // ===== TOTALS SECTION (label left with colon, amount right on same line) =====
+  // ===== TOTALS SECTION (label left, amount right ON SAME LINE like reference) =====
   const subtotal = order.subtotal || order.total * 0.95;
   const tax = order.tax || order.total * 0.05;
   
-  receipt += BOLD_ON + 'Subtotal :' + BOLD_OFF + LF;
-  receipt += ALIGN_RIGHT + `$${subtotal.toFixed(2)}` + LF;
-  receipt += ALIGN_LEFT + BOLD_ON + 'GST (5%) :' + BOLD_OFF + LF;
-  receipt += ALIGN_RIGHT + `$${tax.toFixed(2)}` + LF;
-  receipt += ALIGN_LEFT + BOLD_ON + 'TOTAL :' + BOLD_OFF + LF;
-  receipt += ALIGN_RIGHT + `$${order.total.toFixed(2)}` + LF;
-  
   receipt += ALIGN_LEFT;
+  receipt += BOLD_ON + formatLine('Subtotal :', `$${subtotal.toFixed(2)}`) + BOLD_OFF + LF;
+  receipt += BOLD_ON + formatLine('GST (5%) :', `$${tax.toFixed(2)}`) + BOLD_OFF + LF;
+  receipt += BOLD_ON + formatLine('TOTAL :', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
+  
   receipt += LINE + LF;
   
   // ===== PAYMENT STATUS (centered, bold) =====
   receipt += ALIGN_CENTER;
   if (order.paymentStatus === 'paid') {
+    receipt += LF;
     receipt += BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + LF;
   } else {
+    receipt += LF;
     receipt += BOLD_ON + 'PAYMENT DUE' + BOLD_OFF + LF;
   }
   
