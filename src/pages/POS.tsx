@@ -270,7 +270,7 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-muted p-2 overflow-hidden">
+    <div className="h-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring">
       {/* Main POS container with rounded corners */}
       <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm">
       {/* Header - Tablet optimized with larger touch targets */}
@@ -297,6 +297,9 @@ const POS = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "flex items-center gap-2 px-5 py-3 rounded-lg text-base font-medium transition-colors",
+                  "outline-none focus:outline-none focus-visible:outline-none",
+                  "border-none focus:ring-0 focus-visible:ring-0",
+                  "[&:focus]:outline-none [&:active]:outline-none",
                   activeTab === tab.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
