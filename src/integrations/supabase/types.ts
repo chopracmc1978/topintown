@@ -1029,6 +1029,10 @@ export type Database = {
           customer_detail_font_width: number | null
           customer_header_font_height: number | null
           customer_header_font_width: number | null
+          customer_name_bold: boolean | null
+          customer_name_size: number | null
+          customer_phone_bold: boolean | null
+          customer_phone_size: number | null
           customer_show_customer_name: boolean | null
           customer_show_customer_phone: boolean | null
           customer_show_logo: boolean | null
@@ -1042,8 +1046,28 @@ export type Database = {
           customer_show_store_email: boolean | null
           customer_show_store_name: boolean | null
           customer_show_store_phone: boolean | null
+          footer_bold: boolean | null
+          footer_gst: string | null
+          footer_line1: string | null
+          footer_line2: string | null
+          footer_line3: string | null
+          footer_size: number | null
+          footer_social: string | null
           footer_text: string | null
+          header_address: string | null
+          header_email: string | null
+          header_line1: string | null
+          header_line2: string | null
+          header_line3: string | null
+          header_phone: string | null
+          header_website: string | null
           id: string
+          item_details_bold: boolean | null
+          item_details_size: number | null
+          item_name_bold: boolean | null
+          item_name_size: number | null
+          item_price_bold: boolean | null
+          item_price_size: number | null
           kitchen_detail_font_height: number | null
           kitchen_detail_font_width: number | null
           kitchen_header_font_height: number | null
@@ -1059,6 +1083,20 @@ export type Database = {
           kitchen_show_prep_time: boolean | null
           location_id: string
           logo_url: string | null
+          order_date_bold: boolean | null
+          order_date_size: number | null
+          order_id_bold: boolean | null
+          order_id_size: number | null
+          order_type_bold: boolean | null
+          order_type_size: number | null
+          store_address_bold: boolean | null
+          store_address_size: number | null
+          store_name_bold: boolean | null
+          store_name_size: number | null
+          store_phone_bold: boolean | null
+          store_phone_size: number | null
+          totals_bold: boolean | null
+          totals_size: number | null
           updated_at: string
         }
         Insert: {
@@ -1067,6 +1105,10 @@ export type Database = {
           customer_detail_font_width?: number | null
           customer_header_font_height?: number | null
           customer_header_font_width?: number | null
+          customer_name_bold?: boolean | null
+          customer_name_size?: number | null
+          customer_phone_bold?: boolean | null
+          customer_phone_size?: number | null
           customer_show_customer_name?: boolean | null
           customer_show_customer_phone?: boolean | null
           customer_show_logo?: boolean | null
@@ -1080,8 +1122,28 @@ export type Database = {
           customer_show_store_email?: boolean | null
           customer_show_store_name?: boolean | null
           customer_show_store_phone?: boolean | null
+          footer_bold?: boolean | null
+          footer_gst?: string | null
+          footer_line1?: string | null
+          footer_line2?: string | null
+          footer_line3?: string | null
+          footer_size?: number | null
+          footer_social?: string | null
           footer_text?: string | null
+          header_address?: string | null
+          header_email?: string | null
+          header_line1?: string | null
+          header_line2?: string | null
+          header_line3?: string | null
+          header_phone?: string | null
+          header_website?: string | null
           id?: string
+          item_details_bold?: boolean | null
+          item_details_size?: number | null
+          item_name_bold?: boolean | null
+          item_name_size?: number | null
+          item_price_bold?: boolean | null
+          item_price_size?: number | null
           kitchen_detail_font_height?: number | null
           kitchen_detail_font_width?: number | null
           kitchen_header_font_height?: number | null
@@ -1097,6 +1159,20 @@ export type Database = {
           kitchen_show_prep_time?: boolean | null
           location_id: string
           logo_url?: string | null
+          order_date_bold?: boolean | null
+          order_date_size?: number | null
+          order_id_bold?: boolean | null
+          order_id_size?: number | null
+          order_type_bold?: boolean | null
+          order_type_size?: number | null
+          store_address_bold?: boolean | null
+          store_address_size?: number | null
+          store_name_bold?: boolean | null
+          store_name_size?: number | null
+          store_phone_bold?: boolean | null
+          store_phone_size?: number | null
+          totals_bold?: boolean | null
+          totals_size?: number | null
           updated_at?: string
         }
         Update: {
@@ -1105,6 +1181,10 @@ export type Database = {
           customer_detail_font_width?: number | null
           customer_header_font_height?: number | null
           customer_header_font_width?: number | null
+          customer_name_bold?: boolean | null
+          customer_name_size?: number | null
+          customer_phone_bold?: boolean | null
+          customer_phone_size?: number | null
           customer_show_customer_name?: boolean | null
           customer_show_customer_phone?: boolean | null
           customer_show_logo?: boolean | null
@@ -1118,8 +1198,28 @@ export type Database = {
           customer_show_store_email?: boolean | null
           customer_show_store_name?: boolean | null
           customer_show_store_phone?: boolean | null
+          footer_bold?: boolean | null
+          footer_gst?: string | null
+          footer_line1?: string | null
+          footer_line2?: string | null
+          footer_line3?: string | null
+          footer_size?: number | null
+          footer_social?: string | null
           footer_text?: string | null
+          header_address?: string | null
+          header_email?: string | null
+          header_line1?: string | null
+          header_line2?: string | null
+          header_line3?: string | null
+          header_phone?: string | null
+          header_website?: string | null
           id?: string
+          item_details_bold?: boolean | null
+          item_details_size?: number | null
+          item_name_bold?: boolean | null
+          item_name_size?: number | null
+          item_price_bold?: boolean | null
+          item_price_size?: number | null
           kitchen_detail_font_height?: number | null
           kitchen_detail_font_width?: number | null
           kitchen_header_font_height?: number | null
@@ -1135,6 +1235,20 @@ export type Database = {
           kitchen_show_prep_time?: boolean | null
           location_id?: string
           logo_url?: string | null
+          order_date_bold?: boolean | null
+          order_date_size?: number | null
+          order_id_bold?: boolean | null
+          order_id_size?: number | null
+          order_type_bold?: boolean | null
+          order_type_size?: number | null
+          store_address_bold?: boolean | null
+          store_address_size?: number | null
+          store_name_bold?: boolean | null
+          store_name_size?: number | null
+          store_phone_bold?: boolean | null
+          store_phone_size?: number | null
+          totals_bold?: boolean | null
+          totals_size?: number | null
           updated_at?: string
         }
         Relationships: []
