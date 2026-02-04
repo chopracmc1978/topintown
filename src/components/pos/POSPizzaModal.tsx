@@ -324,14 +324,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
-  // Ultra-compact button style for no-scroll layout
-  const btnSmall = "px-2 py-1.5 text-xs rounded border font-medium transition-colors";
+  // Ultra-compact button style for no-scroll layout - with proper gap padding
+  const btnSmall = "px-3 py-2 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5";
   const btnActive = "border-primary bg-primary/10 text-primary";
-  const btnInactive = "border-border hover:bg-secondary";
+  const btnInactive = "border-border bg-white hover:bg-secondary";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-6xl p-2 pt-1 gap-0.5 overflow-hidden max-h-[calc(100vh-24px)]">
+      <DialogContent className="max-w-6xl p-3 pt-2 gap-1 overflow-hidden max-h-[calc(100vh-24px)] bg-white" style={{ backgroundColor: 'white' }}>
         {/* Header Row: Pizza Name + Size + Crust inline */}
         <div className="flex items-center gap-3 pb-1 border-b pr-6">
           <h2 className="font-serif text-sm font-semibold text-primary whitespace-nowrap">{item.name}</h2>
