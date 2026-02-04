@@ -79,9 +79,11 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center p-4">
-      <Card className="w-full max-w-md" style={{ backgroundColor: '#e8f4fc' }}>
-        <CardHeader className="text-center">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'hsl(var(--primary))' }}>
+      <Card className="w-full max-w-md relative overflow-hidden" style={{ backgroundColor: '#e8f4fc' }}>
+        {/* Shield layer for legacy Android WebView opacity */}
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: '#e8f4fc', zIndex: 0 }} />
+        <CardHeader className="text-center relative" style={{ zIndex: 1, backgroundColor: '#e8f4fc' }}>
           <div className="flex justify-center mb-4">
             <img src={logo} alt="Top In Town Pizza" className="w-20 h-20 object-contain" />
           </div>
@@ -90,7 +92,7 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
             Sign in with your staff account to access the point of sale
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative" style={{ zIndex: 1, backgroundColor: '#e8f4fc' }}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
