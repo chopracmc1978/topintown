@@ -271,13 +271,13 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-muted p-2 overflow-hidden pos-no-focus-ring pos-hd-text" style={{ minHeight: '100vh', minWidth: '100vw' }}>
+    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(210, 20%, 98%)' }}>
       {/* Main POS container with rounded corners - full viewport */}
-      <div className="flex-1 flex flex-col bg-background rounded-lg overflow-hidden shadow-sm w-full h-full">
+      <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(0, 0%, 100%)' }}>
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
-        "border-b border-border py-2 px-3 flex-shrink-0 shadow-sm transition-colors",
-        hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : "bg-white"
+        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
+        hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -303,29 +303,26 @@ const POS = () => {
             )}
           </div>
           
-          {/* Status Tabs - Flexible sizing */}
-          <div className="flex gap-1 flex-1 justify-center">
+          {/* Status Tabs - Premium style */}
+          <div className="flex gap-1.5 flex-1 justify-center">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "pos-tab-button flex items-center gap-1.5",
                   "outline-none focus:outline-none focus-visible:outline-none",
                   "border-none focus:ring-0 focus-visible:ring-0",
-                  "[&:focus]:outline-none [&:active]:outline-none",
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  activeTab === tab.id ? "active" : ""
                 )}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
                 <span className={cn(
-                  "text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                  "text-xs font-semibold px-2 py-0.5 rounded-full min-w-[22px] text-center",
                   activeTab === tab.id
-                    ? "bg-primary-foreground text-primary"
-                    : "bg-background"
+                    ? "bg-white/25 text-white"
+                    : "bg-white text-gray-600"
                 )}>
                   {counts[tab.id as keyof typeof counts]}
                 </span>

@@ -1,7 +1,6 @@
-import { Clock, Phone, Globe, User, MapPin, Utensils, Package, Truck, Smartphone } from 'lucide-react';
+import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 interface POSOrderCardProps {
   order: Order;
@@ -9,23 +8,23 @@ interface POSOrderCardProps {
   onClick: () => void;
 }
 
-const statusColors = {
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  preparing: 'bg-blue-100 text-blue-800 border-blue-300',
-  ready: 'bg-green-100 text-green-800 border-green-300',
-  delivered: 'bg-gray-100 text-gray-800 border-gray-300',
-  cancelled: 'bg-red-100 text-red-800 border-red-300',
+const statusBadgeClass: Record<string, string> = {
+  pending: 'pos-badge pos-badge-pending',
+  preparing: 'pos-badge pos-badge-preparing',
+  ready: 'pos-badge pos-badge-ready',
+  delivered: 'pos-badge',
+  cancelled: 'pos-badge',
 };
 
-const sourceConfig = {
-  web: { icon: Globe, label: 'Web', color: 'bg-blue-100 text-blue-700' },
-  online: { icon: Globe, label: 'Web', color: 'bg-blue-100 text-blue-700' },
-  app: { icon: Smartphone, label: 'App', color: 'bg-purple-100 text-purple-700' },
-  phone: { icon: Phone, label: 'Phone', color: 'bg-orange-100 text-orange-700' },
-  'walk-in': { icon: User, label: 'Walk-in', color: 'bg-gray-100 text-gray-700' },
+const sourceConfig: Record<string, { icon: typeof Globe; label: string }> = {
+  web: { icon: Globe, label: 'Web' },
+  online: { icon: Globe, label: 'Web' },
+  app: { icon: Smartphone, label: 'App' },
+  phone: { icon: Phone, label: 'Phone' },
+  'walk-in': { icon: User, label: 'Walk-in' },
 };
 
-const orderTypeIcons = {
+const orderTypeIcons: Record<string, typeof Package> = {
   pickup: Package,
   delivery: Truck,
   'dine-in': Utensils,
@@ -34,8 +33,8 @@ const orderTypeIcons = {
 export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) => {
   const source = sourceConfig[order.source || 'web'] || sourceConfig.web;
   const SourceIcon = source.icon;
-  const TypeIcon = orderTypeIcons[order.orderType];
-  
+  const TypeIcon = orderTypeIcons[order.orderType] || Package;
+
   const getTimeSince = (date: Date) => {
     const now = new Date();
     const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 1000 / 60);
@@ -50,45 +49,45 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
     <div
       onClick={onClick}
       className={cn(
-        "p-3 rounded-xl border-2 cursor-pointer transition-all",
-        isSelected
-          ? "border-primary bg-primary/5 shadow-md"
-          : "border-border bg-card hover:border-primary/50 hover:shadow-sm"
+        'pos-order-card p-3 cursor-pointer',
+        isSelected && 'selected'
       )}
     >
-      {/* Order ID - Full width */}
-      <div className="font-mono font-bold text-sm mb-2 truncate">{order.id}</div>
-      
+      {/* Order ID */}
+      <div className="font-mono font-bold text-sm mb-1.5 truncate" style={{ color: 'hsl(220,20%,20%)' }}>
+        {order.id}
+      </div>
+
       {/* Badges Row */}
       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", source.color)}>
-          <SourceIcon className="w-2.5 h-2.5 mr-0.5" />
+        <span className="pos-badge" style={{ background: 'hsl(210,15%,94%)', borderColor: 'hsl(210,15%,80%)', color: 'hsl(210,20%,35%)' }}>
+          <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
           {source.label}
-        </Badge>
-        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", statusColors[order.status])}>
+        </span>
+        <span className={statusBadgeClass[order.status] || 'pos-badge'}>
           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-        </Badge>
+        </span>
       </div>
 
       {/* Customer */}
-      <div className="mb-2">
-        <p className="font-medium text-sm text-foreground truncate">{order.customerName || 'Walk-in Customer'}</p>
-      </div>
+      <p className="font-semibold text-sm mb-1 truncate" style={{ color: 'hsl(220,20%,15%)' }}>
+        {order.customerName || 'Walk-in Customer'}
+      </p>
 
-      {/* Order Info - Compact */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-        <div className="flex items-center gap-0.5">
+      {/* Order Info */}
+      <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'hsl(220,10%,45%)' }}>
+        <span className="flex items-center gap-0.5">
           <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
-        </div>
-        <div className="flex items-center gap-0.5">
+        </span>
+        <span className="flex items-center gap-0.5">
           <Clock className="w-3 h-3" />
-          <span>{getTimeSince(order.createdAt)}</span>
-        </div>
+          {getTimeSince(order.createdAt)}
+        </span>
       </div>
 
       {/* Items Preview */}
-      <div className="text-xs text-muted-foreground mb-2 truncate">
+      <div className="text-xs mb-2 truncate" style={{ color: 'hsl(220,10%,50%)' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
         {order.items.length > 0 && (
           <span className="ml-1">
@@ -99,17 +98,13 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-border">
-        <span className="text-base font-bold text-primary">${order.total.toFixed(2)}</span>
-        <Badge 
-          variant={order.paymentStatus === 'paid' ? 'default' : 'outline'}
-          className={cn(
-            "text-[10px] px-1.5",
-            order.paymentStatus === 'paid' ? 'bg-green-600' : 'text-orange-600 border-orange-300'
-          )}
-        >
+      <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'hsl(210,15%,90%)' }}>
+        <span className="text-base font-bold" style={{ color: 'hsl(200,85%,40%)' }}>
+          ${order.total.toFixed(2)}
+        </span>
+        <span className={order.paymentStatus === 'paid' ? 'pos-badge pos-badge-paid' : 'pos-badge pos-badge-unpaid'}>
           {order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
-        </Badge>
+        </span>
       </div>
     </div>
   );

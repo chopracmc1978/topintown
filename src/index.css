@@ -316,16 +316,13 @@
   border-color: #d1d5db !important;
 }
 
-/* POS Sharp Rendering - Fix washed-out colors on legacy Android WebView */
+/* POS Sharp Rendering - Premium Android tablet fixes */
 .pos-no-focus-ring {
   /* Force hardware acceleration and sharp rendering */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  /* Ensure proper color rendering */
-  -webkit-filter: none;
-  filter: none;
   /* Force crisp pixel rendering */
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
@@ -337,7 +334,6 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
   font-smooth: always;
-  /* Prevent subpixel antialiasing issues */
   -webkit-text-stroke: 0;
 }
 
@@ -347,10 +343,8 @@
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
   font-smooth: always;
-  /* Force sharp edges on text */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Improve contrast on Android WebView */
   font-synthesis: none;
   font-kerning: normal;
 }
@@ -368,3 +362,92 @@
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
+
+/* =====================================================
+   POS PREMIUM ANDROID THEME
+   Fix washed-out colors & give a polished, professional look
+   ===================================================== */
+
+/* Apply to POS root: forces SOLID, high-saturation backgrounds */
+.pos-premium-theme {
+  /* Override semantic tokens with high-contrast alternatives */
+  --background: hsl(210, 20%, 98%);
+  --foreground: hsl(220, 25%, 12%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(220, 25%, 12%);
+  --muted: hsl(210, 15%, 92%);
+  --muted-foreground: hsl(220, 10%, 40%);
+  --border: hsl(210, 15%, 82%);
+  --primary: hsl(200, 85%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(200, 85%, 45%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  /* Stronger shadows for depth */
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+}
+
+/* Premium Order Card */
+.pos-order-card {
+  background: hsl(0, 0%, 100%);
+  border: 1.5px solid hsl(210, 18%, 88%);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pos-order-card:hover {
+  border-color: hsl(200, 70%, 50%);
+  box-shadow: 0 3px 10px rgba(0,140,200,0.10);
+}
+.pos-order-card.selected {
+  border-color: hsl(200, 85%, 45%);
+  box-shadow: 0 0 0 3px hsla(200, 85%, 45%, 0.18), 0 4px 12px rgba(0,140,200,0.12);
+}
+
+/* Premium Badge */
+.pos-badge {
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+}
+.pos-badge-preparing { background: hsl(210, 85%, 94%); border-color: hsl(210, 70%, 70%); color: hsl(210, 80%, 35%); }
+.pos-badge-ready { background: hsl(145, 70%, 92%); border-color: hsl(145, 55%, 55%); color: hsl(145, 70%, 28%); }
+.pos-badge-pending { background: hsl(45, 95%, 90%); border-color: hsl(40, 90%, 55%); color: hsl(35, 80%, 32%); }
+.pos-badge-paid { background: hsl(145, 65%, 40%); border-color: hsl(145, 65%, 40%); color: hsl(0, 0%, 100%); }
+.pos-badge-unpaid { background: hsl(25, 95%, 95%); border-color: hsl(25, 90%, 55%); color: hsl(20, 80%, 38%); }
+
+/* Force solid white header on POS */
+.pos-header {
+  background: hsl(0, 0%, 100%) !important;
+  border-bottom: 1.5px solid hsl(210, 18%, 88%);
+}
+
+/* Tab button premium style */
+.pos-tab-button {
+  font-weight: 500;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+.pos-tab-button.active {
+  background: hsl(200, 85%, 45%);
+  color: hsl(0, 0%, 100%);
+  box-shadow: 0 2px 6px rgba(0,140,200,0.18);
+}
+.pos-tab-button:not(.active) {
+  background: hsl(210, 15%, 94%);
+  color: hsl(220, 15%, 35%);
+}
+.pos-tab-button:not(.active):hover {
+  background: hsl(210, 15%, 90%);
+}
+
+/* Android contrast boost: force opaque backgrounds */
+.pos-premium-theme .bg-muted { background: hsl(210, 15%, 94%) !important; }
+.pos-premium-theme .bg-background { background: hsl(210, 20%, 98%) !important; }
+.pos-premium-theme .bg-card { background: hsl(0, 0%, 100%) !important; }
