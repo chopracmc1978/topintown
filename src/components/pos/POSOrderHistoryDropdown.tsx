@@ -51,8 +51,10 @@ export const POSOrderHistoryDropdown = ({
 
   if (isSearching) {
     return (
-      <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] p-4">
-        <div className="flex items-center gap-2 text-muted-foreground">
+      <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] p-4 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+        {/* Solid background shield for legacy Android */}
+        <div className="absolute inset-0 bg-white" style={{ backgroundColor: '#ffffff', zIndex: -1 }} />
+        <div className="flex items-center gap-2 text-muted-foreground relative">
           <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
           <span className="text-sm">Searching orders...</span>
         </div>
@@ -65,16 +67,19 @@ export const POSOrderHistoryDropdown = ({
   }
 
   return (
-    <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] bg-white border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden">
-      <div className="bg-secondary px-3 py-2 border-b border-border flex items-center gap-2">
+    <div className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+      {/* Solid background shield for legacy Android WebView */}
+      <div className="absolute inset-0" style={{ backgroundColor: '#ffffff', zIndex: -1 }} />
+      
+      <div className="px-3 py-2 border-b border-border flex items-center gap-2 relative" style={{ backgroundColor: '#f3f4f6' }}>
         <History className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">Last {displayOrders.length} Order{displayOrders.length > 1 ? 's' : ''}</span>
       </div>
       
-      <ScrollArea className="max-h-[calc(100vh-160px)]">
+      <ScrollArea className="max-h-[calc(100vh-160px)]" style={{ backgroundColor: '#ffffff' }}>
         <div className="divide-y divide-border">
           {displayOrders.map((order) => (
-            <div key={order.id} className="p-3 hover:bg-secondary/30 transition-colors">
+            <div key={order.id} className="p-3 transition-colors" style={{ backgroundColor: '#ffffff' }}>
               {/* Customer Info - Phone first, then name, then order # */}
               <div className="flex items-start justify-between mb-2">
                 <div className="space-y-0.5">
