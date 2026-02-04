@@ -328,7 +328,7 @@ export const buildCustomerReceipt = (order: {
   address?: string;
   phone?: string;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, LINE, CUT, FEED_LINES } = ESCPOS;
   const RECEIPT_WIDTH = 32; // Standard 80mm receipt width in characters
   
   const formatTime = (date: Date | string) => {
@@ -379,56 +379,42 @@ export const buildCustomerReceipt = (order: {
 
   let receipt = INIT;
   
-  // ===== HEADER =====
+  // ===== HEADER (centered) =====
   receipt += ALIGN_CENTER;
-  // Store name - single line
+  // Store name - bold, large, single line
   receipt += DOUBLE_SIZE_ON + BOLD_ON + 'TOP IN TOWN PIZZA LTD' + BOLD_OFF + NORMAL_SIZE + LF;
   receipt += LF; // Light gap after store name
   
-  // Address lines
+  // Address lines (centered, normal size)
   receipt += 'Unit 5, 3250 - 60 St NE' + LF;
   receipt += 'Calgary AB T1Y 3T5' + LF;
-  receipt += '403 280 7272 EXT - 1' + LF;
-  receipt += 'web: www.topintownpizza.ca' + LF;
-  receipt += LF; // Gap before line
-  receipt += LINE + LF;
-  receipt += LF; // Gap after line
+  receipt += '403 280 7373 Ext -1' + LF;
+  receipt += 'www.topintownpizza.ca' + LF;
   
-  // ===== ORDER INFO SECTION =====
+  receipt += LINE + LF;
+  
+  // ===== ORDER INFO SECTION (left aligned, label : value format) =====
   receipt += ALIGN_LEFT;
   
-  // Order number - double height, bold
-  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Order No: ${order.id}` + BOLD_OFF + NORMAL_SIZE + LF;
-  receipt += LF; // Gap after order no
+  // Order No - bold label with value right-aligned
+  receipt += BOLD_ON + formatLine('Order No :', order.id) + BOLD_OFF + LF;
   
-  // Date and Time - double height
-  receipt += DOUBLE_HEIGHT_ON + `Date: ${formatDateShort(order.createdAt)}` + NORMAL_SIZE + LF;
-  receipt += DOUBLE_HEIGHT_ON + `Time: ${formatTime(order.createdAt)}` + NORMAL_SIZE + LF;
-  receipt += LF; // Gap after date/time
+  // Date - format: Feb 4 Wed 2026
+  receipt += formatLine('Date :', formatDateShort(order.createdAt)) + LF;
   
-  // Type - double height, bold
-  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}` + BOLD_OFF + NORMAL_SIZE + LF;
-  receipt += LF; // Gap after type
+  // Time
+  receipt += formatLine('Time :', formatTime(order.createdAt)) + LF;
   
-  // Customer - double height
-  if (order.customerName) {
-    receipt += DOUBLE_HEIGHT_ON + `Customer: ${order.customerName}` + NORMAL_SIZE + LF;
-  }
-  if (order.customerPhone) {
-    receipt += DOUBLE_HEIGHT_ON + `Phone: ${order.customerPhone}` + NORMAL_SIZE + LF;
-  }
-  
-  receipt += LF; // Gap before line
   receipt += LINE + LF;
   receipt += LF; // Gap after line
   
   // ===== ITEMS SECTION =====
   for (const item of order.items) {
     const price = `$${item.totalPrice.toFixed(2)}`;
-    const itemName = `${item.quantity}x ${item.name.toUpperCase()}`;
+    const itemName = `${item.quantity}X ${item.name.toUpperCase()}`;
     
-    // Item name on one line with price right-aligned
-    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + formatLine(itemName, price) + BOLD_OFF + NORMAL_SIZE + LF;
+    // Item name on one line with price right-aligned (bold)
+    receipt += BOLD_ON + formatLine(itemName, price) + BOLD_OFF + LF;
     
     // Pizza customization details (for standalone pizzas)
     if (item.pizzaCustomization && !item.comboCustomization) {
@@ -440,19 +426,19 @@ export const buildCustomerReceipt = (order: {
     
     // Show size for non-pizza items (excluding combos)
     if (item.selectedSize && !item.pizzaCustomization && !item.comboCustomization) {
-      receipt += `  ${item.selectedSize}` + LF;
+      receipt += item.selectedSize + LF;
     }
     
     // Wings/chicken customization - show flavor if selected (for standalone items)
     if (item.wingsCustomization?.flavor && !item.comboCustomization) {
-      receipt += `  ${item.wingsCustomization.flavor}` + LF;
+      receipt += item.wingsCustomization.flavor + LF;
     }
     
     // Combo customization details - show each selection with full details
     if (item.comboCustomization) {
       const combo = item.comboCustomization;
       for (const selection of (combo.selections || [])) {
-        let selectionLine = `  - ${selection.itemName}`;
+        let selectionLine = `- ${selection.itemName}`;
         if (selection.flavor) {
           selectionLine += ` (${selection.flavor})`;
         }
@@ -473,17 +459,21 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LINE + LF;
   
-  // ===== TOTALS SECTION (label left, amount right on same line) =====
+  // ===== TOTALS SECTION (label left with colon, amount right on same line) =====
   const subtotal = order.subtotal || order.total * 0.95;
   const tax = order.tax || order.total * 0.05;
   
-  receipt += formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + LF;
-  receipt += formatLine('GST (5%):', `$${tax.toFixed(2)}`) + LF;
-  receipt += BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
+  receipt += BOLD_ON + 'Subtotal :' + BOLD_OFF + LF;
+  receipt += ALIGN_RIGHT + `$${subtotal.toFixed(2)}` + LF;
+  receipt += ALIGN_LEFT + BOLD_ON + 'GST (5%) :' + BOLD_OFF + LF;
+  receipt += ALIGN_RIGHT + `$${tax.toFixed(2)}` + LF;
+  receipt += ALIGN_LEFT + BOLD_ON + 'TOTAL :' + BOLD_OFF + LF;
+  receipt += ALIGN_RIGHT + `$${order.total.toFixed(2)}` + LF;
   
+  receipt += ALIGN_LEFT;
   receipt += LINE + LF;
   
-  // Payment
+  // ===== PAYMENT STATUS (centered, bold) =====
   receipt += ALIGN_CENTER;
   if (order.paymentStatus === 'paid') {
     receipt += BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + LF;
@@ -492,19 +482,10 @@ export const buildCustomerReceipt = (order: {
   }
   
   receipt += LF; // Gap before footer
-  receipt += LINE + LF;
-  receipt += LF; // Gap after line
   
-  // ===== FOOTER =====
-  receipt += 'GST#742820897RT0001' + LF;
-  receipt += 'Thanks You for Shopping at' + LF;
-  receipt += 'Top In Town Pizza Ltd.' + LF;
-  receipt += 'for more info please email us' + LF;
-  receipt += 'at info@topintownpizza.ca' + LF;
-  receipt += 'Order Information Complaint' + LF;
-  receipt += 'Please Whatsapp : 4038007373' + LF;
-  receipt += 'Phone : 4032807373' + LF;
-  receipt += '        4032807374' + LF;
+  // ===== FOOTER (centered) =====
+  receipt += 'GST # 7428200897 RT 0001' + LF;
+  receipt += 'Thanks You for Shopping at ' + BOLD_ON + 'TOP IN TOWN PIZZA LTD.' + BOLD_OFF + LF;
   
   receipt += FEED_LINES(3);
   receipt += CUT;
