@@ -42,7 +42,7 @@ export const usePrintReceipts = (locationId: string) => {
       return false;
     }
     
-    const ticketData = buildKitchenTicket({
+    const ticketPayload = {
       id: order.id,
       createdAt: order.createdAt,
       orderType: order.orderType,
@@ -51,10 +51,16 @@ export const usePrintReceipts = (locationId: string) => {
       customerName: order.customerName,
       notes: order.notes,
       items: order.items,
-    });
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      paymentStatus: order.paymentStatus,
+    };
 
     let anySuccess = false;
     for (const printer of kitchenPrinters) {
+      // Build per-printer so 80mm printers use full width (48 cols) and 58mm use 32 cols.
+      const ticketData = buildKitchenTicket(ticketPayload, { paperWidthMm: printer.paper_width });
       const success = await sendToPrinter(printer, ticketData);
       if (success) anySuccess = true;
     }
