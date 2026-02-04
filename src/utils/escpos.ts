@@ -222,7 +222,7 @@ export const buildCustomerReceipt = (order: {
   address?: string;
   phone?: string;
 }): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
+  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, LINE, CUT, FEED_LINES } = ESCPOS;
   const RECEIPT_WIDTH = 32; // Standard 80mm receipt width in characters
   
   const formatTime = (date: Date | string) => {
@@ -276,121 +276,135 @@ export const buildCustomerReceipt = (order: {
     }
   };
 
-  // Extract just city from address (remove AB and postal code)
-  const getShortAddress = (address?: string): string => {
-    if (!address) return '';
-    // Remove postal code pattern and province
-    const parts = address.split(',').map(p => p.trim());
-    // Return just street and city (first two parts typically)
-    if (parts.length >= 2) {
-      return parts.slice(0, 2).join(', ');
-    }
-    return parts[0] || '';
-  };
-
   let receipt = INIT;
   
-  // Line 1: TOP IN TOWN PIZZA (centered, normal size - smaller font)
+  // ===== HEADER (matching sample) =====
   receipt += ALIGN_CENTER;
-  receipt += BOLD_ON + 'TOP IN TOWN PIZZA' + BOLD_OFF + LF;
-  
-  // Line 2: Short address (no AB, no postal code)
-  const shortAddress = getShortAddress(location?.address);
-  if (shortAddress) {
-    receipt += shortAddress + LF;
-  }
-  
-  // Line 3: Phone
-  if (location?.phone) {
-    receipt += location.phone + LF;
-  }
-  
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'TOP IN TOWN PIZZA LTD.' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after store name
+  receipt += '3250 60 ST NE' + LF;
+  receipt += 'CALGARY, AB T1Y 3T5' + LF;
+  receipt += '4032807373' + LF;
+  receipt += 'http://www.Topintownpizza.ca' + LF;
+  receipt += LF; // Gap before line
   receipt += LINE + LF;
+  receipt += LF; // Gap after line
+  
+  // ===== ORDER INFO SECTION (matching kitchen ticket style) =====
   receipt += ALIGN_LEFT;
   
-  // Line 4: Order number
-  receipt += `Order: ${order.id}${LF}`;
+  // Order number - double height, bold
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Order No: ${order.id}` + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after order no
   
-  // Line 5: Date and Time in one line
-  receipt += `Date: ${formatDateShort(order.createdAt)} Time: ${formatTime(order.createdAt)}${LF}`;
+  // Date and Time - double height
+  receipt += DOUBLE_HEIGHT_ON + `Date: ${formatDateShort(order.createdAt)}` + NORMAL_SIZE + LF;
+  receipt += DOUBLE_HEIGHT_ON + `Time: ${formatTime(order.createdAt)}` + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after date/time
   
-  // Line 6: Type
-  receipt += `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}${LF}`;
+  // Type - double height, bold
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `Type: ${order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1)}` + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += LF; // Gap after type
   
-  // Line 7: Customer
+  // Customer - double height
   if (order.customerName) {
-    receipt += `Customer: ${order.customerName}${LF}`;
+    receipt += DOUBLE_HEIGHT_ON + `Customer: ${order.customerName}` + NORMAL_SIZE + LF;
+  }
+  if (order.customerPhone) {
+    receipt += DOUBLE_HEIGHT_ON + `Phone: ${order.customerPhone}` + NORMAL_SIZE + LF;
   }
   
+  receipt += LF; // Gap before line
   receipt += LINE + LF;
+  receipt += LF; // Gap after line
   
-  // Items with right-aligned prices (split to 2 lines if too long)
+  // ===== ITEMS SECTION (matching kitchen ticket style) =====
   for (const item of order.items) {
-    const itemName = `${item.quantity}x ${item.name}`;
     const price = `$${item.totalPrice.toFixed(2)}`;
-    receipt += formatItemLine(itemName, price) + LF;
+    
+    // Item name - double size (like kitchen ticket) for prominence
+    receipt += DOUBLE_SIZE_ON + BOLD_ON + `${item.quantity}x ${item.name.toUpperCase()}` + BOLD_OFF + NORMAL_SIZE + LF;
+    
+    // Price on separate line, right aligned with double height
+    receipt += DOUBLE_HEIGHT_ON + formatLine('', price) + NORMAL_SIZE + LF;
     
     // Show size for non-pizza items (excluding combos)
     if (item.selectedSize && !item.pizzaCustomization && !item.comboCustomization) {
-      receipt += `   ${item.selectedSize}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   ${item.selectedSize}` + NORMAL_SIZE + LF;
     }
     
-    // Pizza customization details (for standalone pizzas)
+    // Pizza customization details (for standalone pizzas) - double height
     if (item.pizzaCustomization && !item.comboCustomization) {
       const details = formatPizzaDetailsForPrint(item.pizzaCustomization);
       for (const detail of details) {
-        receipt += `   ${detail}${LF}`;
+        receipt += DOUBLE_HEIGHT_ON + `   ${detail}` + NORMAL_SIZE + LF;
       }
     }
     
     // Wings/chicken customization - show flavor if selected (for standalone items)
     if (item.wingsCustomization?.flavor && !item.comboCustomization) {
-      receipt += `   ${item.wingsCustomization.flavor}${LF}`;
+      receipt += DOUBLE_HEIGHT_ON + `   ${item.wingsCustomization.flavor}` + NORMAL_SIZE + LF;
     }
     
     // Combo customization details - show each selection with full details
     if (item.comboCustomization) {
       const combo = item.comboCustomization;
       for (const selection of (combo.selections || [])) {
-        // Print each combo item with item type indication
+        // Print each combo item with item type indication - double height
         let selectionLine = `   - ${selection.itemName}`;
         if (selection.flavor) {
           selectionLine += ` (${selection.flavor})`;
         }
-        receipt += selectionLine + LF;
+        receipt += DOUBLE_HEIGHT_ON + selectionLine + NORMAL_SIZE + LF;
         
         // If this combo selection has pizza customization, print the details
         if (selection.pizzaCustomization) {
           const pizzaDetails = formatPizzaDetailsForPrint(selection.pizzaCustomization);
           for (const detail of pizzaDetails) {
-            receipt += `      ${detail}${LF}`;
+            receipt += DOUBLE_HEIGHT_ON + `      ${detail}` + NORMAL_SIZE + LF;
           }
         }
       }
     }
+    
+    receipt += LF; // Gap between items
   }
   
   receipt += LINE + LF;
   
-  // Totals with right-aligned amounts
+  // ===== TOTALS SECTION (double height) =====
   const subtotal = order.subtotal || order.total * 0.95;
   const tax = order.tax || order.total * 0.05;
   
-  receipt += formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + LF;
-  receipt += formatLine('GST (5%):', `$${tax.toFixed(2)}`) + LF;
-  receipt += BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
+  receipt += DOUBLE_HEIGHT_ON + formatLine('Subtotal:', `$${subtotal.toFixed(2)}`) + NORMAL_SIZE + LF;
+  receipt += DOUBLE_HEIGHT_ON + formatLine('GST (5%):', `$${tax.toFixed(2)}`) + NORMAL_SIZE + LF;
+  receipt += DOUBLE_SIZE_ON + BOLD_ON + formatLine('TOTAL:', `$${order.total.toFixed(2)}`) + BOLD_OFF + NORMAL_SIZE + LF;
   
   receipt += LINE + LF;
   
-  // Payment
+  // Payment - double height
   receipt += ALIGN_CENTER;
   if (order.paymentStatus === 'paid') {
-    receipt += BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + LF;
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + `PAID - ${(order.paymentMethod || 'Card').toUpperCase()}` + BOLD_OFF + NORMAL_SIZE + LF;
   } else {
-    receipt += BOLD_ON + 'PAYMENT DUE' + BOLD_OFF + LF;
+    receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'PAYMENT DUE' + BOLD_OFF + NORMAL_SIZE + LF;
   }
   
-  receipt += LF + 'Thank you for your order!' + LF;
+  receipt += LF; // Gap before footer
+  receipt += LINE + LF;
+  receipt += LF; // Gap after line
+  
+  // ===== FOOTER (matching sample) =====
+  receipt += 'GST#742820897RT0001' + LF;
+  receipt += 'Thanks You for Shopping at' + LF;
+  receipt += 'Top In Town Pizza Ltd.' + LF;
+  receipt += 'for more info please email us' + LF;
+  receipt += 'at info@topintownpizza.ca' + LF;
+  receipt += 'Order Information Complaint' + LF;
+  receipt += 'Please Whatsapp : 4038007373' + LF;
+  receipt += 'Phone : 4032807373' + LF;
+  receipt += '        4032807374' + LF;
+  
   receipt += FEED_LINES(3);
   receipt += CUT;
   
