@@ -3,7 +3,7 @@ import { Order } from '@/types/menu';
 import { toast } from 'sonner';
 import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
 import { LOCATIONS } from '@/contexts/LocationContext';
-import { sendToPrinterDirect, isNativePlatform } from '@/utils/directPrint';
+import { sendToPrinterDirect, isNativePlatform, openCashDrawer } from '@/utils/directPrint';
 
 export const usePrintReceipts = (locationId: string) => {
   const { printers } = usePrinters(locationId);
@@ -150,6 +150,41 @@ export const usePrintReceipts = (locationId: string) => {
     }
   };
 
+  const openTill = async (): Promise<boolean> => {
+    // Use counter printer first, fallback to any active printer
+    const targetPrinter = counterPrinters[0] || printers.find(p => p.is_active);
+    
+    if (!targetPrinter) {
+      toast.error('No printer configured for cash drawer');
+      return false;
+    }
+
+    if (!isNativePlatform()) {
+      toast.error('Till open only available in native app');
+      return false;
+    }
+
+    try {
+      const result = await openCashDrawer({
+        ip: targetPrinter.ip_address,
+        port: targetPrinter.port,
+        name: targetPrinter.name,
+      });
+
+      if (result.success) {
+        toast.success('Till opened');
+        return true;
+      } else {
+        toast.error(`Failed to open till: ${result.error || 'Unknown error'}`);
+        return false;
+      }
+    } catch (error) {
+      toast.error('Failed to open till');
+      console.error('Till open error:', error);
+      return false;
+    }
+  };
+
   return {
     hasPrinters,
     kitchenPrinters,
@@ -157,6 +192,7 @@ export const usePrintReceipts = (locationId: string) => {
     printKitchenTicket,
     printCustomerReceipt,
     printBothReceipts,
+    openTill,
     isNativePlatform: isNativePlatform(),
   };
 };
