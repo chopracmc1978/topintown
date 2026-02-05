@@ -475,39 +475,39 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             className="h-10 text-base w-40"
           />
           <div className="relative z-10 flex items-center gap-1">
-            <Input
-              ref={phoneInputRef}
-              placeholder="Phone"
-              value={customerPhone}
-              onChange={(e) => handlePhoneChange(e.target.value)}
-              onFocus={() => orderHistory.length > 0 && setShowOrderHistory(true)}
-              onBlur={() => setTimeout(() => setShowOrderHistory(false), 200)}
-              inputMode="none"
-              className={cn(
-                "h-10 text-base w-32 pr-7",
-                "outline-none focus:outline-none focus-visible:outline-none",
-                orderHistory.length > 0 && "border-primary"
-              )}
-            />
-            {orderHistory.length > 0 && (
-              <History className="absolute right-14 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-            )}
-            
-            {/* Mini Numeric Keypad */}
+            {/* Phone Input with Inline Numeric Keypad Popover */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10 px-2 text-xs font-mono">
-                  123
-                </Button>
+                <div className="relative">
+                  <Input
+                    ref={phoneInputRef}
+                    placeholder="Phone"
+                    value={customerPhone}
+                    readOnly
+                    inputMode="none"
+                    className={cn(
+                      "h-10 text-base w-36 pr-7 cursor-pointer",
+                      "outline-none focus:outline-none focus-visible:outline-none",
+                      orderHistory.length > 0 && "border-primary"
+                    )}
+                  />
+                  {orderHistory.length > 0 && (
+                    <History className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                  )}
+                </div>
               </PopoverTrigger>
-              <PopoverContent className="w-48 p-2" align="start" style={{ backgroundColor: '#ffffff' }}>
-                <div className="grid grid-cols-3 gap-1">
+              <PopoverContent 
+                className="w-56 p-3" 
+                align="start" 
+                style={{ backgroundColor: '#ffffff' }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="grid grid-cols-3 gap-2">
                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((key) => (
                     <Button
                       key={key}
                       variant={key === 'C' ? 'destructive' : 'outline'}
-                      size="sm"
-                      className="h-9 text-lg font-medium outline-none focus:outline-none"
+                      className="h-12 text-xl font-medium outline-none focus:outline-none"
                       onClick={() => {
                         if (key === 'C') {
                           setCustomerPhone('');
