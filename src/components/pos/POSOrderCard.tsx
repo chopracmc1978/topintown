@@ -49,17 +49,17 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
     <div
       onClick={onClick}
       className={cn(
-        'pos-order-card p-3 cursor-pointer',
+        'pos-order-card p-2 cursor-pointer',
         isSelected && 'selected'
       )}
     >
       {/* Order ID */}
-      <div className="font-mono font-bold text-sm mb-1.5 truncate" style={{ color: 'hsl(220,20%,20%)' }}>
+      <div className="font-mono font-bold text-[13px] mb-1 truncate" style={{ color: 'hsl(220,20%,20%)' }}>
         {order.id}
       </div>
 
       {/* Badges Row */}
-      <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+      <div className="flex items-center gap-1 mb-1.5 flex-wrap">
         <span className="pos-badge" style={{ background: 'hsl(210,15%,94%)', borderColor: 'hsl(210,15%,80%)', color: 'hsl(210,20%,35%)' }}>
           <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
           {source.label}
@@ -70,12 +70,12 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Customer */}
-      <p className="font-semibold text-sm mb-1 truncate" style={{ color: 'hsl(220,20%,15%)' }}>
+      <p className="font-semibold text-[13px] mb-0.5 truncate" style={{ color: 'hsl(220,20%,15%)' }}>
         {order.customerName || 'Walk-in Customer'}
       </p>
 
       {/* Order Info */}
-      <div className="flex items-center gap-2 text-xs mb-2" style={{ color: 'hsl(220,10%,45%)' }}>
+      <div className="flex items-center gap-2 text-[11px] mb-1.5" style={{ color: 'hsl(220,10%,45%)' }}>
         <span className="flex items-center gap-0.5">
           <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
@@ -87,13 +87,13 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Items Preview */}
-      <div className="text-xs mb-2" style={{ color: 'hsl(220,10%,50%)' }}>
+      <div className="text-[11px] mb-1.5" style={{ color: 'hsl(220,10%,50%)' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'hsl(210,15%,90%)' }}>
-        <span className="text-base font-bold" style={{ color: 'hsl(200,85%,40%)' }}>
+      <div className="flex items-center justify-between pt-1.5 border-t" style={{ borderColor: 'hsl(210,15%,90%)' }}>
+        <span className="text-[15px] font-bold" style={{ color: 'hsl(200,85%,40%)' }}>
           ${order.total.toFixed(2)}
         </span>
         <span className={order.paymentStatus === 'paid' ? 'pos-badge pos-badge-paid' : 'pos-badge pos-badge-unpaid'}>
