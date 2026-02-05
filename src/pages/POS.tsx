@@ -416,18 +416,25 @@ const POS = () => {
               New Order
             </Button>
 
-            <Button 
+            <Button
               variant="outline"
+              size="icon"
               onClick={() => {
-                if (hasPrinters) {
-                  openTill();
-                }
+                // Always show/call; any errors are handled silently in /pos.
+                openTill();
               }}
-              className="text-sm px-2 py-2 h-auto border-green-300 text-green-700 hover:bg-green-50"
-              title="Open Cash Drawer"
+              className={cn(
+                "h-10 w-10 shrink-0",
+                "border-green-300 text-green-700 hover:bg-green-50",
+                "outline-none focus:outline-none focus-visible:outline-none",
+                "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                "shadow-none focus:shadow-none focus-visible:shadow-none",
+                "select-none [-webkit-tap-highlight-color:transparent]"
+              )}
+              title="Till"
+              aria-label="Till"
             >
-              <DollarSign className="w-4 h-4 mr-1" />
-              Till
+              <DollarSign className="w-4 h-4" />
             </Button>
 
             <Button
