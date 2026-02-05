@@ -22,6 +22,15 @@ import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
+
 const statusTabs = [
   { id: 'all', label: 'All', icon: Package },
   { id: 'pending', label: 'New', icon: Clock },
@@ -62,6 +71,11 @@ const POS = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showEndDay, setShowEndDay] = useState(false);
   const [showReports, setShowReports] = useState(false);
+  
+  // New order flow state: Create Order -> Prep Time -> Payment Type
+  const [newOrderPending, setNewOrderPending] = useState<Order | null>(null);
+  const [showPaymentChoice, setShowPaymentChoice] = useState(false);
+  const [pendingPrepTime, setPendingPrepTime] = useState<number>(20);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
@@ -195,8 +209,12 @@ const POS = () => {
     }, currentLocationId);
 
     setShowNewOrder(false);
+    
+    // Step 2: Immediately show prep time modal for the new order
     if (newOrder) {
-      setSelectedOrderId(newOrder.id);
+      setNewOrderPending(newOrder);
+      setPendingPrepOrderId(newOrder.id);
+      setPrepTimeModalOpen(true);
     }
   };
 
@@ -227,12 +245,42 @@ const POS = () => {
   };
 
   const handlePrepTimeConfirm = (prepTime: number) => {
+    // If this is a new order flow, save prep time and show payment choice
+    if (newOrderPending) {
+      setPendingPrepTime(prepTime);
+      setPrepTimeModalOpen(false);
+      setShowPaymentChoice(true);
+      return;
+    }
+    
+    // Normal flow for existing orders
     if (pendingPrepOrderId) {
       updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime, currentLocationId);
       setSelectedOrderId(null);
     }
     setPrepTimeModalOpen(false);
     setPendingPrepOrderId(null);
+  };
+
+  // Handle payment choice for new orders
+  const handleNewOrderPaymentChoice = (method: 'cash' | 'card') => {
+    if (!newOrderPending) return;
+    
+    // First, update order status to preparing with prep time
+    updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
+    
+    if (method === 'cash') {
+      // Show cash modal
+      setPendingPaymentOrderId(newOrderPending.id);
+      setShowPaymentChoice(false);
+      setCashModalOpen(true);
+    } else {
+      // Card payment - mark as paid directly
+      updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+      setShowPaymentChoice(false);
+      setNewOrderPending(null);
+      setSelectedOrderId(null);
+    }
   };
 
   const handlePayment = (method: 'cash' | 'card') => {
@@ -253,6 +301,12 @@ const POS = () => {
     }
     setCashModalOpen(false);
     setPendingPaymentOrderId(null);
+    
+    // Clean up new order flow state
+    if (newOrderPending) {
+      setNewOrderPending(null);
+      setSelectedOrderId(null);
+    }
   };
 
   const handlePrintTicket = () => {
@@ -477,8 +531,16 @@ const POS = () => {
         onClose={() => {
           setCashModalOpen(false);
           setPendingPaymentOrderId(null);
+          // Clean up new order flow if cancelled
+          if (newOrderPending) {
+            setNewOrderPending(null);
+          }
         }}
          total={(() => {
+           // For new order flow, use the pending order's total
+           if (newOrderPending) {
+             return newOrderPending.total;
+           }
            if (!selectedOrder) return 0;
            // If order was already paid but edited, show balance due
            if (selectedOrder.paymentStatus === 'paid' && selectedOrder.amountPaid !== undefined) {
@@ -495,10 +557,80 @@ const POS = () => {
         onClose={() => {
           setPrepTimeModalOpen(false);
           setPendingPrepOrderId(null);
+          // Clean up new order flow if cancelled
+          if (newOrderPending) {
+            setNewOrderPending(null);
+            // Order stays pending unpaid
+          }
         }}
         onConfirm={handlePrepTimeConfirm}
-        orderNumber={pendingPrepOrderId || ''}
+        orderNumber={newOrderPending?.id || pendingPrepOrderId || ''}
       />
+
+      {/* Payment Choice Dialog for New Orders */}
+      <AlertDialog open={showPaymentChoice} onOpenChange={(open) => {
+        if (!open) {
+          // If cancelled, still proceed with preparing (just unpaid)
+          if (newOrderPending) {
+            updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
+            setNewOrderPending(null);
+            setSelectedOrderId(null);
+          }
+          setShowPaymentChoice(false);
+        }
+      }}>
+        <AlertDialogContent className="sm:max-w-md" style={{ backgroundColor: '#ffffff' }}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-xl">
+              <DollarSign className="w-6 h-6 text-primary" />
+              Select Payment Type
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Order {newOrderPending?.id} - ${newOrderPending?.total.toFixed(2)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="flex gap-4 py-6">
+            <Button
+              variant="outline"
+              className="flex-1 h-24 text-xl font-semibold border-2 hover:border-green-500 hover:bg-green-50"
+              onClick={() => handleNewOrderPaymentChoice('cash')}
+            >
+              <DollarSign className="w-8 h-8 mr-2 text-green-600" />
+              Cash
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-24 text-xl font-semibold border-2 hover:border-blue-500 hover:bg-blue-50"
+              onClick={() => handleNewOrderPaymentChoice('card')}
+            >
+              <svg className="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
+                <path d="M2 10h20" strokeWidth="2"/>
+              </svg>
+              Card
+            </Button>
+          </div>
+          
+          <AlertDialogFooter>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                // Proceed without payment (unpaid order)
+                if (newOrderPending) {
+                  updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
+                  setNewOrderPending(null);
+                  setSelectedOrderId(null);
+                }
+                setShowPaymentChoice(false);
+              }}
+            >
+              Skip - Leave Unpaid
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Settings Panel */}
       {showSettings && (
