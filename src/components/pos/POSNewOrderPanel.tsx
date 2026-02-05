@@ -127,6 +127,8 @@ interface POSNewOrderPanelProps {
     source: OrderSource;
     tableNumber?: string;
     notes?: string;
+     discount?: number;
+     couponCode?: string;
   }) => void;
   onCancel: () => void;
   editingOrder?: Order | null;
@@ -490,6 +492,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
         source: 'walk-in',
         tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
         notes: notes || undefined,
+         discount: discountAmount > 0 ? discountAmount : undefined,
+         couponCode: appliedCoupon?.code || undefined,
       });
     }
   };

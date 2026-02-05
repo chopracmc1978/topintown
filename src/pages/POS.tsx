@@ -174,16 +174,22 @@ const POS = () => {
     source: OrderSource;
     tableNumber?: string;
     notes?: string;
+     discount?: number;
+     couponCode?: string;
   }) => {
     const subtotal = orderData.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const tax = subtotal * 0.05; // 5% GST (Alberta)
-    const total = subtotal + tax;
+     const discount = orderData.discount || 0;
+     const discountedSubtotal = Math.max(0, subtotal - discount);
+     const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
+     const total = discountedSubtotal + tax;
 
     const newOrder = await addOrder({
       ...orderData,
       subtotal,
       tax,
       total,
+       discount,
+       couponCode: orderData.couponCode,
       status: 'pending',
       paymentStatus: 'unpaid',
     }, currentLocationId);
@@ -472,7 +478,14 @@ const POS = () => {
           setCashModalOpen(false);
           setPendingPaymentOrderId(null);
         }}
-        total={selectedOrder?.total || 0}
+         total={(() => {
+           if (!selectedOrder) return 0;
+           // If order was already paid but edited, show balance due
+           if (selectedOrder.paymentStatus === 'paid' && selectedOrder.amountPaid !== undefined) {
+             return Math.max(0, selectedOrder.total - selectedOrder.amountPaid);
+           }
+           return selectedOrder.total;
+         })()}
         onConfirm={handlePaymentComplete}
       />
 

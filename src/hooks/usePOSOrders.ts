@@ -21,6 +21,8 @@ interface DBOrder {
   subtotal: number;
   tax: number;
   total: number;
+   discount: number | null;
+   coupon_code: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -92,6 +94,8 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
     total: dbOrder.total,
     subtotal: dbOrder.subtotal,
     tax: dbOrder.tax,
+     discount: dbOrder.discount || undefined,
+     couponCode: dbOrder.coupon_code || undefined,
     createdAt: new Date(dbOrder.created_at),
     notes: dbOrder.notes || undefined,
     source: (dbOrder.source || 'web') as OrderSource,
@@ -331,6 +335,8 @@ export const usePOSOrders = (locationId?: string) => {
           subtotal: orderData.subtotal,
           tax: orderData.tax,
           total: orderData.total,
+           discount: orderData.discount || null,
+           coupon_code: orderData.couponCode || null,
           notes: orderData.notes || null,
         })
         .select()
@@ -440,7 +446,15 @@ export const usePOSOrders = (locationId?: string) => {
 
       // Update local state
       setOrders(prev => prev.map(order => 
-        order.id === orderNumber ? { ...order, paymentStatus, paymentMethod } : order
+         order.id === orderNumber 
+           ? { 
+               ...order, 
+               paymentStatus, 
+               paymentMethod,
+               // When marking as paid, update amountPaid to match current total
+               amountPaid: paymentStatus === 'paid' ? order.total : order.amountPaid
+             } 
+           : order
       ));
     } catch (err: any) {
       console.error('Error updating payment status:', err);
@@ -452,8 +466,18 @@ export const usePOSOrders = (locationId?: string) => {
   const updateOrder = async (orderNumber: string, updates: { items: CartItem[]; notes?: string }) => {
     try {
       const subtotal = updates.items.reduce((sum, item) => sum + item.totalPrice, 0);
-      const tax = subtotal * 0.05; // 5% GST (Alberta)
-      const total = subtotal + tax;
+       
+       // Get current order to preserve discount and calculate correct tax
+       const currentOrder = orders.find(o => o.id === orderNumber);
+       const discount = currentOrder?.discount || 0;
+       const discountedSubtotal = Math.max(0, subtotal - discount);
+       const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
+       const total = discountedSubtotal + tax;
+       
+       // Track amount already paid if order was previously paid
+       const amountPaid = currentOrder?.paymentStatus === 'paid' 
+         ? (currentOrder.amountPaid ?? currentOrder.total) 
+         : 0;
 
       // Get order ID from order_number
       const { data: orderData, error: fetchError } = await supabase
@@ -502,7 +526,18 @@ export const usePOSOrders = (locationId?: string) => {
       // Update local state
       setOrders(prev => prev.map(order => 
         order.id === orderNumber 
-          ? { ...order, items: updates.items, notes: updates.notes, subtotal, tax, total } 
+           ? { 
+               ...order, 
+               items: updates.items, 
+               notes: updates.notes, 
+               subtotal, 
+               tax, 
+               total,
+               // Preserve amountPaid to track balance due after editing
+               amountPaid: order.paymentStatus === 'paid' 
+                 ? (order.amountPaid ?? order.total)
+                 : order.amountPaid
+             } 
           : order
       ));
     } catch (err: any) {

@@ -77,6 +77,8 @@ export interface Order {
   total: number;
   subtotal: number;
   tax: number;
+   discount?: number;
+   couponCode?: string;
   createdAt: Date;
   notes?: string;
   // New POS fields
@@ -86,4 +88,5 @@ export interface Order {
   tableNumber?: string;
   estimatedReadyTime?: Date;
   pickupTime?: Date; // Scheduled pickup time for advance orders
+   amountPaid?: number; // Track how much has been paid for partial payments
 }
