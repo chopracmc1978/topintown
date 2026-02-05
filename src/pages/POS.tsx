@@ -345,7 +345,19 @@ const POS = () => {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
-              onClick={() => {
+              tabIndex={-1}
+              aria-label="POS Home"
+              onPointerDown={(e) => {
+                // Prevent focus ring/outline on touch devices (Android WebView)
+                e.preventDefault();
+              }}
+              onMouseDown={(e) => {
+                // Prevent focus ring/outline on desktop browsers too
+                e.preventDefault();
+              }}
+              onClick={(e) => {
+                // Ensure no persistent focus outline remains after tap
+                e.currentTarget.blur();
                 // Reset to home state - close all modals/panels
                 setSelectedOrderId(null);
                 setShowNewOrder(false);
@@ -360,7 +372,10 @@ const POS = () => {
                 "appearance-none bg-transparent border-0 p-0 m-0",
                 "hover:bg-transparent active:bg-transparent focus:bg-transparent focus-visible:bg-transparent",
                 "outline-none focus:outline-none focus-visible:outline-none",
-                "shadow-none focus:shadow-none"
+                "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                "shadow-none focus:shadow-none focus-visible:shadow-none",
+                "select-none [-webkit-tap-highlight-color:transparent]",
+                "[outline:0] focus:[outline:0] focus-visible:[outline:0]"
               )}
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
