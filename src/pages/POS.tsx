@@ -343,21 +343,14 @@ const POS = () => {
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              type="button"
-              tabIndex={-1}
+            <div
+              role="button"
               aria-label="POS Home"
               onPointerDown={(e) => {
-                // Prevent focus ring/outline on touch devices (Android WebView)
+                // Prevent any native tap highlight/selection artifacts
                 e.preventDefault();
               }}
-              onMouseDown={(e) => {
-                // Prevent focus ring/outline on desktop browsers too
-                e.preventDefault();
-              }}
-              onClick={(e) => {
-                // Ensure no persistent focus outline remains after tap
-                e.currentTarget.blur();
+              onClick={() => {
                 // Reset to home state - close all modals/panels
                 setSelectedOrderId(null);
                 setShowNewOrder(false);
@@ -368,18 +361,14 @@ const POS = () => {
               }}
               className={cn(
                 "font-serif text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer whitespace-nowrap",
-                // Remove ALL default button chrome/highlight on mobile/legacy WebViews
-                "appearance-none bg-transparent border-0 p-0 m-0",
-                "hover:bg-transparent active:bg-transparent focus:bg-transparent focus-visible:bg-transparent",
-                "outline-none focus:outline-none focus-visible:outline-none",
-                "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
-                "shadow-none focus:shadow-none focus-visible:shadow-none",
-                "select-none [-webkit-tap-highlight-color:transparent]",
-                "[outline:0] focus:[outline:0] focus-visible:[outline:0]"
+                // Ensure absolutely no outline/border/ring can render
+                "bg-transparent border-0 p-0 m-0 outline-none ring-0 shadow-none",
+                "hover:bg-transparent active:bg-transparent",
+                "select-none [-webkit-tap-highlight-color:transparent] [-webkit-user-select:none] [-webkit-touch-callout:none]"
               )}
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
-            </button>
+            </div>
             {hasPendingRemoteOrders && (
               <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
                 <Bell className="w-4 h-4" />
