@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const shouldShowPOSNotifications = () => {
+  try {
+    return typeof window !== 'undefined' && !window.location.pathname.startsWith('/pos');
+  } catch {
+    return true;
+  }
+};
+
 export interface POSSession {
   id: string;
   location_id: string;
@@ -120,7 +128,7 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
       return data as POSSession;
     } catch (err: any) {
       console.error('Error starting POS session:', err);
-      toast.error('Failed to start session');
+      if (shouldShowPOSNotifications()) toast.error('Failed to start session');
       return null;
     }
   };
@@ -151,7 +159,7 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
       return true;
     } catch (err: any) {
       console.error('Error ending POS session:', err);
-      toast.error('Failed to end session');
+      if (shouldShowPOSNotifications()) toast.error('Failed to end session');
       return false;
     }
   };
