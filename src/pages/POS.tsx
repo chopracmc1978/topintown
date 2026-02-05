@@ -463,7 +463,7 @@ const POS = () => {
               title="Till"
               aria-label="Till"
             >
-              <CashRegisterIcon className="w-5 h-5" />
+              <CashRegisterIcon className="w-7 h-7" />
             </Button>
 
             <Button
