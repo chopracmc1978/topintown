@@ -54,13 +54,13 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       )}
     >
       {/* Order ID */}
-      <div className="font-mono font-bold text-xs mb-1 truncate" style={{ color: 'hsl(220,20%,20%)' }}>
+      <div className="font-mono font-bold text-xs mb-1 truncate" style={{ color: 'hsl(210,20%,95%)' }}>
         {order.id}
       </div>
 
       {/* Badges Row */}
       <div className="flex items-center gap-1 mb-1 flex-wrap">
-        <span className="pos-badge" style={{ background: 'hsl(210,15%,94%)', borderColor: 'hsl(210,15%,80%)', color: 'hsl(210,20%,35%)' }}>
+        <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
           <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
           {source.label}
         </span>
@@ -70,12 +70,12 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Customer */}
-      <p className="font-semibold text-xs mb-0.5 truncate" style={{ color: 'hsl(220,20%,15%)' }}>
+      <p className="font-semibold text-xs mb-0.5 truncate" style={{ color: 'hsl(210,20%,95%)' }}>
         {order.customerName || 'Walk-in Customer'}
       </p>
 
       {/* Order Info */}
-      <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: 'hsl(220,10%,45%)' }}>
+      <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: 'hsl(215,15%,60%)' }}>
         <span className="flex items-center gap-0.5">
           <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
@@ -87,13 +87,13 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Items Preview */}
-      <div className="text-[11px] mb-1" style={{ color: 'hsl(220,10%,50%)' }}>
+      <div className="text-[11px] mb-1" style={{ color: 'hsl(215,15%,55%)' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'hsl(210,15%,90%)' }}>
-        <span className="text-sm font-bold" style={{ color: 'hsl(200,85%,40%)' }}>
+      <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'hsl(220,20%,30%)' }}>
+        <span className="text-sm font-bold" style={{ color: 'hsl(217,91%,60%)' }}>
           ${order.total.toFixed(2)}
         </span>
          {(() => {
@@ -105,9 +105,9 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
              // Paid but has balance due after editing
              return (
                <span className="pos-badge" style={{ 
-                 background: 'hsl(30,90%,95%)', 
-                 borderColor: 'hsl(30,80%,60%)', 
-                 color: 'hsl(30,80%,35%)',
+                 background: 'hsl(30,60%,25%)', 
+                 borderColor: 'hsl(30,70%,50%)', 
+                 color: 'hsl(30,80%,70%)',
                  fontSize: '10px'
                }}>
                  +${balanceDue.toFixed(2)}

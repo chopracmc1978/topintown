@@ -364,43 +364,48 @@
 
 /* =====================================================
    POS PREMIUM ANDROID THEME
-   Fix washed-out colors & give a polished, professional look
+   Dark navy theme matching reference design
    ===================================================== */
 
 /* Apply to POS root: forces SOLID, high-saturation backgrounds */
 .pos-premium-theme {
   /* Override semantic tokens with high-contrast alternatives */
-  --background: hsl(210, 20%, 98%);
-  --foreground: hsl(220, 25%, 12%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(220, 25%, 12%);
-  --muted: hsl(210, 15%, 92%);
-  --muted-foreground: hsl(220, 10%, 40%);
-  --border: hsl(210, 15%, 82%);
-  --primary: hsl(200, 85%, 45%);
+  --background: hsl(220, 26%, 14%);
+  --foreground: hsl(210, 20%, 98%);
+  --card: hsl(220, 25%, 18%);
+  --card-foreground: hsl(210, 20%, 98%);
+  --muted: hsl(220, 20%, 25%);
+  --muted-foreground: hsl(215, 15%, 65%);
+  --border: hsl(220, 20%, 28%);
+  --input: hsl(220, 22%, 20%);
+  --primary: hsl(217, 91%, 60%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(200, 85%, 45%);
+  --accent: hsl(217, 91%, 60%);
   --accent-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(220, 22%, 22%);
+  --secondary-foreground: hsl(210, 20%, 90%);
+  --popover: hsl(220, 25%, 16%);
+  --popover-foreground: hsl(210, 20%, 98%);
   /* Stronger shadows for depth */
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 /* Premium Order Card */
 .pos-order-card {
-  background: hsl(0, 0%, 100%);
-  border: 1.5px solid hsl(210, 18%, 88%);
+  background: hsl(220, 25%, 18%);
+  border: 1.5px solid hsl(220, 20%, 28%);
   border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .pos-order-card:hover {
-  border-color: hsl(200, 70%, 50%);
-  box-shadow: 0 3px 10px rgba(0,140,200,0.10);
+  border-color: hsl(217, 91%, 60%);
+  box-shadow: 0 3px 10px rgba(59,130,246,0.2);
 }
 .pos-order-card.selected {
-  border-color: hsl(200, 85%, 45%);
-  box-shadow: 0 0 0 3px hsla(200, 85%, 45%, 0.18), 0 4px 12px rgba(0,140,200,0.12);
+  border-color: hsl(217, 91%, 60%);
+  box-shadow: 0 0 0 3px hsla(217, 91%, 60%, 0.25), 0 4px 12px rgba(59,130,246,0.2);
 }
 
 /* Premium Badge */
@@ -413,16 +418,16 @@
   border-width: 1px;
   border-style: solid;
 }
-.pos-badge-preparing { background: hsl(210, 85%, 94%); border-color: hsl(210, 70%, 70%); color: hsl(210, 80%, 35%); }
-.pos-badge-ready { background: hsl(145, 70%, 92%); border-color: hsl(145, 55%, 55%); color: hsl(145, 70%, 28%); }
-.pos-badge-pending { background: hsl(45, 95%, 90%); border-color: hsl(40, 90%, 55%); color: hsl(35, 80%, 32%); }
-.pos-badge-paid { background: hsl(145, 65%, 40%); border-color: hsl(145, 65%, 40%); color: hsl(0, 0%, 100%); }
-.pos-badge-unpaid { background: hsl(25, 95%, 95%); border-color: hsl(25, 90%, 55%); color: hsl(20, 80%, 38%); }
+.pos-badge-preparing { background: hsl(210, 60%, 25%); border-color: hsl(210, 70%, 50%); color: hsl(210, 80%, 75%); }
+.pos-badge-ready { background: hsl(145, 50%, 25%); border-color: hsl(145, 55%, 45%); color: hsl(145, 70%, 70%); }
+.pos-badge-pending { background: hsl(45, 60%, 25%); border-color: hsl(40, 70%, 50%); color: hsl(35, 80%, 70%); }
+.pos-badge-paid { background: hsl(145, 65%, 35%); border-color: hsl(145, 65%, 35%); color: hsl(0, 0%, 100%); }
+.pos-badge-unpaid { background: hsl(25, 60%, 25%); border-color: hsl(25, 70%, 50%); color: hsl(20, 80%, 70%); }
 
 /* Force solid white header on POS */
 .pos-header {
-  background: hsl(0, 0%, 100%) !important;
-  border-bottom: 1.5px solid hsl(210, 18%, 88%);
+  background: hsl(220, 26%, 14%) !important;
+  border-bottom: 1.5px solid hsl(220, 20%, 28%);
 }
 
 /* Tab button premium style */
@@ -432,19 +437,40 @@
   padding: 8px 14px;
   border-radius: 8px;
   transition: background 0.15s, color 0.15s;
-  background-color: hsl(210, 15%, 94%);
-  color: hsl(220, 15%, 35%);
+  background-color: hsl(220, 22%, 22%);
+  color: hsl(215, 15%, 70%);
 }
 .pos-tab-button.active {
-  background-color: hsl(200, 85%, 45%) !important;
+  background-color: hsl(217, 91%, 60%) !important;
   color: hsl(0, 0%, 100%) !important;
-  box-shadow: 0 2px 6px rgba(0,140,200,0.18);
+  box-shadow: 0 2px 6px rgba(59,130,246,0.3);
 }
 .pos-tab-button:not(.active):hover {
-  background-color: hsl(210, 15%, 90%);
+  background-color: hsl(220, 22%, 28%);
 }
 
 /* Android contrast boost: force opaque backgrounds */
-.pos-premium-theme .bg-muted { background: hsl(210, 15%, 94%) !important; }
-.pos-premium-theme .bg-background { background: hsl(210, 20%, 98%) !important; }
-.pos-premium-theme .bg-card { background: hsl(0, 0%, 100%) !important; }
+.pos-premium-theme .bg-muted { background: hsl(220, 20%, 25%) !important; }
+.pos-premium-theme .bg-background { background: hsl(220, 26%, 14%) !important; }
+.pos-premium-theme .bg-card { background: hsl(220, 25%, 18%) !important; }
+.pos-premium-theme .bg-secondary { background: hsl(220, 22%, 22%) !important; }
+.pos-premium-theme .bg-secondary\/20 { background: hsl(220, 22%, 18%) !important; }
+.pos-premium-theme .bg-secondary\/30 { background: hsl(220, 22%, 20%) !important; }
+
+/* Dark theme input styling */
+.pos-premium-theme input,
+.pos-premium-theme textarea,
+.pos-premium-theme select {
+  background: hsl(220, 22%, 20%) !important;
+  border-color: hsl(220, 20%, 30%) !important;
+  color: hsl(210, 20%, 98%) !important;
+}
+.pos-premium-theme input::placeholder,
+.pos-premium-theme textarea::placeholder {
+  color: hsl(215, 15%, 55%) !important;
+}
+
+/* Dark theme buttons */
+.pos-premium-theme .border-border {
+  border-color: hsl(220, 20%, 28%) !important;
+}
