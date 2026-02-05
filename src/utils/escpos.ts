@@ -351,9 +351,10 @@ export const buildCustomerReceipt = (order: {
   name?: string;
   address?: string;
   phone?: string;
-}): string => {
-  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT, LINE, CUT, FEED_LINES } = ESCPOS;
-  const RECEIPT_WIDTH = 32; // Standard 80mm receipt width in characters
+}, options?: { paperWidthMm?: number }): string => {
+  const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, CUT, FEED_LINES } = ESCPOS;
+  const WIDTH = getCharsPerLine(options?.paperWidthMm);
+  const LINE_STR = makeLine(WIDTH);
   
   const formatTime = (date: Date | string) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -374,7 +375,7 @@ export const buildCustomerReceipt = (order: {
 
   // Helper to format a line with left and right aligned text
   const formatLine = (left: string, right: string): string => {
-    const padding = RECEIPT_WIDTH - left.length - right.length;
+    const padding = WIDTH - left.length - right.length;
     if (padding < 1) return left + ' ' + right;
     return left + ' '.repeat(padding) + right;
   };
@@ -417,7 +418,7 @@ export const buildCustomerReceipt = (order: {
   receipt += '403 280 7373 Ext -1' + LF;
   receipt += 'www.topintownpizza.ca' + LF;
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
   // ===== ORDER INFO SECTION (bold label fixed width, value left-aligned at column 14) =====
   receipt += ALIGN_LEFT;
@@ -439,7 +440,7 @@ export const buildCustomerReceipt = (order: {
   // Time
   receipt += formatOrderInfo('Time :', formatTime(order.createdAt)) + LF;
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
   // ===== ITEMS SECTION =====
   for (const item of order.items) {
@@ -451,7 +452,7 @@ export const buildCustomerReceipt = (order: {
     
     // Pizza customization details (for standalone pizzas)
     if (item.pizzaCustomization && !item.comboCustomization) {
-      const customDetails = formatPizzaDetailsForReceipt(item.pizzaCustomization, RECEIPT_WIDTH);
+      const customDetails = formatPizzaDetailsForReceipt(item.pizzaCustomization, WIDTH);
       for (const line of customDetails) {
         receipt += line + LF;
       }
@@ -479,7 +480,7 @@ export const buildCustomerReceipt = (order: {
         
         // If this combo selection has pizza customization, print the details
         if (selection.pizzaCustomization) {
-          const pizzaDetails = formatPizzaDetailsForReceipt(selection.pizzaCustomization, RECEIPT_WIDTH);
+          const pizzaDetails = formatPizzaDetailsForReceipt(selection.pizzaCustomization, WIDTH);
           for (const line of pizzaDetails) {
             receipt += '  ' + line + LF;
           }
@@ -490,7 +491,7 @@ export const buildCustomerReceipt = (order: {
     receipt += LF; // Gap between items
   }
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
   // ===== TOTALS SECTION (label left, amount right ON SAME LINE like reference) =====
   const subtotal = order.subtotal || order.total * 0.95;
@@ -501,7 +502,7 @@ export const buildCustomerReceipt = (order: {
   receipt += BOLD_ON + formatLine('GST (5%) :', `$${tax.toFixed(2)}`) + BOLD_OFF + LF;
   receipt += BOLD_ON + formatLine('TOTAL :', `$${order.total.toFixed(2)}`) + BOLD_OFF + LF;
   
-  receipt += LINE + LF;
+  receipt += LINE_STR + LF;
   
   // ===== PAYMENT STATUS (centered, bold) =====
   receipt += ALIGN_CENTER;

@@ -77,7 +77,7 @@ export const usePrintReceipts = (locationId: string) => {
       return false;
     }
     
-    const receiptData = buildCustomerReceipt({
+    const receiptPayload = {
       id: order.id,
       createdAt: order.createdAt,
       orderType: order.orderType,
@@ -97,14 +97,18 @@ export const usePrintReceipts = (locationId: string) => {
         comboCustomization: (item as any).comboCustomization,
         selectedSize: item.selectedSize,
       })),
-    }, {
+    };
+    
+    const locationInfo = {
       name: location?.name,
       address: location?.address,
       phone: location?.phone,
-    });
-
+    };
+    
     let anySuccess = false;
     for (const printer of targetPrinters) {
+      // Build per-printer so 80mm printers use full width (48 cols) and 58mm use 32 cols.
+      const receiptData = buildCustomerReceipt(receiptPayload, locationInfo, { paperWidthMm: printer.paper_width });
       const success = await sendToPrinter(printer, receiptData);
       if (success) anySuccess = true;
     }
