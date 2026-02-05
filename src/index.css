@@ -187,9 +187,6 @@
     /* Force crisp font rendering on Android */
     -webkit-font-smoothing: antialiased;
     font-smooth: always;
-    /* Hardware acceleration for better rendering */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
   }
 
   /* Force HD rendering on images and icons */
