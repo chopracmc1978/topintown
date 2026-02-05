@@ -430,18 +430,16 @@
   padding: 8px 14px;
   border-radius: 8px;
   transition: background 0.15s, color 0.15s;
-}
-.pos-tab-button.active {
-  background: hsl(200, 85%, 45%);
-  color: hsl(0, 0%, 100%);
-  box-shadow: 0 2px 6px rgba(0,140,200,0.18);
-}
-.pos-tab-button:not(.active) {
-  background: hsl(210, 15%, 94%);
+  background-color: hsl(210, 15%, 94%);
   color: hsl(220, 15%, 35%);
 }
+.pos-tab-button.active {
+  background-color: hsl(200, 85%, 45%) !important;
+  color: hsl(0, 0%, 100%) !important;
+  box-shadow: 0 2px 6px rgba(0,140,200,0.18);
+}
 .pos-tab-button:not(.active):hover {
-  background: hsl(210, 15%, 90%);
+  background-color: hsl(210, 15%, 90%);
 }
 
 /* Android contrast boost: force opaque backgrounds */
