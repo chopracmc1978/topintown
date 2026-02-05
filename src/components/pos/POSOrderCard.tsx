@@ -87,14 +87,8 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
       </div>
 
       {/* Items Preview */}
-      <div className="text-xs mb-2 truncate" style={{ color: 'hsl(220,10%,50%)' }}>
+      <div className="text-xs mb-2" style={{ color: 'hsl(220,10%,50%)' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
-        {order.items.length > 0 && (
-          <span className="ml-1">
-            • {order.items[0]?.name}
-            {order.items.length > 1 && ` +${order.items.length - 1}`}
-          </span>
-        )}
       </div>
 
       {/* Footer */}
