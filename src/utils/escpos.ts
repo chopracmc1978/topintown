@@ -65,7 +65,7 @@ export const buildKitchenTicket = (order: {
   total?: number;
   paymentStatus?: string;
 }, options?: { paperWidthMm?: number }): string => {
-  const { INIT, CUT, BOLD_ON, BOLD_OFF, DOUBLE_SIZE_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT } = ESCPOS;
+  const { INIT, CUT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT } = ESCPOS;
   const WIDTH = getCharsPerLine(options?.paperWidthMm);
   const LINE_STR = makeLine(WIDTH);
   
@@ -76,7 +76,7 @@ export const buildKitchenTicket = (order: {
   
   // Header - centered
   receipt += ALIGN_CENTER;
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
+ receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'KITCHEN ORDER' + BOLD_OFF + NORMAL_SIZE + LF;
   receipt += LF;
 
   const formatLine = (left: string, right: string): string => {
