@@ -1,6 +1,4 @@
 import { useEffect, lazy, Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
@@ -10,6 +8,8 @@ import { LocationProvider } from "@/contexts/LocationContext";
 import { CustomerProvider } from "@/contexts/CustomerContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 
 // Lazy load pages for code-splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -53,6 +53,9 @@ const PublicProvidersLayout = () => {
       <CustomerProvider>
         <CartProvider>
           <OrderProvider>
+            {/* Notifications enabled for the public site/admin only (NOT for /pos) */}
+            <Toaster />
+            <Sonner />
             <Outlet />
           </OrderProvider>
         </CartProvider>
@@ -66,7 +69,10 @@ const App = () => {
   useEffect(() => {
     const handleRejection = (event: PromiseRejectionEvent) => {
       console.error("Unhandled rejection:", event.reason);
-      toast.error("An error occurred. Please try again.");
+      // POS requested: no UI notifications. Keep console error only.
+      if (!window.location.pathname.startsWith("/pos")) {
+        toast.error("An error occurred. Please try again.");
+      }
       event.preventDefault(); // Prevent the default crash behavior
     };
 
@@ -88,8 +94,6 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>

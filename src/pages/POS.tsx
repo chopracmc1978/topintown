@@ -17,7 +17,6 @@ import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
@@ -410,8 +409,6 @@ const POS = () => {
               onClick={() => {
                 if (hasPrinters) {
                   openTill();
-                } else {
-                  toast.info('No printers configured. Add a printer in Settings to use Till.');
                 }
               }}
               className="text-sm px-2 py-2 h-auto border-green-300 text-green-700 hover:bg-green-50"

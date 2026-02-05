@@ -5,6 +5,29 @@ import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
 import { LOCATIONS } from '@/contexts/LocationContext';
 import { sendToPrinterDirect, isNativePlatform, openCashDrawer } from '@/utils/directPrint';
 
+type SonnerToastOptions = Parameters<typeof toast.info>[1];
+
+const isPosRoute = () => {
+  try {
+    return typeof window !== 'undefined' && window.location.pathname.startsWith('/pos');
+  } catch {
+    return false;
+  }
+};
+
+// POS requirement: no UI notifications (toasts). Keep silent in /pos.
+const notify = {
+  info: (message: string, options?: SonnerToastOptions) => {
+    if (!isPosRoute()) toast.info(message, options);
+  },
+  success: (message: string, options?: SonnerToastOptions) => {
+    if (!isPosRoute()) toast.success(message, options);
+  },
+  error: (message: string, options?: SonnerToastOptions) => {
+    if (!isPosRoute()) toast.error(message, options);
+  },
+};
+
 export const usePrintReceipts = (locationId: string) => {
   const { printers } = usePrinters(locationId);
   const location = LOCATIONS.find(l => l.id === locationId);
@@ -118,18 +141,18 @@ export const usePrintReceipts = (locationId: string) => {
 
   const printBothReceipts = async (order: Order): Promise<boolean> => {
     if (!hasPrinters) {
-      toast.error('No printers configured. Go to Settings to add printers.');
+      notify.error('No printers configured. Go to Settings to add printers.');
       return false;
     }
 
     // Check if we're in native environment
     if (!isNativePlatform()) {
-      toast.error('Printing only available in the native app');
+      notify.error('Printing only available in the native app');
       return false;
     }
 
     // Use info toast instead of loading toast to avoid UI blocking
-    toast.info('Sending to printer...', { duration: 1500 });
+    notify.info('Sending to printer...', { duration: 1500 });
 
     try {
       const [kitchenResult, customerResult] = await Promise.all([
@@ -138,20 +161,20 @@ export const usePrintReceipts = (locationId: string) => {
       ]);
 
       if (kitchenResult && customerResult) {
-        toast.success('Printed: Kitchen Ticket + Customer Receipt');
+        notify.success('Printed: Kitchen Ticket + Customer Receipt');
         return true;
       } else if (kitchenResult) {
-        toast.success('Printed: Kitchen Ticket');
+        notify.success('Printed: Kitchen Ticket');
         return true;
       } else if (customerResult) {
-        toast.success('Printed: Customer Receipt');
+        notify.success('Printed: Customer Receipt');
         return true;
       } else {
-        toast.error('Print failed. Check printer connection.');
+        notify.error('Print failed. Check printer connection.');
         return false;
       }
     } catch (error) {
-      toast.error('Print failed. Check printer connection.');
+      notify.error('Print failed. Check printer connection.');
       console.error('Print error:', error);
       return false;
     }
@@ -162,12 +185,12 @@ export const usePrintReceipts = (locationId: string) => {
     const targetPrinter = counterPrinters[0] || printers.find(p => p.is_active);
     
     if (!targetPrinter) {
-      toast.error('No printer configured for cash drawer');
+      notify.error('No printer configured for cash drawer');
       return false;
     }
 
     if (!isNativePlatform()) {
-      toast.error('Till open only available in native app');
+      notify.error('Till open only available in native app');
       return false;
     }
 
@@ -179,14 +202,14 @@ export const usePrintReceipts = (locationId: string) => {
       });
 
       if (result.success) {
-        toast.success('Till opened');
+        notify.success('Till opened');
         return true;
       } else {
-        toast.error(`Failed to open till: ${result.error || 'Unknown error'}`);
+        notify.error(`Failed to open till: ${result.error || 'Unknown error'}`);
         return false;
       }
     } catch (error) {
-      toast.error('Failed to open till');
+      notify.error('Failed to open till');
       console.error('Till open error:', error);
       return false;
     }
