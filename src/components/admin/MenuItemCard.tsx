@@ -11,6 +11,20 @@ interface MenuItemCardProps {
 }
 
 const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
+  const handleEditClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Edit clicked for:', item.name);
+    onEdit();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Delete clicked for:', item.name);
+    onDelete();
+  };
+
   return (
     <Card className="overflow-hidden">
       <div className="relative aspect-video bg-muted">
@@ -74,12 +88,9 @@ const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
             type="button"
             variant="outline" 
             size="sm" 
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onEdit();
-            }} 
-            className="flex-1 gap-1"
+            onClick={handleEditClick}
+            onTouchEnd={handleEditClick}
+            className="flex-1 gap-1 relative z-10 touch-manipulation"
           >
             <Pencil className="w-3 h-3" /> Edit
           </Button>
@@ -87,12 +98,9 @@ const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
             type="button"
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="text-destructive hover:text-destructive"
+            onClick={handleDeleteClick}
+            onTouchEnd={handleDeleteClick}
+            className="text-destructive hover:text-destructive relative z-10 touch-manipulation"
           >
             <Trash2 className="w-3 h-3" />
           </Button>
