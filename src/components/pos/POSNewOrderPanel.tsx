@@ -502,28 +502,73 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 style={{ backgroundColor: '#ffffff' }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
               >
-                <div className="grid grid-cols-3 gap-2">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((key) => (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {['7', '8', '9', '4', '5', '6', '1', '2', '3'].map((key) => (
                     <Button
                       key={key}
-                      variant={key === 'C' ? 'destructive' : 'outline'}
+                      variant="outline"
                       className="h-12 text-xl font-medium outline-none focus:outline-none"
                       onClick={() => {
-                        if (key === 'C') {
-                          setCustomerPhone('');
-                          clearSearch();
-                          setShowOrderHistory(false);
-                        } else if (key === '⌫') {
-                          const newPhone = customerPhone.slice(0, -1);
-                          handlePhoneChange(newPhone);
-                        } else {
-                          handlePhoneChange(customerPhone + key);
-                        }
+                        handlePhoneChange(customerPhone + key);
                       }}
                     >
                       {key}
                     </Button>
                   ))}
+                </div>
+                {/* Row 4: C, 0, . */}
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <Button
+                    variant="outline"
+                    className="h-12 text-xl font-medium text-red-500 outline-none focus:outline-none"
+                    onClick={() => {
+                      setCustomerPhone('');
+                      clearSearch();
+                      setShowOrderHistory(false);
+                    }}
+                  >
+                    C
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-12 text-xl font-medium outline-none focus:outline-none"
+                    onClick={() => handlePhoneChange(customerPhone + '0')}
+                  >
+                    0
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-12 text-xl font-medium outline-none focus:outline-none"
+                    onClick={() => {
+                      if (!customerPhone.includes('.')) {
+                        handlePhoneChange(customerPhone + '.');
+                      }
+                    }}
+                  >
+                    .
+                  </Button>
+                </div>
+                {/* Row 5: Del and OK */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    className="h-12 text-base font-medium outline-none focus:outline-none"
+                    onClick={() => {
+                      const newPhone = customerPhone.slice(0, -1);
+                      handlePhoneChange(newPhone);
+                    }}
+                  >
+                    ⌫ Del
+                  </Button>
+                  <Button
+                    className="h-12 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 outline-none focus:outline-none"
+                    onClick={() => {
+                      // Close popover by removing focus
+                      (document.activeElement as HTMLElement)?.blur();
+                    }}
+                  >
+                    OK
+                  </Button>
                 </div>
               </PopoverContent>
             </Popover>
