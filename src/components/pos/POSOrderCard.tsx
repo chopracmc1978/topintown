@@ -96,9 +96,29 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
         <span className="text-sm font-bold" style={{ color: 'hsl(200,85%,40%)' }}>
           ${order.total.toFixed(2)}
         </span>
-        <span className={order.paymentStatus === 'paid' ? 'pos-badge pos-badge-paid' : 'pos-badge pos-badge-unpaid'}>
-          {order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
-        </span>
+         {(() => {
+           // Calculate balance due
+           const amountPaid = order.amountPaid ?? (order.paymentStatus === 'paid' ? order.total : 0);
+           const balanceDue = Math.max(0, order.total - amountPaid);
+           
+           if (order.paymentStatus === 'paid' && balanceDue > 0.01) {
+             // Paid but has balance due after editing
+             return (
+               <span className="pos-badge" style={{ 
+                 background: 'hsl(30,90%,95%)', 
+                 borderColor: 'hsl(30,80%,60%)', 
+                 color: 'hsl(30,80%,35%)',
+                 fontSize: '10px'
+               }}>
+                 +${balanceDue.toFixed(2)}
+               </span>
+             );
+           } else if (order.paymentStatus === 'paid') {
+             return <span className="pos-badge pos-badge-paid">Paid</span>;
+           } else {
+             return <span className="pos-badge pos-badge-unpaid">Unpaid</span>;
+           }
+         })()}
       </div>
     </div>
   );

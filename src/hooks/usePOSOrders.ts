@@ -23,6 +23,7 @@ interface DBOrder {
   total: number;
    discount: number | null;
    coupon_code: string | null;
+   amount_paid: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -103,6 +104,7 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
     paymentMethod: dbOrder.payment_method as PaymentMethod | undefined,
     tableNumber: dbOrder.table_number || undefined,
     pickupTime: dbOrder.pickup_time ? new Date(dbOrder.pickup_time) : undefined,
+     amountPaid: dbOrder.amount_paid || undefined,
   };
 };
 
@@ -433,11 +435,16 @@ export const usePOSOrders = (locationId?: string) => {
   // Update payment status
   const updatePaymentStatus = async (orderNumber: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod) => {
     try {
+       // Get current order to know the total for amount_paid
+       const currentOrder = orders.find(o => o.id === orderNumber);
+       const newAmountPaid = paymentStatus === 'paid' ? (currentOrder?.total || 0) : 0;
+       
       const { error } = await supabase
         .from('orders')
         .update({ 
           payment_status: paymentStatus, 
           payment_method: paymentMethod || null,
+           amount_paid: newAmountPaid,
           updated_at: new Date().toISOString() 
         })
         .eq('order_number', orderNumber);
@@ -452,7 +459,7 @@ export const usePOSOrders = (locationId?: string) => {
                paymentStatus, 
                paymentMethod,
                // When marking as paid, update amountPaid to match current total
-               amountPaid: paymentStatus === 'paid' ? order.total : order.amountPaid
+                amountPaid: newAmountPaid
              } 
            : order
       ));
@@ -651,6 +658,7 @@ export const usePOSOrders = (locationId?: string) => {
                 subtotal: updatedOrder.subtotal,
                 tax: updatedOrder.tax,
                 total: updatedOrder.total,
+                 amountPaid: updatedOrder.amount_paid || undefined,
               };
             }
             return order;
