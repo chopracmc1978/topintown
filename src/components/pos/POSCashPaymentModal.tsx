@@ -14,11 +14,12 @@ interface POSCashPaymentModalProps {
   onClose: () => void;
   total: number;
   onConfirm: () => void;
+  onCardPayment?: () => void;
 }
 
 const quickAmounts = [20, 50, 100];
 
-export const POSCashPaymentModal = ({ open, onClose, total, onConfirm }: POSCashPaymentModalProps) => {
+export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPayment }: POSCashPaymentModalProps) => {
   const [amountReceived, setAmountReceived] = useState<string>('');
 
   const received = parseFloat(amountReceived) || 0;
@@ -142,6 +143,22 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm }: POSCash
               <Button variant="outline" onClick={handleClose} className="flex-1 h-10">
                 Cancel
               </Button>
+              {onCardPayment && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setAmountReceived('');
+                    onCardPayment();
+                  }}
+                  className="flex-1 h-10"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
+                    <path d="M2 10h20" strokeWidth="2"/>
+                  </svg>
+                  Card
+                </Button>
+              )}
               <Button 
                 variant="pizza" 
                 onClick={handleConfirm}

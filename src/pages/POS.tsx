@@ -549,6 +549,21 @@ const POS = () => {
            return selectedOrder.total;
          })()}
         onConfirm={handlePaymentComplete}
+        onCardPayment={() => {
+          // Switch from cash to card payment
+          setCashModalOpen(false);
+          if (newOrderPending) {
+            // For new order flow - mark as paid with card
+            updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+            setNewOrderPending(null);
+            setSelectedOrderId(null);
+            setPendingPaymentOrderId(null);
+          } else if (pendingPaymentOrderId) {
+            // For existing order flow
+            updatePaymentStatus(pendingPaymentOrderId, 'paid', 'card');
+            setPendingPaymentOrderId(null);
+          }
+        }}
       />
 
       {/* Prep Time Modal */}
