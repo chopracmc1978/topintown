@@ -408,7 +408,7 @@ export const buildCustomerReceipt = (order: {
   // ===== HEADER (centered) =====
   receipt += ALIGN_CENTER;
   // Store name - bold, large, single line
-  receipt += DOUBLE_SIZE_ON + BOLD_ON + 'TOP IN TOWN PIZZA LTD' + BOLD_OFF + NORMAL_SIZE + LF;
+  receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'TOP IN TOWN PIZZA' + BOLD_OFF + NORMAL_SIZE + LF;
   receipt += LF; // Light gap after store name
   
   // Address lines (centered, normal size)
