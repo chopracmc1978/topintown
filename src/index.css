@@ -25,35 +25,35 @@
   :root {
     /* IMPORTANT (legacy Android WebView): store full CSS colors (e.g. hsl(...)) in vars.
        Tailwind config uses var(--token) directly, so these MUST be valid CSS colors. */
-    --background: 209 40% 96%;
-    --foreground: 222 47% 11%;
+    --background: hsl(209, 40%, 96%);
+    --foreground: hsl(222, 47%, 11%);
 
-    --card: 210 40% 98%;
-    --card-foreground: 222 47% 11%;
+    --card: hsl(210, 40%, 98%);
+    --card-foreground: hsl(222, 47%, 11%);
 
-    --popover: 214 31% 91%;
-    --popover-foreground: 222 47% 11%;
+    --popover: hsl(214, 31%, 91%);
+    --popover-foreground: hsl(222, 47%, 11%);
 
-    --primary: 216 19% 26%;
-    --primary-foreground: 210 19% 98%;
+    --primary: hsl(216, 19%, 26%);
+    --primary-foreground: hsl(210, 19%, 98%);
     --primary-glow-30: hsla(333, 71%, 50%, 0.3);
     --primary-glow-50: hsla(333, 71%, 50%, 0.5);
 
-    --secondary: 215 19% 34%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: hsl(215, 19%, 34%);
+    --secondary-foreground: hsl(210, 40%, 98%);
 
-    --muted: 215 20% 65%;
-    --muted-foreground: 222 47% 11%;
+    --muted: hsl(215, 20%, 65%);
+    --muted-foreground: hsl(222, 47%, 11%);
 
-    --accent: 210 40% 98%;
-    --accent-foreground: 215 16% 46%;
+    --accent: hsl(210, 40%, 98%);
+    --accent-foreground: hsl(215, 16%, 46%);
 
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 85% 97%;
+    --destructive: hsl(0, 72%, 50%);
+    --destructive-foreground: hsl(0, 85%, 97%);
 
-    --border: 212 26% 83%;
-    --input: 212 26% 83%;
-    --ring: 216 19% 26%;
+    --border: hsl(212, 26%, 83%);
+    --input: hsl(212, 26%, 83%);
+    --ring: hsl(216, 19%, 26%);
 
     --radius: 0rem;
 
@@ -76,19 +76,19 @@
     --shadow-card: 0 2px 12px -2px rgba(26, 51, 77, 0.08);
 
     --sidebar-background: hsl(0, 0%, 98%);
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 216 19% 26%;
-    --sidebar-primary-foreground: 210 19% 98%;
-    --sidebar-accent: 215 19% 34%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 212 26% 83%;
-    --sidebar-ring: 216 19% 26%;
-    --chart-1: 217 10% 64%;
-    --chart-2: 215 20% 65%;
-    --chart-3: 215 16% 46%;
-    --chart-4: 219 8% 46%;
-    --chart-5: 215 19% 34%;
-    --sidebar: 210 40% 98%;
+    --sidebar-foreground: hsl(222, 47%, 11%);
+    --sidebar-primary: hsl(216, 19%, 26%);
+    --sidebar-primary-foreground: hsl(210, 19%, 98%);
+    --sidebar-accent: hsl(215, 19%, 34%);
+    --sidebar-accent-foreground: hsl(210, 40%, 98%);
+    --sidebar-border: hsl(212, 26%, 83%);
+    --sidebar-ring: hsl(216, 19%, 26%);
+    --chart-1: hsl(217, 10%, 64%);
+    --chart-2: hsl(215, 20%, 65%);
+    --chart-3: hsl(215, 16%, 46%);
+    --chart-4: hsl(219, 8%, 46%);
+    --chart-5: hsl(215, 19%, 34%);
+    --sidebar: hsl(210, 40%, 98%);
     --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --font-serif: 'Crimson Pro', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
     --font-mono: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -106,50 +106,50 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: hsl(222, 47%, 11%);
+    --foreground: hsl(210, 40%, 98%);
 
-    --card: 217 32% 17%;
-    --card-foreground: 210 40% 98%;
+    --card: hsl(217, 32%, 17%);
+    --card-foreground: hsl(210, 40%, 98%);
 
-    --popover: 215 24% 26%;
-    --popover-foreground: 210 40% 98%;
+    --popover: hsl(215, 24%, 26%);
+    --popover-foreground: hsl(210, 40%, 98%);
 
-    --primary: 212 26% 83%;
-    --primary-foreground: 228 84% 4%;
+    --primary: hsl(212, 26%, 83%);
+    --primary-foreground: hsl(228, 84%, 4%);
     --primary-glow-30: hsla(328, 85%, 70%, 0.3);
     --primary-glow-50: hsla(328, 85%, 70%, 0.5);
 
-    --secondary: 215 19% 34%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: hsl(215, 19%, 34%);
+    --secondary-foreground: hsl(210, 40%, 98%);
 
-    --muted: 215 16% 46%;
-    --muted-foreground: 210 40% 98%;
+    --muted: hsl(215, 16%, 46%);
+    --muted-foreground: hsl(210, 40%, 98%);
 
-    --accent: 228 84% 4%;
-    --accent-foreground: 215 20% 65%;
+    --accent: hsl(228, 84%, 4%);
+    --accent-foreground: hsl(215, 20%, 65%);
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 85% 97%;
+    --destructive: hsl(0, 84%, 60%);
+    --destructive-foreground: hsl(0, 85%, 97%);
 
-    --border: 215 19% 34%;
-    --input: 215 19% 34%;
-    --ring: 212 26% 83%;
+    --border: hsl(215, 19%, 34%);
+    --input: hsl(215, 19%, 34%);
+    --ring: hsl(212, 26%, 83%);
 
     --sidebar-background: hsl(240, 5.9%, 10%);
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 212 26% 83%;
-    --sidebar-primary-foreground: 228 84% 4%;
-    --sidebar-accent: 215 20% 65%;
-    --sidebar-accent-foreground: 228 84% 4%;
-    --sidebar-border: 215 19% 34%;
-    --sidebar-ring: 212 26% 83%;
-    --chart-1: 215 12% 83%;
-    --chart-2: 212 26% 83%;
-    --chart-3: 215 20% 65%;
-    --chart-4: 217 10% 64%;
-    --chart-5: 215 16% 46%;
-    --sidebar: 217 32% 17%;
+    --sidebar-foreground: hsl(210, 40%, 98%);
+    --sidebar-primary: hsl(212, 26%, 83%);
+    --sidebar-primary-foreground: hsl(228, 84%, 4%);
+    --sidebar-accent: hsl(215, 20%, 65%);
+    --sidebar-accent-foreground: hsl(228, 84%, 4%);
+    --sidebar-border: hsl(215, 19%, 34%);
+    --sidebar-ring: hsl(212, 26%, 83%);
+    --chart-1: hsl(215, 12%, 83%);
+    --chart-2: hsl(212, 26%, 83%);
+    --chart-3: hsl(215, 20%, 65%);
+    --chart-4: hsl(217, 10%, 64%);
+    --chart-5: hsl(215, 16%, 46%);
+    --sidebar: hsl(217, 32%, 17%);
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
