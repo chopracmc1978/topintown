@@ -343,9 +343,8 @@ const POS = () => {
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div
-              role="button"
-              aria-label="POS Home"
+            <span
+              title="Home"
               onPointerDown={(e) => {
                 // Prevent any native tap highlight/selection artifacts
                 e.preventDefault();
@@ -366,9 +365,10 @@ const POS = () => {
                 "hover:bg-transparent active:bg-transparent",
                 "select-none [-webkit-tap-highlight-color:transparent] [-webkit-user-select:none] [-webkit-touch-callout:none]"
               )}
+              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
-            </div>
+            </span>
             {hasPendingRemoteOrders && (
               <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
                 <Bell className="w-4 h-4" />
