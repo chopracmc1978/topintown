@@ -344,6 +344,7 @@ const POS = () => {
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
+              type="button"
               onClick={() => {
                 // Reset to home state - close all modals/panels
                 setSelectedOrderId(null);
@@ -353,7 +354,14 @@ const POS = () => {
                 setShowReports(false);
                 setActiveTab('all');
               }}
-              className="font-serif text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer outline-none focus:outline-none whitespace-nowrap"
+              className={cn(
+                "font-serif text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer whitespace-nowrap",
+                // Remove ALL default button chrome/highlight on mobile/legacy WebViews
+                "appearance-none bg-transparent border-0 p-0 m-0",
+                "hover:bg-transparent active:bg-transparent focus:bg-transparent focus-visible:bg-transparent",
+                "outline-none focus:outline-none focus-visible:outline-none",
+                "shadow-none focus:shadow-none"
+              )}
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
             </button>
