@@ -70,13 +70,28 @@ const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
         )}
 
         <div className="flex gap-2 mt-4">
-          <Button variant="outline" size="sm" onClick={onEdit} className="flex-1 gap-1">
+          <Button 
+            type="button"
+            variant="outline" 
+            size="sm" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit();
+            }} 
+            className="flex-1 gap-1"
+          >
             <Pencil className="w-3 h-3" /> Edit
           </Button>
           <Button
+            type="button"
             variant="outline"
             size="sm"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
             className="text-destructive hover:text-destructive"
           >
             <Trash2 className="w-3 h-3" />
