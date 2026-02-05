@@ -55,6 +55,10 @@ interface SizeInput {
   price: string;
 }
 
+const uniqStrings = (values: Array<string | null | undefined>): string[] => {
+  return Array.from(new Set(values.filter(Boolean) as string[]));
+};
+
 const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogProps) => {
   const createItem = useCreateMenuItem();
   const updateItem = useUpdateMenuItem();
@@ -83,6 +87,8 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
 
   useEffect(() => {
     if (item) {
+      const isPizzaCategory = category === 'pizza';
+
       setName(item.name);
       setDescription(item.description || '');
       setBasePrice(item.base_price.toString());
@@ -96,15 +102,24 @@ const MenuItemDialog = ({ open, onOpenChange, item, category }: MenuItemDialogPr
           price: s.price.toString(),
         })) || []
       );
-      setSelectedToppings(
-        item.default_toppings?.map((t) => t.topping_id) || []
-      );
+
+      // Defensive: de-dupe + strip nulls to avoid React key collisions and Radix oddities.
+      setSelectedToppings(uniqStrings(item.default_toppings?.map((t) => t.topping_id) || []));
+
       // Load sauces from the new global sauces relation
       setSelectedSauces(
-        (item as any).default_global_sauces?.map((s: any) => s.global_sauce_id) || []
+        uniqStrings((item as any).default_global_sauces?.map((s: any) => s.global_sauce_id) || [])
       );
+
       // Handle subcategory - cast from string stored in DB
-      setSubcategory((item as any).subcategory || '');
+      const storedSubcategory = (item as any).subcategory as string | null | undefined;
+      const validSubcategory =
+        isPizzaCategory &&
+        storedSubcategory &&
+        PIZZA_SUBCATEGORIES.some((s) => s.value === storedSubcategory)
+          ? (storedSubcategory as PizzaSubcategory)
+          : '';
+      setSubcategory(validSubcategory);
     } else {
       resetForm();
     }

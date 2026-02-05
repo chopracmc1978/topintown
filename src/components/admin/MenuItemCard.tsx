@@ -89,7 +89,6 @@ const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
             variant="outline" 
             size="sm" 
             onClick={handleEditClick}
-            onTouchEnd={handleEditClick}
             className="flex-1 gap-1 relative z-10 touch-manipulation"
           >
             <Pencil className="w-3 h-3" /> Edit
@@ -99,7 +98,6 @@ const MenuItemCard = ({ item, onEdit, onDelete }: MenuItemCardProps) => {
             variant="outline"
             size="sm"
             onClick={handleDeleteClick}
-            onTouchEnd={handleDeleteClick}
             className="text-destructive hover:text-destructive relative z-10 touch-manipulation"
           >
             <Trash2 className="w-3 h-3" />

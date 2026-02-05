@@ -4,11 +4,26 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+const getRadixPortalContainer = (): HTMLElement | undefined => {
+  if (typeof document === "undefined") return undefined;
+  let el = document.getElementById("radix-portal-root");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "radix-portal-root";
+    // Keep this element forever; removing it can cause Radix cleanup to throw `removeChild`.
+    document.body.appendChild(el);
+  }
+  return el as HTMLElement;
+};
+
 const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = DialogPrimitive.Portal;
+type DialogPortalProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Portal>;
+const DialogPortal = ({ container, ...props }: DialogPortalProps) => (
+  <DialogPrimitive.Portal container={container ?? getRadixPortalContainer()} {...props} />
+);
 
 const DialogClose = DialogPrimitive.Close;
 
