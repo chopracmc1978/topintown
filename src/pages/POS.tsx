@@ -247,6 +247,7 @@ const POS = () => {
   const handlePrepTimeConfirm = (prepTime: number) => {
     // If this is a new order flow, save prep time and show payment choice
     if (newOrderPending) {
+      console.log('New order flow - showing payment choice', newOrderPending);
       setPendingPrepTime(prepTime);
       setPrepTimeModalOpen(false);
       setShowPaymentChoice(true);
@@ -572,8 +573,8 @@ const POS = () => {
         onClose={() => {
           setPrepTimeModalOpen(false);
           setPendingPrepOrderId(null);
-          // Clean up new order flow if cancelled
-          if (newOrderPending) {
+          // Only clean up if we're NOT going to payment choice (user cancelled)
+          if (newOrderPending && !showPaymentChoice) {
             setNewOrderPending(null);
             // Order stays pending unpaid
           }

@@ -29,7 +29,7 @@ export const POSPrepTimeModal = ({
 
   const handleConfirm = () => {
     onConfirm(selectedTime);
-    onClose();
+    // Don't call onClose here - the parent will handle closing
   };
 
   return (
