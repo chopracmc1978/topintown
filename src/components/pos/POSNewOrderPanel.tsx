@@ -202,17 +202,49 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
       clearTimeout(phoneDebounceRef.current);
     }
     
-    // Debounce search
+    // Debounce search - but don't show history until Enter/Tab
     if (value.length >= 3) {
       phoneDebounceRef.current = setTimeout(() => {
         searchByPhone(value);
-        setShowOrderHistory(true);
       }, 400);
     } else {
       clearSearch();
       setShowOrderHistory(false);
     }
   };
+
+  // Show order history on Enter/Tab only
+  const handlePhoneKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === 'Tab') && customerPhone.length >= 3) {
+      // Trigger search immediately and show history
+      searchByPhone(customerPhone);
+      setShowOrderHistory(true);
+    }
+  };
+
+  // Hide order history when clicking outside
+  useEffect(() => {
+    if (!showOrderHistory) return;
+    
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if click is outside phone input area and order history dropdown
+      const isInsidePhone = target.closest('[data-phone-input]');
+      const isInsideHistory = target.closest('[data-order-history]');
+      
+      if (!isInsidePhone && !isInsideHistory) {
+        setShowOrderHistory(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showOrderHistory]);
 
   // Auto-fill customer name from lookup
   useEffect(() => {
@@ -474,7 +506,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             onChange={(e) => setCustomerName(e.target.value)}
             className="h-10 text-base w-40"
           />
-          <div className="relative z-10 flex items-center gap-1">
+          <div className="relative z-10 flex items-center gap-1" data-phone-input>
             {/* Phone Input with Inline Numeric Keypad Popover */}
             <Popover>
               <PopoverTrigger asChild>
@@ -485,6 +517,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     value={customerPhone}
                     readOnly
                     inputMode="none"
+                    onKeyDown={handlePhoneKeyDown}
                     className={cn(
                       "h-10 text-base w-36 pr-7 cursor-pointer",
                       "outline-none focus:outline-none focus-visible:outline-none",
@@ -563,8 +596,11 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     className="h-12 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 outline-none focus:outline-none"
                     onClick={() => {
-                      // Close popover by removing focus
+                      // Close popover and show order history if there are results
                       (document.activeElement as HTMLElement)?.blur();
+                      if (customerPhone.length >= 3 && orderHistory.length > 0) {
+                        setShowOrderHistory(true);
+                      }
                     }}
                   >
                     OK
