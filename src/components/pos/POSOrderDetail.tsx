@@ -6,6 +6,19 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { LOCATIONS } from '@/contexts/LocationContext';
 
+// Calculate amount paid from payment status
+const getAmountPaid = (order: Order): number => {
+  if (order.amountPaid !== undefined) return order.amountPaid;
+  if (order.paymentStatus === 'paid') return order.total;
+  return 0;
+};
+
+// Calculate balance due
+const getBalanceDue = (order: Order): number => {
+  const amountPaid = getAmountPaid(order);
+  return Math.max(0, order.total - amountPaid);
+};
+
 interface POSOrderDetailProps {
   order: Order;
   locationId: string;
@@ -349,6 +362,12 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <span className="text-muted-foreground">Subtotal</span>
             <span>${(order.subtotal || order.total * 0.92).toFixed(2)}</span>
           </div>
+           {order.discount && order.discount > 0 && (
+             <div className="flex justify-between text-green-600">
+               <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
+               <span>-${order.discount.toFixed(2)}</span>
+             </div>
+           )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">GST (5%)</span>
             <span>${(order.tax || order.total * 0.05).toFixed(2)}</span>
@@ -358,13 +377,23 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <span>Total</span>
             <span className="text-primary">${order.total.toFixed(2)}</span>
           </div>
+           {/* Show balance due if partially paid or paid but order was edited */}
+           {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 && (
+             <>
+               <Separator className="my-2" />
+               <div className="flex justify-between text-destructive font-bold">
+                 <span>Balance Due</span>
+                 <span>${getBalanceDue(order).toFixed(2)}</span>
+               </div>
+             </>
+           )}
         </div>
       </div>
 
       {/* Actions */}
       <div className="p-4 border-t border-border space-y-3">
         {/* Payment Actions */}
-        {order.paymentStatus !== 'paid' && (
+         {(order.paymentStatus !== 'paid' || getBalanceDue(order) > 0) && (
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -372,7 +401,10 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               onClick={() => onPayment('cash')}
             >
               <DollarSign className="w-4 h-4 mr-2" />
-              Cash
+               {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
+                 ? `Cash ($${getBalanceDue(order).toFixed(2)})`
+                 : 'Cash'
+               }
             </Button>
             <Button 
               variant="outline" 
@@ -380,7 +412,10 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               onClick={() => onPayment('card')}
             >
               <CreditCard className="w-4 h-4 mr-2" />
-              Card
+               {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
+                 ? `Card ($${getBalanceDue(order).toFixed(2)})`
+                 : 'Card'
+               }
             </Button>
           </div>
         )}
