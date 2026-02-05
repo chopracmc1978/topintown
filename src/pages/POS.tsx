@@ -271,7 +271,9 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(210, 20%, 98%)' }}>
+    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(210, 20%, 98%)', paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
+      {/* Full-screen solid background shield to prevent any bleed-through on Android tablets */}
+      <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(210, 20%, 98%)' }} aria-hidden="true" />
       {/* Main POS container with rounded corners - full viewport */}
       <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(0, 0%, 100%)' }}>
       {/* Header - Tablet optimized with larger touch targets */}
