@@ -500,9 +500,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
   return (
     <>
-      <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
+      <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 26%, 14%)', border: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Header - Compact single row with search */}
-        <div className="bg-secondary/50 px-4 py-2.5 border-b border-border flex items-center gap-3">
+        <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
           {/* Customer Name & Phone - horizontal */}
           <Input
             placeholder="Customer name"
@@ -536,7 +536,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               <PopoverContent 
                 className="w-56 p-3" 
                 align="start" 
-                style={{ backgroundColor: '#ffffff' }}
+                style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
               >
                 <div className="grid grid-cols-3 gap-2 mb-2">
@@ -637,23 +637,23 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           
           {/* Title - right aligned */}
           <div className="flex-1 text-right pr-2">
-            <h2 className="text-xl font-bold">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'New Order'}</h2>
+            <h2 className="text-xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
             {isEditMode && editingOrder && (
-              <p className="text-sm text-muted-foreground">{editingOrder.customerName}</p>
+              <p className="text-sm text-gray-400">{editingOrder.customerName}</p>
             )}
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onCancel} className="h-10 w-10">
+          <Button variant="ghost" size="icon" onClick={onCancel} className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50">
             <X className="w-5 h-5" />
           </Button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
           {/* Menu Selection */}
-          <div className="flex-1 flex flex-col border-r border-border">
+          <div className="flex-1 flex flex-col" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
             {/* Category Tabs - Larger for tablet */}
-            <div className="flex gap-2 p-3 border-b border-border overflow-x-auto">
+            <div className="flex gap-2 p-3 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
               {categories.map(cat => (
                 <button
                   key={cat.id}
@@ -661,9 +661,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   className={cn(
                     "px-5 py-3 rounded-lg text-base font-medium whitespace-nowrap transition-colors",
                     activeCategory === cat.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-gray-700"
                   )}
+                  style={{ background: activeCategory === cat.id ? undefined : 'hsl(220, 22%, 22%)' }}
                 >
                   {cat.label}
                 </button>
@@ -672,7 +673,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Pizza Subcategory Tabs */}
             {activeCategory === 'pizza' && (
-              <div className="flex gap-2 p-3 border-b border-border overflow-x-auto bg-secondary/20">
+              <div className="flex gap-2 p-3 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
                 {pizzaSubcategories.map(sub => (
                   <button
                     key={sub.id}
@@ -680,9 +681,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     className={cn(
                       "px-4 py-2 rounded-full text-base font-medium whitespace-nowrap transition-colors",
                       activeSubcategory === sub.id
-                        ? "bg-primary/80 text-primary-foreground"
-                        : "bg-card text-foreground border border-border hover:bg-secondary"
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-300 border hover:bg-gray-700"
                     )}
+                    style={{ background: activeSubcategory === sub.id ? undefined : 'hsl(220, 25%, 20%)', borderColor: 'hsl(220, 20%, 30%)' }}
                   >
                     {sub.label}
                   </button>
@@ -704,18 +706,19 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <button
                         key={combo.id}
                         onClick={() => setSelectedCombo(combo)}
-                        className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg text-left hover:from-primary/20 hover:to-primary/10 transition-colors border-l-4 border-primary"
+                        className="p-3 rounded-lg text-left transition-colors border-l-4 border-blue-500"
+                        style={{ background: 'hsl(220, 25%, 20%)' }}
                       >
                         <div className="flex items-start gap-2">
-                          <Gift className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                          <Gift className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-sm line-clamp-2 leading-tight">{combo.name}</p>
+                            <p className="font-semibold text-sm line-clamp-2 leading-tight text-white">{combo.name}</p>
                             {combo.description && (
-                              <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">{combo.description}</p>
+                              <p className="text-[10px] text-gray-400 line-clamp-2 mt-0.5">{combo.description}</p>
                             )}
                           </div>
                         </div>
-                        <p className="text-sm text-primary font-bold mt-1.5">${combo.price.toFixed(2)}</p>
+                        <p className="text-sm text-blue-400 font-bold mt-1.5">${combo.price.toFixed(2)}</p>
                       </button>
                     ))}
                   </div>
@@ -739,15 +742,16 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           key={item.id}
                           onClick={() => handleItemClick(item)}
                           className={cn(
-                            "p-1.5 bg-secondary/30 rounded-md text-left hover:bg-secondary transition-colors border-l-2 border-primary/30 flex flex-col justify-between",
+                            "p-1.5 rounded-md text-left transition-colors border-l-2 border-blue-500/50 flex flex-col justify-between text-white",
                             cardHeight
                           )}
+                          style={{ background: 'hsl(220, 25%, 20%)' }}
                         >
                           <p className="font-medium text-[11px] uppercase line-clamp-3 leading-tight">{displayName}</p>
-                          <p className="text-xs text-primary font-bold mt-0.5">
+                          <p className="text-xs text-blue-400 font-bold mt-0.5">
                             ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                             {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                              <span className="text-[10px] text-muted-foreground font-normal ml-0.5">+</span>
+                              <span className="text-[10px] text-gray-400 font-normal ml-0.5">+</span>
                             )}
                           </p>
                         </button>
@@ -760,31 +764,31 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Wider for tablet */}
-          <div className="w-96 flex flex-col">
+          <div className="w-96 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-4">
               {cartItems.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-lg">
+                <div className="text-center py-8 text-gray-400 text-lg">
                   Tap items to add to order
                 </div>
               ) : (
                 <div className="space-y-3">
                   {cartItems.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="p-3 bg-secondary/30 rounded-lg">
+                    <div key={`${item.id}-${index}`} className="p-3 rounded-lg" style={{ background: 'hsl(220, 25%, 20%)' }}>
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-base truncate">{item.name}</p>
+                          <p className="font-medium text-base truncate text-white">{item.name}</p>
                           {item.selectedSize && !item.pizzaCustomization && (
-                            <p className="text-sm text-muted-foreground">{item.selectedSize}</p>
+                            <p className="text-sm text-gray-400">{item.selectedSize}</p>
                           )}
                           {item.pizzaCustomization && (
-                            <div className="text-sm text-muted-foreground space-y-0.5 mt-1">
+                            <div className="text-sm text-gray-400 space-y-0.5 mt-1">
                               {formatPizzaCustomization(item.pizzaCustomization).map((line, i) => (
                                 <p 
                                   key={i} 
                                   className={cn(
-                                    line.startsWith('NO:') && 'text-destructive font-medium',
-                                    line.startsWith('+') && 'text-green-600 font-medium',
+                                    line.startsWith('NO:') && 'text-red-400 font-medium',
+                                    line.startsWith('+') && 'text-green-400 font-medium',
                                     line.startsWith('Note:') && 'italic'
                                   )}
                                 >
@@ -794,7 +798,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                             </div>
                           )}
                           {item.wingsCustomization && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-gray-400">
                               {item.wingsCustomization.flavor}
                             </p>
                           )}
@@ -803,7 +807,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 shrink-0"
+                            className="h-10 w-10 shrink-0 text-gray-300 hover:text-white hover:bg-gray-700/50"
                             onClick={() => handleEditItem(item, index)}
                           >
                             <Edit2 className="w-5 h-5" />
@@ -815,28 +819,28 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10"
+                            className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
                             onClick={() => updateQuantity(index, -1)}
                           >
                             <Minus className="w-5 h-5" />
                           </Button>
-                          <span className="w-8 text-center text-lg font-medium">{item.quantity}</span>
+                          <span className="w-8 text-center text-lg font-medium text-white">{item.quantity}</span>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10"
+                            className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
                             onClick={() => updateQuantity(index, 1)}
                           >
                             <Plus className="w-5 h-5" />
                           </Button>
                         </div>
-                        <span className="text-base font-medium">
+                        <span className="text-base font-medium text-white">
                           ${item.totalPrice.toFixed(2)}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 text-destructive"
+                          className="h-10 w-10 text-red-400 hover:text-red-300 hover:bg-red-900/30"
                           onClick={() => removeItem(index)}
                         >
                           <X className="w-5 h-5" />
@@ -848,10 +852,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               )}
             </ScrollArea>
 
-            <Separator />
+            <Separator style={{ background: 'hsl(220, 20%, 28%)' }} />
 
             {/* Order Notes */}
-            <div className="p-4 border-t border-border">
+            <div className="p-4" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               <Textarea
                 placeholder="Order notes..."
                 value={notes}
@@ -861,17 +865,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
 
             {/* Coupon & Discount */}
-            <div className="px-4 py-2 border-t border-border flex gap-2 items-center">
+            <div className="px-4 py-2 flex gap-2 items-center" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               {appliedCoupon ? (
-                <div className="flex items-center gap-2 flex-1 bg-green-50 border border-green-200 rounded px-3 py-1.5">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">{appliedCoupon.code}</span>
-                  <span className="text-sm text-green-600">-${appliedCoupon.discount.toFixed(2)}</span>
+                <div className="flex items-center gap-2 flex-1 bg-green-900/30 border border-green-700 rounded px-3 py-1.5">
+                  <Check className="w-4 h-4 text-green-400" />
+                  <span className="text-sm font-medium text-green-300">{appliedCoupon.code}</span>
+                  <span className="text-sm text-green-400">-${appliedCoupon.discount.toFixed(2)}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleClearCoupon}
-                    className="ml-auto h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -890,7 +894,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     size="sm"
                     onClick={handleApplyCoupon}
                     disabled={!couponCode.trim() || validateCouponMutation.isPending}
-                    className="h-9 px-3 text-green-600 border-green-300 hover:bg-green-50"
+                    className="h-9 px-3 text-green-400 border-green-600 hover:bg-green-900/30"
                   >
                     {validateCouponMutation.isPending ? '...' : 'Apply'}
                   </Button>
@@ -903,7 +907,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     variant="outline"
                     className={cn(
-                      "h-9 w-28 justify-start text-sm font-normal",
+                      "h-9 w-28 justify-start text-sm font-normal text-gray-300",
                       appliedCoupon && "opacity-50 cursor-not-allowed"
                     )}
                     disabled={!!appliedCoupon}
@@ -911,9 +915,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     {manualDiscount ? `$${manualDiscount}` : 'Discount'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'white' }}>
+                <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
                   <div className="space-y-2">
-                    <div className="text-center p-2 bg-secondary/50 rounded text-lg font-bold">
+                    <div className="text-center p-2 rounded text-lg font-bold text-white" style={{ background: 'hsl(220, 22%, 22%)' }}>
                       ${manualDiscount || '0.00'}
                     </div>
                     <div className="grid grid-cols-3 gap-1">
@@ -923,10 +927,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           variant="outline"
                           onClick={() => handleDiscountKeyPress(key)}
                           className={cn(
-                            "h-10 text-base font-semibold",
-                            key === 'C' && "text-red-500 hover:bg-red-50"
+                            "h-10 text-base font-semibold text-white",
+                            key === 'C' && "text-red-400 hover:bg-red-900/30"
                           )}
-                          style={{ backgroundColor: 'white' }}
+                          style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
                         >
                           {key}
                         </Button>
@@ -934,8 +938,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <Button
                         variant="outline"
                         onClick={() => handleDiscountKeyPress('DEL')}
-                        className="col-span-2 h-10 text-orange-500 hover:bg-orange-50"
-                        style={{ backgroundColor: 'white' }}
+                        className="col-span-2 h-10 text-orange-400 hover:bg-orange-900/30"
+                        style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
                       >
                         <Delete className="w-4 h-4 mr-1" />
                         Del
@@ -943,7 +947,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <Button
                         variant="default"
                         onClick={() => setShowDiscountKeypad(false)}
-                        className="h-10"
+                        className="h-10 bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         OK
                       </Button>
@@ -954,29 +958,28 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
 
             {/* Totals & Submit */}
-            <div className="px-4 py-2 border-t border-border bg-secondary/30 space-y-1">
+            <div className="px-4 py-2 space-y-1" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span className="text-gray-400">Subtotal</span>
+                <span className="text-white">${subtotal.toFixed(2)}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
+                <div className="flex justify-between text-sm text-green-400">
                   <span>Discount</span>
                   <span>-${discountAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">GST (5%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span className="text-gray-400">GST (5%)</span>
+                <span className="text-white">${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg pt-1">
-                <span>Total</span>
-                <span className="text-primary">${total.toFixed(2)}</span>
+              <div className="flex justify-between font-bold text-lg pt-1 text-white">
+                <span className="text-white">Total</span>
+                <span className="text-blue-400">${total.toFixed(2)}</span>
               </div>
               
               <Button 
-                variant="pizza" 
-                className="w-full mt-2 text-base py-2 h-auto"
+                className="w-full mt-2 text-base py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={cartItems.length === 0}
                 onClick={handleSubmit}
               >

@@ -360,15 +360,15 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(210, 20%, 98%)', paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
+    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(220, 26%, 14%)', paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
       {/* Full-screen solid background shield to prevent any bleed-through on Android tablets */}
-      <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(210, 20%, 98%)' }} aria-hidden="true" />
+      <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(220, 26%, 14%)' }} aria-hidden="true" />
       {/* Main POS container with rounded corners - full viewport */}
-      <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(0, 0%, 100%)' }}>
+      <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
-        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header bg-white",
-        hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : ""
+        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
+        hasPendingRemoteOrders ? "!bg-orange-900/50 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -388,13 +388,13 @@ const POS = () => {
                 setActiveTab('all');
               }}
               className={cn(
-                "font-serif text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer whitespace-nowrap",
+                "font-serif text-lg font-bold transition-colors cursor-pointer whitespace-nowrap",
                 // Ensure absolutely no outline/border/ring can render
                 "bg-transparent border-0 p-0 m-0 outline-none ring-0 shadow-none",
                 "hover:bg-transparent active:bg-transparent",
                 "select-none [-webkit-tap-highlight-color:transparent] [-webkit-user-select:none] [-webkit-touch-callout:none]"
               )}
-              style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+              style={{ outline: 'none', border: 'none', boxShadow: 'none', color: 'hsl(210, 20%, 98%)' }}
             >
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
             </span>
@@ -425,7 +425,7 @@ const POS = () => {
                   "text-xs font-semibold px-2 py-0.5 rounded-full min-w-[22px] text-center",
                   activeTab === tab.id
                     ? "bg-white/25 text-white"
-                    : "bg-white text-gray-600"
+                    : "bg-gray-700 text-gray-300"
                 )}>
                   {counts[tab.id as keyof typeof counts]}
                 </span>
@@ -439,7 +439,7 @@ const POS = () => {
                 setShowNewOrder(true);
                 setSelectedOrderId(null);
               }}
-              className="text-sm px-3 py-2 h-auto"
+              className="text-sm px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-1" />
               New Order
@@ -454,7 +454,7 @@ const POS = () => {
               }}
               className={cn(
                 "h-10 w-10 shrink-0",
-                "border-green-300 text-green-700 hover:bg-green-50",
+                "border-green-500 text-green-400 hover:bg-green-900/30",
                 "outline-none focus:outline-none focus-visible:outline-none",
                 "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
                 "shadow-none focus:shadow-none focus-visible:shadow-none",
@@ -469,7 +469,7 @@ const POS = () => {
             <Button
               variant="outline"
               onClick={() => setShowEndDay(true)}
-              className="text-orange-600 border-orange-300 hover:bg-orange-50 text-sm px-2 py-2 h-auto"
+              className="text-orange-400 border-orange-500 hover:bg-orange-900/30 text-sm px-2 py-2 h-auto"
             >
               <CalendarClock className="w-4 h-4 mr-1" />
               End Day
@@ -480,7 +480,7 @@ const POS = () => {
               size="icon"
               onClick={() => setShowSettings(true)}
               title="Settings"
-              className="h-10 w-10"
+              className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -492,7 +492,7 @@ const POS = () => {
                 localStorage.removeItem('pos_location_id');
                 signOut();
               }}
-              className="text-muted-foreground hover:text-foreground h-10 w-10"
+              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-10 w-10"
             >
               <LogOut className="w-4 h-4" />
             </Button>
@@ -503,7 +503,7 @@ const POS = () => {
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[18%] min-w-[200px] max-w-[280px] border-r border-border flex flex-col bg-secondary/20">
+        <div className="w-[18%] min-w-[200px] max-w-[280px] border-r flex flex-col" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
           <ScrollArea className="flex-1 p-2">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -534,7 +534,7 @@ const POS = () => {
         </div>
 
         {/* Right Panel - Detail, Edit, or New Order - Fill remaining space */}
-        <div className="flex-1 p-3 overflow-auto min-h-0">
+        <div className="flex-1 p-3 overflow-auto min-h-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
           {editingOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
@@ -561,9 +561,9 @@ const POS = () => {
               onEditOrder={handleEditOrder}
             />
           ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
+            <div className="h-full flex items-center justify-center" style={{ color: 'hsl(215, 15%, 55%)' }}>
               <div className="text-center">
-                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <Package className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: 'hsl(215, 15%, 45%)' }} />
                 <p className="text-lg">Select an order or create a new one</p>
               </div>
             </div>

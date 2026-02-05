@@ -231,19 +231,19 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
   const OrderTypeIcon = order.orderType === 'delivery' ? Truck : order.orderType === 'dine-in' ? Utensils : Package;
 
   return (
-    <div className="h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden">
+    <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 25%, 18%)', border: '1px solid hsl(220, 20%, 28%)' }}>
       {/* Header */}
-      <div className="bg-secondary/50 p-4 border-b border-border">
+      <div className="p-4" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xl font-bold">{order.id}</span>
-            <Badge variant="outline" className="capitalize">
+            <span className="font-mono text-xl font-bold text-white">{order.id}</span>
+            <Badge variant="outline" className="capitalize text-gray-300 border-gray-600">
               {order.source || 'online'}
             </Badge>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-7 px-2 text-xs"
+              className="h-7 px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700/50"
               onClick={onPrintReceipt}
             >
               <Printer className="w-3.5 h-3.5 mr-1" />
@@ -254,17 +254,17 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             variant="outline" 
             className={cn(
               "text-sm px-3 py-1",
-              order.status === 'pending' && "bg-yellow-100 text-yellow-800",
-              order.status === 'preparing' && "bg-blue-100 text-blue-800",
-              order.status === 'ready' && "bg-green-100 text-green-800",
-              order.status === 'delivered' && "bg-gray-100 text-gray-800",
-              order.status === 'cancelled' && "bg-red-100 text-red-800",
+              order.status === 'pending' && "bg-yellow-900/40 text-yellow-300 border-yellow-600",
+              order.status === 'preparing' && "bg-blue-900/40 text-blue-300 border-blue-600",
+              order.status === 'ready' && "bg-green-900/40 text-green-300 border-green-600",
+              order.status === 'delivered' && "bg-gray-800 text-gray-300 border-gray-600",
+              order.status === 'cancelled' && "bg-red-900/40 text-red-300 border-red-600",
             )}
           >
             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </Badge>
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-gray-400">
           <div className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             <span>{formatTime(order.createdAt)}</span>
@@ -278,7 +278,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
         
         {/* Advance Order Pickup Time */}
         {order.pickupTime && (
-          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-lg w-fit">
+          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-blue-300 bg-blue-900/30 px-3 py-1.5 rounded-lg w-fit">
             <CalendarDays className="w-4 h-4" />
             <span>Scheduled Pickup: {formatPickupDateTime(order.pickupTime)}</span>
           </div>
@@ -286,23 +286,23 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
       </div>
 
       {/* Customer Info */}
-      <div className="p-4 border-b border-border">
-        <h3 className="font-semibold text-sm text-muted-foreground mb-2">CUSTOMER</h3>
+      <div className="p-4" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+        <h3 className="font-semibold text-sm text-gray-400 mb-2">CUSTOMER</h3>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">{order.customerName || 'Walk-in Customer'}</span>
+            <User className="w-4 h-4 text-gray-400" />
+            <span className="font-medium text-white">{order.customerName || 'Walk-in Customer'}</span>
           </div>
           {order.customerPhone && (
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-muted-foreground" />
-              <span>{order.customerPhone}</span>
+              <Phone className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-300">{order.customerPhone}</span>
             </div>
           )}
           {order.orderType === 'delivery' && order.customerAddress && (
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span>{order.customerAddress}</span>
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-300">{order.customerAddress}</span>
             </div>
           )}
         </div>
@@ -310,78 +310,78 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
 
       {/* Order Items */}
       <div className="flex-1 overflow-auto p-4">
-        <h3 className="font-semibold text-sm text-muted-foreground mb-3">ORDER ITEMS</h3>
+        <h3 className="font-semibold text-sm text-gray-400 mb-3">ORDER ITEMS</h3>
         <div className="space-y-3">
           {order.items.map((item, index) => (
             <div key={`${item.id}-${index}`} className="flex justify-between items-start">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary">{item.quantity}×</span>
-                  <span className="font-medium">{item.name}</span>
+                  <span className="font-bold text-blue-400">{item.quantity}×</span>
+                  <span className="font-medium text-white">{item.name}</span>
                 </div>
                 {item.selectedSize && !item.pizzaCustomization && (
-                  <span className="text-sm text-muted-foreground ml-6">{item.selectedSize}</span>
+                  <span className="text-sm text-gray-400 ml-6">{item.selectedSize}</span>
                 )}
                 {item.pizzaCustomization && (
-                  <div className="text-sm text-muted-foreground ml-6 space-y-0.5">
+                  <div className="text-sm text-gray-400 ml-6 space-y-0.5">
                     {formatPizzaDetails(item.pizzaCustomization).map((detail, idx) => (
                       <p key={idx} className={cn(
-                        detail.startsWith('NO:') && 'text-destructive font-medium',
-                        detail.startsWith('+') && 'text-green-600 font-medium',
+                        detail.startsWith('NO:') && 'text-red-400 font-medium',
+                        detail.startsWith('+') && 'text-green-400 font-medium',
                         detail.startsWith('Note:') && 'italic'
                       )}>{detail}</p>
                     ))}
                   </div>
                 )}
                 {item.wingsCustomization && (
-                  <p className="text-sm text-muted-foreground ml-6">{item.wingsCustomization.flavor}</p>
+                  <p className="text-sm text-gray-400 ml-6">{item.wingsCustomization.flavor}</p>
                 )}
                 {item.comboCustomization && (
-                  <div className="text-sm text-muted-foreground ml-6 space-y-1">
+                  <div className="text-sm text-gray-400 ml-6 space-y-1">
                     {formatComboDetails(item.comboCustomization, formatPizzaDetails)}
                   </div>
                 )}
               </div>
-              <span className="font-medium">${item.totalPrice.toFixed(2)}</span>
+              <span className="font-medium text-white">${item.totalPrice.toFixed(2)}</span>
             </div>
           ))}
         </div>
 
         {order.notes && (
-          <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <p className="text-sm font-medium text-yellow-800">Note:</p>
-            <p className="text-sm text-yellow-700">{order.notes}</p>
+          <div className="mt-4 p-3 rounded-lg" style={{ background: 'hsl(45, 60%, 20%)', border: '1px solid hsl(45, 60%, 35%)' }}>
+            <p className="text-sm font-medium text-yellow-300">Note:</p>
+            <p className="text-sm text-yellow-200">{order.notes}</p>
           </div>
         )}
       </div>
 
       {/* Totals */}
-      <div className="p-4 border-t border-border bg-secondary/30">
+      <div className="p-4" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>${(order.subtotal || order.total * 0.92).toFixed(2)}</span>
+            <span className="text-gray-400">Subtotal</span>
+            <span className="text-white">${(order.subtotal || order.total * 0.92).toFixed(2)}</span>
           </div>
            {order.discount && order.discount > 0 && (
-             <div className="flex justify-between text-green-600">
+             <div className="flex justify-between text-green-400">
                <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
                <span>-${order.discount.toFixed(2)}</span>
              </div>
            )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">GST (5%)</span>
-            <span>${(order.tax || order.total * 0.05).toFixed(2)}</span>
+            <span className="text-gray-400">GST (5%)</span>
+            <span className="text-white">${(order.tax || order.total * 0.05).toFixed(2)}</span>
           </div>
-          <Separator className="my-2" />
-          <div className="flex justify-between text-lg font-bold">
-            <span>Total</span>
-            <span className="text-primary">${order.total.toFixed(2)}</span>
+          <Separator className="my-2" style={{ background: 'hsl(220, 20%, 30%)' }} />
+          <div className="flex justify-between text-lg font-bold text-white">
+            <span className="text-white">Total</span>
+            <span className="text-blue-400">${order.total.toFixed(2)}</span>
           </div>
            {/* Show balance due if partially paid or paid but order was edited */}
            {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 && (
              <>
-               <Separator className="my-2" />
-               <div className="flex justify-between text-destructive font-bold">
+               <Separator className="my-2" style={{ background: 'hsl(220, 20%, 30%)' }} />
+               <div className="flex justify-between text-red-400 font-bold">
                  <span>Balance Due</span>
                  <span>${getBalanceDue(order).toFixed(2)}</span>
                </div>
@@ -391,13 +391,13 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
       </div>
 
       {/* Actions */}
-      <div className="p-4 border-t border-border space-y-3">
+      <div className="p-4 space-y-3" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Payment Actions */}
          {(order.paymentStatus !== 'paid' || getBalanceDue(order) > 0) && (
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              className="flex-1"
+              className="flex-1 text-green-400 border-green-600 hover:bg-green-900/30"
               onClick={() => onPayment('cash')}
             >
               <DollarSign className="w-4 h-4 mr-2" />
@@ -408,7 +408,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             </Button>
             <Button 
               variant="outline" 
-              className="flex-1"
+              className="flex-1 text-blue-400 border-blue-600 hover:bg-blue-900/30"
               onClick={() => onPayment('card')}
             >
               <CreditCard className="w-4 h-4 mr-2" />
@@ -422,12 +422,12 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
 
         {/* Status & Print Actions */}
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onPrintTicket}>
+          <Button variant="outline" onClick={onPrintTicket} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
             <Printer className="w-4 h-4 mr-2" />
             Kitchen
           </Button>
           
-          <Button variant="outline" onClick={onEditOrder}>
+          <Button variant="outline" onClick={onEditOrder} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
             <Pencil className="w-4 h-4 mr-2" />
             Edit
           </Button>
@@ -435,7 +435,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
           {order.status !== 'cancelled' && order.status !== 'delivered' && (
             <Button
               variant="outline"
-              className="text-destructive border-destructive hover:bg-destructive/10"
+              className="text-red-400 border-red-600 hover:bg-red-900/30"
               onClick={() => onUpdateStatus('cancelled')}
             >
               Cancel
@@ -444,8 +444,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
           
           {nextStatus && (
             <Button 
-              variant="pizza" 
-              className="flex-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => onUpdateStatus(nextStatus)}
             >
               {order.status === 'pending' ? (
