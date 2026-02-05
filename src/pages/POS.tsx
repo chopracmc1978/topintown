@@ -276,7 +276,7 @@ const POS = () => {
       <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(0, 0%, 100%)' }}>
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
-        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
+        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header bg-white",
         hasPendingRemoteOrders ? "bg-orange-100 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-2 w-full">
