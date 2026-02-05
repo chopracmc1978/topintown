@@ -583,7 +583,7 @@ const POS = () => {
       />
 
       {/* Payment Choice Dialog for New Orders */}
-      <AlertDialog open={showPaymentChoice} onOpenChange={(open) => {
+      <AlertDialog open={showPaymentChoice && newOrderPending !== null} onOpenChange={(open) => {
         if (!open) {
           // If cancelled, still proceed with preparing (just unpaid)
           if (newOrderPending) {
@@ -594,14 +594,18 @@ const POS = () => {
           setShowPaymentChoice(false);
         }
       }}>
-        <AlertDialogContent className="sm:max-w-md" style={{ backgroundColor: '#ffffff' }}>
+        <AlertDialogContent 
+          className="sm:max-w-md" 
+          style={{ backgroundColor: '#ffffff' }}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-xl">
               <DollarSign className="w-6 h-6 text-primary" />
               Select Payment Type
             </AlertDialogTitle>
             <AlertDialogDescription className="text-base">
-              Order {newOrderPending?.id} - ${newOrderPending?.total.toFixed(2)}
+              Order {newOrderPending?.id ?? ''} - ${(newOrderPending?.total ?? 0).toFixed(2)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
@@ -609,7 +613,11 @@ const POS = () => {
             <Button
               variant="outline"
               className="flex-1 h-24 text-xl font-semibold border-2 hover:border-green-500 hover:bg-green-50"
-              onClick={() => handleNewOrderPaymentChoice('cash')}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNewOrderPaymentChoice('cash');
+              }}
             >
               <DollarSign className="w-8 h-8 mr-2 text-green-600" />
               Cash
@@ -617,7 +625,11 @@ const POS = () => {
             <Button
               variant="outline"
               className="flex-1 h-24 text-xl font-semibold border-2 hover:border-blue-500 hover:bg-blue-50"
-              onClick={() => handleNewOrderPaymentChoice('card')}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNewOrderPaymentChoice('card');
+              }}
             >
               <svg className="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
@@ -627,11 +639,13 @@ const POS = () => {
             </Button>
           </div>
           
-          <AlertDialogFooter>
+          <div className="flex justify-center">
             <Button
               variant="ghost"
               className="w-full"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 // Proceed without payment (unpaid order)
                 if (newOrderPending) {
                   updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
@@ -643,7 +657,7 @@ const POS = () => {
             >
               Skip - Leave Unpaid
             </Button>
-          </AlertDialogFooter>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 
