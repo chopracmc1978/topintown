@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock, DollarSign } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -29,6 +30,34 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
+
+// Custom cash-register icon for Till button
+const CashRegisterIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Register body */}
+    <rect x="3" y="10" width="18" height="10" rx="1" />
+    {/* Display screen */}
+    <rect x="12" y="12" width="7" height="4" rx="0.5" />
+    {/* Keypad buttons */}
+    <rect x="5" y="12" width="2" height="2" rx="0.3" />
+    <rect x="8" y="12" width="2" height="2" rx="0.3" />
+    <rect x="5" y="15" width="2" height="2" rx="0.3" />
+    <rect x="8" y="15" width="2" height="2" rx="0.3" />
+    {/* Receipt paper */}
+    <path d="M6 10V5a1 1 0 011-1h4a1 1 0 011 1v5" />
+    <line x1="7" y1="6" x2="11" y2="6" />
+    <line x1="7" y1="8" x2="10" y2="8" />
+  </svg>
+);
 
 const statusTabs = [
   { id: 'all', label: 'All', icon: Package },
@@ -434,7 +463,7 @@ const POS = () => {
               title="Till"
               aria-label="Till"
             >
-              <DollarSign className="w-4 h-4" />
+              <CashRegisterIcon className="w-5 h-5" />
             </Button>
 
             <Button
