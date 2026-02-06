@@ -334,37 +334,57 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       <DialogContent className="max-w-6xl p-3 pt-2 gap-1 overflow-hidden max-h-[calc(100vh-24px)] bg-white text-slate-900" style={{ backgroundColor: 'white' }}>
         {/* Header Row: Pizza Name + Size + Crust inline */}
         <div className="flex items-center gap-3 pb-1 border-b border-slate-200 pr-6">
-          <h2 className="font-serif text-sm font-bold text-slate-900 whitespace-nowrap uppercase">{item.name}</h2>
+          <h2 className="font-serif text-sm font-bold bg-emerald-500 text-white px-3 py-1 rounded whitespace-nowrap uppercase">{item.name}</h2>
           
           {/* Size */}
           <span className="text-[10px] text-slate-500">Size</span>
           <div className="flex gap-1">
-            {item.sizes?.map(size => (
-              <button
-                key={size.id}
-                onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
-                className={cn(btnSmall, "py-1 px-2", selectedSize?.id === size.id ? btnActive : btnInactive)}
-              >
-                <div className="text-[10px] font-medium">{size.name}</div>
-                <div className="text-[10px]">${size.price.toFixed(2)}</div>
-              </button>
-            ))}
+            {item.sizes?.map(size => {
+              const isSelected = selectedSize?.id === size.id;
+              return (
+                <button
+                  key={size.id}
+                  onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
+                  className={cn(
+                    btnSmall, 
+                    "py-1 px-2",
+                    isSelected 
+                      ? "border-emerald-500 bg-emerald-500 text-white" 
+                      : "border-red-500 bg-red-500 text-white"
+                  )}
+                >
+                  <div className="text-[10px] font-medium">{size.name}</div>
+                  <div className="text-[10px]">${size.price.toFixed(2)}</div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Crust - inline on same row */}
           {availableCrusts.length > 0 && (
             <>
-              <span className="text-[10px] text-slate-500">Crust</span>
+              <span className="text-xs font-medium bg-emerald-500 text-white px-2 py-1 rounded">Crust</span>
               <div className="flex gap-1 flex-1">
-                {availableCrusts.map(crust => (
-                  <button
-                    key={crust.id}
-                    onClick={() => setSelectedCrust(crust)}
-                    className={cn(btnSmall, "flex-1 py-1 px-2", selectedCrust?.id === crust.id ? btnActive : btnInactive)}
-                  >
-                    {crust.name}
-                  </button>
-                ))}
+                {availableCrusts.map(crust => {
+                  const isSelected = selectedCrust?.id === crust.id;
+                  // If only one crust available (Small/Large), always show green
+                  const alwaysGreen = availableCrusts.length === 1;
+                  return (
+                    <button
+                      key={crust.id}
+                      onClick={() => setSelectedCrust(crust)}
+                      className={cn(
+                        btnSmall, 
+                        "flex-1 py-1 px-2",
+                        alwaysGreen || isSelected
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-red-500 bg-red-500 text-white"
+                      )}
+                    >
+                      {crust.name}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
