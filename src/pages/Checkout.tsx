@@ -771,6 +771,21 @@ const Checkout = () => {
                 ))}
               </div>
 
+              {/* Rewards Redemption - show above coupon if customer has phone */}
+              {(customer?.phone || verifiedCustomerId) && (
+                <div className="mb-4">
+                  <RewardsRedemption
+                    customerPhone={customer?.phone}
+                    orderSubtotal={nonComboSubtotal - appliedDiscount}
+                    onApplyRewards={handleApplyRewards}
+                    onRemoveRewards={handleRemoveRewards}
+                    appliedRewardsPoints={appliedRewardsPoints}
+                    appliedRewardsDiscount={appliedRewardsDiscount}
+                    disabledByCoupon={!!appliedCoupon}
+                  />
+                </div>
+              )}
+
               {/* Coupon Field - only applies to non-combo items */}
               <div className="mb-4">
                 {comboSubtotal > 0 && nonComboSubtotal === 0 ? (
@@ -795,21 +810,6 @@ const Checkout = () => {
                   </>
                 )}
               </div>
-
-              {/* Rewards Redemption - show if customer has phone */}
-              {(customer?.phone || verifiedCustomerId) && (
-                <div className="mb-4">
-                  <RewardsRedemption
-                    customerPhone={customer?.phone}
-                    orderSubtotal={nonComboSubtotal - appliedDiscount}
-                    onApplyRewards={handleApplyRewards}
-                    onRemoveRewards={handleRemoveRewards}
-                    appliedRewardsPoints={appliedRewardsPoints}
-                    appliedRewardsDiscount={appliedRewardsDiscount}
-                    disabledByCoupon={!!appliedCoupon}
-                  />
-                </div>
-              )}
 
               <div className="border-t border-border pt-4 space-y-2">
                 <div className="flex justify-between text-muted-foreground">
