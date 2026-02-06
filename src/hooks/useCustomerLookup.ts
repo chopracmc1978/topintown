@@ -62,10 +62,12 @@ export const useCustomerLookup = () => {
       setRewardPoints(rewards?.points || 0);
 
       // Search orders by phone (works even without customer record)
+      // Exclude cancelled orders from history
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, order_number, created_at, total, customer_name, customer_phone')
+        .select('id, order_number, created_at, total, customer_name, customer_phone, status')
         .ilike('customer_phone', `%${cleanPhone}%`)
+        .neq('status', 'cancelled')
         .order('created_at', { ascending: false })
         .limit(5);
 

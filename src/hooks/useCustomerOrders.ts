@@ -68,10 +68,12 @@ export const useCustomerOrders = (customerId: string | undefined) => {
     queryFn: async (): Promise<CustomerOrder[]> => {
       if (!customerId) return [];
 
+      // Exclude cancelled orders from customer history
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('*')
         .eq('customer_id', customerId)
+        .neq('status', 'cancelled')
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
