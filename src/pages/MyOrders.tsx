@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Calendar, MapPin, LogOut, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, User, FileText } from 'lucide-react';
+import { Package, Calendar, MapPin, LogOut, Clock, CheckCircle, AlertCircle, Loader2, RefreshCw, User, FileText, Star } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { CartItem, CartPizzaCustomization } from '@/types/menu';
 import { OrderReceiptModal } from '@/components/orders/OrderReceiptModal';
+import { POINTS_PER_DOLLAR } from '@/hooks/useRewards';
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   pending: { label: 'Pending', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
@@ -332,9 +333,17 @@ const MyOrders = () => {
 
                       {/* Order Total & Actions */}
                       <div className="flex items-center justify-between pt-3 border-t border-border">
-                        <div>
-                          <span className="font-semibold">Total</span>
-                          <span className="text-lg font-bold text-primary ml-2">${order.total.toFixed(2)}</span>
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <span className="font-semibold">Total</span>
+                            <span className="text-lg font-bold text-primary ml-2">${order.total.toFixed(2)}</span>
+                          </div>
+                          {(order.status === 'delivered' || order.status === 'completed') && (
+                            <div className="flex items-center gap-1 text-sm text-primary bg-primary/10 px-2 py-1 rounded-md">
+                              <Star className="w-3.5 h-3.5" />
+                              <span className="font-medium">+{Math.floor(order.total * POINTS_PER_DOLLAR)} pts earned</span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <Button 
