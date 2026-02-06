@@ -49,8 +49,8 @@ export const POSOrderHistoryDropdown = ({
   onClose,
   rewardPoints = 0,
 }: POSOrderHistoryDropdownProps) => {
-  // Limit to 3 orders
-  const displayOrders = orders.slice(0, 3);
+  // Limit to 2 orders
+  const displayOrders = orders.slice(0, 2);
 
   if (isSearching) {
     return (
@@ -76,7 +76,7 @@ export const POSOrderHistoryDropdown = ({
       
       <div className="px-3 py-2 border-b flex items-center gap-2 relative" style={{ backgroundColor: '#f3f4f6', borderColor: '#e5e7eb' }}>
         <History className="w-4 h-4" style={{ color: '#2563eb' }} />
-        <span className="text-sm font-medium" style={{ color: '#111827' }}>Last {displayOrders.length} Order{displayOrders.length > 1 ? 's' : ''}</span>
+        <span className="text-sm font-medium" style={{ color: '#111827' }}>Last {displayOrders.length} Order{displayOrders.length !== 1 ? 's' : ''}</span>
       </div>
       
       <ScrollArea className="max-h-[calc(100vh-160px)]" style={{ backgroundColor: '#ffffff' }}>
