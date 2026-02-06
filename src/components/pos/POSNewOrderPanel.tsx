@@ -643,6 +643,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             />
           </div>
           
+          {/* Reward Points Badge - show after search when customer has points */}
+          {customerPhone.length >= 3 && rewardPoints > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0" style={{ backgroundColor: 'hsl(38, 92%, 50%, 0.15)', border: '1px solid hsl(38, 92%, 50%, 0.3)' }}>
+              <Gift className="w-4 h-4" style={{ color: '#d97706' }} />
+              <span className="text-sm font-bold" style={{ color: '#d97706' }}>{rewardPoints} pts</span>
+            </div>
+          )}
+          
           {/* Title - right aligned */}
           <div className="flex-1 text-right pr-2">
             <h2 className="text-xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
