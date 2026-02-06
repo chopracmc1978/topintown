@@ -462,6 +462,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const canApplyRewards = smartRedeemDollars >= REWARD_MIN_DOLLAR;
 
   const handleApplyRewards = (customAmount?: number) => {
+    if (appliedCoupon) {
+      toast.error('Cannot use rewards when a coupon is applied. Remove the coupon first.');
+      return;
+    }
     const dollarValue = customAmount ?? smartRedeemDollars;
     if (dollarValue < REWARD_MIN_DOLLAR || dollarValue > Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)) {
       toast.error(`Reward amount must be between $${REWARD_MIN_DOLLAR} and $${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)}`);
@@ -501,6 +505,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       toast.error('Please enter a coupon code');
+      return;
+    }
+    if (rewardsApplied) {
+      toast.error('Cannot use coupon when rewards are applied. Remove rewards first.');
       return;
     }
     
@@ -973,6 +981,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
+              ) : rewardsApplied ? (
+                <div className="flex-1 text-sm px-3 py-1.5 rounded" style={{ color: 'hsl(215, 15%, 60%)' }}>
+                  Remove rewards to use coupon
+                </div>
               ) : (
                 <>
                   <Input
@@ -1051,7 +1063,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
 
             {/* Reward Redemption Suggestion */}
-            {showRewardsSuggestion && !isEditMode && canApplyRewards && (
+            {showRewardsSuggestion && !isEditMode && canApplyRewards && !appliedCoupon && (
               <div className="px-4 py-2 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />

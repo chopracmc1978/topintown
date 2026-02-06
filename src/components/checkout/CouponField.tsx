@@ -10,6 +10,7 @@ interface CouponFieldProps {
   onRemove: () => void;
   appliedCoupon: Coupon | null;
   appliedDiscount: number;
+  disabledByRewards?: boolean;
 }
 
 const CouponField = ({ 
@@ -17,7 +18,8 @@ const CouponField = ({
   onApply, 
   onRemove, 
   appliedCoupon, 
-  appliedDiscount 
+  appliedDiscount,
+  disabledByRewards = false,
 }: CouponFieldProps) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -59,6 +61,16 @@ const CouponField = ({
         >
           <X className="w-4 h-4" />
         </Button>
+      </div>
+    );
+  }
+
+  if (disabledByRewards) {
+    return (
+      <div className="p-3 bg-secondary/50 border border-border rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          Coupons cannot be used when reward points are applied. Remove rewards first.
+        </p>
       </div>
     );
   }
