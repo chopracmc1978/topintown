@@ -585,8 +585,9 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               <Button 
                 variant="outline" 
                 className="flex-1 border-amber-600 hover:bg-amber-900/30"
-                style={{ color: '#f59e0b' }}
+                style={{ color: '#f59e0b', opacity: (hasNewDiscount || (order.discount && order.discount > 0)) ? 0.4 : 1 }}
                 onClick={() => onPayment('points')}
+                disabled={hasNewDiscount || !!(order.discount && order.discount > 0)}
               >
                 <Star className="w-4 h-4 mr-2" />
                 Points
