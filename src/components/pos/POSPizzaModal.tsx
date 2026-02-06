@@ -375,29 +375,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           <div className="flex items-start gap-8">
             {/* Cheese section */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-700">Cheese</span>
-              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
-                const isSelected = selectedCheese === cheese;
-                // None selected = red, other cheese selected = green
-                const activeStyle = cheese === 'No Cheese' 
-                  ? "border-red-600 bg-red-600 text-white" 
-                  : "border-green-600 bg-green-600 text-white";
-                return (
-                  <button
-                    key={cheese}
-                    onClick={() => {
-                      setSelectedCheese(cheese);
-                      if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
-                    }}
-                    className={cn(btnSmall, isSelected ? activeStyle : btnInactive)}
-                  >
-                    {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
-                    {cheese === 'Dairy Free' && (
-                      <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
-                    )}
-                  </button>
-                );
-              })}
+              <span className={cn(
+                "text-xs font-medium",
+                selectedCheese === 'No Cheese' ? "text-red-600" : "text-green-600"
+              )}>Cheese</span>
+              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
+                <button
+                  key={cheese}
+                  onClick={() => {
+                    setSelectedCheese(cheese);
+                    if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
+                  }}
+                  className={cn(btnSmall, selectedCheese === cheese ? btnActive : btnInactive)}
+                >
+                  {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
+                  {cheese === 'Dairy Free' && (
+                    <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                  )}
+                </button>
+              ))}
               {/* Quantity options inline */}
               {(['less', 'normal', 'extra'] as const).map(qty => {
                 const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
