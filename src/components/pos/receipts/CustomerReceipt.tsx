@@ -1,18 +1,26 @@
 import { Order } from '@/types/menu';
 import { Separator } from '@/components/ui/separator';
 
+export interface ReceiptRewardPoints {
+  lifetime: number;
+  used: number;
+  balance: number;
+}
+
 interface CustomerReceiptProps {
   order: Order;
   locationName?: string;
   locationAddress?: string;
   locationPhone?: string;
+  rewardPoints?: ReceiptRewardPoints;
 }
 
 export const CustomerReceipt = ({ 
   order, 
   locationName = 'Top In Town Pizza',
   locationAddress = '',
-  locationPhone = ''
+  locationPhone = '',
+  rewardPoints,
 }: CustomerReceiptProps) => {
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -179,6 +187,28 @@ export const CustomerReceipt = ({
           </span>
         </div>
       </div>
+      
+      {/* Reward Points */}
+      {rewardPoints && (
+        <>
+          <Separator className="border-dashed border-black my-3" />
+          <div className="text-center text-xs space-y-0.5">
+            <p className="font-bold text-sm">🎁 Reward Points</p>
+            <div className="flex justify-between">
+              <span>Lifetime:</span>
+              <span className="font-medium">{rewardPoints.lifetime} pts</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Used:</span>
+              <span className="font-medium">{rewardPoints.used} pts</span>
+            </div>
+            <div className="flex justify-between font-bold">
+              <span>Balance:</span>
+              <span>{rewardPoints.balance} pts</span>
+            </div>
+          </div>
+        </>
+      )}
       
       <Separator className="border-dashed border-black my-3" />
       

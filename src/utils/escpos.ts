@@ -351,7 +351,11 @@ export const buildCustomerReceipt = (order: {
   name?: string;
   address?: string;
   phone?: string;
-}, options?: { paperWidthMm?: number }): string => {
+}, options?: { paperWidthMm?: number }, rewardPoints?: {
+  lifetime: number;
+  used: number;
+  balance: number;
+}): string => {
   const { INIT, BOLD_ON, BOLD_OFF, DOUBLE_HEIGHT_ON, NORMAL_SIZE, ALIGN_CENTER, ALIGN_LEFT, CUT, FEED_LINES } = ESCPOS;
   const WIDTH = getCharsPerLine(options?.paperWidthMm);
   const LINE_STR = makeLine(WIDTH);
@@ -516,7 +520,21 @@ export const buildCustomerReceipt = (order: {
   
   receipt += LF; // Gap before footer
   
+  // ===== REWARD POINTS (if available) =====
+  if (rewardPoints) {
+    receipt += LINE_STR + LF;
+    receipt += ALIGN_CENTER;
+    receipt += BOLD_ON + 'REWARD POINTS' + BOLD_OFF + LF;
+    receipt += ALIGN_LEFT;
+    receipt += formatLine('Lifetime :', `${rewardPoints.lifetime} pts`) + LF;
+    receipt += formatLine('Used :', `${rewardPoints.used} pts`) + LF;
+    receipt += BOLD_ON + formatLine('Balance :', `${rewardPoints.balance} pts`) + BOLD_OFF + LF;
+  }
+  
+  receipt += LF; // Gap before footer
+  
   // ===== FOOTER (centered) =====
+  receipt += ALIGN_CENTER;
   receipt += 'GST # 7428200897 RT 0001' + LF;
   receipt += 'Thanks You for Shopping at ' + BOLD_ON + 'TOP IN TOWN PIZZA LTD.' + BOLD_OFF + LF;
   
