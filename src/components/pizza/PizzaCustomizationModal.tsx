@@ -810,7 +810,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                 {vegTops.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-green-600 font-medium mb-2">Non-meats</p>
-                    <div className="grid grid-cols-7 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2">
                       {vegTops.map(t => (
                         <button
                           key={t.id}
@@ -828,7 +828,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                 {nonVegTops.length > 0 && (
                   <div>
                     <p className="text-sm text-destructive font-medium mb-2">Meats</p>
-                    <div className="grid grid-cols-7 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2">
                       {nonVegTops.map(t => (
                         <button
                           key={t.id}
