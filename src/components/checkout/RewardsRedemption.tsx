@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Gift, Star, X, DollarSign } from 'lucide-react';
+import { Gift, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
   useRewardsByPhone, 
   MIN_POINTS_TO_REDEEM, 
+  MAX_POINTS_TO_REDEEM,
   POINTS_TO_DOLLAR_RATIO,
   MIN_REDEEM_DOLLAR,
   MAX_REDEEM_DOLLAR,
@@ -39,6 +39,7 @@ const RewardsRedemption = ({
 
   const currentPoints = rewards?.points || 0;
   const canRedeem = canRedeemRewards(currentPoints);
+  // Max dollars the customer can redeem based on their points (10 pts = $1)
   const availableDollars = Math.floor(currentPoints / POINTS_TO_DOLLAR_RATIO);
   const maxRedeemable = Math.min(availableDollars, MAX_REDEEM_DOLLAR, Math.floor(orderSubtotal));
   const canApply = maxRedeemable >= MIN_REDEEM_DOLLAR;
@@ -51,21 +52,16 @@ const RewardsRedemption = ({
           <div className="flex items-center gap-2">
             <Gift className="w-4 h-4 text-green-600" />
             <span className="text-sm font-medium text-green-700 dark:text-green-400">
-              {appliedRewardsPoints} points applied
+              {appliedRewardsPoints} points applied (-${appliedRewardsDiscount.toFixed(2)})
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-green-700 dark:text-green-400">
-              -${appliedRewardsDiscount.toFixed(2)}
-            </span>
-            <button
-              onClick={onRemoveRewards}
-              className="text-green-600 hover:text-green-800 transition-colors"
-              title="Remove rewards"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={onRemoveRewards}
+            className="text-green-600 hover:text-green-800 transition-colors"
+            title="Remove rewards"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
     );
@@ -81,7 +77,7 @@ const RewardsRedemption = ({
           <span className="text-sm text-muted-foreground">
             You have <span className="font-medium text-foreground">{currentPoints} points</span>
             {currentPoints > 0 && currentPoints < MIN_POINTS_TO_REDEEM && (
-              <span> • {pointsNeeded} more to unlock rewards</span>
+              <span> • {pointsNeeded} more points to unlock rewards (min {MIN_POINTS_TO_REDEEM} pts)</span>
             )}
             {currentPoints >= MIN_POINTS_TO_REDEEM && !canApply && (
               <span> • Order must be at least ${MIN_REDEEM_DOLLAR} to redeem</span>
@@ -118,12 +114,18 @@ const RewardsRedemption = ({
     setCustomAmount('');
   };
 
-  // Can redeem - show inline input with $20-$35 range
+  // Can redeem - show points balance + input
   return (
-    <div className="border border-border rounded-lg p-3">
+    <div className="border border-border rounded-lg p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <Gift className="w-4 h-4 text-primary" />
+        <span className="text-sm font-medium">
+          You have <span className="text-primary">{currentPoints}</span> reward points
+        </span>
+      </div>
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground whitespace-nowrap">
-          Redeem (${MIN_REDEEM_DOLLAR}-${MAX_REDEEM_DOLLAR} range)
+          Redeem (${MIN_REDEEM_DOLLAR}-${maxRedeemable} range)
         </span>
         <div className="relative w-24 shrink-0">
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">$</span>
@@ -131,8 +133,6 @@ const RewardsRedemption = ({
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            min={MIN_REDEEM_DOLLAR}
-            max={maxRedeemable}
             value={customAmount}
             onChange={(e) => {
               const val = e.target.value.replace(/[^0-9]/g, '');
