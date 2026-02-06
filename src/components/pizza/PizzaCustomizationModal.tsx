@@ -385,9 +385,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
 
         <div className="px-4 py-3 space-y-4">
           {/* 1. SIZE & CRUST */}
-          <div className="border border-border bg-background overflow-hidden">
-            <div className="bg-primary text-primary-foreground px-6 py-4 font-bold text-lg">1. SIZE & CRUST</div>
-            <div className="p-6">
+          <div className="bg-primary/10 rounded-lg overflow-hidden">
+            <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">1. SIZE & CRUST</div>
+            <div className="p-4">
               <div className="flex justify-center gap-8 mb-4">
                 {(item.sizes || []).map(s => {
                   const sizeNum = s.name.includes('Small') ? '10"' : s.name.includes('Medium') ? '12"' : '14"';
@@ -413,7 +413,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                         s.name.includes('Large') && "w-24 h-24",
                         selectedSize?.id === s.id 
                           ? "bg-primary text-primary-foreground" 
-                          : "bg-background text-foreground border-2 border-primary"
+                          : "bg-primary/20 text-primary border-2 border-primary"
                       )}>
                         {sizeNum}
                       </div>
@@ -435,10 +435,10 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                         key={c.id}
                         onClick={() => setSelectedCrust({ id: c.id, name: c.name, price: gf ? GLUTEN_FREE_PRICE : 0 })}
                         className={cn(
-                          "px-6 py-2.5 border-2 transition-all font-medium",
+                          "px-4 py-2 rounded-lg border-2 transition-all",
                           selectedCrust?.id === c.id 
                             ? "border-primary bg-primary text-primary-foreground" 
-                            : "border-border bg-background text-foreground hover:border-primary/50"
+                            : "border-border hover:border-primary/50"
                         )}
                       >
                         {c.name} {gf && `+$${GLUTEN_FREE_PRICE}`}
@@ -451,9 +451,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
           </div>
 
           {/* 2. CHEESE */}
-          <div className="border border-border bg-background overflow-hidden">
-            <div className="bg-primary text-primary-foreground px-6 py-4 font-bold text-lg">2. CHEESE</div>
-            <div className="p-6 space-y-3">
+          <div className="bg-primary/10 rounded-lg overflow-hidden">
+            <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">2. CHEESE</div>
+            <div className="p-4 space-y-3">
               {/* Cheese type selection */}
               <div className="flex gap-4">
                 {['no-cheese', 'mozzarella', 'dairy-free'].map(type => (
@@ -541,11 +541,11 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
           </div>
 
           {/* 3. SAUCE */}
-          <div className="border border-border bg-background overflow-hidden">
-            <div className="bg-primary text-primary-foreground px-6 py-4 font-bold text-lg">
+          <div className="bg-primary/10 rounded-lg overflow-hidden">
+            <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">
               3. SAUCE <span className="font-normal text-sm">(* Other sauces may have additional fee)</span>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-x-8 gap-y-2">
                 {/* No Sauce */}
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -739,9 +739,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
           )}
 
           {/* 6. TOPPINGS */}
-          <div className="border border-border bg-background overflow-hidden">
-            <div className="bg-primary text-primary-foreground px-6 py-4 font-bold text-lg">4. TOPPINGS</div>
-            <div className="p-6 space-y-4">
+          <div className="bg-primary/10 rounded-lg overflow-hidden">
+            <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">4. TOPPINGS</div>
+            <div className="p-4 space-y-4">
               {/* Default Toppings - Meats */}
               {defaultToppings.filter(t => !t.isVeg).length > 0 && (
                 <div>
