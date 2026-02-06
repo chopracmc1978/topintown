@@ -107,6 +107,9 @@ const POS = () => {
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
   const [pendingPrepTime, setPendingPrepTime] = useState<number>(20);
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
+  const [showBalancePayment, setShowBalancePayment] = useState(false);
+  const [balanceRemaining, setBalanceRemaining] = useState<number>(0);
+  const [pointsDiscountApplied, setPointsDiscountApplied] = useState<{ pointsUsed: number; dollarValue: number } | null>(null);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
@@ -399,30 +402,52 @@ const POS = () => {
   };
 
   // Handle points applied — check if remaining balance needs cash/card
-  const handlePointsApplied = (pointsUsed: number, dollarValue: number, remainingBalance: number) => {
+  const handlePointsApplied = async (pointsUsed: number, dollarValue: number, remainingBalance: number) => {
     setPointsModalOpen(false);
     if (!newOrderPending) return;
+
+    // Store points discount on order
+    await supabase
+      .from('orders')
+      .update({ 
+        rewards_used: pointsUsed, 
+        rewards_discount: dollarValue,
+      })
+      .eq('order_number', newOrderPending.id);
+
+    setPointsDiscountApplied({ pointsUsed, dollarValue });
     
     if (remainingBalance <= 0.01) {
       // Fully paid with points
       updatePaymentStatus(newOrderPending.id, 'paid', 'points');
+      setPointsDiscountApplied(null);
       setNewOrderPending(null);
       setSelectedOrderId(null);
     } else {
-      // Partial payment — update the order's discount, then show cash/card for remaining
-      // Store the points discount on the order via the rewards fields
-      supabase
-        .from('orders')
-        .update({ 
-          rewards_used: pointsUsed, 
-          rewards_discount: dollarValue,
-        })
-        .eq('order_number', newOrderPending.id)
-        .then(() => {
-          // Show cash modal for remaining balance
-          setPendingPaymentOrderId(newOrderPending.id);
-          setCashModalOpen(true);
-        });
+      // Show balance payment dialog (Cash / Card / Skip)
+      setBalanceRemaining(remainingBalance);
+      setShowBalancePayment(true);
+    }
+  };
+
+  const handleBalancePayment = (method: 'cash' | 'card' | 'skip') => {
+    setShowBalancePayment(false);
+    if (!newOrderPending) return;
+
+    if (method === 'skip') {
+      // Leave unpaid
+      setPointsDiscountApplied(null);
+      setNewOrderPending(null);
+      setSelectedOrderId(null);
+    } else if (method === 'cash') {
+      setPendingPaymentOrderId(newOrderPending.id);
+      setCashModalOpen(true);
+    } else {
+      // Card — mark as paid
+      updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+      setPointsDiscountApplied(null);
+      setNewOrderPending(null);
+      setSelectedOrderId(null);
     }
   };
 
@@ -444,6 +469,7 @@ const POS = () => {
     }
     setCashModalOpen(false);
     setPendingPaymentOrderId(null);
+    setPointsDiscountApplied(null);
     
     // Clean up new order flow state
     if (newOrderPending) {
@@ -854,13 +880,63 @@ const POS = () => {
         onPointsApplied={handlePointsApplied}
         onClose={() => {
           setPointsModalOpen(false);
-          // Leave order as unpaid preparing
-          setNewOrderPending(null);
-          setSelectedOrderId(null);
+          // Go back to payment choice
+          setShowPaymentChoice(true);
         }}
       />
 
-      {/* Settings Panel */}
+      {/* Balance Payment Dialog (after points applied) */}
+      {showBalancePayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-xl border shadow-2xl p-6" style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}>
+            <h2 className="text-xl font-bold text-center mb-2">Remaining Balance</h2>
+            {pointsDiscountApplied && (
+              <p className="text-center text-sm mb-1" style={{ color: '#94a3b8' }}>
+                Points discount: <span style={{ color: '#22c55e' }}>-${pointsDiscountApplied.dollarValue.toFixed(2)}</span>
+              </p>
+            )}
+            <p className="text-center text-3xl font-bold mb-6" style={{ color: '#f87171' }}>
+              ${balanceRemaining.toFixed(2)}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button
+                className="h-20 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
+                style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22c55e'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
+                onClick={() => handleBalancePayment('cash')}
+              >
+                <DollarSign className="w-7 h-7" style={{ color: '#22c55e' }} />
+                Cash
+              </button>
+              <button
+                className="h-20 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
+                style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0ea5e9'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
+                onClick={() => handleBalancePayment('card')}
+              >
+                <svg className="w-7 h-7" style={{ color: '#0ea5e9' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
+                  <path d="M2 10h20" strokeWidth="2"/>
+                </svg>
+                Card
+              </button>
+            </div>
+            
+            <button
+              className="w-full py-3 rounded-lg font-medium transition-all"
+              style={{ color: '#94a3b8' }}
+              onClick={() => handleBalancePayment('skip')}
+            >
+              Skip - Leave Unpaid
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {showSettings && (
         <POSSettingsPanel
           locationId={currentLocationId}
