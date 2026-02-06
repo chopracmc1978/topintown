@@ -116,10 +116,10 @@ const Menu = () => {
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
                 className={cn(
-                  "px-6 py-2 rounded-full font-medium transition-all",
+                  "px-6 py-2.5 rounded-full font-medium transition-all",
                   activeCategory === category.id
-                    ? "bg-primary text-primary-foreground shadow-warm"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    ? "bg-[hsl(215,25%,27%)] text-white shadow-md"
+                    : "bg-[hsl(215,20%,35%)] text-white/90 hover:bg-[hsl(215,25%,30%)]"
                 )}
               >
                 {category.name}
