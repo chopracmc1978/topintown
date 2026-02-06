@@ -324,11 +324,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
-  // Ultra-compact button style for no-scroll layout - h-10 with width-safe shrink/wrap (prevents modal overflow)
-  const btnSmall = "h-10 px-3 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  // Ultra-compact button style for no-scroll layout - h-11 with width-safe shrink/wrap (prevents modal overflow)
+  const btnSmall = "h-11 px-4 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
-  const labelBox = "h-10 px-2 text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  const labelBox = "h-11 px-3 text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
