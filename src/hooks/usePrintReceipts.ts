@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { buildKitchenTicket, buildCustomerReceipt } from '@/utils/escpos';
 import { LOCATIONS } from '@/contexts/LocationContext';
 import { sendToPrinterDirect, isNativePlatform, openCashDrawer } from '@/utils/directPrint';
+import { supabase } from '@/integrations/supabase/client';
 
 type SonnerToastOptions = Parameters<typeof toast.info>[1];
 
@@ -128,10 +129,28 @@ export const usePrintReceipts = (locationId: string) => {
       phone: location?.phone,
     };
     
+    // Fetch reward points for customer
+    let rewardPoints: { lifetime: number; earned: number; used: number; balance: number } | undefined;
+    const cleanPhone = order.customerPhone?.replace(/\D/g, '');
+    if (cleanPhone) {
+      const [rewardsResult, historyResult] = await Promise.all([
+        supabase.from('customer_rewards').select('points, lifetime_points').eq('phone', cleanPhone).maybeSingle(),
+        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', order.id).eq('transaction_type', 'earned').maybeSingle(),
+      ]);
+      if (rewardsResult.data) {
+        rewardPoints = {
+          lifetime: rewardsResult.data.lifetime_points,
+          earned: historyResult.data?.points_change || 0,
+          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
+          balance: rewardsResult.data.points,
+        };
+      }
+    }
+
     let anySuccess = false;
     for (const printer of targetPrinters) {
       // Build per-printer so 80mm printers use full width (48 cols) and 58mm use 32 cols.
-      const receiptData = buildCustomerReceipt(receiptPayload, locationInfo, { paperWidthMm: printer.paper_width });
+      const receiptData = buildCustomerReceipt(receiptPayload, locationInfo, { paperWidthMm: printer.paper_width }, rewardPoints);
       const success = await sendToPrinter(printer, receiptData);
       if (success) anySuccess = true;
     }

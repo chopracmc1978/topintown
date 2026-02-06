@@ -274,6 +274,34 @@ export const usePOSOrders = (locationId?: string) => {
 
       const location = LOCATIONS.find(l => l.id === locationId);
       
+      // Fetch reward points for the email
+      let rewardPoints: { lifetime: number; earned: number; used: number; balance: number } | undefined;
+      const cleanPhone = order.customerPhone?.replace(/\D/g, '');
+      if (cleanPhone) {
+        const [rewardsResult, historyResult] = await Promise.all([
+          supabase
+            .from('customer_rewards')
+            .select('points, lifetime_points')
+            .eq('phone', cleanPhone)
+            .maybeSingle(),
+          supabase
+            .from('rewards_history')
+            .select('points_change')
+            .eq('phone', cleanPhone)
+            .eq('order_id', order.id)
+            .eq('transaction_type', 'earned')
+            .maybeSingle(),
+        ]);
+        if (rewardsResult.data) {
+          rewardPoints = {
+            lifetime: rewardsResult.data.lifetime_points,
+            earned: historyResult.data?.points_change || 0,
+            used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
+            balance: rewardsResult.data.points,
+          };
+        }
+      }
+
       const emailData = {
         orderId: order.id,
         email: customer.email,
@@ -298,6 +326,7 @@ export const usePOSOrders = (locationId?: string) => {
         locationName: location?.name || 'Top In Town Pizza',
         locationAddress: location?.address || '',
         locationPhone: location?.phone || '',
+        rewardPoints,
       };
 
       console.log('Sending email receipt to:', customer.email);

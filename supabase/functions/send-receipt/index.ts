@@ -48,6 +48,13 @@ interface OrderItem {
   };
 }
 
+interface RewardPointsData {
+  lifetime: number;
+  earned: number;
+  used: number;
+  balance: number;
+}
+
 interface SendReceiptRequest {
   orderId: string;
   email: string;
@@ -65,6 +72,7 @@ interface SendReceiptRequest {
   locationName: string;
   locationAddress: string;
   locationPhone: string;
+  rewardPoints?: RewardPointsData;
 }
 
 const formatDate = (dateString: string): string => {
@@ -235,6 +243,33 @@ const buildEmailHtml = (data: SendReceiptRequest): string => {
             ${data.paymentStatus === 'paid' ? `PAID - ${(data.paymentMethod || 'Card').toUpperCase()}` : 'PAYMENT DUE AT PICKUP'}
           </strong>
         </div>
+        
+        ${data.rewardPoints ? `
+        <!-- Reward Points -->
+        <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="text-align: center; font-weight: bold; margin: 0 0 10px 0; font-size: 16px;">🎁 Reward Points</p>
+          <table style="width: 100%; font-size: 14px;">
+            <tr>
+              <td style="padding: 3px 0;">Lifetime:</td>
+              <td style="text-align: right; font-weight: 600;">${data.rewardPoints.lifetime} pts</td>
+            </tr>
+            ${data.rewardPoints.earned > 0 ? `
+            <tr>
+              <td style="padding: 3px 0; color: #2e7d32;">Add:</td>
+              <td style="text-align: right; font-weight: 600; color: #2e7d32;">+${data.rewardPoints.earned} pts</td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 3px 0;">Used:</td>
+              <td style="text-align: right; font-weight: 600;">${data.rewardPoints.used} pts</td>
+            </tr>
+            <tr style="font-weight: bold; border-top: 1px solid #e0c97f;">
+              <td style="padding: 5px 0;">Balance:</td>
+              <td style="text-align: right;">${data.rewardPoints.balance} pts</td>
+            </tr>
+          </table>
+        </div>
+        ` : ''}
         
         <!-- Footer -->
         <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px;">

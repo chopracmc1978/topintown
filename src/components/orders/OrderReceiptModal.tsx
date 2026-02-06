@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface RewardPoints {
   lifetime: number;
+  earned: number;
   used: number;
   balance: number;
 }
@@ -33,17 +34,29 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
       const phone = order.customerPhone.replace(/\D/g, '');
       if (!phone) return;
       
-      const { data } = await supabase
-        .from('customer_rewards')
-        .select('points, lifetime_points')
-        .eq('phone', phone)
-        .maybeSingle();
+      // Fetch reward balance and points earned for this specific order
+      const [rewardsResult, historyResult] = await Promise.all([
+        supabase
+          .from('customer_rewards')
+          .select('points, lifetime_points')
+          .eq('phone', phone)
+          .maybeSingle(),
+        supabase
+          .from('rewards_history')
+          .select('points_change')
+          .eq('phone', phone)
+          .eq('order_id', order.id)
+          .eq('transaction_type', 'earned')
+          .maybeSingle(),
+      ]);
       
-      if (data) {
+      if (rewardsResult.data) {
+        const earnedThisOrder = historyResult.data?.points_change || 0;
         setRewardPoints({
-          lifetime: data.lifetime_points,
-          used: data.lifetime_points - data.points,
-          balance: data.points,
+          lifetime: rewardsResult.data.lifetime_points,
+          earned: earnedThisOrder,
+          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
+          balance: rewardsResult.data.points,
         });
       } else {
         setRewardPoints(undefined);
@@ -384,6 +397,12 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                   <span>Lifetime:</span>
                   <span className="font-medium">{rewardPoints.lifetime} pts</span>
                 </div>
+                {rewardPoints.earned > 0 && (
+                  <div className="flex justify-between text-green-700">
+                    <span>Add:</span>
+                    <span className="font-medium">+{rewardPoints.earned} pts</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Used:</span>
                   <span className="font-medium">{rewardPoints.used} pts</span>

@@ -353,6 +353,7 @@ export const buildCustomerReceipt = (order: {
   phone?: string;
 }, options?: { paperWidthMm?: number }, rewardPoints?: {
   lifetime: number;
+  earned: number;
   used: number;
   balance: number;
 }): string => {
@@ -527,6 +528,9 @@ export const buildCustomerReceipt = (order: {
     receipt += BOLD_ON + 'REWARD POINTS' + BOLD_OFF + LF;
     receipt += ALIGN_LEFT;
     receipt += formatLine('Lifetime :', `${rewardPoints.lifetime} pts`) + LF;
+    if (rewardPoints.earned > 0) {
+      receipt += formatLine('Add :', `+${rewardPoints.earned} pts`) + LF;
+    }
     receipt += formatLine('Used :', `${rewardPoints.used} pts`) + LF;
     receipt += BOLD_ON + formatLine('Balance :', `${rewardPoints.balance} pts`) + BOLD_OFF + LF;
   }
