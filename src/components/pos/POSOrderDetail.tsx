@@ -1,4 +1,4 @@
-import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil, CalendarDays, CheckCircle } from 'lucide-react';
+import { Clock, Phone, MapPin, User, ChefHat, Package, Truck, Utensils, Printer, DollarSign, CreditCard, Pencil, CalendarDays, CheckCircle, Star } from 'lucide-react';
 import { Order, OrderStatus, CartPizzaCustomization, CartComboCustomization, ComboSelectionItem } from '@/types/menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ interface POSOrderDetailProps {
   order: Order;
   locationId: string;
   onUpdateStatus: (status: OrderStatus) => void;
-  onPayment: (method: 'cash' | 'card') => void;
+  onPayment: (method: 'cash' | 'card' | 'points') => void;
   onPrintTicket: () => void;
   onPrintReceipt: () => void;
   onEditOrder: () => void;
@@ -394,7 +394,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
       <div className="p-4 space-y-3" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Payment Actions */}
          {(order.paymentStatus !== 'paid' || getBalanceDue(order) > 0) && (
-          <div className="flex gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Button 
               variant="outline" 
               className="flex-1 text-green-400 border-green-600 hover:bg-green-900/30"
@@ -402,7 +402,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             >
               <DollarSign className="w-4 h-4 mr-2" />
                {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
-                 ? `Cash ($${getBalanceDue(order).toFixed(2)})`
+                 ? `Cash`
                  : 'Cash'
                }
             </Button>
@@ -413,10 +413,21 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             >
               <CreditCard className="w-4 h-4 mr-2" />
                {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
-                 ? `Card ($${getBalanceDue(order).toFixed(2)})`
+                 ? `Card`
                  : 'Card'
                }
             </Button>
+            {order.customerPhone && (
+              <Button 
+                variant="outline" 
+                className="flex-1 border-amber-600 hover:bg-amber-900/30"
+                style={{ color: '#f59e0b' }}
+                onClick={() => onPayment('points')}
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Points
+              </Button>
+            )}
           </div>
         )}
 

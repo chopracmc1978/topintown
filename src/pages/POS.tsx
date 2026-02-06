@@ -110,6 +110,7 @@ const POS = () => {
   const [showBalancePayment, setShowBalancePayment] = useState(false);
   const [balanceRemaining, setBalanceRemaining] = useState<number>(0);
   const [pointsDiscountApplied, setPointsDiscountApplied] = useState<{ pointsUsed: number; dollarValue: number } | null>(null);
+  const [existingPointsOrder, setExistingPointsOrder] = useState<Order | null>(null);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
@@ -404,7 +405,10 @@ const POS = () => {
   // Handle points applied — check if remaining balance needs cash/card
   const handlePointsApplied = async (pointsUsed: number, dollarValue: number, remainingBalance: number) => {
     setPointsModalOpen(false);
-    if (!newOrderPending) return;
+    
+    // Determine which order this applies to
+    const targetOrder = newOrderPending || existingPointsOrder;
+    if (!targetOrder) return;
 
     // Store points discount on order
     await supabase
@@ -413,15 +417,16 @@ const POS = () => {
         rewards_used: pointsUsed, 
         rewards_discount: dollarValue,
       })
-      .eq('order_number', newOrderPending.id);
+      .eq('order_number', targetOrder.id);
 
     setPointsDiscountApplied({ pointsUsed, dollarValue });
     
     if (remainingBalance <= 0.01) {
       // Fully paid with points
-      updatePaymentStatus(newOrderPending.id, 'paid', 'points');
+      updatePaymentStatus(targetOrder.id, 'paid', 'points');
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
+      setExistingPointsOrder(null);
       setSelectedOrderId(null);
     } else {
       // Show balance payment dialog (Cash / Card / Skip)
@@ -432,31 +437,41 @@ const POS = () => {
 
   const handleBalancePayment = (method: 'cash' | 'card' | 'skip') => {
     setShowBalancePayment(false);
-    if (!newOrderPending) return;
+    const targetOrder = newOrderPending || existingPointsOrder;
+    if (!targetOrder) return;
 
     if (method === 'skip') {
       // Leave unpaid
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
+      setExistingPointsOrder(null);
       setSelectedOrderId(null);
     } else if (method === 'cash') {
-      setPendingPaymentOrderId(newOrderPending.id);
+      setPendingPaymentOrderId(targetOrder.id);
       setCashModalOpen(true);
     } else {
       // Card — mark as paid
-      updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+      updatePaymentStatus(targetOrder.id, 'paid', 'card');
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
+      setExistingPointsOrder(null);
       setSelectedOrderId(null);
     }
   };
 
-  const handlePayment = (method: 'cash' | 'card') => {
+  const handlePayment = (method: 'cash' | 'card' | 'points') => {
     if (!selectedOrderId) return;
 
     if (method === 'cash') {
       setPendingPaymentOrderId(selectedOrderId);
       setCashModalOpen(true);
+    } else if (method === 'points') {
+      // Open points modal for existing order
+      const order = orders.find(o => o.id === selectedOrderId);
+      if (order) {
+        setExistingPointsOrder(order);
+        setPointsModalOpen(true);
+      }
     } else {
       // Card payment - mark as paid directly (terminal handles it)
       updatePaymentStatus(selectedOrderId, 'paid', 'card');
@@ -471,10 +486,13 @@ const POS = () => {
     setPendingPaymentOrderId(null);
     setPointsDiscountApplied(null);
     
-    // Clean up new order flow state
+    // Clean up order flow state
     if (newOrderPending) {
       setNewOrderPending(null);
       setSelectedOrderId(null);
+    }
+    if (existingPointsOrder) {
+      setExistingPointsOrder(null);
     }
   };
 
@@ -873,15 +891,18 @@ const POS = () => {
       {/* Points Payment Modal */}
       <POSPointsPaymentModal
         open={pointsModalOpen}
-        orderTotal={newOrderPending?.total ?? 0}
-        customerPhone={newOrderPending?.customerPhone ?? ''}
-        orderId={newOrderPending?.id ?? ''}
-        customerId={newOrderPending?.customerId}
+        orderTotal={(newOrderPending || existingPointsOrder)?.total ?? 0}
+        customerPhone={(newOrderPending || existingPointsOrder)?.customerPhone ?? ''}
+        orderId={(newOrderPending || existingPointsOrder)?.id ?? ''}
+        customerId={(newOrderPending || existingPointsOrder)?.customerId}
         onPointsApplied={handlePointsApplied}
         onClose={() => {
           setPointsModalOpen(false);
-          // Go back to payment choice
-          setShowPaymentChoice(true);
+          setExistingPointsOrder(null);
+          // Go back to payment choice only for new orders
+          if (newOrderPending) {
+            setShowPaymentChoice(true);
+          }
         }}
       />
 
