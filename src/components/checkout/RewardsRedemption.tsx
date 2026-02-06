@@ -1,5 +1,7 @@
-import { Gift, Star, X } from 'lucide-react';
+import { useState } from 'react';
+import { Gift, Star, X, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
   useRewardsByPhone, 
   MIN_POINTS_TO_REDEEM, 
@@ -29,6 +31,8 @@ const RewardsRedemption = ({
   disabledByCoupon = false,
 }: RewardsRedemptionProps) => {
   const { data: rewards, isLoading } = useRewardsByPhone(customerPhone);
+  const [showCustom, setShowCustom] = useState(false);
+  const [customAmount, setCustomAmount] = useState('');
 
   if (isLoading || !customerPhone) {
     return null;
@@ -104,12 +108,18 @@ const RewardsRedemption = ({
     );
   }
 
-  // Can redeem - show button with smart amount ($20-$35, capped by order)
-  const handleApply = () => {
-    const pointsUsed = smartRedeemDollars * POINTS_TO_DOLLAR_RATIO;
-    onApplyRewards(pointsUsed, smartRedeemDollars);
+  // Validate custom amount
+  const parsedCustom = parseInt(customAmount) || 0;
+  const isCustomValid = parsedCustom >= MIN_REDEEM_DOLLAR && parsedCustom <= smartRedeemDollars;
+
+  const handleApply = (amount: number) => {
+    const pointsUsed = amount * POINTS_TO_DOLLAR_RATIO;
+    onApplyRewards(pointsUsed, amount);
+    setShowCustom(false);
+    setCustomAmount('');
   };
 
+  // Can redeem - show button with smart amount + custom option
   return (
     <div className="bg-primary/5 border border-primary/30 rounded-lg p-3 space-y-2">
       <div className="flex items-center justify-between">
@@ -120,14 +130,57 @@ const RewardsRedemption = ({
           </span>
         </div>
       </div>
+      
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
           Redeem for ${smartRedeemDollars} off ($20-${MAX_REDEEM_DOLLAR} range)
         </span>
-        <Button size="sm" variant="pizza" onClick={handleApply}>
-          Apply ${smartRedeemDollars} Off
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="pizza" onClick={() => handleApply(smartRedeemDollars)}>
+            Apply ${smartRedeemDollars} Off
+          </Button>
+        </div>
       </div>
+
+      {/* Custom amount toggle and input */}
+      {!showCustom ? (
+        <button
+          onClick={() => setShowCustom(true)}
+          className="text-xs text-primary hover:underline"
+        >
+          Use custom amount
+        </button>
+      ) : (
+        <div className="flex items-center gap-2 pt-1">
+          <div className="relative flex-1">
+            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              min={MIN_REDEEM_DOLLAR}
+              max={smartRedeemDollars}
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
+              placeholder={`${MIN_REDEEM_DOLLAR}-${smartRedeemDollars}`}
+              className="pl-7 h-8 text-sm"
+              autoFocus
+            />
+          </div>
+          <Button
+            size="sm"
+            variant="pizza"
+            disabled={!isCustomValid}
+            onClick={() => handleApply(parsedCustom)}
+          >
+            Apply ${parsedCustom || '?'}
+          </Button>
+          <button
+            onClick={() => { setShowCustom(false); setCustomAmount(''); }}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 };

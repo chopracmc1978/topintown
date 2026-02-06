@@ -624,8 +624,8 @@ const Checkout = () => {
           <h1 className="font-serif text-3xl font-bold text-foreground mb-8 text-center">Checkout</h1>
 
           <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Left Side - Customer Info or Auth Options */}
-            <div className="bg-card rounded-xl border border-border p-6">
+            {/* Left on desktop: Order Details / Auth (rendered first in DOM but ordered second on lg) */}
+            <div className="bg-card rounded-xl border border-border p-6 lg:order-2">
               {showAuthOptions ? (
                 <CheckoutAuthOptions 
                   onContinueAsGuest={handleGuestCheckoutComplete}
@@ -757,7 +757,7 @@ const Checkout = () => {
             </div>
 
             {/* Order Summary */}
-            <div className="bg-card rounded-xl border border-border p-6">
+            <div className="bg-card rounded-xl border border-border p-6 lg:order-1">
               <h2 className="font-serif text-xl font-semibold mb-6">Order Summary</h2>
 
               <div className="space-y-3 mb-6 max-h-[400px] overflow-y-auto">
