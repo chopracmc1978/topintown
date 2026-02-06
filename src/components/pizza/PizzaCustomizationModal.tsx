@@ -801,21 +801,21 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
               )}
 
               {/* Add Extra Toppings */}
-              <div className="border-t pt-3">
-                <p className="text-sm font-bold text-muted-foreground mb-2">
+              <div className="border-t pt-4">
+                <p className="text-base font-bold text-foreground mb-3">
                   Add Extra Toppings <span className="text-primary">+${toppingPrice} each</span>
                 </p>
                 
                 {/* Veg Extras (Non-meats first) */}
                 {vegTops.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs text-green-600 font-medium mb-1">Non-meats</p>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="mb-4">
+                    <p className="text-sm text-green-600 font-medium mb-2">Non-meats</p>
+                    <div className="grid grid-cols-7 gap-2">
                       {vegTops.map(t => (
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
-                          className="text-xs px-2 py-1 border rounded hover:border-primary hover:bg-primary/5"
+                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors"
                         >
                           + {t.name}
                         </button>
@@ -827,13 +827,13 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                 {/* Non-Veg Extras (Meats second) */}
                 {nonVegTops.length > 0 && (
                   <div>
-                    <p className="text-xs text-destructive font-medium mb-1">Meats</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-sm text-destructive font-medium mb-2">Meats</p>
+                    <div className="grid grid-cols-7 gap-2">
                       {nonVegTops.map(t => (
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
-                          className="text-xs px-2 py-1 border rounded hover:border-primary hover:bg-primary/5"
+                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors"
                         >
                           + {t.name}
                         </button>
