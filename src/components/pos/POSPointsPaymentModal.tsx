@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, X, DollarSign, Delete } from 'lucide-react';
+import { Star, X, Delete } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MIN_POINTS_TO_REDEEM, POINTS_TO_DOLLAR_RATIO, MIN_REDEEM_DOLLAR, MAX_REDEEM_DOLLAR } from '@/hooks/useRewards';
 
@@ -13,319 +13,127 @@ interface POSPointsPaymentModalProps {
   onClose: () => void;
 }
 
-const darkBg = 'hsl(220, 25%, 18%)';
-const darkCard = 'hsl(220, 26%, 22%)';
-const textColor = '#e2e8f0';
-const mutedText = '#94a3b8';
-const accentAmber = '#f59e0b';
-const accentGreen = '#22c55e';
-const borderColor = 'hsl(220, 20%, 28%)';
+const bg = 'hsl(220, 25%, 18%)';
+const card = 'hsl(220, 22%, 28%)';
+const border = 'hsl(220, 20%, 35%)';
+const amber = '#f59e0b';
+const blue = 'hsl(217, 91%, 60%)';
+const text = '#e2e8f0';
+const muted = '#94a3b8';
 
 export const POSPointsPaymentModal = ({
-  open,
-  orderTotal,
-  customerPhone,
-  orderId,
-  customerId,
-  onPointsApplied,
-  onClose,
+  open, orderTotal, customerPhone, orderId, customerId, onPointsApplied, onClose,
 }: POSPointsPaymentModalProps) => {
-  const [points, setPoints] = useState<number>(0);
-  const [lifetimePoints, setLifetimePoints] = useState<number>(0);
+  const [points, setPoints] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [selectedAmount, setSelectedAmount] = useState<number>(0);
-  const [customInput, setCustomInput] = useState('');
-  const [showKeypad, setShowKeypad] = useState(false);
+  const [input, setInput] = useState('');
 
   const cleanPhone = customerPhone?.replace(/\D/g, '') || '';
 
   useEffect(() => {
     if (!open || !cleanPhone) return;
     setLoading(true);
-    setSelectedAmount(0);
-    setCustomInput('');
-    setShowKeypad(false);
-
-    const fetchPoints = async () => {
-      const { data } = await supabase
-        .from('customer_rewards')
-        .select('points, lifetime_points')
-        .eq('phone', cleanPhone)
-        .maybeSingle();
-
-      if (data) {
-        setPoints(data.points);
-        setLifetimePoints(data.lifetime_points);
-      } else {
-        setPoints(0);
-        setLifetimePoints(0);
-      }
-      setLoading(false);
-    };
-    fetchPoints();
+    setInput('');
+    supabase
+      .from('customer_rewards')
+      .select('points')
+      .eq('phone', cleanPhone)
+      .maybeSingle()
+      .then(({ data }) => {
+        setPoints(data?.points || 0);
+        setLoading(false);
+      });
   }, [open, cleanPhone]);
 
   if (!open) return null;
 
   const canRedeem = points >= MIN_POINTS_TO_REDEEM;
-  const maxDollarFromPoints = Math.floor(points / POINTS_TO_DOLLAR_RATIO);
-  const effectiveMax = Math.floor(Math.min(MAX_REDEEM_DOLLAR, maxDollarFromPoints, orderTotal));
+  const maxDollar = Math.floor(Math.min(MAX_REDEEM_DOLLAR, Math.floor(points / POINTS_TO_DOLLAR_RATIO), orderTotal));
+  const amount = parseInt(input) || 0;
+  const valid = amount >= MIN_REDEEM_DOLLAR && amount <= maxDollar;
+  const remaining = Math.max(0, orderTotal - amount);
 
-  // Generate dollar amount options in $5 increments
-  const amountOptions: number[] = [];
-  if (canRedeem) {
-    for (let amt = MIN_REDEEM_DOLLAR; amt <= effectiveMax; amt += 5) {
-      amountOptions.push(amt);
-    }
-    if (amountOptions.length > 0 && amountOptions[amountOptions.length - 1] !== effectiveMax && effectiveMax >= MIN_REDEEM_DOLLAR) {
-      amountOptions.push(effectiveMax);
-    }
-    if (amountOptions.length === 0 && effectiveMax >= 1) {
-      amountOptions.push(effectiveMax);
-    }
-  }
-
-  const activeAmount = showKeypad && customInput ? parseInt(customInput) || 0 : selectedAmount;
-  const remainingAfterPoints = activeAmount > 0 ? Math.max(0, orderTotal - activeAmount) : orderTotal;
-  const pointsNeeded = activeAmount * POINTS_TO_DOLLAR_RATIO;
-
-  const isApplyEnabled = activeAmount >= MIN_REDEEM_DOLLAR && activeAmount <= effectiveMax && pointsNeeded <= points;
-
-  const handlePresetSelect = (amt: number) => {
-    setSelectedAmount(amt);
-    setShowKeypad(false);
-    setCustomInput('');
+  const press = (key: string) => {
+    if (key === 'C') setInput('');
+    else if (key === 'DEL') setInput(p => p.slice(0, -1));
+    else if (input.length < 2) setInput(p => p + key);
   };
 
-  const handleKeyPress = (key: string) => {
-    if (key === 'C') {
-      setCustomInput('');
-    } else if (key === 'DEL') {
-      setCustomInput(prev => prev.slice(0, -1));
-    } else {
-      // Only allow digits, max 2 chars (20-35 range)
-      if (customInput.length < 2) {
-        setCustomInput(prev => prev + key);
-      }
-    }
-  };
-
-  const handleCustomToggle = () => {
-    setShowKeypad(true);
-    setSelectedAmount(0);
-    setCustomInput('');
-  };
-
-  const handleApply = () => {
-    if (!isApplyEnabled) return;
-    onPointsApplied(pointsNeeded, activeAmount, remainingAfterPoints);
+  const apply = () => {
+    if (!valid) return;
+    onPointsApplied(amount * POINTS_TO_DOLLAR_RATIO, amount, remaining);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-      <div className="w-full max-w-md rounded-xl border shadow-2xl" style={{ backgroundColor: darkBg, borderColor, color: textColor }}>
+      <div className="w-80 rounded-xl shadow-2xl" style={{ backgroundColor: bg, border: `1px solid ${border}`, color: text }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b" style={{ borderColor }}>
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${border}` }}>
           <div className="flex items-center gap-2">
-            <Star className="w-6 h-6" style={{ color: accentAmber }} />
-            <h2 className="text-xl font-bold">Pay with Points</h2>
+            <Star className="w-5 h-5" style={{ color: amber }} />
+            <span className="text-base font-bold">Pay with Points</span>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70">
-            <X className="w-5 h-5" />
-          </button>
+          <button onClick={onClose} className="p-1 rounded hover:opacity-70"><X className="w-4 h-4" /></button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-4 space-y-3">
           {loading ? (
-            <div className="text-center py-8" style={{ color: mutedText }}>Loading points...</div>
-          ) : !cleanPhone ? (
-            <div className="text-center py-8">
-              <p className="text-lg font-semibold mb-2">No Phone Number</p>
-              <p style={{ color: mutedText }}>Customer phone number is required to redeem points.</p>
-            </div>
+            <div className="text-center py-6" style={{ color: muted }}>Loading...</div>
           ) : !canRedeem ? (
-            <div className="text-center py-8">
-              <p className="text-lg font-semibold mb-2">Not Enough Points</p>
-              <p style={{ color: mutedText }}>
-                Customer has <span className="font-bold" style={{ color: accentAmber }}>{points} pts</span>.
-                Minimum {MIN_POINTS_TO_REDEEM} pts needed to redeem.
+            <div className="text-center py-6">
+              <p className="font-semibold mb-1">Not Enough Points</p>
+              <p className="text-sm" style={{ color: muted }}>
+                <span style={{ color: amber }}>{points} pts</span> — need {MIN_POINTS_TO_REDEEM} min
               </p>
             </div>
           ) : (
             <>
-              {/* Points Balance */}
-              <div className="rounded-lg p-4 text-center" style={{ backgroundColor: darkCard }}>
-                <p style={{ color: mutedText }} className="text-sm mb-1">Available Points</p>
-                <p className="text-3xl font-bold" style={{ color: accentAmber }}>{points} pts</p>
-                <p className="text-sm mt-1" style={{ color: mutedText }}>
-                  (worth up to ${maxDollarFromPoints})
+              {/* Points + Order info */}
+              <div className="flex justify-between items-center text-sm">
+                <span style={{ color: muted }}>Points: <span className="font-bold" style={{ color: amber }}>{points}</span></span>
+                <span style={{ color: muted }}>Order: <span className="font-bold" style={{ color: text }}>${orderTotal.toFixed(2)}</span></span>
+              </div>
+
+              {/* Amount display */}
+              <div className="h-12 rounded-lg flex items-center px-4" style={{ backgroundColor: card, border: `2px solid ${input ? amber : border}` }}>
+                <span className="text-sm mr-1" style={{ color: amber }}>$</span>
+                <span className="text-xl font-bold" style={{ color: input ? text : muted }}>{input || '0'}</span>
+                <span className="ml-auto text-xs" style={{ color: muted }}>${MIN_REDEEM_DOLLAR}-${maxDollar}</span>
+              </div>
+
+              {/* Keypad */}
+              <div className="grid grid-cols-3 gap-1">
+                {['7','8','9','4','5','6','1','2','3'].map(k => (
+                  <button key={k} onClick={() => press(k)} className="h-11 rounded-lg text-base font-bold" style={{ backgroundColor: card, color: text, border: `1px solid ${border}` }}>{k}</button>
+                ))}
+                <button onClick={() => press('C')} className="h-11 rounded-lg text-base font-bold" style={{ backgroundColor: card, color: '#f87171', borderLeft: '2px solid hsl(0,70%,50%)', borderTop: `1px solid ${border}`, borderRight: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>C</button>
+                <button onClick={() => press('0')} className="h-11 rounded-lg text-base font-bold" style={{ backgroundColor: card, color: text, border: `1px solid ${border}` }}>0</button>
+                <button disabled className="h-11 rounded-lg text-base font-bold opacity-30" style={{ backgroundColor: card, color: text, border: `1px solid ${border}` }}>.</button>
+                {/* Del + Apply */}
+                <button onClick={() => press('DEL')} className="h-11 rounded-lg text-sm font-medium flex items-center justify-center gap-1" style={{ backgroundColor: card, color: text, border: `1px solid ${border}` }}>
+                  <Delete className="w-4 h-4" /> Del
+                </button>
+                <button
+                  onClick={apply}
+                  disabled={!valid}
+                  className="h-11 rounded-lg text-sm font-bold col-span-2"
+                  style={{
+                    backgroundColor: valid ? blue : card,
+                    color: valid ? '#fff' : muted,
+                    border: `1px solid ${valid ? blue : border}`,
+                  }}
+                >
+                  {valid ? `Apply $${amount}` : 'OK'}
+                </button>
+              </div>
+
+              {/* Remaining hint */}
+              {valid && remaining > 0 && (
+                <p className="text-xs text-center" style={{ color: muted }}>
+                  Remaining ${remaining.toFixed(2)} payable by Cash/Card
                 </p>
-              </div>
-
-              {/* Order Total */}
-              <div className="flex justify-between items-center text-lg px-1">
-                <span style={{ color: mutedText }}>Order Total:</span>
-                <span className="font-bold text-xl">${orderTotal.toFixed(2)}</span>
-              </div>
-
-              {/* Amount Selection */}
-              <div>
-                <p className="text-sm font-medium mb-3" style={{ color: mutedText }}>Select Points Amount (${MIN_REDEEM_DOLLAR}-${MAX_REDEEM_DOLLAR}):</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {amountOptions.map(amt => (
-                    <button
-                      key={amt}
-                      className="h-14 rounded-lg text-lg font-bold transition-all border-2"
-                      style={{
-                        backgroundColor: selectedAmount === amt && !showKeypad ? accentAmber : darkCard,
-                        borderColor: selectedAmount === amt && !showKeypad ? accentAmber : borderColor,
-                        color: selectedAmount === amt && !showKeypad ? '#000' : textColor,
-                      }}
-                      onClick={() => handlePresetSelect(amt)}
-                    >
-                      ${amt}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Custom Amount with Numeric Keypad */}
-                <div className="mt-3">
-                  {!showKeypad ? (
-                    <button
-                      className="w-full h-12 rounded-lg text-sm font-semibold transition-all border-2"
-                      style={{ backgroundColor: darkCard, borderColor, color: mutedText }}
-                      onClick={handleCustomToggle}
-                    >
-                      Custom Amount
-                    </button>
-                  ) : (
-                    <div className="space-y-2">
-                      {/* Display */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-14 rounded-lg flex items-center px-4 border-2" style={{ backgroundColor: darkCard, borderColor: customInput ? accentAmber : borderColor }}>
-                          <DollarSign className="w-5 h-5 mr-1" style={{ color: accentAmber }} />
-                          <span className="text-2xl font-bold" style={{ color: customInput ? textColor : mutedText }}>
-                            {customInput || '0'}
-                          </span>
-                        </div>
-                        <button
-                          className="h-14 px-4 rounded-lg text-sm font-semibold"
-                          style={{ backgroundColor: darkCard, color: mutedText, border: `1px solid ${borderColor}` }}
-                          onClick={() => {
-                            setShowKeypad(false);
-                            setCustomInput('');
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                      {/* Numeric Keypad - matching reference layout */}
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {['7', '8', '9', '4', '5', '6', '1', '2', '3'].map((key) => (
-                          <button
-                            key={key}
-                            className="h-12 rounded-lg text-lg font-bold transition-colors"
-                            style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
-                            onClick={() => handleKeyPress(key)}
-                          >
-                            {key}
-                          </button>
-                        ))}
-                        {/* Row 4: C, 0, . */}
-                        <button
-                          className="h-12 rounded-lg text-lg font-bold transition-colors"
-                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', borderLeft: '2px solid hsl(0, 70%, 50%)', borderTop: '1px solid hsl(220, 20%, 35%)', borderRight: '1px solid hsl(220, 20%, 35%)', borderBottom: '1px solid hsl(220, 20%, 35%)' }}
-                          onClick={() => handleKeyPress('C')}
-                        >
-                          C
-                        </button>
-                        <button
-                          className="h-12 rounded-lg text-lg font-bold transition-colors"
-                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
-                          onClick={() => handleKeyPress('0')}
-                        >
-                          0
-                        </button>
-                        <button
-                          className="h-12 rounded-lg text-lg font-bold transition-colors"
-                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
-                          disabled
-                        >
-                          .
-                        </button>
-                        {/* Row 5: Del + OK */}
-                        <button
-                          className="h-12 rounded-lg text-base font-medium transition-colors col-span-1 flex items-center justify-center gap-1"
-                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
-                          onClick={() => handleKeyPress('DEL')}
-                        >
-                          <Delete className="w-4 h-4" /> Del
-                        </button>
-                        <button
-                          className="h-12 rounded-lg text-base font-bold transition-colors col-span-2"
-                          style={{
-                            backgroundColor: isApplyEnabled ? 'hsl(217, 91%, 60%)' : 'hsl(220, 22%, 28%)',
-                            color: isApplyEnabled ? '#fff' : mutedText,
-                            border: `1px solid ${isApplyEnabled ? 'hsl(217, 91%, 60%)' : 'hsl(220, 20%, 35%)'}`,
-                          }}
-                          disabled={!isApplyEnabled}
-                          onClick={handleApply}
-                        >
-                          {isApplyEnabled ? `Apply $${activeAmount}` : 'OK'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Summary */}
-              {activeAmount > 0 && isApplyEnabled && (
-                <div className="rounded-lg p-4 space-y-2" style={{ backgroundColor: darkCard }}>
-                  <div className="flex justify-between text-sm">
-                    <span style={{ color: mutedText }}>Points to Use:</span>
-                    <span className="font-semibold" style={{ color: accentAmber }}>{pointsNeeded} pts</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span style={{ color: mutedText }}>Points Discount:</span>
-                    <span className="font-semibold" style={{ color: accentGreen }}>-${activeAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t pt-2 mt-2" style={{ borderColor }}>
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Remaining:</span>
-                      <span style={{ color: remainingAfterPoints > 0 ? '#f87171' : accentGreen }}>
-                        ${remainingAfterPoints.toFixed(2)}
-                      </span>
-                    </div>
-                    {remainingAfterPoints > 0 && (
-                      <p className="text-xs mt-1" style={{ color: mutedText }}>
-                        Remaining balance can be paid with Cash or Card
-                      </p>
-                    )}
-                  </div>
-                </div>
               )}
             </>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="p-5 border-t flex gap-3" style={{ borderColor }}>
-          <button
-            className="flex-1 h-12 rounded-lg font-semibold transition-all"
-            style={{ backgroundColor: darkCard, color: mutedText }}
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          {canRedeem && isApplyEnabled && (
-            <button
-              className="flex-1 h-12 rounded-lg font-bold transition-all"
-              style={{ backgroundColor: accentAmber, color: '#000' }}
-              onClick={handleApply}
-            >
-              {`Apply $${activeAmount}`}
-            </button>
           )}
         </div>
       </div>
