@@ -287,63 +287,64 @@ const CustomersManager = () => {
             </div>
           </div>
           
-          {/* Scrollable Orders List */}
-          <div className="flex-1 overflow-auto px-6">
-            {ordersLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : customerOrders?.length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">No orders yet</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order #</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Pts Earned</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customerOrders?.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-mono text-sm">
-                        {order.order_number}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="capitalize">
-                          {order.order_type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        ${order.total.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {order.status === 'delivered' || order.status === 'completed' ? (
-                          <span className="flex items-center justify-end gap-1 text-primary font-medium">
-                            <Star className="w-3 h-3" />
-                            +{Math.floor(order.total * POINTS_PER_DOLLAR)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">—</span>
-                        )}
-                      </TableCell>
+          <ScrollArea className="flex-1">
+            <div className="px-6">
+              {ordersLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : customerOrders?.length === 0 ? (
+                <div className="text-center py-8">
+                  <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                  <p className="text-muted-foreground">No orders yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order #</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-right">Pts Earned</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {customerOrders?.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          {order.order_number}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {order.order_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${order.total.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {order.status === 'delivered' || order.status === 'completed' ? (
+                            <span className="flex items-center justify-end gap-1 text-primary font-medium">
+                              <Star className="w-3 h-3" />
+                              +{Math.floor(order.total * POINTS_PER_DOLLAR)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </ScrollArea>
 
           {/* Fixed Footer with Totals */}
           <div className="sticky bottom-0 bg-background border-t p-6 pt-4">
