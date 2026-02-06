@@ -66,23 +66,25 @@ const Admin = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-serif text-2xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              {user.email} {isAdmin && <span className="text-primary">(Admin)</span>}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/pos')}>
-              Go to POS
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/')}>
-              View Website
-            </Button>
-            <Button variant="ghost" size="icon" onClick={signOut}>
-              <LogOut className="w-4 h-4" />
-            </Button>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-serif text-2xl font-bold text-foreground">Admin Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                {user.email} {isAdmin && <span className="text-primary">(Admin)</span>}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/pos')}>
+                Go to POS
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/')}>
+                View Website
+              </Button>
+              <Button variant="ghost" size="icon" onClick={signOut}>
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
