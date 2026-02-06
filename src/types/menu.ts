@@ -62,7 +62,7 @@ export interface CartItem extends MenuItem {
 export type OrderType = 'pickup' | 'delivery' | 'dine-in';
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'paid' | 'refunded';
-export type PaymentMethod = 'cash' | 'card' | 'online';
+export type PaymentMethod = 'cash' | 'card' | 'online' | 'points';
 export type OrderSource = 'web' | 'app' | 'online' | 'phone' | 'walk-in';
 
 export interface Order {

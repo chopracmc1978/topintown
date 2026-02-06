@@ -372,7 +372,7 @@ const POS = () => {
   };
 
   // Handle payment choice for new orders
-  const handleNewOrderPaymentChoice = (method: 'cash' | 'card') => {
+  const handleNewOrderPaymentChoice = (method: 'cash' | 'card' | 'points') => {
     if (!newOrderPending) return;
     
     // First, update order status to preparing with prep time
@@ -384,8 +384,8 @@ const POS = () => {
       setShowPaymentChoice(false);
       setCashModalOpen(true);
     } else {
-      // Card payment - mark as paid directly
-      updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+      // Card or points payment - mark as paid directly
+      updatePaymentStatus(newOrderPending.id, 'paid', method);
       setShowPaymentChoice(false);
       setNewOrderPending(null);
       setSelectedOrderId(null);
@@ -736,10 +736,10 @@ const POS = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <div className="flex gap-4 py-6">
+          <div className="grid grid-cols-3 gap-4 py-6">
             <Button
               variant="outline"
-              className="flex-1 h-24 text-xl font-semibold border-2 hover:border-green-500 hover:bg-green-50"
+              className="h-24 text-xl font-semibold border-2 hover:border-green-500 hover:bg-green-50"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -751,7 +751,7 @@ const POS = () => {
             </Button>
             <Button
               variant="outline"
-              className="flex-1 h-24 text-xl font-semibold border-2 hover:border-blue-500 hover:bg-blue-50"
+              className="h-24 text-xl font-semibold border-2 hover:border-blue-500 hover:bg-blue-50"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -763,6 +763,20 @@ const POS = () => {
                 <path d="M2 10h20" strokeWidth="2"/>
               </svg>
               Card
+            </Button>
+            <Button
+              variant="outline"
+              className="h-24 text-xl font-semibold border-2 hover:border-amber-500 hover:bg-amber-50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNewOrderPaymentChoice('points');
+              }}
+            >
+              <svg className="w-8 h-8 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Points
             </Button>
           </div>
           
