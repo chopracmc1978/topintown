@@ -210,7 +210,7 @@ export const usePOSOrders = (locationId?: string) => {
     orderNumber: string, 
     phone: string | undefined, 
     customerId: string | undefined,
-    type: 'accepted' | 'preparing' | 'ready' | 'complete', 
+    type: 'accepted' | 'preparing' | 'ready' | 'complete' | 'cancelled', 
     options?: { prepTime?: number; pickupTime?: Date }
   ) => {
     try {
@@ -594,6 +594,8 @@ export const usePOSOrders = (locationId?: string) => {
           if (order && locationId) {
             await sendEmailReceipt(order, locationId);
           }
+        } else if (status === 'cancelled') {
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'cancelled');
         }
       }
 
