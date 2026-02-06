@@ -46,6 +46,11 @@ interface Order {
   created_at: string;
 }
 
+const normalizePhone = (value: string) => value.replace(/\D/g, '');
+
+const isPointsEligibleStatus = (status: string) =>
+  ['delivered', 'completed', 'complete'].includes(status.toLowerCase());
+
 const CustomersManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -72,14 +77,20 @@ const CustomersManager = () => {
 
       // Map rewards to customers by phone
       const rewardsMap = new Map(
-        (rewardsData || []).map(r => [r.phone, { points: r.points, lifetime_points: r.lifetime_points }])
+        (rewardsData || []).map((r) => [
+          normalizePhone(r.phone),
+          { points: r.points, lifetime_points: r.lifetime_points },
+        ])
       );
 
-      return (customersData || []).map(customer => ({
-        ...customer,
-        reward_points: rewardsMap.get(customer.phone)?.points || 0,
-        lifetime_points: rewardsMap.get(customer.phone)?.lifetime_points || 0,
-      })) as Customer[];
+      return (customersData || []).map((customer) => {
+        const phoneKey = normalizePhone(customer.phone);
+        return {
+          ...customer,
+          reward_points: rewardsMap.get(phoneKey)?.points || 0,
+          lifetime_points: rewardsMap.get(phoneKey)?.lifetime_points || 0,
+        };
+      }) as Customer[];
     },
   });
 
@@ -93,7 +104,7 @@ const CustomersManager = () => {
       const { data, error } = await supabase
         .from('orders')
         .select('id, order_number, status, total, order_type, created_at')
-        .or(`customer_id.eq.${selectedCustomer.id},customer_phone.ilike.%${selectedCustomer.phone.replace(/\D/g, '')}%`)
+        .or(`customer_id.eq.${selectedCustomer.id},customer_phone.ilike.%${normalizePhone(selectedCustomer.phone)}%`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -101,6 +112,18 @@ const CustomersManager = () => {
     },
     enabled: !!selectedCustomer,
   });
+
+  const derivedLifetimePoints = (customerOrders || []).reduce((sum, order) => {
+    if (!isPointsEligibleStatus(order.status)) return sum;
+    return sum + Math.floor(order.total * POINTS_PER_DOLLAR);
+  }, 0);
+
+  const lifetimePoints = Math.max(selectedCustomer?.lifetime_points || 0, derivedLifetimePoints);
+  const rewardsBalancePoints = selectedCustomer?.reward_points || 0;
+
+  // If rewards haven't been recorded yet for these orders, still show a sensible balance in the UI
+  const balancePoints = rewardsBalancePoints > 0 ? rewardsBalancePoints : lifetimePoints;
+  const usedPoints = Math.max(0, lifetimePoints - balancePoints);
 
   const filteredCustomers = customers?.filter(customer => {
     const searchLower = searchTerm.toLowerCase();
@@ -122,6 +145,8 @@ const CustomersManager = () => {
       preparing: 'default',
       ready: 'default',
       delivered: 'outline',
+      complete: 'outline',
+      completed: 'outline',
       cancelled: 'destructive',
     };
     return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
@@ -289,17 +314,17 @@ const CustomersManager = () => {
               <div className="flex flex-wrap items-center gap-x-6 gap-y-1 pt-1">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Gift className="w-4 h-4" />
-                  <span>{selectedCustomer?.lifetime_points || 0} pts</span>
+                  <span>{lifetimePoints} pts</span>
                   <span className="text-xs">(lifetime)</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Gift className="w-4 h-4" />
-                  <span>{(selectedCustomer?.lifetime_points || 0) - (selectedCustomer?.reward_points || 0)} pts</span>
+                  <span>{usedPoints} pts</span>
                   <span className="text-xs">(used)</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-primary font-medium">
                   <Gift className="w-4 h-4" />
-                  <span>{selectedCustomer?.reward_points || 0} pts</span>
+                  <span>{balancePoints} pts</span>
                   <span className="text-xs">(balance)</span>
                 </div>
               </div>
@@ -348,7 +373,7 @@ const CustomersManager = () => {
                           ${order.total.toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {order.status === 'delivered' || order.status === 'completed' ? (
+                          {isPointsEligibleStatus(order.status) ? (
                             <span className="flex items-center justify-end gap-1 text-primary font-medium">
                               <Star className="w-3 h-3" />
                               +{Math.floor(order.total * POINTS_PER_DOLLAR)}
