@@ -325,7 +325,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
   // Ultra-compact button style for no-scroll layout - with proper gap padding
-  const btnSmall = "px-3 py-2 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground";
+  // Fixed height so multi-line labels (e.g. "Dairy Free +$3") don't change button height.
+  // NOTE: avoid `flex` here since it can increase min-content width and cause horizontal overflow.
+  const btnSmall = "h-10 px-3 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
 
@@ -346,8 +348,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   key={size.id}
                   onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
                   className={cn(
-                    btnSmall, 
-                    "py-1 px-2",
+                    btnSmall,
+                    "px-2",
                     isSelected 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
                       : "border-red-500 bg-red-500 text-white"
@@ -374,8 +376,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       key={crust.id}
                       onClick={() => setSelectedCrust(crust)}
                       className={cn(
-                        btnSmall, 
-                        "flex-1 py-1 px-2",
+                        btnSmall,
+                        "flex-1 px-2",
                         alwaysGreen || isSelected
                           ? "border-emerald-500 bg-emerald-500 text-white"
                           : "border-red-500 bg-red-500 text-white"
@@ -396,7 +398,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             {/* Cheese section */}
             <div className="flex items-center gap-2">
               <span className={cn(
-                "text-xs font-medium px-3 py-2 rounded",
+                "text-xs font-medium h-10 px-3 rounded grid place-items-center",
                 selectedCheese === 'No Cheese' ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
               )}>Cheese</span>
               {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
@@ -451,7 +453,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             {/* Spicy Level section - on same row */}
             <div className="flex items-center gap-2">
               <span className={cn(
-                "text-xs font-medium px-3 py-2 rounded whitespace-nowrap",
+                "text-xs font-medium h-10 px-3 rounded whitespace-nowrap grid place-items-center",
                 (leftSpicy === 'none' && rightSpicy === 'none') 
                   ? "bg-emerald-500 text-white" 
                   : "bg-red-500 text-white"
@@ -482,7 +484,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
                 return (
                   <span className={cn(
-                    "text-xs font-medium px-2 py-2 rounded whitespace-nowrap",
+                    "text-xs font-medium h-10 px-2 rounded whitespace-nowrap grid place-items-center",
                     hasMedium ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Med Hot
@@ -523,7 +525,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           }
                         }}
                         className={cn(
-                          "px-2 py-2 text-xs rounded border font-medium transition-colors",
+                          "h-10 min-w-0 px-2 text-xs rounded border font-medium transition-colors grid place-items-center text-center leading-tight whitespace-normal",
                           isDisabled 
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
@@ -558,7 +560,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
                 return (
                   <span className={cn(
-                    "text-xs font-medium px-2 py-2 rounded",
+                    "text-xs font-medium h-10 px-2 rounded grid place-items-center",
                     hasHot ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Hot
@@ -599,7 +601,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           }
                         }}
                         className={cn(
-                          "px-2 py-2 text-xs rounded border font-medium transition-colors",
+                          "h-10 min-w-0 px-2 text-xs rounded border font-medium transition-colors grid place-items-center text-center leading-tight whitespace-normal",
                           isDisabled 
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
