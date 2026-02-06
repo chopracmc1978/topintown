@@ -12,7 +12,7 @@ import { useGlobalSauces } from '@/hooks/useGlobalSauces';
 import type { SideSpicyLevel, ToppingQuantity, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
 import type { CartItem } from '@/types/menu';
 import { cn } from '@/lib/utils';
-import { Flame, ArrowRight } from 'lucide-react';
+import { Flame, ArrowRight, X } from 'lucide-react';
 import UpsellModal from '@/components/upsell/UpsellModal';
 
 interface PizzaCustomizationModalProps {
@@ -366,17 +366,26 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
     <Dialog open={isOpen && !showUpsell} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-card z-10">
-          <div className="flex items-center gap-3">
+        <div className="relative flex items-center px-4 py-3 border-b sticky top-0 bg-card z-10">
+          {/* Close button - top right */}
+          <button 
+            onClick={() => onClose()} 
+            className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+          
+          <div className="flex items-center gap-3 flex-1">
             <img src={item.image_url || '/placeholder.svg'} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
             <h2 className="font-serif text-lg font-bold">{item.name}</h2>
           </div>
           {editingCartItem ? (
-            <Button variant="pizza" onClick={handleNext}>
+            <Button variant="pizza" onClick={handleNext} className="mr-8">
               Update Cart - ${totalPrice.toFixed(2)}
             </Button>
           ) : (
-            <div className="text-right">
+            <div className="text-right mr-8">
               <p className="text-sm text-muted-foreground">Total</p>
               <p className="font-bold text-lg text-primary">${totalPrice.toFixed(2)}</p>
             </div>
