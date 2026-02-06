@@ -419,10 +419,15 @@ export const usePOSOrders = (locationId?: string) => {
           })
           .eq('id', existing.id);
       } else {
-        // No rewards account exists — walk-in customer without an account
-        // Do NOT create a rewards record; points only start after they sign up online
-        console.log('No rewards account for this phone, skipping points (walk-in without account)');
-        return;
+        // Walk-in customer — create a phone-only rewards record (no customer_id)
+        await supabase
+          .from('customer_rewards')
+          .insert({
+            phone: order.customerPhone,
+            customer_id: order.customerId || null,
+            points: pointsToAward,
+            lifetime_points: pointsToAward,
+          });
       }
 
       // Get the order's database ID for the history record

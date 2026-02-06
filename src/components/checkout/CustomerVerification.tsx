@@ -266,7 +266,7 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
 
       toast.success('Account created successfully!');
 
-      // Create a rewards account for the new customer so they start earning points
+      // Handle rewards account for the new customer
       const cleanPhone = phone.replace(/\D/g, '');
       const { data: existingRewards } = await supabase
         .from('customer_rewards')
@@ -274,7 +274,19 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
         .eq('phone', cleanPhone)
         .maybeSingle();
 
-      if (!existingRewards) {
+      if (existingRewards) {
+        // Walk-in rewards record exists — reset balance to 0 and link to new account
+        // Walk-in points do NOT carry over to the online account
+        await supabase
+          .from('customer_rewards')
+          .update({
+            customer_id: customerId,
+            points: 0,
+            lifetime_points: 0,
+          })
+          .eq('id', existingRewards.id);
+      } else {
+        // No walk-in record — create fresh rewards account
         await supabase
           .from('customer_rewards')
           .insert({
