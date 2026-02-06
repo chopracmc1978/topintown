@@ -18,7 +18,7 @@ const buttonVariants = cva(
         hero: "bg-primary text-primary-foreground font-semibold text-base px-8 py-6 hover:scale-105 shadow-lg hover:shadow-xl",
         heroOutline: "border-2 border-primary-foreground/80 text-primary-foreground font-semibold text-base px-8 py-6 hover:bg-primary-foreground/10 backdrop-blur-sm",
         accent: "bg-accent text-accent-foreground font-semibold hover:bg-accent/90 shadow-lg",
-        pizza: "bg-gradient-to-r from-[hsl(215,20%,25%)] to-[hsl(0,50%,35%)] text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all",
+        pizza: "bg-gradient-to-r from-primary to-[hsl(8,80%,35%)] text-primary-foreground font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",
