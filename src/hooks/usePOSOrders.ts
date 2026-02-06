@@ -533,12 +533,12 @@ export const usePOSOrders = (locationId?: string) => {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
         } else if (status === 'delivered') {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete');
-          // Send email receipt when order is completed
+          // Award reward points FIRST so DB is up-to-date when email queries it
+          await awardRewardPoints(order);
+          // Send email receipt after points are awarded
           if (order && locationId) {
             await sendEmailReceipt(order, locationId);
           }
-          // Award reward points when order is completed
-          await awardRewardPoints(order);
         }
       }
 
