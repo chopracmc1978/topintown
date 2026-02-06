@@ -1,11 +1,17 @@
-import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone } from 'lucide-react';
+import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
+
+export interface OrderRewardInfo {
+  lifetime_points: number;
+  points: number; // current balance
+}
 
 interface POSOrderCardProps {
   order: Order;
   isSelected: boolean;
   onClick: () => void;
+  rewardInfo?: OrderRewardInfo | null;
 }
 
 const statusBadgeClass: Record<string, string> = {
@@ -30,7 +36,7 @@ const orderTypeIcons: Record<string, typeof Package> = {
   'dine-in': Utensils,
 };
 
-export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) => {
+export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrderCardProps) => {
   const source = sourceConfig[order.source || 'web'] || sourceConfig.web;
   const SourceIcon = source.icon;
   const TypeIcon = orderTypeIcons[order.orderType] || Package;
@@ -44,6 +50,10 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
   };
 
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const lifetimePoints = rewardInfo?.lifetime_points ?? 0;
+  const balancePoints = rewardInfo?.points ?? 0;
+  const usedPoints = lifetimePoints - balancePoints;
 
   return (
     <div
@@ -69,10 +79,27 @@ export const POSOrderCard = ({ order, isSelected, onClick }: POSOrderCardProps) 
         </span>
       </div>
 
-      {/* Customer */}
-      <p className="font-semibold text-xs mb-0.5 truncate" style={{ color: 'hsl(210,20%,95%)' }}>
-        {order.customerName || 'Walk-in Customer'}
-      </p>
+      {/* Customer Phone + Reward Points Row */}
+      <div className="flex items-start justify-between gap-1 mb-0.5">
+        <div className="min-w-0">
+          {order.customerPhone && (
+            <p className="text-[11px] truncate" style={{ color: 'hsl(215,15%,60%)' }}>
+              {order.customerPhone}
+            </p>
+          )}
+          <p className="font-semibold text-xs truncate" style={{ color: 'hsl(210,20%,95%)' }}>
+            {order.customerName || 'Walk-in Customer'}
+          </p>
+        </div>
+        {/* Reward Points - compact column */}
+        {rewardInfo && lifetimePoints > 0 && (
+          <div className="text-[9px] leading-tight text-right shrink-0" style={{ color: '#d97706' }}>
+            <div>{lifetimePoints} life time</div>
+            <div>{usedPoints} pts used</div>
+            <div className="font-bold">{balancePoints} pts bal</div>
+          </div>
+        )}
+      </div>
 
       {/* Order Info */}
       <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: 'hsl(215,15%,60%)' }}>

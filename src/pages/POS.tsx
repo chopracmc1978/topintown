@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { usePOSNotificationSound } from '@/hooks/usePOSNotificationSound';
 import { usePrintReceipts } from '@/hooks/usePrintReceipts';
 import { usePOSSession } from '@/hooks/usePOSSession';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
-import { POSOrderCard } from '@/components/pos/POSOrderCard';
+import { POSOrderCard, OrderRewardInfo } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
@@ -18,6 +18,7 @@ import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
@@ -158,6 +159,34 @@ const POS = () => {
     }
   }, [activeSession, todayCashSales]);
   
+  // Fetch reward points for all orders' phone numbers
+  const [rewardsMap, setRewardsMap] = useState<Record<string, OrderRewardInfo>>({});
+  
+  useEffect(() => {
+    const fetchRewards = async () => {
+      // Collect unique phone numbers from orders
+      const phones = [...new Set(orders.map(o => o.customerPhone).filter(Boolean))];
+      if (phones.length === 0) {
+        setRewardsMap({});
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('customer_rewards')
+        .select('phone, points, lifetime_points')
+        .in('phone', phones);
+      
+      if (data) {
+        const map: Record<string, OrderRewardInfo> = {};
+        data.forEach(r => {
+          map[r.phone] = { lifetime_points: r.lifetime_points, points: r.points };
+        });
+        setRewardsMap(map);
+      }
+    };
+    fetchRewards();
+  }, [orders]);
+
   useEffect(() => {
     try {
       const savedLocation = localStorage.getItem('pos_location_id');
@@ -522,6 +551,7 @@ const POS = () => {
                     key={order.id}
                     order={order}
                     isSelected={selectedOrderId === order.id}
+                    rewardInfo={order.customerPhone ? rewardsMap[order.customerPhone] : null}
                     onClick={() => {
                       setSelectedOrderId(order.id);
                       setShowNewOrder(false);
