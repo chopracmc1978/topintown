@@ -589,13 +589,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
       <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 26%, 14%)', border: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Header - Compact single row with search */}
         <div className="px-4 py-2.5 flex items-center gap-3" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
-          {/* Customer Name & Phone - horizontal */}
-          <Input
-            placeholder="Customer name"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            className="h-10 text-base w-40"
-          />
+          {/* Phone & Customer Name - horizontal (phone first) */}
           <div className="relative z-10 flex items-center gap-1" data-phone-input>
             {/* Phone Input with Inline Numeric Keypad Popover */}
             <Popover>
@@ -716,6 +710,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               />
             )}
           </div>
+          <Input
+            placeholder="Customer name"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            className="h-10 text-base w-40"
+          />
           
           {/* Search bar in header */}
           <div className="relative flex-1 max-w-xs">
