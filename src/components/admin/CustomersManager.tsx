@@ -255,26 +255,50 @@ const CustomersManager = () => {
 
       {/* Customer Orders Dialog */}
       <Dialog open={ordersDialogOpen} onOpenChange={setOrdersDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              Orders for {selectedCustomer?.full_name || selectedCustomer?.phone || 'Customer'}
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">{selectedCustomer?.phone}</p>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+          {/* Fixed Header with Customer Info */}
+          <div className="sticky top-0 bg-background border-b p-6 pb-4 z-10">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5" />
+                Customer Orders
+              </DialogTitle>
+            </DialogHeader>
+            
+            {/* Customer Details */}
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center gap-2 font-medium text-base">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                {selectedCustomer?.full_name || 'No name'}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Phone className="w-3.5 h-3.5" />
+                {selectedCustomer?.phone}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="w-3.5 h-3.5" />
+                {selectedCustomer?.email}
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Gift className="w-3.5 h-3.5 text-primary" />
+                <span className="font-medium">{selectedCustomer?.reward_points || 0} pts</span>
+                <span className="text-muted-foreground">({selectedCustomer?.lifetime_points || 0} lifetime)</span>
+              </div>
+            </div>
+          </div>
           
-          {ordersLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : customerOrders?.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">No orders yet</p>
-            </div>
-          ) : (
-            <ScrollArea className="max-h-[400px]">
+          {/* Scrollable Orders List */}
+          <div className="flex-1 overflow-auto px-6">
+            {ordersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : customerOrders?.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground">No orders yet</p>
+              </div>
+            ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -318,10 +342,11 @@ const CustomersManager = () => {
                   ))}
                 </TableBody>
               </Table>
-            </ScrollArea>
-          )}
+            )}
+          </div>
 
-          <div className="pt-4 border-t">
+          {/* Fixed Footer with Totals */}
+          <div className="sticky bottom-0 bg-background border-t p-6 pt-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Orders</span>
               <span className="font-medium">{customerOrders?.length || 0}</span>
