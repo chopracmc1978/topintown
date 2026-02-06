@@ -132,8 +132,8 @@ export const POSOrderHistoryDropdown = ({
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant="default"
                     className="flex-1 h-9 text-xs font-semibold"
+                    style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#ffffff' }}
                     onClick={() => {
                       onSelectOrder(order.items, 'exact');
                       onClose();
@@ -144,8 +144,8 @@ export const POSOrderHistoryDropdown = ({
                   </Button>
                   <Button
                     size="sm"
-                    variant="secondary"
                     className="flex-1 h-9 text-xs font-semibold"
+                    style={{ backgroundColor: 'hsl(217, 91%, 50%)', color: '#ffffff' }}
                     onClick={() => {
                       onSelectOrder(order.items, 'edit');
                       onClose();
