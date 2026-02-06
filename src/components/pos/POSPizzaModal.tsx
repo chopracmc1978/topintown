@@ -856,10 +856,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     <div 
                       key={topping.id} 
                       className={cn(
-                        "flex items-center gap-1.5 px-2 py-1 rounded border transition-colors bg-white",
+                        "flex items-center gap-1.5 px-2 py-1.5 rounded border transition-colors",
                         isSelected 
-                          ? "border-slate-800 bg-slate-50" 
-                          : "border-slate-200"
+                          ? "border-emerald-500 bg-emerald-500" 
+                          : "border-red-500 bg-red-500"
                       )}
                     >
                       {/* Topping name with veg indicator */}
@@ -869,9 +869,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                          topping.is_veg ? "bg-green-500" : "bg-red-500"
+                          topping.is_veg ? "bg-green-200" : "bg-red-200"
                         )} />
-                        <span className="text-xs truncate text-slate-800">{topping.name}</span>
+                        <span className="text-xs truncate text-white font-medium">{topping.name}</span>
                       </button>
 
                       {/* Side selection - Large pizza shows Left/Whole/Right, others show just Whole */}
@@ -893,7 +893,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 }}
                                 className={cn(
                                   "px-1.5 py-0.5 text-[10px] rounded border font-medium transition-colors",
-                                  isThisSideActive ? btnActive : btnInactive
+                                  isThisSideActive 
+                                    ? "border-slate-800 bg-slate-800 text-white" 
+                                    : "border-slate-300 bg-white text-slate-700"
                                 )}
                               >
                                 {side.label}
@@ -906,7 +908,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           onClick={() => toggleExtraTopping(topping)}
                           className={cn(
                             "px-2 py-0.5 text-[10px] rounded border font-medium transition-colors flex-shrink-0",
-                            isSelected ? btnActive : btnInactive
+                            isSelected 
+                              ? "border-slate-800 bg-slate-800 text-white" 
+                              : "border-slate-300 bg-white text-slate-700"
                           )}
                         >
                           Whole
