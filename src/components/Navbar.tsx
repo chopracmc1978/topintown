@@ -82,17 +82,18 @@ const Navbar = () => {
             <div className="hidden md:flex items-center gap-3">
               <LocationSelector />
               
-              <Link to={accountHref} className="flex items-center gap-1">
+              <Link to={accountHref}>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                   <User className="w-5 h-5" />
                 </Button>
-                {customer && rewards && rewards.points > 0 && (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-amber-600">
-                    <Gift className="w-3.5 h-3.5" />
-                    {rewards.points}
-                  </span>
-                )}
               </Link>
+              
+              {customer && rewards && rewards.points >= 0 && (
+                <Link to="/rewards" className="flex items-center gap-1 text-amber-600 hover:text-amber-700 transition-colors">
+                  <Gift className="w-4 h-4" />
+                  <span className="text-xs font-semibold">{rewards.points} pts</span>
+                </Link>
+              )}
               
               <Link to="/cart" className="relative">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
@@ -140,13 +141,13 @@ const Navbar = () => {
                 <Link to={accountHref} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors flex items-center gap-2", isActive('/my-orders') || isActive('/customer-login') ? "text-primary" : "text-muted-foreground")}>
                   <User className="w-4 h-4" />
                   {customer ? "My Orders" : "Login"}
-                  {customer && rewards && rewards.points > 0 && (
-                    <span className="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-bold">
-                      <Gift className="w-3 h-3" />
-                      {rewards.points} pts
-                    </span>
-                  )}
                 </Link>
+                {customer && rewards && rewards.points >= 0 && (
+                  <Link to="/rewards" onClick={() => setIsOpen(false)} className="text-sm font-medium py-2 transition-colors flex items-center gap-2 text-amber-600">
+                    <Gift className="w-4 h-4" />
+                    {rewards.points} pts - My Rewards
+                  </Link>
+                )}
                 <Button 
                   onClick={() => {
                     setIsOpen(false);
