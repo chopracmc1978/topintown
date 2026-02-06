@@ -255,9 +255,9 @@ const CustomersManager = () => {
 
       {/* Customer Orders Dialog */}
       <Dialog open={ordersDialogOpen} onOpenChange={setOrdersDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] sm:w-full h-[70vh] max-h-[calc(100vh-10rem)] top-20 sm:top-24 translate-y-0 flex flex-col overflow-hidden p-0">
           {/* Fixed Header with Customer Info */}
-          <div className="sticky top-0 bg-background border-b p-6 pb-4 z-10">
+          <div className="shrink-0 bg-background border-b px-6 py-4 pr-14">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" />
@@ -275,10 +275,6 @@ const CustomersManager = () => {
                 <Phone className="w-3.5 h-3.5" />
                 {selectedCustomer?.phone}
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="w-3.5 h-3.5" />
-                {selectedCustomer?.email}
-              </div>
               <div className="flex items-center gap-2 text-sm">
                 <Gift className="w-3.5 h-3.5 text-primary" />
                 <span className="font-medium">{selectedCustomer?.reward_points || 0} pts</span>
@@ -288,7 +284,7 @@ const CustomersManager = () => {
           </div>
           
           <ScrollArea className="flex-1">
-            <div className="px-6">
+            <div className="px-6 py-4">
               {ordersLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -347,7 +343,7 @@ const CustomersManager = () => {
           </ScrollArea>
 
           {/* Fixed Footer with Totals */}
-          <div className="sticky bottom-0 bg-background border-t p-6 pt-4">
+          <div className="shrink-0 bg-background border-t px-6 py-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Orders</span>
               <span className="font-medium">{customerOrders?.length || 0}</span>

@@ -65,10 +65,7 @@ const Admin = () => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen bg-background">
       {/* Header */}
-      <header
-        className="border-b sticky top-0 z-[9999] shadow-sm"
-        style={{ backgroundColor: 'var(--card)' }}
-      >
+      <header className="bg-card border-b sticky top-0 z-[9999] isolate shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
