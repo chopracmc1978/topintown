@@ -573,6 +573,9 @@ const Checkout = () => {
   const grandTotal = discountedSubtotal + deliveryFee + tax;
 
   const handleApplyCoupon = (coupon: Coupon, discount: number) => {
+    if (appliedRewardsPoints > 0) {
+      return; // Blocked — rewards already applied
+    }
     setAppliedCoupon(coupon);
     setAppliedDiscount(discount);
   };
@@ -583,6 +586,9 @@ const Checkout = () => {
   };
 
   const handleApplyRewards = (pointsUsed: number, dollarValue: number) => {
+    if (appliedCoupon) {
+      return; // Blocked — coupon already applied
+    }
     setAppliedRewardsPoints(pointsUsed);
     setAppliedRewardsDiscount(dollarValue);
   };
@@ -779,6 +785,7 @@ const Checkout = () => {
                       onRemove={handleRemoveCoupon}
                       appliedCoupon={appliedCoupon}
                       appliedDiscount={appliedDiscount}
+                      disabledByRewards={appliedRewardsPoints > 0}
                     />
                     {comboSubtotal > 0 && nonComboSubtotal > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -799,6 +806,7 @@ const Checkout = () => {
                     onRemoveRewards={handleRemoveRewards}
                     appliedRewardsPoints={appliedRewardsPoints}
                     appliedRewardsDiscount={appliedRewardsDiscount}
+                    disabledByCoupon={!!appliedCoupon}
                   />
                 </div>
               )}

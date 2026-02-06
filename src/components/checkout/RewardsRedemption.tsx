@@ -16,6 +16,7 @@ interface RewardsRedemptionProps {
   onRemoveRewards: () => void;
   appliedRewardsPoints: number;
   appliedRewardsDiscount: number;
+  disabledByCoupon?: boolean;
 }
 
 const RewardsRedemption = ({
@@ -25,6 +26,7 @@ const RewardsRedemption = ({
   onRemoveRewards,
   appliedRewardsPoints,
   appliedRewardsDiscount,
+  disabledByCoupon = false,
 }: RewardsRedemptionProps) => {
   const { data: rewards, isLoading } = useRewardsByPhone(customerPhone);
 
@@ -81,6 +83,21 @@ const RewardsRedemption = ({
             {currentPoints >= MIN_POINTS_TO_REDEEM && !canApply && (
               <span> • Order must be at least ${MIN_REDEEM_DOLLAR} to redeem</span>
             )}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Disabled because a coupon is already applied
+  if (disabledByCoupon) {
+    return (
+      <div className="bg-secondary/50 border border-border rounded-lg p-3">
+        <div className="flex items-center gap-2">
+          <Star className="w-4 h-4 text-amber-500" />
+          <span className="text-sm text-muted-foreground">
+            You have <span className="font-medium text-foreground">{currentPoints} points</span>
+            <span> • Remove coupon to use rewards</span>
           </span>
         </div>
       </div>
