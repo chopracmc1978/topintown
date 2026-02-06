@@ -620,8 +620,19 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
           
           {nextStatus && (
             <Button 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => onUpdateStatus(nextStatus)}
+              className={cn(
+                "flex-1 text-white",
+                nextStatus === 'delivered' && order.paymentStatus !== 'paid'
+                  ? "bg-gray-600 hover:bg-gray-600 cursor-not-allowed opacity-60"
+                  : "bg-blue-600 hover:bg-blue-700"
+              )}
+              onClick={() => {
+                if (nextStatus === 'delivered' && order.paymentStatus !== 'paid') {
+                  toast.error('Cannot complete order — payment is still unpaid');
+                  return;
+                }
+                onUpdateStatus(nextStatus);
+              }}
             >
               {order.status === 'pending' ? (
                 <CheckCircle className="w-4 h-4 mr-2" />

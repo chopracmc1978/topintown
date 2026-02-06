@@ -10,7 +10,7 @@ interface OrderSmsRequest {
   orderNumber: string;
   phone?: string;
   customerId?: string;
-  type: "accepted" | "preparing" | "ready" | "complete";
+  type: "accepted" | "preparing" | "ready" | "complete" | "cancelled";
   prepTime?: number; // in minutes, only for "preparing" type
   pickupTime?: string; // ISO string for scheduled pickup time
 }
@@ -162,6 +162,9 @@ const handler = async (req: Request): Promise<Response> => {
         break;
       case "complete":
         message = `Top In Town Pizza: Thank you for choosing us! We hope you enjoyed your order ${orderNumber}. See you again soon! 🍕`;
+        break;
+      case "cancelled":
+        message = `Top In Town Pizza: Your order ${orderNumber} has been cancelled. If you have any questions, please contact us. We hope to serve you again soon!`;
         break;
       default:
         throw new Error("Invalid SMS type");
