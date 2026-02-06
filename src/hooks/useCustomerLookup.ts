@@ -69,7 +69,7 @@ export const useCustomerLookup = () => {
         .ilike('customer_phone', `%${cleanPhone}%`)
         .neq('status', 'cancelled')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(2);
 
       if (ordersError) throw ordersError;
 
