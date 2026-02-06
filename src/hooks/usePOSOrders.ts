@@ -505,6 +505,59 @@ export const usePOSOrders = (locationId?: string) => {
     }
   };
 
+  // Deduct reward points that were scheduled at order creation (rewards_used > 0)
+  const redeemScheduledPoints = async (order: Order) => {
+    try {
+      if (!order.customerPhone) return;
+
+      // Fetch order's rewards_used and rewards_discount from DB
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('rewards_used, rewards_discount, id')
+        .eq('order_number', order.id)
+        .maybeSingle();
+
+      if (!orderData || !orderData.rewards_used || orderData.rewards_used <= 0) return;
+
+      const pointsToRedeem = orderData.rewards_used;
+      const dollarValue = orderData.rewards_discount || 0;
+
+      // Get current points balance
+      const { data: existing } = await supabase
+        .from('customer_rewards')
+        .select('*')
+        .eq('phone', order.customerPhone)
+        .maybeSingle();
+
+      if (!existing || existing.points < pointsToRedeem) {
+        console.error('Insufficient points for scheduled redemption, skipping');
+        return;
+      }
+
+      // Deduct points
+      await supabase
+        .from('customer_rewards')
+        .update({ points: existing.points - pointsToRedeem })
+        .eq('id', existing.id);
+
+      // Record redemption in history
+      await supabase
+        .from('rewards_history')
+        .insert({
+          phone: order.customerPhone,
+          customer_id: order.customerId || null,
+          order_id: orderData.id || null,
+          points_change: -pointsToRedeem,
+          transaction_type: 'redeemed',
+          description: `Redeemed ${pointsToRedeem} points for $${dollarValue.toFixed(2)} discount`,
+        });
+
+      console.log(`Deducted ${pointsToRedeem} scheduled reward points`);
+    } catch (err: any) {
+      console.error('Error redeeming scheduled points:', err);
+    }
+  };
+
   // Update order status with optional SMS and email receipt
   const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number, locationId?: string) => {
     try {
@@ -533,9 +586,11 @@ export const usePOSOrders = (locationId?: string) => {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
         } else if (status === 'delivered') {
           await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete');
-          // Award reward points FIRST so DB is up-to-date when email queries it
+          // Deduct any scheduled reward points FIRST
+          await redeemScheduledPoints(order);
+          // Award new reward points
           await awardRewardPoints(order);
-          // Send email receipt after points are awarded
+          // Send email receipt after points are updated
           if (order && locationId) {
             await sendEmailReceipt(order, locationId);
           }

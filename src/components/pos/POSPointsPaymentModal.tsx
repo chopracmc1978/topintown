@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, X, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useRedeemRewardPoints, MIN_POINTS_TO_REDEEM, POINTS_TO_DOLLAR_RATIO, MIN_REDEEM_DOLLAR, MAX_REDEEM_DOLLAR } from '@/hooks/useRewards';
+import { MIN_POINTS_TO_REDEEM, POINTS_TO_DOLLAR_RATIO, MIN_REDEEM_DOLLAR, MAX_REDEEM_DOLLAR } from '@/hooks/useRewards';
 
 interface POSPointsPaymentModalProps {
   open: boolean;
@@ -36,8 +36,6 @@ export const POSPointsPaymentModal = ({
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const redeemPoints = useRedeemRewardPoints();
 
   const cleanPhone = customerPhone?.replace(/\D/g, '') || '';
 
@@ -111,23 +109,11 @@ export const POSPointsPaymentModal = ({
     setCustomAmount('');
   };
 
-  const handleApply = async () => {
-    if (!isApplyEnabled || applying) return;
-    setApplying(true);
-    try {
-      await redeemPoints.mutateAsync({
-        phone: cleanPhone,
-        customerId,
-        orderId,
-        pointsToRedeem: pointsNeeded,
-        dollarValue: activeAmount,
-      });
-      onPointsApplied(pointsNeeded, activeAmount, remainingAfterPoints);
-    } catch (err) {
-      console.error('Failed to redeem points:', err);
-    } finally {
-      setApplying(false);
-    }
+  const handleApply = () => {
+    if (!isApplyEnabled) return;
+    // Don't deduct points now — just record intent on the order.
+    // Points will be deducted when order is completed/delivered.
+    onPointsApplied(pointsNeeded, activeAmount, remainingAfterPoints);
   };
 
   return (
@@ -286,9 +272,8 @@ export const POSPointsPaymentModal = ({
               className="flex-1 h-12 rounded-lg font-bold transition-all"
               style={{ backgroundColor: accentAmber, color: '#000' }}
               onClick={handleApply}
-              disabled={applying}
             >
-              {applying ? 'Applying...' : `Apply $${activeAmount}`}
+              {`Apply $${activeAmount}`}
             </button>
           )}
         </div>
