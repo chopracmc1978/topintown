@@ -407,154 +407,171 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
         </div>
       </div>
 
-      {/* Coupon & Discount - only when unpaid */}
+      {/* Coupon & Discount - single line */}
       {(order.paymentStatus !== 'paid' || getBalanceDue(order) > 0) && !order.discount && (
-        <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
-          {/* Coupon Field */}
-          {appliedCoupon ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: 'hsl(140, 30%, 15%)', border: '1px solid hsl(140, 40%, 30%)' }}>
-              <Check className="w-4 h-4 text-green-400" />
-              <span className="text-sm font-medium text-green-400">{appliedCoupon.code}</span>
-              <span className="text-sm text-green-400">-${appliedCoupon.discount.toFixed(2)}</span>
-              <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="ml-auto p-0.5 rounded hover:opacity-70">
-                <X className="w-3.5 h-3.5 text-red-400" />
+        <div className="px-4 py-2 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+          {/* Applied discounts display */}
+          {(appliedCoupon || manualDiscountVal > 0) && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'hsl(140, 30%, 15%)', border: '1px solid hsl(140, 40%, 30%)' }}>
+              <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+              {appliedCoupon && <span className="text-xs font-medium text-green-400">{appliedCoupon.code} -${appliedCoupon.discount.toFixed(2)}</span>}
+              {appliedCoupon && manualDiscountVal > 0 && <span className="text-green-600">+</span>}
+              {manualDiscountVal > 0 && <span className="text-xs font-medium text-green-400">Discount -${manualDiscountVal.toFixed(2)}</span>}
+              <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); setManualDiscount(''); setDiscountInput(''); }} className="ml-auto p-0.5 rounded hover:opacity-70">
+                <X className="w-3 h-3 text-red-400" />
               </button>
             </div>
-          ) : (
-            <div className="flex gap-1.5">
-              <div className="relative flex-1">
-                <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => e.key === 'Enter' && (async () => {
-                    if (!couponCode.trim()) return;
-                    try {
-                      const result = await validateCouponMutation.mutateAsync({ code: couponCode, subtotal: order.subtotal || order.total * 0.952 });
-                      setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
-                      setCouponCode('');
-                      toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
-                    } catch (err: any) { toast.error(err.message || 'Invalid coupon'); }
-                  })()}
-                  disabled={!!manualDiscountVal}
-                  className="w-full h-9 pl-8 pr-2 text-sm rounded-lg outline-none"
-                  style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)', opacity: manualDiscountVal ? 0.5 : 1 }}
-                />
-              </div>
+          )}
+
+          {/* Single row: Coupon | Apply | Discount field */}
+          {!appliedCoupon || !manualDiscountVal ? (
+            <div className="flex items-center gap-1.5">
+              {/* Coupon input */}
+              {!appliedCoupon && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Coupon"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === 'Enter' && (async () => {
+                      if (!couponCode.trim()) return;
+                      try {
+                        const result = await validateCouponMutation.mutateAsync({ code: couponCode, subtotal: order.subtotal || order.total * 0.952 });
+                        setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
+                        setCouponCode('');
+                        toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
+                      } catch (err: any) { toast.error(err.message || 'Invalid coupon'); }
+                    })()}
+                    className="h-8 w-[100px] px-2 text-xs rounded outline-none font-mono"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!couponCode.trim()) return;
+                      try {
+                        const result = await validateCouponMutation.mutateAsync({ code: couponCode, subtotal: order.subtotal || order.total * 0.952 });
+                        setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
+                        setCouponCode('');
+                        toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
+                      } catch (err: any) { toast.error(err.message || 'Invalid coupon'); }
+                    }}
+                    disabled={!couponCode.trim() || validateCouponMutation.isPending}
+                    className="h-8 px-2.5 rounded text-xs font-medium flex-shrink-0"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#22c55e', border: '1px solid hsl(140, 40%, 30%)', opacity: !couponCode.trim() ? 0.5 : 1 }}
+                  >
+                    {validateCouponMutation.isPending ? '...' : 'Apply'}
+                  </button>
+                </>
+              )}
+
+              {/* Discount field with keypad toggle */}
+              {!manualDiscountVal && (
+                <div className="relative ml-auto">
+                  <div className="flex items-center gap-0">
+                    <div
+                      className="h-8 flex items-center px-2 rounded-l cursor-pointer"
+                      style={{ backgroundColor: 'hsl(220, 22%, 28%)', border: '1px solid hsl(220, 20%, 35%)', borderRight: 'none', minWidth: '70px' }}
+                      onClick={() => setShowDiscountKeypad(!showDiscountKeypad)}
+                    >
+                      <span className="text-xs mr-1" style={{ color: '#f59e0b' }}>$</span>
+                      <span className="text-sm font-bold" style={{ color: discountInput ? '#e2e8f0' : '#64748b' }}>{discountInput || '0'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <button
+                        onClick={() => {
+                          const val = parseFloat(discountInput || '0') + 1;
+                          setDiscountInput(String(val));
+                        }}
+                        className="h-4 w-6 flex items-center justify-center rounded-tr text-[10px]"
+                        style={{ backgroundColor: 'hsl(220, 22%, 32%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
+                      >▲</button>
+                      <button
+                        onClick={() => {
+                          const val = Math.max(0, parseFloat(discountInput || '0') - 1);
+                          setDiscountInput(val > 0 ? String(val) : '');
+                        }}
+                        className="h-4 w-6 flex items-center justify-center rounded-br text-[10px]"
+                        style={{ backgroundColor: 'hsl(220, 22%, 32%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)', borderTop: 'none' }}
+                      >▼</button>
+                    </div>
+                    {parseFloat(discountInput) > 0 && (
+                      <button
+                        onClick={() => { setManualDiscount(discountInput); setShowDiscountKeypad(false); }}
+                        className="h-8 px-2 rounded-r text-xs font-bold ml-px"
+                        style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}
+                      >OK</button>
+                    )}
+                  </div>
+
+                  {/* Small numeric keypad popup */}
+                  {showDiscountKeypad && (
+                    <div className="absolute bottom-full right-0 mb-1 p-1.5 rounded-lg z-50 shadow-xl" style={{ backgroundColor: 'hsl(220, 25%, 16%)', border: '1px solid hsl(220, 20%, 30%)' }}>
+                      <div className="grid grid-cols-3 gap-1">
+                        {['7','8','9','4','5','6','1','2','3'].map(k => (
+                          <button key={k} onClick={() => {
+                            const parts = discountInput.split('.');
+                            if (parts[1] && parts[1].length >= 2) return;
+                            setDiscountInput(p => p + k);
+                          }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>{k}</button>
+                        ))}
+                        <button onClick={() => setDiscountInput('')} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', border: '1px solid hsl(220, 20%, 35%)' }}>C</button>
+                        <button onClick={() => {
+                          const parts = discountInput.split('.');
+                          if (parts[1] && parts[1].length >= 2) return;
+                          setDiscountInput(p => p + '0');
+                        }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>0</button>
+                        <button onClick={() => {
+                          if (!discountInput.includes('.')) setDiscountInput(p => p + '.');
+                        }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>.</button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 mt-1">
+                        <button onClick={() => setDiscountInput(p => p.slice(0, -1))} className="h-9 rounded text-xs font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}>⌫ Del</button>
+                        <button onClick={() => {
+                          if (parseFloat(discountInput) > 0) {
+                            setManualDiscount(discountInput);
+                          }
+                          setShowDiscountKeypad(false);
+                        }} className="h-9 rounded text-xs font-bold" style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}>OK</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {/* After discount total + save */}
+          {hasNewDiscount && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-green-400">After Discount: <span className="font-bold text-sm">${Math.max(0, order.total - newDiscounts).toFixed(2)}</span></span>
               <button
                 onClick={async () => {
-                  if (!couponCode.trim()) return;
-                  try {
-                    const result = await validateCouponMutation.mutateAsync({ code: couponCode, subtotal: order.subtotal || order.total * 0.952 });
-                    setAppliedCoupon({ code: result.coupon.code, discount: result.discount });
-                    setCouponCode('');
-                    toast.success(`Coupon applied: -$${result.discount.toFixed(2)}`);
-                  } catch (err: any) { toast.error(err.message || 'Invalid coupon'); }
+                  const existingDiscount = order.discount || 0;
+                  const totalDiscount = existingDiscount + newDiscounts;
+                  const sub = order.subtotal || order.total * 0.952;
+                  const discountedSub = Math.max(0, sub - totalDiscount);
+                  const newTax = discountedSub * 0.05;
+                  const newTotal = discountedSub + newTax;
+
+                  await supabase.from('orders').update({
+                    discount: totalDiscount,
+                    coupon_code: appliedCoupon?.code || order.couponCode || null,
+                    tax: newTax,
+                    total: newTotal,
+                  }).eq('order_number', order.id);
+
+                  setAppliedCoupon(null);
+                  setCouponCode('');
+                  setManualDiscount('');
+                  setDiscountInput('');
+                  toast.success(`Discount saved — new total $${newTotal.toFixed(2)}`);
+                  window.location.reload();
                 }}
-                disabled={!couponCode.trim() || validateCouponMutation.isPending || !!manualDiscountVal}
-                className="h-9 px-3 rounded-lg text-sm font-medium"
-                style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#22c55e', border: '1px solid hsl(140, 40%, 30%)', opacity: !couponCode.trim() || !!manualDiscountVal ? 0.5 : 1 }}
-              >
-                {validateCouponMutation.isPending ? '...' : 'Apply'}
-              </button>
+                className="h-7 px-3 rounded text-xs font-bold"
+                style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}
+              >Save</button>
             </div>
-          )}
-
-          {/* Manual Discount */}
-          {manualDiscountVal > 0 ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: 'hsl(140, 30%, 15%)', border: '1px solid hsl(140, 40%, 30%)' }}>
-              <span className="text-sm font-medium text-green-400">Discount</span>
-              <span className="text-sm text-green-400">-${manualDiscountVal.toFixed(2)}</span>
-              <button onClick={() => { setManualDiscount(''); setDiscountInput(''); }} className="ml-auto p-0.5 rounded hover:opacity-70">
-                <X className="w-3.5 h-3.5 text-red-400" />
-              </button>
-            </div>
-          ) : !showDiscountKeypad ? (
-            <button
-              onClick={() => { setShowDiscountKeypad(true); setDiscountInput(''); }}
-              disabled={!!appliedCoupon}
-              className="w-full h-9 rounded-lg text-sm font-medium"
-              style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)', opacity: appliedCoupon ? 0.5 : 1 }}
-            >
-              + Manual Discount
-            </button>
-          ) : (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5">
-                <div className="flex-1 h-9 rounded-lg flex items-center px-3" style={{ backgroundColor: 'hsl(220, 22%, 28%)', border: `1px solid ${discountInput ? '#f59e0b' : 'hsl(220, 20%, 35%)'}` }}>
-                  <span className="text-sm mr-1" style={{ color: '#f59e0b' }}>$</span>
-                  <span className="text-base font-bold" style={{ color: discountInput ? '#e2e8f0' : '#94a3b8' }}>{discountInput || '0'}</span>
-                </div>
-                <button onClick={() => { setShowDiscountKeypad(false); setDiscountInput(''); }} className="h-9 px-3 rounded-lg text-xs" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}>Cancel</button>
-                <button
-                  onClick={() => { setManualDiscount(discountInput); setShowDiscountKeypad(false); }}
-                  disabled={!discountInput || parseFloat(discountInput) <= 0}
-                  className="h-9 px-3 rounded-lg text-xs font-bold"
-                  style={{ backgroundColor: parseFloat(discountInput) > 0 ? 'hsl(217, 91%, 60%)' : 'hsl(220, 22%, 28%)', color: parseFloat(discountInput) > 0 ? '#fff' : '#94a3b8', border: `1px solid ${parseFloat(discountInput) > 0 ? 'hsl(217, 91%, 60%)' : 'hsl(220, 20%, 35%)'}` }}
-                >OK</button>
-              </div>
-              <div className="grid grid-cols-3 gap-1">
-                {['7','8','9','4','5','6','1','2','3'].map(k => (
-                  <button key={k} onClick={() => {
-                    const parts = discountInput.split('.');
-                    if (parts[1] && parts[1].length >= 2) return;
-                    setDiscountInput(p => p + k);
-                  }} className="h-9 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>{k}</button>
-                ))}
-                <button onClick={() => setDiscountInput('')} className="h-9 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', border: '1px solid hsl(220, 20%, 35%)' }}>C</button>
-                <button onClick={() => {
-                  const parts = discountInput.split('.');
-                  if (parts[1] && parts[1].length >= 2) return;
-                  setDiscountInput(p => p + '0');
-                }} className="h-9 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>0</button>
-                <button onClick={() => {
-                  if (!discountInput.includes('.')) setDiscountInput(p => p + '.');
-                }} className="h-9 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>.</button>
-              </div>
-            </div>
-          )}
-
-          {/* New total after discount */}
-          {hasNewDiscount && (
-            <div className="flex justify-between items-center px-1 text-sm text-green-400">
-              <span>After Discount:</span>
-              <span className="font-bold text-base">${Math.max(0, order.total - newDiscounts).toFixed(2)}</span>
-            </div>
-          )}
-
-          {/* Apply discount to order button */}
-          {hasNewDiscount && (
-            <button
-              onClick={async () => {
-                const existingDiscount = order.discount || 0;
-                const totalDiscount = existingDiscount + newDiscounts;
-                const sub = order.subtotal || order.total * 0.952;
-                const discountedSub = Math.max(0, sub - totalDiscount);
-                const newTax = discountedSub * 0.05;
-                const newTotal = discountedSub + newTax;
-
-                await supabase.from('orders').update({
-                  discount: totalDiscount,
-                  coupon_code: appliedCoupon?.code || order.couponCode || null,
-                  tax: newTax,
-                  total: newTotal,
-                }).eq('order_number', order.id);
-
-                setAppliedCoupon(null);
-                setCouponCode('');
-                setManualDiscount('');
-                setDiscountInput('');
-                toast.success(`Discount saved — new total $${newTotal.toFixed(2)}`);
-                // Force re-fetch by triggering a no-op status update or trust realtime
-                window.location.reload();
-              }}
-              className="w-full h-9 rounded-lg text-sm font-bold"
-              style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff', border: '1px solid hsl(217, 91%, 60%)' }}
-            >
-              Save Discount
-            </button>
           )}
         </div>
       )}
