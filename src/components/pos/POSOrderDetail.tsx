@@ -465,74 +465,52 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
                 </>
               )}
 
-              {/* Discount field with keypad toggle */}
+              {/* Discount field - simple click to show keypad */}
               {!manualDiscountVal && (
                 <div className="relative ml-auto">
-                  <div className="flex items-center gap-0">
-                    <div
-                      className="h-8 flex items-center px-2 rounded-l cursor-pointer"
-                      style={{ backgroundColor: 'hsl(220, 22%, 28%)', border: '1px solid hsl(220, 20%, 35%)', borderRight: 'none', minWidth: '70px' }}
-                      onClick={() => setShowDiscountKeypad(!showDiscountKeypad)}
-                    >
-                      <span className="text-xs mr-1" style={{ color: '#f59e0b' }}>$</span>
-                      <span className="text-sm font-bold" style={{ color: discountInput ? '#e2e8f0' : '#64748b' }}>{discountInput || '0'}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <button
-                        onClick={() => {
-                          const val = parseFloat(discountInput || '0') + 1;
-                          setDiscountInput(String(val));
-                        }}
-                        className="h-4 w-6 flex items-center justify-center rounded-tr text-[10px]"
-                        style={{ backgroundColor: 'hsl(220, 22%, 32%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
-                      >▲</button>
-                      <button
-                        onClick={() => {
-                          const val = Math.max(0, parseFloat(discountInput || '0') - 1);
-                          setDiscountInput(val > 0 ? String(val) : '');
-                        }}
-                        className="h-4 w-6 flex items-center justify-center rounded-br text-[10px]"
-                        style={{ backgroundColor: 'hsl(220, 22%, 32%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)', borderTop: 'none' }}
-                      >▼</button>
-                    </div>
-                    {parseFloat(discountInput) > 0 && (
-                      <button
-                        onClick={() => { setManualDiscount(discountInput); setShowDiscountKeypad(false); }}
-                        className="h-8 px-2 rounded-r text-xs font-bold ml-px"
-                        style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}
-                      >OK</button>
-                    )}
+                  <div
+                    className="h-8 flex items-center px-2 rounded cursor-pointer"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', border: '1px solid hsl(220, 20%, 35%)', minWidth: '80px' }}
+                    onClick={() => setShowDiscountKeypad(!showDiscountKeypad)}
+                  >
+                    <span className="text-xs mr-1" style={{ color: '#f59e0b' }}>$</span>
+                    <span className="text-sm font-bold" style={{ color: discountInput ? '#e2e8f0' : '#64748b' }}>{discountInput || 'Discount'}</span>
                   </div>
 
-                  {/* Small numeric keypad popup */}
+                  {/* Numeric keypad popup - matching reference */}
                   {showDiscountKeypad && (
-                    <div className="absolute bottom-full right-0 mb-1 p-1.5 rounded-lg z-50 shadow-xl" style={{ backgroundColor: 'hsl(220, 25%, 16%)', border: '1px solid hsl(220, 20%, 30%)' }}>
-                      <div className="grid grid-cols-3 gap-1">
+                    <div className="absolute bottom-full right-0 mb-1 p-2 rounded-lg z-50 shadow-2xl" style={{ backgroundColor: 'hsl(220, 25%, 16%)', border: '1px solid hsl(220, 20%, 30%)', width: '200px' }}>
+                      {/* Display */}
+                      <div className="h-8 flex items-center justify-end px-3 mb-2 rounded" style={{ backgroundColor: 'hsl(220, 22%, 22%)', border: '1px solid hsl(220, 20%, 35%)' }}>
+                        <span className="text-xs mr-1" style={{ color: '#f59e0b' }}>$</span>
+                        <span className="text-base font-bold" style={{ color: discountInput ? '#e2e8f0' : '#64748b' }}>{discountInput || '0'}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
                         {['7','8','9','4','5','6','1','2','3'].map(k => (
                           <button key={k} onClick={() => {
                             const parts = discountInput.split('.');
                             if (parts[1] && parts[1].length >= 2) return;
                             setDiscountInput(p => p + k);
-                          }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>{k}</button>
+                          }} className="h-12 rounded-lg text-lg font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>{k}</button>
                         ))}
-                        <button onClick={() => setDiscountInput('')} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', border: '1px solid hsl(220, 20%, 35%)' }}>C</button>
+                        <button onClick={() => setDiscountInput('')} className="h-12 rounded-lg text-lg font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', border: '1px solid hsl(220, 20%, 35%)', borderBottom: '2px solid #f87171' }}>C</button>
                         <button onClick={() => {
                           const parts = discountInput.split('.');
                           if (parts[1] && parts[1].length >= 2) return;
                           setDiscountInput(p => p + '0');
-                        }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>0</button>
+                        }} className="h-12 rounded-lg text-lg font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>0</button>
                         <button onClick={() => {
                           if (!discountInput.includes('.')) setDiscountInput(p => p + '.');
-                        }} className="h-9 w-9 rounded text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>.</button>
+                        }} className="h-12 rounded-lg text-lg font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}>.</button>
                       </div>
-                      <div className="grid grid-cols-2 gap-1 mt-1">
-                        <button onClick={() => setDiscountInput(p => p.slice(0, -1))} className="h-9 rounded text-xs font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}>⌫ Del</button>
+                      <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+                        <button onClick={() => setDiscountInput(p => p.slice(0, -1))} className="h-12 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}>⌫ Del</button>
                         <button onClick={() => {
                           if (parseFloat(discountInput) > 0) {
                             setManualDiscount(discountInput);
                           }
                           setShowDiscountKeypad(false);
-                        }} className="h-9 rounded text-xs font-bold" style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}>OK</button>
+                        }} className="h-12 rounded-lg text-sm font-bold" style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#fff' }}>OK</button>
                       </div>
                     </div>
                   )}
