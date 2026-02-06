@@ -364,7 +364,16 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
   return (
     <>
     <Dialog open={isOpen && !showUpsell} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] overflow-y-auto [&>button]:hidden">
+        {/* Fixed Close Button */}
+        <button 
+          onClick={() => onClose()} 
+          className="fixed top-4 right-4 z-50 p-1.5 rounded-full bg-card border border-border shadow-md hover:bg-muted transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
+        
         {/* Header */}
         <div className="flex items-center px-4 py-3 border-b sticky top-0 bg-card z-10">
           <div className="flex items-center gap-3 flex-1">
