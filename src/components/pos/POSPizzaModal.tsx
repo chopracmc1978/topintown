@@ -706,7 +706,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div className="flex flex-wrap gap-1.5 items-center">
               <button
                 onClick={() => setSelectedSauceId(null)}
-                className={cn(btnSmall, selectedSauceId === null ? btnActive : btnInactive)}
+                className={cn(
+                  btnSmall,
+                  selectedSauceId === null 
+                    ? "border-emerald-500 bg-emerald-500 text-white" 
+                    : "border-red-500 bg-red-500 text-white"
+                )}
               >
                 No Sauce
               </button>
@@ -714,27 +719,37 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <button
                   key={sauce.id}
                   onClick={() => setSelectedSauceId(sauce.id)}
-                  className={cn(btnSmall, selectedSauceId === sauce.id ? btnActive : btnInactive)}
+                  className={cn(
+                    btnSmall,
+                    selectedSauceId === sauce.id 
+                      ? "border-emerald-500 bg-emerald-500 text-white" 
+                      : "border-red-500 bg-red-500 text-white"
+                  )}
                 >
                   {sauce.name}
                 </button>
               ))}
               <div className="border-l border-slate-300 pl-2 ml-1 flex flex-wrap gap-1">
-                {(['less', 'normal', 'extra'] as const).map(qty => (
-                  <button
-                    key={qty}
-                    onClick={() => selectedSauceId && setSauceQuantity(qty)}
-                    disabled={!selectedSauceId}
-                    className={cn(
-                      btnSmall,
-                      !selectedSauceId
-                        ? "opacity-50 cursor-not-allowed border-slate-200 text-slate-400"
-                        : sauceQuantity === qty ? btnActive : btnInactive
-                    )}
-                  >
-                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Reg' : 'Extra'}
-                  </button>
-                ))}
+                {(['less', 'normal', 'extra'] as const).map(qty => {
+                  const isSelected = sauceQuantity === qty;
+                  return (
+                    <button
+                      key={qty}
+                      onClick={() => selectedSauceId && setSauceQuantity(qty)}
+                      disabled={!selectedSauceId}
+                      className={cn(
+                        btnSmall,
+                        !selectedSauceId
+                          ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-200 text-slate-400"
+                          : isSelected 
+                            ? "border-emerald-500 bg-emerald-500 text-white" 
+                            : "border-red-500 bg-red-500 text-white"
+                      )}
+                    >
+                      {qty === 'less' ? 'Less' : qty === 'normal' ? 'Reg' : 'Extra'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
