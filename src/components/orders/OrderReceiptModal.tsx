@@ -1,10 +1,17 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Download, X, Printer } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CustomerOrder } from '@/hooks/useCustomerOrders';
 import { LOCATIONS } from '@/contexts/LocationContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface RewardPoints {
+  lifetime: number;
+  used: number;
+  balance: number;
+}
 
 interface OrderReceiptModalProps {
   order: CustomerOrder | null;
@@ -14,6 +21,36 @@ interface OrderReceiptModalProps {
 
 export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalProps) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [rewardPoints, setRewardPoints] = useState<RewardPoints | undefined>(undefined);
+
+  // Fetch reward points for customer
+  useEffect(() => {
+    const fetchRewards = async () => {
+      if (!order?.customerPhone) {
+        setRewardPoints(undefined);
+        return;
+      }
+      const phone = order.customerPhone.replace(/\D/g, '');
+      if (!phone) return;
+      
+      const { data } = await supabase
+        .from('customer_rewards')
+        .select('points, lifetime_points')
+        .eq('phone', phone)
+        .maybeSingle();
+      
+      if (data) {
+        setRewardPoints({
+          lifetime: data.lifetime_points,
+          used: data.lifetime_points - data.points,
+          balance: data.points,
+        });
+      } else {
+        setRewardPoints(undefined);
+      }
+    };
+    if (open && order) fetchRewards();
+  }, [order?.customerPhone, open]);
 
   if (!order) return null;
 
@@ -336,6 +373,28 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
               </span>
             </div>
           </div>
+          
+          {/* Reward Points */}
+          {rewardPoints && (
+            <>
+              <Separator className="border-dashed border-black my-3" />
+              <div className="text-center text-xs space-y-0.5">
+                <p className="font-bold text-sm">🎁 Reward Points</p>
+                <div className="flex justify-between">
+                  <span>Lifetime:</span>
+                  <span className="font-medium">{rewardPoints.lifetime} pts</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Used:</span>
+                  <span className="font-medium">{rewardPoints.used} pts</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Balance:</span>
+                  <span>{rewardPoints.balance} pts</span>
+                </div>
+              </div>
+            </>
+          )}
           
           <Separator className="border-dashed border-black my-3" />
           

@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { X, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Order } from '@/types/menu';
-import { CustomerReceipt } from './CustomerReceipt';
+import { CustomerReceipt, ReceiptRewardPoints } from './CustomerReceipt';
 import { usePrinters } from '@/hooks/usePrinters';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CustomerReceiptModalProps {
   order: Order;
@@ -22,6 +24,30 @@ export const CustomerReceiptModal = ({
   onClose 
 }: CustomerReceiptModalProps) => {
   const { printers } = usePrinters(locationId);
+  const [rewardPoints, setRewardPoints] = useState<ReceiptRewardPoints | undefined>(undefined);
+
+  // Fetch reward points for customer
+  useEffect(() => {
+    const fetchRewards = async () => {
+      const phone = order.customerPhone?.replace(/\D/g, '');
+      if (!phone) return;
+      
+      const { data } = await supabase
+        .from('customer_rewards')
+        .select('points, lifetime_points')
+        .eq('phone', phone)
+        .maybeSingle();
+      
+      if (data) {
+        setRewardPoints({
+          lifetime: data.lifetime_points,
+          used: data.lifetime_points - data.points,
+          balance: data.points,
+        });
+      }
+    };
+    fetchRewards();
+  }, [order.customerPhone]);
   
   const hasPrinters = printers.length > 0;
   const counterPrinters = printers.filter(p => p.is_active && (p.station === 'Counter' || p.station === 'Bar'));
@@ -56,6 +82,7 @@ export const CustomerReceiptModal = ({
               locationName={locationName}
               locationAddress={locationAddress}
               locationPhone={locationPhone}
+              rewardPoints={rewardPoints}
             />
           </div>
         </div>
