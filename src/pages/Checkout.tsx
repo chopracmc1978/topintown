@@ -794,6 +794,7 @@ const Checkout = () => {
                 <div className="mb-4">
                   <RewardsRedemption
                     customerPhone={customer?.phone}
+                    orderSubtotal={nonComboSubtotal - appliedDiscount}
                     onApplyRewards={handleApplyRewards}
                     onRemoveRewards={handleRemoveRewards}
                     appliedRewardsPoints={appliedRewardsPoints}

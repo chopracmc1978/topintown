@@ -274,21 +274,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   // Reward redemption constants
   const REWARD_MIN_POINTS = 200;
   const REWARD_POINTS_PER_DOLLAR = 10; // 10 points = $1
+  const REWARD_MIN_DOLLAR = 20; // min $20 per redemption
   const REWARD_MAX_DOLLAR = 35; // max $35 per redemption
-
-  // Calculate max redeemable
-  const maxRedeemablePoints = Math.min(rewardPoints, REWARD_MAX_DOLLAR * REWARD_POINTS_PER_DOLLAR);
-  const maxRedeemableDollars = Math.min(Math.floor(rewardPoints / REWARD_POINTS_PER_DOLLAR), REWARD_MAX_DOLLAR);
-
-  const handleApplyRewards = () => {
-    if (rewardPoints < REWARD_MIN_POINTS) return;
-    // Apply max possible (capped at $35 or available points)
-    const dollarValue = maxRedeemableDollars;
-    const pointsUsed = dollarValue * REWARD_POINTS_PER_DOLLAR;
-    setRewardsApplied({ points: pointsUsed, dollarValue });
-    setShowRewardsSuggestion(false);
-    toast.success(`Reward applied: -$${dollarValue.toFixed(2)} (${pointsUsed} pts)`);
-  };
 
   const handleClearRewards = () => {
     setRewardsApplied(null);
@@ -465,6 +452,21 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const discountedSubtotal = Math.max(0, subtotal - totalDiscount);
   const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
   const total = discountedSubtotal + tax;
+
+  // Calculate the smart redemption amount: between $20-$35, capped by order subtotal
+  const availableDollarsFromPoints = Math.floor(rewardPoints / REWARD_POINTS_PER_DOLLAR);
+  const subtotalAfterOtherDiscounts = Math.max(0, subtotal - discountAmount);
+  const smartRedeemDollars = Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR, Math.floor(subtotalAfterOtherDiscounts));
+  const canApplyRewards = smartRedeemDollars >= REWARD_MIN_DOLLAR;
+
+  const handleApplyRewards = () => {
+    if (!canApplyRewards) return;
+    const dollarValue = smartRedeemDollars;
+    const pointsUsed = dollarValue * REWARD_POINTS_PER_DOLLAR;
+    setRewardsApplied({ points: pointsUsed, dollarValue });
+    setShowRewardsSuggestion(false);
+    toast.success(`Reward applied: -$${dollarValue.toFixed(2)} (${pointsUsed} pts)`);
+  };
 
   // Apply coupon handler
   const handleApplyCoupon = async () => {
@@ -1020,11 +1022,11 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
 
             {/* Reward Redemption Suggestion */}
-            {showRewardsSuggestion && !isEditMode && (
+            {showRewardsSuggestion && !isEditMode && canApplyRewards && (
               <div className="px-4 py-2 flex items-center gap-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
                 <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
                 <span className="text-sm flex-1" style={{ color: '#d97706' }}>
-                  {rewardPoints} pts available (max ${maxRedeemableDollars})
+                  {rewardPoints} pts available ($20-${REWARD_MAX_DOLLAR})
                 </span>
                 <Button
                   size="sm"
@@ -1032,7 +1034,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   style={{ backgroundColor: '#d97706', color: '#fff' }}
                   onClick={handleApplyRewards}
                 >
-                  Use ${maxRedeemableDollars}
+                  Use ${smartRedeemDollars}
                 </Button>
                 <Button
                   variant="ghost"
