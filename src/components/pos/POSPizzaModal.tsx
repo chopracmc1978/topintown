@@ -642,30 +642,41 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
                 return (
-                  <div key={topping.id} className="flex flex-wrap items-center gap-1">
+                  <div key={topping.id} className="flex flex-wrap items-center gap-0.5">
+                    {/* Name button - green if selected, red if not */}
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
-                      className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
+                      className={cn(
+                        btnSmall,
+                        isSelected 
+                          ? "border-emerald-500 bg-emerald-500 text-white" 
+                          : "border-red-500 bg-red-500 text-white"
+                      )}
                     >
                       {topping.name}
                     </button>
                     {isLargePizza ? (
                       <div className="flex gap-0.5">
-                        {(['left', 'whole', 'right'] as const).map(side => (
-                          <button
-                            key={side}
-                            onClick={() => {
-                              if (!isSelected) toggleFreeTopping(topping.name);
-                              updateFreeToppingSide(topping.name, side);
-                            }}
-                            className={cn(
-                              "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
-                              isSelected && selection?.side === side ? btnActive : btnInactive
-                            )}
-                          >
-                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                          </button>
-                        ))}
+                        {(['left', 'whole', 'right'] as const).map(side => {
+                          const isSideSelected = isSelected && selection?.side === side;
+                          return (
+                            <button
+                              key={side}
+                              onClick={() => {
+                                if (!isSelected) toggleFreeTopping(topping.name);
+                                updateFreeToppingSide(topping.name, side);
+                              }}
+                              className={cn(
+                                btnSmall,
+                                isSideSelected 
+                                  ? "border-emerald-500 bg-emerald-500 text-white" 
+                                  : "border-red-500 bg-red-500 text-white"
+                              )}
+                            >
+                              {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                            </button>
+                          );
+                        })}
                       </div>
                     ) : (
                       <button
@@ -673,8 +684,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           if (!isSelected) toggleFreeTopping(topping.name);
                         }}
                         className={cn(
-                          "px-2 py-1 text-xs rounded border font-medium transition-colors",
-                          isSelected ? btnActive : btnInactive
+                          btnSmall,
+                          isSelected 
+                            ? "border-emerald-500 bg-emerald-500 text-white" 
+                            : "border-red-500 bg-red-500 text-white"
                         )}
                       >
                         Whole
