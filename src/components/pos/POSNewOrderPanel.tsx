@@ -191,6 +191,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   // Reward redemption state
   const [rewardsApplied, setRewardsApplied] = useState<{ points: number; dollarValue: number } | null>(null);
   const [showRewardsSuggestion, setShowRewardsSuggestion] = useState(false);
+  const [showRewardsKeypad, setShowRewardsKeypad] = useState(false);
+  const [rewardsInput, setRewardsInput] = useState('');
   
   // Coupon validation
   const validateCouponMutation = useValidateCoupon();
@@ -459,13 +461,40 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const smartRedeemDollars = Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR, Math.floor(subtotalAfterOtherDiscounts));
   const canApplyRewards = smartRedeemDollars >= REWARD_MIN_DOLLAR;
 
-  const handleApplyRewards = () => {
-    if (!canApplyRewards) return;
-    const dollarValue = smartRedeemDollars;
+  const handleApplyRewards = (customAmount?: number) => {
+    const dollarValue = customAmount ?? smartRedeemDollars;
+    if (dollarValue < REWARD_MIN_DOLLAR || dollarValue > Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)) {
+      toast.error(`Reward amount must be between $${REWARD_MIN_DOLLAR} and $${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)}`);
+      return;
+    }
     const pointsUsed = dollarValue * REWARD_POINTS_PER_DOLLAR;
     setRewardsApplied({ points: pointsUsed, dollarValue });
     setShowRewardsSuggestion(false);
+    setShowRewardsKeypad(false);
+    setRewardsInput('');
     toast.success(`Reward applied: -$${dollarValue.toFixed(2)} (${pointsUsed} pts)`);
+  };
+
+  const handleRewardsKeyPress = (key: string) => {
+    if (key === 'C') {
+      setRewardsInput('');
+    } else if (key === 'DEL') {
+      setRewardsInput(prev => prev.slice(0, -1));
+    } else {
+      // Only allow digits, max 2 chars (20-35 range)
+      if (rewardsInput.length < 2) {
+        setRewardsInput(prev => prev + key);
+      }
+    }
+  };
+
+  const handleRewardsKeypadApply = () => {
+    const val = parseInt(rewardsInput);
+    if (isNaN(val) || val < REWARD_MIN_DOLLAR || val > Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)) {
+      toast.error(`Enter amount between $${REWARD_MIN_DOLLAR}-$${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)}`);
+      return;
+    }
+    handleApplyRewards(val);
   };
 
   // Apply coupon handler
@@ -1023,28 +1052,88 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Reward Redemption Suggestion */}
             {showRewardsSuggestion && !isEditMode && canApplyRewards && (
-              <div className="px-4 py-2 flex items-center gap-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
-                <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
-                <span className="text-sm flex-1" style={{ color: '#d97706' }}>
-                  {rewardPoints} pts available ($20-${REWARD_MAX_DOLLAR})
-                </span>
-                <Button
-                  size="sm"
-                  className="h-8 px-3 text-sm font-medium"
-                  style={{ backgroundColor: '#d97706', color: '#fff' }}
-                  onClick={handleApplyRewards}
-                >
-                  Use ${smartRedeemDollars}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  style={{ color: 'hsl(215, 15%, 60%)' }}
-                  onClick={() => setShowRewardsSuggestion(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+              <div className="px-4 py-2 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
+                <div className="flex items-center gap-2">
+                  <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
+                  <span className="text-sm flex-1" style={{ color: '#d97706' }}>
+                    {rewardPoints} pts available (${REWARD_MIN_DOLLAR}-${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)})
+                  </span>
+                  <Button
+                    size="sm"
+                    className="h-8 px-3 text-sm font-medium"
+                    style={{ backgroundColor: '#d97706', color: '#fff' }}
+                    onClick={() => handleApplyRewards(smartRedeemDollars)}
+                  >
+                    Use ${smartRedeemDollars}
+                  </Button>
+                  {/* Custom amount via keypad */}
+                  <Popover open={showRewardsKeypad} onOpenChange={setShowRewardsKeypad}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-2 text-sm"
+                        style={{ borderColor: '#d97706', color: '#d97706' }}
+                      >
+                        Custom
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                      <div className="space-y-2">
+                        <div className="text-xs text-center" style={{ color: '#d97706' }}>
+                          ${REWARD_MIN_DOLLAR} - ${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)} range
+                        </div>
+                        <div className="text-center p-2 rounded text-lg font-bold text-white" style={{ background: 'hsl(220, 22%, 22%)' }}>
+                          ${rewardsInput || '0'}
+                        </div>
+                        <div className="grid grid-cols-3 gap-1">
+                          {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'].map((key) => (
+                            <Button
+                              key={key}
+                              variant="outline"
+                              onClick={() => handleRewardsKeyPress(key)}
+                              disabled={key === '.'}
+                              className={cn(
+                                "h-10 text-base font-semibold text-white",
+                                key === 'C' && "text-red-400 hover:bg-red-900/30",
+                                key === '.' && "opacity-30"
+                              )}
+                              style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
+                            >
+                              {key}
+                            </Button>
+                          ))}
+                          <Button
+                            variant="outline"
+                            onClick={() => handleRewardsKeyPress('DEL')}
+                            className="col-span-2 h-10 text-orange-400 hover:bg-orange-900/30"
+                            style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
+                          >
+                            <Delete className="w-4 h-4 mr-1" />
+                            Del
+                          </Button>
+                          <Button
+                            variant="default"
+                            onClick={handleRewardsKeypadApply}
+                            className="h-10 text-white"
+                            style={{ backgroundColor: '#d97706' }}
+                          >
+                            OK
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    style={{ color: 'hsl(215, 15%, 60%)' }}
+                    onClick={() => setShowRewardsSuggestion(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             )}
 
