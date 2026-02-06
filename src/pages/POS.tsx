@@ -410,16 +410,18 @@ const POS = () => {
     const targetOrder = newOrderPending || existingPointsOrder;
     if (!targetOrder) return;
 
-    // Store points discount on order
-    await supabase
-      .from('orders')
-      .update({ 
-        rewards_used: pointsUsed, 
-        rewards_discount: dollarValue,
-      })
-      .eq('order_number', targetOrder.id);
+    // Store points discount on order (only if points were actually used)
+    if (pointsUsed > 0) {
+      await supabase
+        .from('orders')
+        .update({ 
+          rewards_used: pointsUsed, 
+          rewards_discount: dollarValue,
+        })
+        .eq('order_number', targetOrder.id);
 
-    setPointsDiscountApplied({ pointsUsed, dollarValue });
+      setPointsDiscountApplied({ pointsUsed, dollarValue });
+    }
     
     if (remainingBalance <= 0.01) {
       // Fully paid with points
