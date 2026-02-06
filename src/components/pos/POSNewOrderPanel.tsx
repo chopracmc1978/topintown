@@ -212,6 +212,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
     } else {
       clearSearch();
       setShowOrderHistory(false);
+      setCustomerName('');
     }
   };
 
