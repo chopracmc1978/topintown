@@ -54,7 +54,7 @@ export const POSOrderHistoryDropdown = ({
 
   if (isSearching) {
     return (
-      <div data-order-history className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] p-4 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+      <div data-order-history className="fixed top-16 right-[320px] w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] p-4 overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
         {/* Solid background shield for legacy Android */}
         <div className="absolute inset-0 bg-white" style={{ backgroundColor: '#ffffff', zIndex: -1 }} />
         <div className="flex items-center gap-2 text-muted-foreground relative">
@@ -70,7 +70,7 @@ export const POSOrderHistoryDropdown = ({
   }
 
   return (
-    <div data-order-history className="fixed top-16 right-4 w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+    <div data-order-history className="fixed top-16 right-[320px] w-80 max-h-[calc(100vh-100px)] border border-border rounded-lg shadow-2xl z-[9999] overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
       {/* Solid background shield for legacy Android WebView */}
       <div className="absolute inset-0" style={{ backgroundColor: '#ffffff', zIndex: -1 }} />
       
