@@ -399,26 +399,35 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 "text-xs font-medium px-3 py-2 rounded",
                 selectedCheese === 'No Cheese' ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
               )}>Cheese</span>
-              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
-                <button
-                  key={cheese}
-                  onClick={() => {
-                    setSelectedCheese(cheese);
-                    if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
-                  }}
-                  className={cn(btnSmall, selectedCheese === cheese ? btnActive : btnInactive)}
-                >
-                  {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
-                  {cheese === 'Dairy Free' && (
-                    <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
-                  )}
-                </button>
-              ))}
+              {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
+                const isSelected = selectedCheese === cheese;
+                return (
+                  <button
+                    key={cheese}
+                    onClick={() => {
+                      setSelectedCheese(cheese);
+                      if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
+                    }}
+                    className={cn(
+                      btnSmall, 
+                      isSelected 
+                        ? "border-emerald-500 bg-emerald-500 text-white" 
+                        : "border-red-500 bg-red-500 text-white"
+                    )}
+                  >
+                    {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
+                    {cheese === 'Dairy Free' && (
+                      <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                    )}
+                  </button>
+                );
+              })}
               {/* Quantity options inline */}
               {(['less', 'normal', 'extra'] as const).map(qty => {
                 const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
                                    selectedSize?.name?.includes('Medium') ? 2.5 : 3;
                 const isDisabled = selectedCheese === 'No Cheese';
+                const isSelected = cheeseQuantity === qty;
                 return (
                   <button
                     key={qty}
@@ -426,8 +435,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     disabled={isDisabled}
                     className={cn(
                       btnSmall,
-                      isDisabled ? "opacity-40 cursor-not-allowed" :
-                      cheeseQuantity === qty ? btnActive : btnInactive
+                      isDisabled ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500" :
+                      isSelected 
+                        ? "border-emerald-500 bg-emerald-500 text-white" 
+                        : "border-red-500 bg-red-500 text-white"
                     )}
                   >
                     {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
