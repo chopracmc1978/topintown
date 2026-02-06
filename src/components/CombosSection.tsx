@@ -28,7 +28,8 @@ const CombosSection = () => {
           {combos.map((combo) => (
             <div
               key={combo.id}
-              className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow"
+              className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow cursor-pointer"
+              onClick={() => setSelectedCombo(combo)}
             >
               {combo.image_url ? (
                 <img
@@ -71,7 +72,7 @@ const CombosSection = () => {
                   </span>
                   <Button
                     variant="pizza"
-                    onClick={() => setSelectedCombo(combo)}
+                    onClick={(e) => { e.stopPropagation(); setSelectedCombo(combo); }}
                   >
                     Order Now
                   </Button>

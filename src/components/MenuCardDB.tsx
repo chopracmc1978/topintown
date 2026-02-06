@@ -114,7 +114,10 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
 
   return (
     <>
-      <Card className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card">
+      <Card 
+        className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer"
+        onClick={handleAddToCart}
+      >
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={item.image_url || '/placeholder.svg'}
@@ -142,7 +145,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
           )}
 
           {!isPizza && item.sizes && item.sizes.length > 0 && (
-            <div className="flex gap-2">
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               {item.sizes.map((size) => (
                 <button
                   key={size.id}
@@ -169,7 +172,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
             <Button
               variant={isAdded ? "accent" : "pizza"}
               size="sm"
-              onClick={handleAddToCart}
+              onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
               className="gap-1"
             >
               {isAdded ? (
