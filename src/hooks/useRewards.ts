@@ -158,9 +158,17 @@ export const useAddRewardPoints = () => {
 
         if (updateError) throw updateError;
       } else {
-        // No rewards account — walk-in without signup; skip awarding points
-        console.log('No rewards account for this phone, skipping points');
-        return;
+        // Walk-in customer — create a phone-only rewards record
+        const { error: insertError } = await supabase
+          .from('customer_rewards')
+          .insert({
+            phone,
+            customer_id: customerId || null,
+            points,
+            lifetime_points: points,
+          });
+
+        if (insertError) throw insertError;
       }
 
       // Record the transaction in history
