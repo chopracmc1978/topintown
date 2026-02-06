@@ -31,7 +31,6 @@ const RewardsRedemption = ({
   disabledByCoupon = false,
 }: RewardsRedemptionProps) => {
   const { data: rewards, isLoading } = useRewardsByPhone(customerPhone);
-  const [showCustom, setShowCustom] = useState(false);
   const [customAmount, setCustomAmount] = useState('');
 
   if (isLoading || !customerPhone) {
@@ -41,8 +40,8 @@ const RewardsRedemption = ({
   const currentPoints = rewards?.points || 0;
   const canRedeem = canRedeemRewards(currentPoints);
   const availableDollars = Math.floor(currentPoints / POINTS_TO_DOLLAR_RATIO);
-  const smartRedeemDollars = Math.min(availableDollars, MAX_REDEEM_DOLLAR, Math.floor(orderSubtotal));
-  const canApply = smartRedeemDollars >= MIN_REDEEM_DOLLAR;
+  const maxRedeemable = Math.min(availableDollars, MAX_REDEEM_DOLLAR, Math.floor(orderSubtotal));
+  const canApply = maxRedeemable >= MIN_REDEEM_DOLLAR;
 
   // If already applied
   if (appliedRewardsPoints > 0) {
@@ -110,77 +109,43 @@ const RewardsRedemption = ({
 
   // Validate custom amount
   const parsedCustom = parseInt(customAmount) || 0;
-  const isCustomValid = parsedCustom >= MIN_REDEEM_DOLLAR && parsedCustom <= smartRedeemDollars;
+  const isCustomValid = parsedCustom >= MIN_REDEEM_DOLLAR && parsedCustom <= maxRedeemable;
 
-  const handleApply = (amount: number) => {
+  const handleApply = () => {
+    const amount = parsedCustom;
     const pointsUsed = amount * POINTS_TO_DOLLAR_RATIO;
     onApplyRewards(pointsUsed, amount);
-    setShowCustom(false);
     setCustomAmount('');
   };
 
-  // Can redeem - show button with smart amount + custom option
+  // Can redeem - show inline input with $20-$35 range
   return (
-    <div className="bg-primary/5 border border-primary/30 rounded-lg p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Gift className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">
-            You have {currentPoints} reward points!
-          </span>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">
-          Redeem for ${smartRedeemDollars} off ($20-${MAX_REDEEM_DOLLAR} range)
+    <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          Redeem (${ MIN_REDEEM_DOLLAR}-${ MAX_REDEEM_DOLLAR} range)
         </span>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="pizza" onClick={() => handleApply(smartRedeemDollars)}>
-            Apply ${smartRedeemDollars} Off
-          </Button>
+        <div className="relative flex-1">
+          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            type="number"
+            min={MIN_REDEEM_DOLLAR}
+            max={maxRedeemable}
+            value={customAmount}
+            onChange={(e) => setCustomAmount(e.target.value)}
+            placeholder={`${MIN_REDEEM_DOLLAR}-${maxRedeemable}`}
+            className="pl-7 h-9 text-sm"
+          />
         </div>
-      </div>
-
-      {/* Custom amount toggle and input */}
-      {!showCustom ? (
-        <button
-          onClick={() => setShowCustom(true)}
-          className="text-xs text-primary hover:underline"
+        <Button
+          size="sm"
+          variant="pizza"
+          disabled={!isCustomValid}
+          onClick={handleApply}
         >
-          Use custom amount
-        </button>
-      ) : (
-        <div className="flex items-center gap-2 pt-1">
-          <div className="relative flex-1">
-            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="number"
-              min={MIN_REDEEM_DOLLAR}
-              max={smartRedeemDollars}
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder={`${MIN_REDEEM_DOLLAR}-${smartRedeemDollars}`}
-              className="pl-7 h-8 text-sm"
-              autoFocus
-            />
-          </div>
-          <Button
-            size="sm"
-            variant="pizza"
-            disabled={!isCustomValid}
-            onClick={() => handleApply(parsedCustom)}
-          >
-            Apply ${parsedCustom || '?'}
-          </Button>
-          <button
-            onClick={() => { setShowCustom(false); setCustomAmount(''); }}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+          Apply {isCustomValid ? `$${parsedCustom}` : ''} Off
+        </Button>
+      </div>
     </div>
   );
 };
