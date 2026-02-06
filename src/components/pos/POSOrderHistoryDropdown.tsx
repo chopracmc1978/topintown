@@ -81,46 +81,41 @@ export const POSOrderHistoryDropdown = ({
       
       <ScrollArea className="max-h-[calc(100vh-160px)]" style={{ backgroundColor: '#ffffff' }}>
         <div className="divide-y divide-border">
-          {displayOrders.map((order, orderIdx) => {
+          {displayOrders.map((order) => {
             const hasName = order.customer_name && order.customer_name !== 'Walk-in Customer';
-            const showRewardPoints = orderIdx === 0 && rewardPoints > 0;
+            const showRewardPoints = rewardPoints > 0;
             
             return (
               <div key={order.id} className="p-3 transition-colors" style={{ backgroundColor: '#ffffff' }}>
                 {/* Customer Info */}
-                <div className="flex items-start justify-between mb-2">
-                  <div className="space-y-0.5 flex-1 min-w-0">
-                    {/* Line 1: Name (left) + Reward Points (right) OR Phone (left) + Reward Points (right) */}
-                    <div className="flex items-center justify-between gap-2">
-                      {hasName ? (
-                        <p className="font-bold text-base text-foreground truncate">
-                          {order.customer_name}
-                        </p>
-                      ) : (
-                        <p className="font-bold text-base text-foreground">
-                          {order.customer_phone || 'No phone'}
-                        </p>
-                      )}
-                      {showRewardPoints && (
-                        <div className="flex items-center gap-1 text-xs font-medium text-amber-600 shrink-0">
-                          <Gift className="w-3.5 h-3.5" />
-                          <span>{rewardPoints} pts</span>
-                        </div>
-                      )}
-                    </div>
+                <div className="flex items-start justify-between mb-1">
+                  <div className="flex-1 min-w-0">
+                    {/* Line 1: Name or Phone */}
+                    <p className="font-bold text-base text-foreground truncate leading-tight">
+                      {hasName ? order.customer_name : (order.customer_phone || 'No phone')}
+                    </p>
                     {/* Line 2: Phone (only if name exists) */}
                     {hasName && (
-                      <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
+                      <p className="text-sm text-muted-foreground leading-tight">{order.customer_phone}</p>
                     )}
-                    {/* Line 3: Order number + date */}
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(order.created_at), 'MMM d, h:mm a')}
-                      </span>
-                    </div>
                   </div>
-                  <span className="font-bold text-sm shrink-0 ml-2">${order.total.toFixed(2)}</span>
+                  <div className="shrink-0 ml-2 text-right">
+                    <span className="font-bold text-sm">${order.total.toFixed(2)}</span>
+                    {showRewardPoints && (
+                      <div className="flex items-center gap-1 text-xs font-medium text-amber-600 justify-end mt-0.5">
+                        <Gift className="w-3 h-3" />
+                        <span>{rewardPoints} pts</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Order number + date */}
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(order.created_at), 'MMM d, h:mm a')}
+                  </span>
                 </div>
                 
                 {/* Order Items Preview */}
@@ -133,32 +128,30 @@ export const POSOrderHistoryDropdown = ({
                   )}
                 </div>
                 
-                {/* Action Buttons - ensure visibility */}
-                <div className="flex gap-2" style={{ visibility: 'visible', opacity: 1 }}>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant="default"
-                    className="flex-1 h-8 text-xs bg-primary text-primary-foreground hover:bg-primary/90"
-                    style={{ visibility: 'visible', opacity: 1 }}
+                    className="flex-1 h-9 text-xs font-semibold"
                     onClick={() => {
                       onSelectOrder(order.items, 'exact');
                       onClose();
                     }}
                   >
-                    <ShoppingCart className="w-3 h-3 mr-1" />
+                    <ShoppingCart className="w-3.5 h-3.5 mr-1" />
                     Same Order
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="flex-1 h-8 text-xs border-border"
-                    style={{ visibility: 'visible', opacity: 1 }}
+                    variant="secondary"
+                    className="flex-1 h-9 text-xs font-semibold"
                     onClick={() => {
                       onSelectOrder(order.items, 'edit');
                       onClose();
                     }}
                   >
-                    <Edit2 className="w-3 h-3 mr-1" />
+                    <Edit2 className="w-3.5 h-3.5 mr-1" />
                     Edit & Order
                   </Button>
                 </div>
