@@ -32,17 +32,28 @@ export const CustomerReceiptModal = ({
       const phone = order.customerPhone?.replace(/\D/g, '');
       if (!phone) return;
       
-      const { data } = await supabase
-        .from('customer_rewards')
-        .select('points, lifetime_points')
-        .eq('phone', phone)
-        .maybeSingle();
+      const [rewardsResult, historyResult] = await Promise.all([
+        supabase
+          .from('customer_rewards')
+          .select('points, lifetime_points')
+          .eq('phone', phone)
+          .maybeSingle(),
+        supabase
+          .from('rewards_history')
+          .select('points_change')
+          .eq('phone', phone)
+          .eq('order_id', order.id)
+          .eq('transaction_type', 'earned')
+          .maybeSingle(),
+      ]);
       
-      if (data) {
+      if (rewardsResult.data) {
+        const earnedThisOrder = historyResult.data?.points_change || 0;
         setRewardPoints({
-          lifetime: data.lifetime_points,
-          used: data.lifetime_points - data.points,
-          balance: data.points,
+          lifetime: rewardsResult.data.lifetime_points,
+          earned: earnedThisOrder,
+          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
+          balance: rewardsResult.data.points,
         });
       }
     };

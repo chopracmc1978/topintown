@@ -3,6 +3,7 @@ import { Separator } from '@/components/ui/separator';
 
 export interface ReceiptRewardPoints {
   lifetime: number;
+  earned: number;
   used: number;
   balance: number;
 }
@@ -198,6 +199,12 @@ export const CustomerReceipt = ({
               <span>Lifetime:</span>
               <span className="font-medium">{rewardPoints.lifetime} pts</span>
             </div>
+            {rewardPoints.earned > 0 && (
+              <div className="flex justify-between" style={{ color: '#2e7d32' }}>
+                <span>Add:</span>
+                <span className="font-medium">+{rewardPoints.earned} pts</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Used:</span>
               <span className="font-medium">{rewardPoints.used} pts</span>
