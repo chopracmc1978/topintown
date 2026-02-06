@@ -25,10 +25,14 @@ serve(async (req) => {
       customerId,
       locationId,
       notes,
-      pickupTime
+      pickupTime,
+      discount,
+      couponCode,
+      rewardsUsed,
+      rewardsDiscount
     } = await req.json();
 
-    console.log("Creating checkout session for:", { customerName, customerEmail, total, itemCount: items?.length, pickupTime });
+    console.log("Creating checkout session for:", { customerName, customerEmail, total, itemCount: items?.length, pickupTime, rewardsUsed });
 
     if (!items || items.length === 0) {
       throw new Error("No items in cart");
@@ -45,6 +49,10 @@ serve(async (req) => {
       subtotal,
       tax,
       total,
+      discount,
+      couponCode,
+      rewardsUsed,
+      rewardsDiscount,
       customerName,
       customerPhone,
       customerEmail,

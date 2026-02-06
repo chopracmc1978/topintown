@@ -387,6 +387,76 @@ export const usePOSOrders = (locationId?: string) => {
     }
   };
 
+  // Award reward points when order is completed
+  const awardRewardPoints = async (order: Order) => {
+    try {
+      if (!order.customerPhone) {
+        console.log('No customer phone, skipping reward points');
+        return;
+      }
+
+      // Calculate points: 1 point per $2 spent (0.5 points per $1)
+      const pointsToAward = Math.floor(order.total * 0.5);
+      if (pointsToAward <= 0) return;
+
+      console.log(`Awarding ${pointsToAward} reward points to ${order.customerPhone}`);
+
+      // Get existing rewards record
+      const { data: existing } = await supabase
+        .from('customer_rewards')
+        .select('*')
+        .eq('phone', order.customerPhone)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing record
+        await supabase
+          .from('customer_rewards')
+          .update({
+            points: existing.points + pointsToAward,
+            lifetime_points: existing.lifetime_points + pointsToAward,
+            customer_id: order.customerId || existing.customer_id,
+          })
+          .eq('id', existing.id);
+      } else {
+        // Create new record
+        await supabase
+          .from('customer_rewards')
+          .insert({
+            phone: order.customerPhone,
+            customer_id: order.customerId || null,
+            points: pointsToAward,
+            lifetime_points: pointsToAward,
+          });
+      }
+
+      // Get the order's database ID for the history record
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('order_number', order.id)
+        .maybeSingle();
+
+      // Record in history
+      await supabase
+        .from('rewards_history')
+        .insert({
+          phone: order.customerPhone,
+          customer_id: order.customerId || null,
+          order_id: orderData?.id || null,
+          points_change: pointsToAward,
+          transaction_type: 'earned',
+          description: `Earned ${pointsToAward} points from order ${order.id}`,
+        });
+
+      console.log('Reward points awarded successfully');
+      toast.success(`${pointsToAward} reward points added!`);
+    } catch (err: any) {
+      console.error('Error awarding reward points:', err);
+      // Don't throw - rewards shouldn't block order completion
+    }
+  };
+
   // Update order status with optional SMS and email receipt
   const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number, locationId?: string) => {
     try {
@@ -419,6 +489,8 @@ export const usePOSOrders = (locationId?: string) => {
           if (order && locationId) {
             await sendEmailReceipt(order, locationId);
           }
+          // Award reward points when order is completed
+          await awardRewardPoints(order);
         }
       }
 

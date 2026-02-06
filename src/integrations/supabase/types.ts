@@ -302,6 +302,44 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_rewards: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          lifetime_points: number
+          phone: string
+          points: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          lifetime_points?: number
+          phone: string
+          points?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          lifetime_points?: number
+          phone?: string
+          points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_rewards_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: true
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           created_at: string
@@ -682,6 +720,8 @@ export type Database = {
           payment_method: string | null
           payment_status: string
           pickup_time: string | null
+          rewards_discount: number | null
+          rewards_used: number | null
           source: string
           status: string
           stripe_session_id: string | null
@@ -708,6 +748,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           pickup_time?: string | null
+          rewards_discount?: number | null
+          rewards_used?: number | null
           source?: string
           status?: string
           stripe_session_id?: string | null
@@ -734,6 +776,8 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           pickup_time?: string | null
+          rewards_discount?: number | null
+          rewards_used?: number | null
           source?: string
           status?: string
           stripe_session_id?: string | null
@@ -1255,6 +1299,54 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      rewards_history: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          description: string | null
+          id: string
+          order_id: string | null
+          phone: string
+          points_change: number
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          phone: string
+          points_change: number
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          phone?: string
+          points_change?: number
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewards_history_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rewards_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sauce_groups: {
         Row: {
