@@ -324,11 +324,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
-  // Ultra-compact button style for no-scroll layout - h-10 for consistent height
-  const btnSmall = "h-10 px-3 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground inline-flex items-center justify-center text-center";
+  // Ultra-compact button style for no-scroll layout - h-10 with width-safe shrink/wrap (prevents modal overflow)
+  const btnSmall = "h-10 px-3 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
-  const labelBox = "h-10 px-3 text-xs font-medium rounded inline-flex items-center justify-center whitespace-nowrap";
+  const labelBox = "h-10 px-2 text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -348,6 +348,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })}
                   className={cn(
                     btnSmall,
+                    "px-2",
                     isSelected 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
                       : "border-red-500 bg-red-500 text-white"
@@ -363,7 +364,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Crust - inline on same row */}
           {availableCrusts.length > 0 && (
             <>
-              <span className="text-xs font-medium bg-emerald-500 text-white px-2 py-1 rounded">Crust</span>
+              <span className={cn(labelBox, "px-2", "bg-emerald-500 text-white")}>Crust</span>
               <div className="flex gap-1 flex-1">
                 {availableCrusts.map(crust => {
                   const isSelected = selectedCrust?.id === crust.id;
@@ -375,7 +376,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       onClick={() => setSelectedCrust(crust)}
                       className={cn(
                         btnSmall,
-                        "flex-1",
+                        "flex-1 px-2",
                         alwaysGreen || isSelected
                           ? "border-emerald-500 bg-emerald-500 text-white"
                           : "border-red-500 bg-red-500 text-white"
@@ -397,6 +398,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div className="flex items-center gap-2">
               <span className={cn(
                 labelBox,
+                "px-3",
                 selectedCheese === 'No Cheese' ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
               )}>Cheese</span>
               {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
@@ -452,6 +454,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div className="flex items-center gap-2">
               <span className={cn(
                 labelBox,
+                "px-3",
                 (leftSpicy === 'none' && rightSpicy === 'none') 
                   ? "bg-emerald-500 text-white" 
                   : "bg-red-500 text-white"
