@@ -190,7 +190,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const validateCouponMutation = useValidateCoupon();
 
   // Customer lookup state
-  const { isSearching, orderHistory, customerInfo, searchByPhone, saveCustomer, clearSearch } = useCustomerLookup();
+  const { isSearching, orderHistory, customerInfo, rewardPoints, searchByPhone, saveCustomer, clearSearch } = useCustomerLookup();
   const [showOrderHistory, setShowOrderHistory] = useState(false);
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const phoneDebounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -620,6 +620,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 isSearching={isSearching}
                 onSelectOrder={handleSelectPastOrder}
                 onClose={() => setShowOrderHistory(false)}
+                rewardPoints={rewardPoints}
               />
             )}
           </div>
