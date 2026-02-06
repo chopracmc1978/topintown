@@ -18,6 +18,7 @@ import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal'
 import { CheckoutAuthOptions } from '@/components/checkout/CheckoutAuthOptions';
 import { AdvanceOrderPicker } from '@/components/checkout/AdvanceOrderPicker';
 import CouponField from '@/components/checkout/CouponField';
+import RewardsRedemption from '@/components/checkout/RewardsRedemption';
 import { Coupon } from '@/hooks/useCoupons';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useIsLocationOpen } from '@/hooks/useLocationHours';
@@ -322,6 +323,10 @@ const Checkout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   
+  // Rewards state
+  const [appliedRewardsPoints, setAppliedRewardsPoints] = useState(0);
+  const [appliedRewardsDiscount, setAppliedRewardsDiscount] = useState(0);
+  
   // Location confirmation dialog
   const [showLocationConfirm, setShowLocationConfirm] = useState(false);
   
@@ -452,8 +457,9 @@ const Checkout = () => {
     try {
       const locationId = selectedLocation?.id || 'calgary';
       const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-      // Discount only applies to non-combo items
-      const discountedNonCombo = nonComboSubtotal - appliedDiscount;
+      // Discount only applies to non-combo items (coupon + rewards)
+      const totalDiscountAmount = appliedDiscount + appliedRewardsDiscount;
+      const discountedNonCombo = Math.max(0, nonComboSubtotal - totalDiscountAmount);
       const finalSubtotal = discountedNonCombo + comboSubtotal;
       const tax = finalSubtotal * 0.05; // 5% GST
       const grandTotal = finalSubtotal + deliveryFee + tax;
@@ -479,8 +485,10 @@ const Checkout = () => {
         body: {
           items,
           subtotal: total,
-          discount: appliedDiscount,
+          discount: totalDiscountAmount,
           couponCode: appliedCoupon?.code || null,
+          rewardsUsed: appliedRewardsPoints,
+          rewardsDiscount: appliedRewardsDiscount,
           tax,
           total: grandTotal,
           customerName: customerInfo.fullName || '',
@@ -557,8 +565,9 @@ const Checkout = () => {
     .reduce((sum, item) => sum + item.totalPrice, 0);
 
   const deliveryFee = orderType === 'delivery' ? 3.99 : 0;
-  // Discount only applies to non-combo items
-  const discountedNonComboSubtotal = nonComboSubtotal - appliedDiscount;
+  // Discount only applies to non-combo items (coupon + rewards)
+  const totalDiscount = appliedDiscount + appliedRewardsDiscount;
+  const discountedNonComboSubtotal = Math.max(0, nonComboSubtotal - totalDiscount);
   const discountedSubtotal = discountedNonComboSubtotal + comboSubtotal;
   const tax = discountedSubtotal * 0.05;
   const grandTotal = discountedSubtotal + deliveryFee + tax;
@@ -571,6 +580,16 @@ const Checkout = () => {
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setAppliedDiscount(0);
+  };
+
+  const handleApplyRewards = (pointsUsed: number, dollarValue: number) => {
+    setAppliedRewardsPoints(pointsUsed);
+    setAppliedRewardsDiscount(dollarValue);
+  };
+
+  const handleRemoveRewards = () => {
+    setAppliedRewardsPoints(0);
+    setAppliedRewardsDiscount(0);
   };
 
   if (items.length === 0) {
@@ -770,6 +789,19 @@ const Checkout = () => {
                 )}
               </div>
 
+              {/* Rewards Redemption - show if customer has phone */}
+              {(customer?.phone || verifiedCustomerId) && (
+                <div className="mb-4">
+                  <RewardsRedemption
+                    customerPhone={customer?.phone}
+                    onApplyRewards={handleApplyRewards}
+                    onRemoveRewards={handleRemoveRewards}
+                    appliedRewardsPoints={appliedRewardsPoints}
+                    appliedRewardsDiscount={appliedRewardsDiscount}
+                  />
+                </div>
+              )}
+
               <div className="border-t border-border pt-4 space-y-2">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
@@ -777,8 +809,14 @@ const Checkout = () => {
                 </div>
                 {appliedDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount ({appliedCoupon?.code})</span>
+                    <span>Coupon ({appliedCoupon?.code})</span>
                     <span>-${appliedDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                {appliedRewardsDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Rewards ({appliedRewardsPoints} pts)</span>
+                    <span>-${appliedRewardsDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-muted-foreground">

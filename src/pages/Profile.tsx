@@ -1,21 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Phone, Lock, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { User, Phone, Lock, ArrowLeft, Loader2, CheckCircle, Gift, Star, History } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OtpInput } from '@/components/checkout/OtpInput';
+import { 
+  useRewardsByPhone, 
+  useRewardsHistory, 
+  MIN_POINTS_TO_REDEEM, 
+  canRedeemRewards,
+  calculateRewardDollarValue,
+  POINTS_PER_DOLLAR
+} from '@/hooks/useRewards';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { customer, loading: customerLoading, refreshCustomer, logout } = useCustomer();
   const { toast } = useToast();
+
+  // Rewards data
+  const { data: rewards, isLoading: rewardsLoading } = useRewardsByPhone(customer?.phone);
+  const { data: rewardsHistory } = useRewardsHistory(customer?.phone);
 
   // Phone change state
   const [newPhone, setNewPhone] = useState('');
@@ -147,6 +160,13 @@ const Profile = () => {
     }
   };
 
+  const currentPoints = rewards?.points || 0;
+  const lifetimePoints = rewards?.lifetime_points || 0;
+  const progressToReward = Math.min((currentPoints / MIN_POINTS_TO_REDEEM) * 100, 100);
+  const pointsNeeded = Math.max(0, MIN_POINTS_TO_REDEEM - currentPoints);
+  const canRedeem = canRedeemRewards(currentPoints);
+  const redeemableValue = calculateRewardDollarValue(currentPoints);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -164,6 +184,101 @@ const Profile = () => {
           </div>
 
           <div className="space-y-6">
+            {/* Rewards Card */}
+            <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-primary">
+                  <Gift className="w-5 h-5" />
+                  My Rewards
+                </CardTitle>
+                <CardDescription>
+                  Earn 1 point for every $2 spent. Redeem 200 points for $20 off!
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {rewardsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Points Display */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-8 h-8 text-amber-500 fill-amber-500" />
+                        <div>
+                          <p className="text-3xl font-bold text-foreground">{currentPoints}</p>
+                          <p className="text-sm text-muted-foreground">Current Points</p>
+                        </div>
+                      </div>
+                      {canRedeem && (
+                        <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm font-medium">
+                          ${redeemableValue} Available!
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <Progress value={progressToReward} className="h-3" />
+                      {!canRedeem ? (
+                        <p className="text-sm text-muted-foreground">
+                          {pointsNeeded} more points until your next $20 reward
+                        </p>
+                      ) : (
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                          🎉 You can redeem your rewards at checkout!
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Lifetime Stats */}
+                    <div className="flex justify-between pt-2 border-t border-border text-sm">
+                      <span className="text-muted-foreground">Lifetime Points Earned</span>
+                      <span className="font-medium">{lifetimePoints}</span>
+                    </div>
+
+                    {/* How it works */}
+                    <div className="bg-background/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+                      <p className="font-medium text-foreground">How it works:</p>
+                      <p>• Earn 1 point for every $2 you spend</p>
+                      <p>• Points are added when your order is completed</p>
+                      <p>• Redeem 200 points for $20 off at checkout</p>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Rewards History */}
+            {rewardsHistory && rewardsHistory.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <History className="w-4 h-4" />
+                    Recent Rewards Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {rewardsHistory.slice(0, 10).map((item) => (
+                      <div key={item.id} className="flex justify-between items-center text-sm py-2 border-b border-border last:border-0">
+                        <div>
+                          <p className="font-medium">{item.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className={item.points_change > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          {item.points_change > 0 ? '+' : ''}{item.points_change}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Account Info */}
             <Card>
               <CardHeader>

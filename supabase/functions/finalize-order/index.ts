@@ -87,10 +87,14 @@ serve(async (req) => {
     const subtotal = parseFloat(payload.subtotal || "0");
     const tax = parseFloat(payload.tax || "0");
     const total = parseFloat(payload.total || "0");
+    const discount = parseFloat(payload.discount || "0");
+    const couponCode = payload.couponCode || null;
+    const rewardsUsed = parseInt(payload.rewardsUsed || "0");
+    const rewardsDiscount = parseFloat(payload.rewardsDiscount || "0");
     const pickupTime = payload.pickupTime || null;
     const items = payload.items || [];
 
-    console.log("Creating order with:", { customerName, locationId, itemCount: items.length });
+    console.log("Creating order with:", { customerName, locationId, itemCount: items.length, rewardsUsed });
 
     // Generate order number via RPC
     const { data: orderNumber, error: orderNumError } = await supabase.rpc(
@@ -122,12 +126,50 @@ serve(async (req) => {
         subtotal,
         tax,
         total,
+        discount: discount + rewardsDiscount,
+        coupon_code: couponCode,
+        rewards_used: rewardsUsed,
+        rewards_discount: rewardsDiscount,
         notes,
         stripe_session_id: sessionId,
         pickup_time: pickupTime || null,
       })
       .select()
       .single();
+
+    // If rewards were used, deduct them from the customer's balance
+    if (rewardsUsed > 0 && customerPhone) {
+      console.log("Deducting rewards:", rewardsUsed, "for phone:", customerPhone);
+      
+      // Get current rewards
+      const { data: existingRewards } = await supabase
+        .from("customer_rewards")
+        .select("*")
+        .eq("phone", customerPhone)
+        .maybeSingle();
+
+      if (existingRewards && existingRewards.points >= rewardsUsed) {
+        // Deduct points
+        await supabase
+          .from("customer_rewards")
+          .update({ points: existingRewards.points - rewardsUsed })
+          .eq("id", existingRewards.id);
+
+        // Record redemption in history
+        await supabase
+          .from("rewards_history")
+          .insert({
+            phone: customerPhone,
+            customer_id: customerId || null,
+            order_id: order?.id || null,
+            points_change: -rewardsUsed,
+            transaction_type: "redeemed",
+            description: `Redeemed ${rewardsUsed} points for $${rewardsDiscount.toFixed(2)} discount`,
+          });
+          
+        console.log("Rewards deducted successfully");
+      }
+    }
 
     if (orderError) {
       console.error("Error creating order:", orderError);
