@@ -320,6 +320,23 @@ export const usePOSOrders = (locationId?: string) => {
     try {
       const orderNumber = await generateOrderNumber(locationId);
       
+      // Auto-link to online customer account if phone matches
+      let linkedCustomerId = orderData.customerId || null;
+      if (!linkedCustomerId && orderData.customerPhone) {
+        const cleanPhone = orderData.customerPhone.replace(/\D/g, '');
+        if (cleanPhone) {
+          const { data: existingCustomer } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('phone', cleanPhone)
+            .maybeSingle();
+          if (existingCustomer) {
+            linkedCustomerId = existingCustomer.id;
+            console.log('Walk-in order auto-linked to online account:', linkedCustomerId);
+          }
+        }
+      }
+      
       const { data: newOrder, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -330,6 +347,7 @@ export const usePOSOrders = (locationId?: string) => {
           order_type: orderData.orderType,
           payment_status: orderData.paymentStatus,
           payment_method: orderData.paymentMethod || null,
+          customer_id: linkedCustomerId,
           customer_name: orderData.customerName,
           customer_phone: orderData.customerPhone,
           customer_address: orderData.customerAddress,
@@ -369,10 +387,11 @@ export const usePOSOrders = (locationId?: string) => {
 
       if (itemsError) throw itemsError;
 
-      // Return the created order
+      // Return the created order (include linked customer ID)
       const createdOrder: Order = {
         ...orderData,
         id: orderNumber,
+        customerId: linkedCustomerId || undefined,
         createdAt: new Date(newOrder.created_at),
       };
 
