@@ -25,7 +25,9 @@ export interface RewardHistory {
 // Constants for the rewards system
 export const POINTS_PER_DOLLAR = 0.5; // 1 point per $2 = 0.5 points per $1
 export const MIN_POINTS_TO_REDEEM = 200;
-export const POINTS_TO_DOLLAR_RATIO = 10; // 200 points = $20, so 10 points = $1
+export const POINTS_TO_DOLLAR_RATIO = 10; // 10 points = $1
+export const MIN_REDEEM_DOLLAR = 20; // minimum $20 redemption
+export const MAX_REDEEM_DOLLAR = 35; // maximum $35 per redemption
 
 /**
  * Calculate how many points will be earned from a purchase

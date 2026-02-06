@@ -1,16 +1,17 @@
-import { useState } from 'react';
 import { Gift, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   useRewardsByPhone, 
   MIN_POINTS_TO_REDEEM, 
+  POINTS_TO_DOLLAR_RATIO,
+  MIN_REDEEM_DOLLAR,
+  MAX_REDEEM_DOLLAR,
   canRedeemRewards,
-  calculateRewardDollarValue 
 } from '@/hooks/useRewards';
-import { cn } from '@/lib/utils';
 
 interface RewardsRedemptionProps {
   customerPhone: string | undefined;
+  orderSubtotal: number;
   onApplyRewards: (pointsUsed: number, dollarValue: number) => void;
   onRemoveRewards: () => void;
   appliedRewardsPoints: number;
@@ -19,6 +20,7 @@ interface RewardsRedemptionProps {
 
 const RewardsRedemption = ({
   customerPhone,
+  orderSubtotal,
   onApplyRewards,
   onRemoveRewards,
   appliedRewardsPoints,
@@ -32,8 +34,9 @@ const RewardsRedemption = ({
 
   const currentPoints = rewards?.points || 0;
   const canRedeem = canRedeemRewards(currentPoints);
-  const redeemableSets = Math.floor(currentPoints / MIN_POINTS_TO_REDEEM);
-  const maxRedeemableValue = redeemableSets * 20;
+  const availableDollars = Math.floor(currentPoints / POINTS_TO_DOLLAR_RATIO);
+  const smartRedeemDollars = Math.min(availableDollars, MAX_REDEEM_DOLLAR, Math.floor(orderSubtotal));
+  const canApply = smartRedeemDollars >= MIN_REDEEM_DOLLAR;
 
   // If already applied
   if (appliedRewardsPoints > 0) {
@@ -63,8 +66,8 @@ const RewardsRedemption = ({
     );
   }
 
-  // If can't redeem (less than 200 points)
-  if (!canRedeem) {
+  // If can't redeem (less than 200 points or order too small)
+  if (!canRedeem || !canApply) {
     const pointsNeeded = MIN_POINTS_TO_REDEEM - currentPoints;
     return (
       <div className="bg-secondary/50 border border-border rounded-lg p-3">
@@ -72,8 +75,11 @@ const RewardsRedemption = ({
           <Star className="w-4 h-4 text-amber-500" />
           <span className="text-sm text-muted-foreground">
             You have <span className="font-medium text-foreground">{currentPoints} points</span>
-            {currentPoints > 0 && (
-              <span> • {pointsNeeded} more to unlock $20 off</span>
+            {currentPoints > 0 && currentPoints < MIN_POINTS_TO_REDEEM && (
+              <span> • {pointsNeeded} more to unlock rewards</span>
+            )}
+            {currentPoints >= MIN_POINTS_TO_REDEEM && !canApply && (
+              <span> • Order must be at least ${MIN_REDEEM_DOLLAR} to redeem</span>
             )}
           </span>
         </div>
@@ -81,10 +87,10 @@ const RewardsRedemption = ({
     );
   }
 
-  // Can redeem - show button
+  // Can redeem - show button with smart amount ($20-$35, capped by order)
   const handleApply = () => {
-    // Apply one set (200 points = $20)
-    onApplyRewards(MIN_POINTS_TO_REDEEM, 20);
+    const pointsUsed = smartRedeemDollars * POINTS_TO_DOLLAR_RATIO;
+    onApplyRewards(pointsUsed, smartRedeemDollars);
   };
 
   return (
@@ -99,17 +105,12 @@ const RewardsRedemption = ({
       </div>
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
-          Redeem {MIN_POINTS_TO_REDEEM} points for $20 off
+          Redeem for ${smartRedeemDollars} off ($20-${MAX_REDEEM_DOLLAR} range)
         </span>
         <Button size="sm" variant="pizza" onClick={handleApply}>
-          Apply $20 Off
+          Apply ${smartRedeemDollars} Off
         </Button>
       </div>
-      {redeemableSets > 1 && (
-        <p className="text-xs text-muted-foreground">
-          You have enough for {redeemableSets} redemptions (${maxRedeemableValue} total)
-        </p>
-      )}
     </div>
   );
 };
