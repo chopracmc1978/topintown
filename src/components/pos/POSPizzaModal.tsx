@@ -457,24 +457,34 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   : "bg-red-500 text-white"
               )}>Spicy Level</span>
               {/* None button */}
-              <button
-                onClick={() => {
-                  setLeftSpicy('none');
-                  setRightSpicy('none');
-                }}
-                className={cn(
-                  btnSmall,
-                  leftSpicy === 'none' && rightSpicy === 'none' ? btnActive : btnInactive
-                )}
-              >
-                None
-              </button>
+              {(() => {
+                const isNoneSelected = leftSpicy === 'none' && rightSpicy === 'none';
+                return (
+                  <button
+                    onClick={() => {
+                      setLeftSpicy('none');
+                      setRightSpicy('none');
+                    }}
+                    className={cn(
+                      btnSmall,
+                      isNoneSelected 
+                        ? "border-emerald-500 bg-emerald-500 text-white" 
+                        : "border-red-500 bg-red-500 text-white"
+                    )}
+                  >
+                    None
+                  </button>
+                );
+              })()}
 
-              {/* Medium button with Left/Whole/Right for large pizza */}
+              {/* Medium Hot section */}
               {(() => {
                 const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
                 return (
-                  <span className="text-xs font-medium text-slate-700">
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded",
+                    hasMedium ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
+                  )}>
                     Med Hot
                   </span>
                 );
@@ -514,8 +524,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         }}
                         className={cn(
                           "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
-                          isActive ? btnActive : btnInactive,
-                          isDisabled && "opacity-40 cursor-not-allowed"
+                          isDisabled 
+                            ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
+                            : isActive 
+                              ? "border-emerald-500 bg-emerald-500 text-white" 
+                              : "border-red-500 bg-red-500 text-white"
                         )}
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
@@ -529,17 +542,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setLeftSpicy('medium');
                     setRightSpicy('medium');
                   }}
-                  className={cn(btnSmall, leftSpicy === 'medium' ? btnActive : btnInactive)}
+                  className={cn(
+                    btnSmall, 
+                    leftSpicy === 'medium' 
+                      ? "border-emerald-500 bg-emerald-500 text-white" 
+                      : "border-red-500 bg-red-500 text-white"
+                  )}
                 >
                   Whole
                 </button>
               )}
 
-              {/* Hot button with Left/Whole/Right for large pizza */}
+              {/* Hot section */}
               {(() => {
                 const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
                 return (
-                  <span className="text-xs font-medium text-slate-700">
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-1 rounded",
+                    hasHot ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
+                  )}>
                     Hot
                   </span>
                 );
@@ -579,8 +600,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         }}
                         className={cn(
                           "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
-                          isActive ? btnActive : btnInactive,
-                          isDisabled && "opacity-40 cursor-not-allowed"
+                          isDisabled 
+                            ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
+                            : isActive 
+                              ? "border-emerald-500 bg-emerald-500 text-white" 
+                              : "border-red-500 bg-red-500 text-white"
                         )}
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
@@ -594,7 +618,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setLeftSpicy('hot');
                     setRightSpicy('hot');
                   }}
-                  className={cn(btnSmall, leftSpicy === 'hot' ? btnActive : btnInactive)}
+                  className={cn(
+                    btnSmall, 
+                    leftSpicy === 'hot' 
+                      ? "border-emerald-500 bg-emerald-500 text-white" 
+                      : "border-red-500 bg-red-500 text-white"
+                  )}
                 >
                   Whole
                 </button>
