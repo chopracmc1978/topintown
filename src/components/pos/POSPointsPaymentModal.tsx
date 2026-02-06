@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, X, DollarSign } from 'lucide-react';
+import { Star, X, DollarSign, Delete } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MIN_POINTS_TO_REDEEM, POINTS_TO_DOLLAR_RATIO, MIN_REDEEM_DOLLAR, MAX_REDEEM_DOLLAR } from '@/hooks/useRewards';
 
@@ -34,8 +34,8 @@ export const POSPointsPaymentModal = ({
   const [lifetimePoints, setLifetimePoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
-  const [customAmount, setCustomAmount] = useState<string>('');
-  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const [showKeypad, setShowKeypad] = useState(false);
 
   const cleanPhone = customerPhone?.replace(/\D/g, '') || '';
 
@@ -43,8 +43,8 @@ export const POSPointsPaymentModal = ({
     if (!open || !cleanPhone) return;
     setLoading(true);
     setSelectedAmount(0);
-    setCustomAmount('');
-    setShowCustomInput(false);
+    setCustomInput('');
+    setShowKeypad(false);
 
     const fetchPoints = async () => {
       const { data } = await supabase
@@ -85,34 +85,39 @@ export const POSPointsPaymentModal = ({
     }
   }
 
-  const activeAmount = showCustomInput && customAmount ? parseInt(customAmount) || 0 : selectedAmount;
+  const activeAmount = showKeypad && customInput ? parseInt(customInput) || 0 : selectedAmount;
   const remainingAfterPoints = activeAmount > 0 ? Math.max(0, orderTotal - activeAmount) : orderTotal;
   const pointsNeeded = activeAmount * POINTS_TO_DOLLAR_RATIO;
-
-  // Validate custom amount
-  const isCustomValid = showCustomInput && customAmount
-    ? (parseInt(customAmount) || 0) >= MIN_REDEEM_DOLLAR &&
-      (parseInt(customAmount) || 0) <= effectiveMax
-    : false;
 
   const isApplyEnabled = activeAmount >= MIN_REDEEM_DOLLAR && activeAmount <= effectiveMax && pointsNeeded <= points;
 
   const handlePresetSelect = (amt: number) => {
     setSelectedAmount(amt);
-    setShowCustomInput(false);
-    setCustomAmount('');
+    setShowKeypad(false);
+    setCustomInput('');
+  };
+
+  const handleKeyPress = (key: string) => {
+    if (key === 'C') {
+      setCustomInput('');
+    } else if (key === 'DEL') {
+      setCustomInput(prev => prev.slice(0, -1));
+    } else {
+      // Only allow digits, max 2 chars (20-35 range)
+      if (customInput.length < 2) {
+        setCustomInput(prev => prev + key);
+      }
+    }
   };
 
   const handleCustomToggle = () => {
-    setShowCustomInput(true);
+    setShowKeypad(true);
     setSelectedAmount(0);
-    setCustomAmount('');
+    setCustomInput('');
   };
 
   const handleApply = () => {
     if (!isApplyEnabled) return;
-    // Don't deduct points now — just record intent on the order.
-    // Points will be deducted when order is completed/delivered.
     onPointsApplied(pointsNeeded, activeAmount, remainingAfterPoints);
   };
 
@@ -172,9 +177,9 @@ export const POSPointsPaymentModal = ({
                       key={amt}
                       className="h-14 rounded-lg text-lg font-bold transition-all border-2"
                       style={{
-                        backgroundColor: selectedAmount === amt && !showCustomInput ? accentAmber : darkCard,
-                        borderColor: selectedAmount === amt && !showCustomInput ? accentAmber : borderColor,
-                        color: selectedAmount === amt && !showCustomInput ? '#000' : textColor,
+                        backgroundColor: selectedAmount === amt && !showKeypad ? accentAmber : darkCard,
+                        borderColor: selectedAmount === amt && !showKeypad ? accentAmber : borderColor,
+                        color: selectedAmount === amt && !showKeypad ? '#000' : textColor,
                       }}
                       onClick={() => handlePresetSelect(amt)}
                     >
@@ -183,9 +188,9 @@ export const POSPointsPaymentModal = ({
                   ))}
                 </div>
 
-                {/* Custom Amount */}
+                {/* Custom Amount with Numeric Keypad */}
                 <div className="mt-3">
-                  {!showCustomInput ? (
+                  {!showKeypad ? (
                     <button
                       className="w-full h-12 rounded-lg text-sm font-semibold transition-all border-2"
                       style={{ backgroundColor: darkCard, borderColor, color: mutedText }}
@@ -194,35 +199,60 @@ export const POSPointsPaymentModal = ({
                       Custom Amount
                     </button>
                   ) : (
-                    <div className="flex gap-2 items-center">
-                      <div className="relative flex-1">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: accentAmber }} />
-                        <input
-                          type="number"
-                          min={MIN_REDEEM_DOLLAR}
-                          max={effectiveMax}
-                          value={customAmount}
-                          onChange={(e) => setCustomAmount(e.target.value)}
-                          placeholder={`${MIN_REDEEM_DOLLAR}-${effectiveMax}`}
-                          className="w-full h-14 pl-10 pr-4 rounded-lg text-lg font-bold border-2 outline-none"
-                          style={{
-                            backgroundColor: darkCard,
-                            borderColor: isCustomValid ? accentAmber : borderColor,
-                            color: textColor,
+                    <div className="space-y-2">
+                      {/* Display */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-14 rounded-lg flex items-center px-4 border-2" style={{ backgroundColor: darkCard, borderColor: customInput ? accentAmber : borderColor }}>
+                          <DollarSign className="w-5 h-5 mr-1" style={{ color: accentAmber }} />
+                          <span className="text-2xl font-bold" style={{ color: customInput ? textColor : mutedText }}>
+                            {customInput || '0'}
+                          </span>
+                        </div>
+                        <button
+                          className="h-14 px-4 rounded-lg text-sm font-semibold"
+                          style={{ backgroundColor: darkCard, color: mutedText, border: `1px solid ${borderColor}` }}
+                          onClick={() => {
+                            setShowKeypad(false);
+                            setCustomInput('');
                           }}
-                          autoFocus
-                        />
+                        >
+                          Cancel
+                        </button>
                       </div>
-                      <button
-                        className="h-14 px-4 rounded-lg text-sm font-semibold"
-                        style={{ backgroundColor: darkCard, color: mutedText }}
-                        onClick={() => {
-                          setShowCustomInput(false);
-                          setCustomAmount('');
-                        }}
-                      >
-                        Cancel
-                      </button>
+                      {/* Numeric Keypad */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {['7', '8', '9', '4', '5', '6', '1', '2', '3'].map((key) => (
+                          <button
+                            key={key}
+                            className="h-12 rounded-lg text-lg font-bold transition-colors"
+                            style={{ backgroundColor: darkCard, color: textColor, border: `1px solid ${borderColor}` }}
+                            onClick={() => handleKeyPress(key)}
+                          >
+                            {key}
+                          </button>
+                        ))}
+                        <button
+                          className="h-12 rounded-lg text-lg font-bold transition-colors"
+                          style={{ backgroundColor: darkCard, color: '#f87171', border: '1px solid hsl(0, 50%, 35%)' }}
+                          onClick={() => handleKeyPress('C')}
+                        >
+                          C
+                        </button>
+                        <button
+                          className="h-12 rounded-lg text-lg font-bold transition-colors"
+                          style={{ backgroundColor: darkCard, color: textColor, border: `1px solid ${borderColor}` }}
+                          onClick={() => handleKeyPress('0')}
+                        >
+                          0
+                        </button>
+                        <button
+                          className="h-12 rounded-lg text-base font-bold transition-colors flex items-center justify-center"
+                          style={{ backgroundColor: darkCard, color: '#fb923c', border: '1px solid hsl(25, 50%, 35%)' }}
+                          onClick={() => handleKeyPress('DEL')}
+                        >
+                          <Delete className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
