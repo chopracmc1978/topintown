@@ -119,7 +119,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-1 border-t" style={{ borderColor: 'hsl(220,20%,30%)' }}>
+      <div className="flex items-center justify-between pt-1">
         <span className="text-sm font-bold" style={{ color: 'hsl(217,91%,60%)' }}>
           ${order.total.toFixed(2)}
         </span>
