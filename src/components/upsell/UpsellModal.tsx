@@ -139,25 +139,13 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl w-full p-0 bg-card overflow-hidden max-h-[90vh]">
+      <DialogContent className="max-w-3xl w-full p-0 bg-card overflow-hidden max-h-[90vh] [&>button]:text-white [&>button]:hover:text-white/80 [&>button]:hover:bg-transparent">
         {/* Header */}
         <div className="bg-primary text-primary-foreground px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-serif text-xl font-bold">{currentStep?.title}</h2>
               <p className="text-primary-foreground/80 text-xs">{currentStep?.subtitle}</p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {UPSELL_STEPS.map((_, idx) => (
-                <div 
-                  key={idx} 
-                  className={cn(
-                    "w-2 h-2 rounded-full transition-colors",
-                    idx === currentStepIndex ? "bg-primary-foreground" : 
-                    idx < currentStepIndex ? "bg-primary-foreground/60" : "bg-primary-foreground/30"
-                  )} 
-                />
-              ))}
             </div>
           </div>
         </div>
