@@ -13,6 +13,7 @@ import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPointsPaymentModal } from '@/components/pos/POSPointsPaymentModal';
+import { POSPaymentChoiceModal } from '@/components/pos/POSPaymentChoiceModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
@@ -24,14 +25,6 @@ import logo from '@/assets/logo.png';
 
 import { cn } from '@/lib/utils';
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
 
 // Custom cash-register icon for Till button
 const CashRegisterIcon = ({ className }: { className?: string }) => (
@@ -378,15 +371,39 @@ const POS = () => {
   };
 
   // Handle payment choice for new orders
-  const handleNewOrderPaymentChoice = (method: 'cash' | 'card' | 'points') => {
+  const handleNewOrderPaymentChoice = async (method: 'cash' | 'card' | 'points', discountInfo?: { discount: number; couponCode?: string }) => {
     if (!newOrderPending) return;
+
+    let updatedOrder = newOrderPending;
+
+    // If discount was applied at payment time, update the order
+    if (discountInfo && discountInfo.discount > 0) {
+      const existingDiscount = newOrderPending.discount || 0;
+      const totalDiscount = existingDiscount + discountInfo.discount;
+      const discountedSubtotal = Math.max(0, newOrderPending.subtotal - totalDiscount);
+      const newTax = discountedSubtotal * 0.05;
+      const newTotal = discountedSubtotal + newTax;
+
+      await supabase
+        .from('orders')
+        .update({
+          discount: totalDiscount,
+          coupon_code: discountInfo.couponCode || newOrderPending.couponCode || null,
+          tax: newTax,
+          total: newTotal,
+        })
+        .eq('order_number', newOrderPending.id);
+
+      updatedOrder = { ...newOrderPending, discount: totalDiscount, couponCode: discountInfo.couponCode || newOrderPending.couponCode, tax: newTax, total: newTotal };
+      setNewOrderPending(updatedOrder);
+    }
     
     // First, update order status to preparing with prep time
-    updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
+    updateOrderStatus(updatedOrder.id, 'preparing', pendingPrepTime, currentLocationId);
     
     if (method === 'cash') {
       // Show cash modal
-      setPendingPaymentOrderId(newOrderPending.id);
+      setPendingPaymentOrderId(updatedOrder.id);
       setShowPaymentChoice(false);
       setCashModalOpen(true);
     } else if (method === 'points') {
@@ -395,7 +412,7 @@ const POS = () => {
       setPointsModalOpen(true);
     } else {
       // Card payment - mark as paid directly
-      updatePaymentStatus(newOrderPending.id, 'paid', method);
+      updatePaymentStatus(updatedOrder.id, 'paid', method);
       setShowPaymentChoice(false);
       setNewOrderPending(null);
       setSelectedOrderId(null);
@@ -790,105 +807,21 @@ const POS = () => {
       />
 
       {/* Payment Choice Dialog for New Orders */}
-      <AlertDialog open={showPaymentChoice && newOrderPending !== null} onOpenChange={(open) => {
-        if (!open) {
-          // If cancelled, still proceed with preparing (just unpaid)
+      <POSPaymentChoiceModal
+        open={showPaymentChoice && newOrderPending !== null}
+        orderNumber={newOrderPending?.id ?? ''}
+        orderTotal={newOrderPending?.total ?? 0}
+        orderSubtotal={newOrderPending?.subtotal ?? 0}
+        onPaymentChoice={handleNewOrderPaymentChoice}
+        onSkip={() => {
           if (newOrderPending) {
             updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
             setNewOrderPending(null);
             setSelectedOrderId(null);
           }
           setShowPaymentChoice(false);
-        }
-      }}>
-        <AlertDialogContent 
-          className="sm:max-w-md border-0" 
-          style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: '#e2e8f0' }}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <div style={{ position: 'relative', zIndex: 1 }}>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-xl" style={{ color: '#e2e8f0' }}>
-              <DollarSign className="w-6 h-6" style={{ color: '#0ea5e9' }} />
-              Select Payment Type
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-base" style={{ color: '#94a3b8' }}>
-              Order {newOrderPending?.id ?? ''} - ${(newOrderPending?.total ?? 0).toFixed(2)}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="grid grid-cols-3 gap-4 py-6">
-            <button
-              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
-              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22c55e'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleNewOrderPaymentChoice('cash');
-              }}
-            >
-              <DollarSign className="w-8 h-8" style={{ color: '#22c55e' }} />
-              Cash
-            </button>
-            <button
-              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
-              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0ea5e9'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleNewOrderPaymentChoice('card');
-              }}
-            >
-              <svg className="w-8 h-8" style={{ color: '#0ea5e9' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
-                <path d="M2 10h20" strokeWidth="2"/>
-              </svg>
-              Card
-            </button>
-            <button
-              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
-              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#f59e0b'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleNewOrderPaymentChoice('points');
-              }}
-            >
-              <svg className="w-8 h-8" style={{ color: '#f59e0b' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Points
-            </button>
-          </div>
-          
-          <div className="flex justify-center">
-            <button
-              className="w-full py-3 rounded-lg font-medium transition-all"
-              style={{ color: '#94a3b8' }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Proceed without payment (unpaid order)
-                if (newOrderPending) {
-                  updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
-                  setNewOrderPending(null);
-                  setSelectedOrderId(null);
-                }
-                setShowPaymentChoice(false);
-              }}
-            >
-              Skip - Leave Unpaid
-            </button>
-          </div>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        }}
+      />
 
       {/* Points Payment Modal */}
       <POSPointsPaymentModal
