@@ -113,16 +113,9 @@ const CustomersManager = () => {
     enabled: !!selectedCustomer,
   });
 
-  const derivedLifetimePoints = (customerOrders || []).reduce((sum, order) => {
-    if (!isPointsEligibleStatus(order.status)) return sum;
-    return sum + Math.floor(order.total * POINTS_PER_DOLLAR);
-  }, 0);
-
-  const lifetimePoints = Math.max(selectedCustomer?.lifetime_points || 0, derivedLifetimePoints);
-  const rewardsBalancePoints = selectedCustomer?.reward_points || 0;
-
-  // If rewards haven't been recorded yet for these orders, still show a sensible balance in the UI
-  const balancePoints = rewardsBalancePoints > 0 ? rewardsBalancePoints : lifetimePoints;
+  // Use actual database values as source of truth (not derived from orders)
+  const lifetimePoints = selectedCustomer?.lifetime_points || 0;
+  const balancePoints = selectedCustomer?.reward_points || 0;
   const usedPoints = Math.max(0, lifetimePoints - balancePoints);
 
   const filteredCustomers = customers?.filter(customer => {
