@@ -130,19 +130,24 @@ export const usePrintReceipts = (locationId: string) => {
     };
     
     // Fetch reward points for customer
-    let rewardPoints: { lifetime: number; earned: number; used: number; balance: number } | undefined;
+    let rewardPoints: { lastBalance: number; earned: number; used: number; balance: number } | undefined;
     const cleanPhone = order.customerPhone?.replace(/\D/g, '');
     if (cleanPhone) {
-      const [rewardsResult, historyResult] = await Promise.all([
+      const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
         supabase.from('customer_rewards').select('points, lifetime_points').eq('phone', cleanPhone).maybeSingle(),
         supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', order.id).eq('transaction_type', 'earned').maybeSingle(),
+        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', order.id).eq('transaction_type', 'redeemed').maybeSingle(),
       ]);
       if (rewardsResult.data) {
+        const currentBalance = rewardsResult.data.points;
+        const earned = earnedResult.data?.points_change || 0;
+        const used = Math.abs(redeemedResult.data?.points_change || 0);
+        const lastBalance = currentBalance - earned + used;
         rewardPoints = {
-          lifetime: rewardsResult.data.lifetime_points,
-          earned: historyResult.data?.points_change || 0,
-          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
-          balance: rewardsResult.data.points,
+          lastBalance,
+          earned,
+          used,
+          balance: currentBalance,
         };
       }
     }

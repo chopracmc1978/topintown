@@ -8,7 +8,7 @@ import { LOCATIONS } from '@/contexts/LocationContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface RewardPoints {
-  lifetime: number;
+  lastBalance: number;
   earned: number;
   used: number;
   balance: number;
@@ -35,7 +35,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
       if (!phone) return;
       
       // Fetch reward balance and points earned for this specific order
-      const [rewardsResult, historyResult] = await Promise.all([
+      const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
         supabase
           .from('customer_rewards')
           .select('points, lifetime_points')
@@ -48,15 +48,25 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
           .eq('order_id', order.id)
           .eq('transaction_type', 'earned')
           .maybeSingle(),
+        supabase
+          .from('rewards_history')
+          .select('points_change')
+          .eq('phone', phone)
+          .eq('order_id', order.id)
+          .eq('transaction_type', 'redeemed')
+          .maybeSingle(),
       ]);
       
       if (rewardsResult.data) {
-        const earnedThisOrder = historyResult.data?.points_change || 0;
+        const currentBalance = rewardsResult.data.points;
+        const earned = earnedResult.data?.points_change || 0;
+        const used = Math.abs(redeemedResult.data?.points_change || 0);
+        const lastBalance = currentBalance - earned + used;
         setRewardPoints({
-          lifetime: rewardsResult.data.lifetime_points,
-          earned: earnedThisOrder,
-          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
-          balance: rewardsResult.data.points,
+          lastBalance,
+          earned,
+          used,
+          balance: currentBalance,
         });
       } else {
         setRewardPoints(undefined);
@@ -394,8 +404,8 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
               <div className="text-center text-xs space-y-0.5">
                 <p className="font-bold text-sm">🎁 Reward Points</p>
                 <div className="flex justify-between">
-                  <span>Lifetime:</span>
-                  <span className="font-medium">{rewardPoints.lifetime} pts</span>
+                  <span>Last Balance:</span>
+                  <span className="font-medium">{rewardPoints.lastBalance} pts</span>
                 </div>
                 {rewardPoints.earned > 0 && (
                   <div className="flex justify-between text-green-700">
@@ -403,10 +413,12 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                     <span className="font-medium">+{rewardPoints.earned} pts</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span>Used:</span>
-                  <span className="font-medium">{rewardPoints.used} pts</span>
-                </div>
+                {rewardPoints.used > 0 && (
+                  <div className="flex justify-between text-red-700">
+                    <span>Used:</span>
+                    <span className="font-medium">-{rewardPoints.used} pts</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold">
                   <span>Balance:</span>
                   <span>{rewardPoints.balance} pts</span>

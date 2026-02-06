@@ -2,7 +2,7 @@ import { Order } from '@/types/menu';
 import { Separator } from '@/components/ui/separator';
 
 export interface ReceiptRewardPoints {
-  lifetime: number;
+  lastBalance: number;
   earned: number;
   used: number;
   balance: number;
@@ -196,8 +196,8 @@ export const CustomerReceipt = ({
           <div className="text-center text-xs space-y-0.5">
             <p className="font-bold text-sm">🎁 Reward Points</p>
             <div className="flex justify-between">
-              <span>Lifetime:</span>
-              <span className="font-medium">{rewardPoints.lifetime} pts</span>
+              <span>Last Balance:</span>
+              <span className="font-medium">{rewardPoints.lastBalance} pts</span>
             </div>
             {rewardPoints.earned > 0 && (
               <div className="flex justify-between" style={{ color: '#2e7d32' }}>
@@ -205,10 +205,12 @@ export const CustomerReceipt = ({
                 <span className="font-medium">+{rewardPoints.earned} pts</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span>Used:</span>
-              <span className="font-medium">{rewardPoints.used} pts</span>
-            </div>
+            {rewardPoints.used > 0 && (
+              <div className="flex justify-between" style={{ color: '#d32f2f' }}>
+                <span>Used:</span>
+                <span className="font-medium">-{rewardPoints.used} pts</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold">
               <span>Balance:</span>
               <span>{rewardPoints.balance} pts</span>
