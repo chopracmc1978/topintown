@@ -266,19 +266,42 @@ const CustomersManager = () => {
             </DialogHeader>
             
             {/* Customer Details */}
-            <div className="mt-3 space-y-1.5">
-              <div className="flex items-center gap-2 font-medium text-base">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                {selectedCustomer?.full_name || 'No name'}
+            <div className="mt-3 space-y-2 text-sm">
+              {/* Row 1: Name + Phone */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">{selectedCustomer?.full_name || 'No name'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="w-4 h-4" />
+                  {selectedCustomer?.phone}
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="w-3.5 h-3.5" />
-                {selectedCustomer?.phone}
+              
+              {/* Row 2: Email */}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Mail className="w-4 h-4" />
+                {selectedCustomer?.email}
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Gift className="w-3.5 h-3.5 text-primary" />
-                <span className="font-medium">{selectedCustomer?.reward_points || 0} pts</span>
-                <span className="text-muted-foreground">({selectedCustomer?.lifetime_points || 0} lifetime)</span>
+              
+              {/* Row 3: Points breakdown */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1 pt-1">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Gift className="w-4 h-4" />
+                  <span>{selectedCustomer?.lifetime_points || 0} pts</span>
+                  <span className="text-xs">(lifetime)</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Gift className="w-4 h-4" />
+                  <span>{(selectedCustomer?.lifetime_points || 0) - (selectedCustomer?.reward_points || 0)} pts</span>
+                  <span className="text-xs">(used)</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-primary font-medium">
+                  <Gift className="w-4 h-4" />
+                  <span>{selectedCustomer?.reward_points || 0} pts</span>
+                  <span className="text-xs">(balance)</span>
+                </div>
               </div>
             </div>
           </div>
