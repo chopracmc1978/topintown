@@ -120,21 +120,26 @@ const RewardsRedemption = ({
 
   // Can redeem - show inline input with $20-$35 range
   return (
-    <div className="bg-primary/5 border border-primary/30 rounded-lg p-3">
+    <div className="border border-border rounded-lg p-3">
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground whitespace-nowrap">
-          Redeem (${ MIN_REDEEM_DOLLAR}-${ MAX_REDEEM_DOLLAR} range)
+          Redeem (${MIN_REDEEM_DOLLAR}-${MAX_REDEEM_DOLLAR} range)
         </span>
-        <div className="relative flex-1">
-          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="number"
+        <div className="relative w-24 shrink-0">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">$</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             min={MIN_REDEEM_DOLLAR}
             max={maxRedeemable}
             value={customAmount}
-            onChange={(e) => setCustomAmount(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              setCustomAmount(val);
+            }}
             placeholder={`${MIN_REDEEM_DOLLAR}-${maxRedeemable}`}
-            className="pl-7 h-9 text-sm"
+            className="w-full h-9 pl-6 pr-2 text-sm border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring [appearance:textfield]"
           />
         </div>
         <Button
@@ -143,7 +148,7 @@ const RewardsRedemption = ({
           disabled={!isCustomValid}
           onClick={handleApply}
         >
-          Apply {isCustomValid ? `$${parsedCustom}` : ''} Off
+          Apply Off
         </Button>
       </div>
     </div>
