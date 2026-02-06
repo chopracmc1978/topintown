@@ -16,12 +16,14 @@ interface CustomerInfo {
   id: string;
   phone: string;
   full_name: string | null;
+  reward_points?: number;
 }
 
 export const useCustomerLookup = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [orderHistory, setOrderHistory] = useState<CustomerOrderHistory[]>([]);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [rewardPoints, setRewardPoints] = useState(0);
 
   // Search for customer and their last 5 orders by phone
   const searchByPhone = useCallback(async (phone: string) => {
@@ -49,6 +51,15 @@ export const useCustomerLookup = () => {
       } else {
         setCustomerInfo(null);
       }
+      
+      // Fetch reward points for this phone
+      const { data: rewards } = await supabase
+        .from('customer_rewards')
+        .select('points')
+        .eq('phone', cleanPhone)
+        .single();
+      
+      setRewardPoints(rewards?.points || 0);
 
       // Search orders by phone (works even without customer record)
       const { data: orders, error: ordersError } = await supabase
@@ -192,12 +203,14 @@ export const useCustomerLookup = () => {
   const clearSearch = useCallback(() => {
     setOrderHistory([]);
     setCustomerInfo(null);
+    setRewardPoints(0);
   }, []);
 
   return {
     isSearching,
     orderHistory,
     customerInfo,
+    rewardPoints,
     searchByPhone,
     saveCustomer,
     clearSearch,
