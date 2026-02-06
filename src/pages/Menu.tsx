@@ -135,10 +135,10 @@ const Menu = () => {
                   key={subCategory.id}
                   onClick={() => handlePizzaSubCategoryClick(subCategory.id)}
                 className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-medium transition-all border",
+                    "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
                     activePizzaSubCategory === subCategory.id
-                      ? "bg-muted text-brand-blue border-muted font-semibold"
-                      : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+                      ? "bg-[hsl(215,25%,27%)] text-white shadow-md"
+                      : "bg-[hsl(215,20%,35%)] text-white/90 hover:bg-[hsl(215,25%,30%)]"
                   )}
                 >
                   {subCategory.name}
