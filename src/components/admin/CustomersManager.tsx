@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Search, Mail, Phone, CheckCircle, XCircle, ShoppingBag, Loader2, Eye } from 'lucide-react';
+import { Users, Search, Mail, Phone, CheckCircle, XCircle, ShoppingBag, Loader2, Eye, Gift } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Customer {
@@ -32,6 +32,8 @@ interface Customer {
   phone_verified: boolean;
   created_at: string;
   updated_at: string;
+  reward_points?: number;
+  lifetime_points?: number;
 }
 
 interface Order {
@@ -48,17 +50,35 @@ const CustomersManager = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
 
-  // Fetch customers (excluding password_hash for security)
+  // Fetch customers with rewards (excluding password_hash for security)
   const { data: customers, isLoading } = useQuery({
     queryKey: ['admin-customers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch customers
+      const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select('id, full_name, email, phone, email_verified, phone_verified, created_at, updated_at')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Customer[];
+      if (customersError) throw customersError;
+
+      // Fetch all rewards
+      const { data: rewardsData, error: rewardsError } = await supabase
+        .from('customer_rewards')
+        .select('phone, points, lifetime_points');
+
+      if (rewardsError) throw rewardsError;
+
+      // Map rewards to customers by phone
+      const rewardsMap = new Map(
+        (rewardsData || []).map(r => [r.phone, { points: r.points, lifetime_points: r.lifetime_points }])
+      );
+
+      return (customersData || []).map(customer => ({
+        ...customer,
+        reward_points: rewardsMap.get(customer.phone)?.points || 0,
+        lifetime_points: rewardsMap.get(customer.phone)?.lifetime_points || 0,
+      })) as Customer[];
     },
   });
 
@@ -153,6 +173,7 @@ const CustomersManager = () => {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Contact</TableHead>
+                  <TableHead>Rewards</TableHead>
                   <TableHead>Verified</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -175,6 +196,17 @@ const CustomersManager = () => {
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Phone className="w-3 h-3" />
                           {customer.phone}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <Gift className="w-4 h-4 text-primary" />
+                        <div>
+                          <div className="font-medium">{customer.reward_points || 0} pts</div>
+                          <div className="text-xs text-muted-foreground">
+                            {customer.lifetime_points || 0} lifetime
+                          </div>
                         </div>
                       </div>
                     </TableCell>
