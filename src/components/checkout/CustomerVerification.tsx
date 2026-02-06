@@ -265,6 +265,26 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
       });
 
       toast.success('Account created successfully!');
+
+      // Create a rewards account for the new customer so they start earning points
+      const cleanPhone = phone.replace(/\D/g, '');
+      const { data: existingRewards } = await supabase
+        .from('customer_rewards')
+        .select('id')
+        .eq('phone', cleanPhone)
+        .maybeSingle();
+
+      if (!existingRewards) {
+        await supabase
+          .from('customer_rewards')
+          .insert({
+            phone: cleanPhone,
+            customer_id: customerId,
+            points: 0,
+            lifetime_points: 0,
+          });
+      }
+
       setStep('complete');
       onComplete(customerId!);
     } catch (error: any) {

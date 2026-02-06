@@ -409,7 +409,7 @@ export const usePOSOrders = (locationId?: string) => {
         .maybeSingle();
 
       if (existing) {
-        // Update existing record
+        // Update existing record — customer already has a rewards account
         await supabase
           .from('customer_rewards')
           .update({
@@ -419,15 +419,10 @@ export const usePOSOrders = (locationId?: string) => {
           })
           .eq('id', existing.id);
       } else {
-        // Create new record
-        await supabase
-          .from('customer_rewards')
-          .insert({
-            phone: order.customerPhone,
-            customer_id: order.customerId || null,
-            points: pointsToAward,
-            lifetime_points: pointsToAward,
-          });
+        // No rewards account exists — walk-in customer without an account
+        // Do NOT create a rewards record; points only start after they sign up online
+        console.log('No rewards account for this phone, skipping points (walk-in without account)');
+        return;
       }
 
       // Get the order's database ID for the history record
