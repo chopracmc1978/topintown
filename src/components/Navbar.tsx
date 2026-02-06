@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, MapPin, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useCustomer } from '@/contexts/CustomerContext';
@@ -99,7 +99,7 @@ const Navbar = () => {
               
               <Button 
                 onClick={handleOrderNowClick}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 rounded-full shadow-md"
+                className="bg-brand-blue hover:bg-brand-blue-dark text-primary-foreground font-semibold px-6 rounded-full shadow-md"
               >
                 Order Now
               </Button>
@@ -138,7 +138,7 @@ const Navbar = () => {
                     setIsOpen(false);
                     handleOrderNowClick();
                   }}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                  className="w-full bg-brand-blue hover:bg-brand-blue-dark text-primary-foreground font-semibold"
                 >
                   Order Now
                 </Button>
@@ -163,7 +163,7 @@ const Navbar = () => {
                 className={cn(
                   "w-full p-4 rounded-lg border-2 transition-all text-left",
                   selectedLocation.id === loc.id 
-                    ? "border-emerald-500 bg-emerald-50" 
+                    ? "border-primary bg-primary/10" 
                     : "border-border hover:border-primary/50 hover:bg-muted/50"
                 )}
               >
