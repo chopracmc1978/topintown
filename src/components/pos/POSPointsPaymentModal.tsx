@@ -69,7 +69,7 @@ export const POSPointsPaymentModal = ({
 
   const canRedeem = points >= MIN_POINTS_TO_REDEEM;
   const maxDollarFromPoints = Math.floor(points / POINTS_TO_DOLLAR_RATIO);
-  const effectiveMax = Math.min(MAX_REDEEM_DOLLAR, maxDollarFromPoints, orderTotal);
+  const effectiveMax = Math.floor(Math.min(MAX_REDEEM_DOLLAR, maxDollarFromPoints, orderTotal));
 
   // Generate dollar amount options in $5 increments
   const amountOptions: number[] = [];
@@ -219,54 +219,61 @@ export const POSPointsPaymentModal = ({
                           Cancel
                         </button>
                       </div>
-                      {/* Numeric Keypad */}
+                      {/* Numeric Keypad - matching reference layout */}
                       <div className="grid grid-cols-3 gap-1.5">
                         {['7', '8', '9', '4', '5', '6', '1', '2', '3'].map((key) => (
                           <button
                             key={key}
                             className="h-12 rounded-lg text-lg font-bold transition-colors"
-                            style={{ backgroundColor: darkCard, color: textColor, border: `1px solid ${borderColor}` }}
+                            style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
                             onClick={() => handleKeyPress(key)}
                           >
                             {key}
                           </button>
                         ))}
+                        {/* Row 4: C, 0, . */}
                         <button
                           className="h-12 rounded-lg text-lg font-bold transition-colors"
-                          style={{ backgroundColor: darkCard, color: '#f87171', border: '1px solid hsl(0, 50%, 35%)' }}
+                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#f87171', borderLeft: '2px solid hsl(0, 70%, 50%)', borderTop: '1px solid hsl(220, 20%, 35%)', borderRight: '1px solid hsl(220, 20%, 35%)', borderBottom: '1px solid hsl(220, 20%, 35%)' }}
                           onClick={() => handleKeyPress('C')}
                         >
                           C
                         </button>
                         <button
                           className="h-12 rounded-lg text-lg font-bold transition-colors"
-                          style={{ backgroundColor: darkCard, color: textColor, border: `1px solid ${borderColor}` }}
+                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
                           onClick={() => handleKeyPress('0')}
                         >
                           0
                         </button>
                         <button
-                          className="h-12 rounded-lg text-base font-bold transition-colors flex items-center justify-center"
-                          style={{ backgroundColor: darkCard, color: '#fb923c', border: '1px solid hsl(25, 50%, 35%)' }}
+                          className="h-12 rounded-lg text-lg font-bold transition-colors"
+                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
+                          disabled
+                        >
+                          .
+                        </button>
+                        {/* Row 5: Del + OK */}
+                        <button
+                          className="h-12 rounded-lg text-base font-medium transition-colors col-span-1 flex items-center justify-center gap-1"
+                          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: textColor, border: `1px solid hsl(220, 20%, 35%)` }}
                           onClick={() => handleKeyPress('DEL')}
                         >
-                          <Delete className="w-5 h-5" />
+                          <Delete className="w-4 h-4" /> Del
+                        </button>
+                        <button
+                          className="h-12 rounded-lg text-base font-bold transition-colors col-span-2"
+                          style={{
+                            backgroundColor: isApplyEnabled ? 'hsl(217, 91%, 60%)' : 'hsl(220, 22%, 28%)',
+                            color: isApplyEnabled ? '#fff' : mutedText,
+                            border: `1px solid ${isApplyEnabled ? 'hsl(217, 91%, 60%)' : 'hsl(220, 20%, 35%)'}`,
+                          }}
+                          disabled={!isApplyEnabled}
+                          onClick={handleApply}
+                        >
+                          {isApplyEnabled ? `Apply $${activeAmount}` : 'OK'}
                         </button>
                       </div>
-                      {/* Apply button right below keypad */}
-                      <button
-                        className="w-full h-12 rounded-lg text-lg font-bold transition-all mt-2"
-                        style={{
-                          backgroundColor: isApplyEnabled ? accentAmber : darkCard,
-                          color: isApplyEnabled ? '#000' : mutedText,
-                          border: `1px solid ${isApplyEnabled ? accentAmber : borderColor}`,
-                          opacity: isApplyEnabled ? 1 : 0.5,
-                        }}
-                        disabled={!isApplyEnabled}
-                        onClick={handleApply}
-                      >
-                        {isApplyEnabled ? `Apply $${activeAmount}` : `Enter $${MIN_REDEEM_DOLLAR}-$${MAX_REDEEM_DOLLAR}`}
-                      </button>
                     </div>
                   )}
                 </div>
