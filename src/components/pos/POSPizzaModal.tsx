@@ -482,7 +482,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
                 return (
                   <span className={cn(
-                    "text-xs font-medium px-2 py-1 rounded",
+                    "text-xs font-medium px-3 py-2 rounded",
                     hasMedium ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Med Hot
@@ -523,7 +523,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           }
                         }}
                         className={cn(
-                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          "px-3 py-2 text-xs rounded border font-medium transition-colors",
                           isDisabled 
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
@@ -558,7 +558,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
                 return (
                   <span className={cn(
-                    "text-xs font-medium px-2 py-1 rounded",
+                    "text-xs font-medium px-3 py-2 rounded",
                     hasHot ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Hot
@@ -599,7 +599,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           }
                         }}
                         className={cn(
-                          "px-1.5 py-1 text-xs rounded border font-medium transition-colors",
+                          "px-3 py-2 text-xs rounded border font-medium transition-colors",
                           isDisabled 
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
