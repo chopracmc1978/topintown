@@ -249,12 +249,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
     };
   }, [showOrderHistory]);
 
-  // Auto-fill customer name from lookup
+  // Auto-fill customer name only when order history is explicitly shown (OK/Enter/Tab)
   useEffect(() => {
-    if (customerInfo?.full_name && !customerName) {
+    if (showOrderHistory && customerInfo?.full_name && !customerName) {
       setCustomerName(customerInfo.full_name);
     }
-  }, [customerInfo]);
+  }, [showOrderHistory, customerInfo]);
 
   // Handle selecting order from history
   const handleSelectPastOrder = (items: CartItem[], mode: 'exact' | 'edit') => {
