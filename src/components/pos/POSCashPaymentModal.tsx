@@ -20,48 +20,49 @@ interface POSCashPaymentModalProps {
 const quickAmounts = [20, 50, 100];
 
 export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPayment }: POSCashPaymentModalProps) => {
-  const [amountReceived, setAmountReceived] = useState<string>('');
+  const [rawDigits, setRawDigits] = useState<string>('');
 
-  const received = parseFloat(amountReceived) || 0;
+  // Auto-decimal: raw digits "3463" → 34.63
+  const received = rawDigits.length > 0 ? parseInt(rawDigits, 10) / 100 : 0;
+  const amountDisplay = rawDigits.length > 0 ? `$${received.toFixed(2)}` : '$0.00';
   const change = received - total;
   const isValid = received >= total;
 
   const handleQuickAmount = (amount: number) => {
-    setAmountReceived(amount.toString());
+    // Convert dollar amount to raw digits (e.g. 50 → "5000")
+    setRawDigits(Math.round(amount * 100).toString());
   };
 
   const handleExactAmount = () => {
-    setAmountReceived(total.toFixed(2));
+    setRawDigits(Math.round(total * 100).toString());
   };
 
   const handleConfirm = () => {
     if (isValid) {
       onConfirm();
-      setAmountReceived('');
+      setRawDigits('');
     }
   };
 
   const handleClose = () => {
-    setAmountReceived('');
+    setRawDigits('');
     onClose();
   };
 
-  // Keypad handlers
+  // Keypad handlers — digits only, no manual decimal
   const handleKeyPress = (key: string) => {
     if (key === 'C') {
-      setAmountReceived('');
+      setRawDigits('');
     } else if (key === 'DEL') {
-      setAmountReceived(prev => prev.slice(0, -1));
-    } else if (key === '.') {
-      // Only add decimal if not already present
-      if (!amountReceived.includes('.')) {
-        setAmountReceived(prev => prev + '.');
+      setRawDigits(prev => prev.slice(0, -1));
+    } else if (key === '00') {
+      if (rawDigits.length + 2 <= 7) {
+        setRawDigits(prev => prev + '00');
       }
-    } else {
-      // Limit to 2 decimal places
-      const parts = amountReceived.split('.');
-      if (parts[1] && parts[1].length >= 2) return;
-      setAmountReceived(prev => prev + key);
+    } else if (key >= '0' && key <= '9') {
+      // Cap at 7 digits (max $99,999.99)
+      if (rawDigits.length >= 7) return;
+      setRawDigits(prev => prev + key);
     }
   };
 
@@ -69,7 +70,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
     '7', '8', '9',
     '4', '5', '6',
     '1', '2', '3',
-    'C', '0', '.',
+    'C', '0', '00',
   ];
 
   return (
@@ -95,7 +96,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
             <div className="text-center p-3 bg-white border-2 border-primary/20 rounded-lg">
               <p className="text-xs text-muted-foreground">Amount Received</p>
               <p className="text-2xl font-bold text-foreground">
-                ${amountReceived || '0.00'}
+                {amountDisplay}
               </p>
             </div>
 
@@ -147,7 +148,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setAmountReceived('');
+                    setRawDigits('');
                     onCardPayment();
                   }}
                   className="flex-1 h-10"
@@ -183,7 +184,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
                   className={cn(
                     "h-12 text-lg font-semibold",
                     key === 'C' && "text-red-500 hover:bg-red-50",
-                    key === '.' && "text-muted-foreground"
+                    key === '00' && "text-muted-foreground"
                   )}
                   style={{ backgroundColor: 'white' }}
                 >
