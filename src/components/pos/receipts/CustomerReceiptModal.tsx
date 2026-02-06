@@ -32,7 +32,7 @@ export const CustomerReceiptModal = ({
       const phone = order.customerPhone?.replace(/\D/g, '');
       if (!phone) return;
       
-      const [rewardsResult, historyResult] = await Promise.all([
+      const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
         supabase
           .from('customer_rewards')
           .select('points, lifetime_points')
@@ -45,15 +45,25 @@ export const CustomerReceiptModal = ({
           .eq('order_id', order.id)
           .eq('transaction_type', 'earned')
           .maybeSingle(),
+        supabase
+          .from('rewards_history')
+          .select('points_change')
+          .eq('phone', phone)
+          .eq('order_id', order.id)
+          .eq('transaction_type', 'redeemed')
+          .maybeSingle(),
       ]);
       
       if (rewardsResult.data) {
-        const earnedThisOrder = historyResult.data?.points_change || 0;
+        const currentBalance = rewardsResult.data.points;
+        const earned = earnedResult.data?.points_change || 0;
+        const used = Math.abs(redeemedResult.data?.points_change || 0);
+        const lastBalance = currentBalance - earned + used;
         setRewardPoints({
-          lifetime: rewardsResult.data.lifetime_points,
-          earned: earnedThisOrder,
-          used: rewardsResult.data.lifetime_points - rewardsResult.data.points,
-          balance: rewardsResult.data.points,
+          lastBalance,
+          earned,
+          used,
+          balance: currentBalance,
         });
       }
     };
