@@ -332,14 +332,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[95vw] w-[95vw] p-4 pt-3 gap-1.5 overflow-hidden max-h-[95vh] bg-white text-slate-900" style={{ backgroundColor: 'white' }}>
+      <DialogContent className="max-w-[98vw] w-[98vw] p-4 pt-3 gap-1.5 overflow-hidden max-h-[98vh] bg-white text-slate-900" style={{ backgroundColor: 'white' }}>
         {/* Header Row: Pizza Name + Size + Crust inline */}
-        <div className="flex items-center gap-3 pb-1 border-b border-slate-200 pr-6">
+        <div className="flex flex-wrap items-center gap-2 pb-1 border-b border-slate-200 pr-2">
           <h2 className="font-serif text-sm font-bold bg-emerald-500 text-white px-3 py-3 rounded whitespace-nowrap uppercase">{item.name}</h2>
           
           {/* Size */}
           <span className="text-[10px] text-slate-500">Size</span>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {item.sizes?.map(size => {
               const isSelected = selectedSize?.id === size.id;
               return (
@@ -365,7 +365,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {availableCrusts.length > 0 && (
             <>
               <span className={cn(labelBox, "px-2", "bg-emerald-500 text-white")}>Crust</span>
-              <div className="flex gap-1 flex-1">
+              <div className="flex flex-wrap gap-1 flex-1 min-w-0">
                 {availableCrusts.map(crust => {
                   const isSelected = selectedCrust?.id === crust.id;
                   // If only one crust available (Small/Large), always show green
@@ -393,9 +393,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
         <div className="space-y-1">
           {/* Row 1: Cheese + Spicy Level on same row */}
-          <div className="flex items-start gap-8">
+          <div className="flex flex-wrap items-start gap-3">
             {/* Cheese section */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <span className={cn(
                 labelBox,
                 "px-3",
@@ -451,7 +451,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
             
             {/* Spicy Level section - on same row */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <span className={cn(
                 labelBox,
                 "px-3",
@@ -636,13 +636,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-slate-700">Free Add-ons</span>
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
                 return (
-                  <div key={topping.id} className="flex items-center gap-1">
+                  <div key={topping.id} className="flex flex-wrap items-center gap-1">
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
                       className={cn(btnSmall, isSelected ? btnActive : btnInactive)}
@@ -706,7 +706,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   {sauce.name}
                 </button>
               ))}
-              <div className="border-l border-slate-300 pl-2 ml-1 flex gap-1">
+              <div className="border-l border-slate-300 pl-2 ml-1 flex flex-wrap gap-1">
                 {(['less', 'normal', 'extra'] as const).map(qty => (
                   <button
                     key={qty}
@@ -876,18 +876,18 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
-          <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 mt-0.5">
-          <div className="flex items-center gap-2 flex-1 mr-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1.5 border-t border-slate-200 mt-0.5">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-xs text-slate-500 whitespace-nowrap">Notes:</span>
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Special requests..."
-              className="flex-1 px-2 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
+              className="flex-1 min-w-0 px-2 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
             />
           </div>
-          <div className="flex items-center gap-1.5 mr-4">
+          <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-500 whitespace-nowrap">Extra $</span>
             <input
               type="text"
@@ -901,10 +901,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               className="w-14 px-2 py-1.5 text-xs border border-slate-300 rounded bg-white text-center text-slate-800"
             />
           </div>
-          <span className="text-lg font-bold text-slate-900 mr-4">
+          <span className="text-lg font-bold text-slate-900">
             ${totalPrice.toFixed(2)}
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Button variant="outline" onClick={onClose} className="text-sm px-4 py-1.5 h-auto border-slate-300 text-slate-700 hover:bg-slate-50">Cancel</Button>
             <Button 
               variant="default" 
