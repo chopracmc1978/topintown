@@ -545,6 +545,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       key={key}
                       variant="outline"
                       className="h-12 text-xl font-medium outline-none focus:outline-none"
+                      style={{ backgroundColor: 'hsl(220, 22%, 28%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 90%)' }}
                       onClick={() => {
                         handlePhoneChange(customerPhone + key);
                       }}
@@ -557,7 +558,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   <Button
                     variant="outline"
-                    className="h-12 text-xl font-medium text-red-500 outline-none focus:outline-none"
+                    className="h-12 text-xl font-medium outline-none focus:outline-none"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', borderColor: 'hsl(0, 70%, 50%)', color: 'hsl(0, 70%, 55%)' }}
                     onClick={() => {
                       setCustomerPhone('');
                       clearSearch();
@@ -569,6 +571,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     variant="outline"
                     className="h-12 text-xl font-medium outline-none focus:outline-none"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 90%)' }}
                     onClick={() => handlePhoneChange(customerPhone + '0')}
                   >
                     0
@@ -576,6 +579,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     variant="outline"
                     className="h-12 text-xl font-medium outline-none focus:outline-none"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 90%)' }}
                     onClick={() => {
                       if (!customerPhone.includes('.')) {
                         handlePhoneChange(customerPhone + '.');
@@ -590,6 +594,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     variant="outline"
                     className="h-12 text-base font-medium outline-none focus:outline-none"
+                    style={{ backgroundColor: 'hsl(220, 22%, 28%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 90%)' }}
                     onClick={() => {
                       const newPhone = customerPhone.slice(0, -1);
                       handlePhoneChange(newPhone);
@@ -598,7 +603,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     ⌫ Del
                   </Button>
                   <Button
-                    className="h-12 text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 outline-none focus:outline-none"
+                    className="h-12 text-base font-medium outline-none focus:outline-none"
+                    style={{ backgroundColor: 'hsl(217, 91%, 60%)', color: '#ffffff' }}
                     onClick={() => {
                       // Close popover and show order history if there are results
                       (document.activeElement as HTMLElement)?.blur();
