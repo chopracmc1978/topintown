@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Printer, Search, Loader2 } from 'lucide-react';
+import { CalendarIcon, Printer, Search, Loader2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { CustomerReceiptModal } from './receipts/CustomerReceiptModal';
 import { Order, CartItem, CartPizzaCustomization, CartWingsCustomization, OrderType, OrderStatus, OrderSource, PaymentStatus, PaymentMethod } from '@/types/menu';
+import { POINTS_PER_DOLLAR } from '@/hooks/useRewards';
 
 interface POSOrderHistoryProps {
   locationId: string;
@@ -223,6 +224,7 @@ export const POSOrderHistory = ({ locationId }: POSOrderHistoryProps) => {
                 <TableHead>Status</TableHead>
                 <TableHead>Order Type</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Pts Earned</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -230,13 +232,13 @@ export const POSOrderHistory = ({ locationId }: POSOrderHistoryProps) => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     No orders found for this period
                   </TableCell>
                 </TableRow>
@@ -253,6 +255,16 @@ export const POSOrderHistory = ({ locationId }: POSOrderHistoryProps) => {
                     </TableCell>
                     <TableCell className="capitalize">{order.orderType}</TableCell>
                     <TableCell className="font-semibold">${order.total.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {order.status === 'delivered' ? (
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          <Star className="w-3 h-3" />
+                          +{Math.floor(order.total * POINTS_PER_DOLLAR)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {format(order.createdAt, 'MMM d, h:mm a')}
                     </TableCell>

@@ -20,8 +20,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Search, Mail, Phone, CheckCircle, XCircle, ShoppingBag, Loader2, Eye, Gift } from 'lucide-react';
+import { Users, Search, Mail, Phone, CheckCircle, XCircle, ShoppingBag, Loader2, Eye, Gift, Star } from 'lucide-react';
 import { format } from 'date-fns';
+import { POINTS_PER_DOLLAR } from '@/hooks/useRewards';
 
 interface Customer {
   id: string;
@@ -282,6 +283,7 @@ const CustomersManager = () => {
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Pts Earned</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -301,6 +303,16 @@ const CustomersManager = () => {
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
                       <TableCell className="text-right font-medium">
                         ${order.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {order.status === 'delivered' || order.status === 'completed' ? (
+                          <span className="flex items-center justify-end gap-1 text-primary font-medium">
+                            <Star className="w-3 h-3" />
+                            +{Math.floor(order.total * POINTS_PER_DOLLAR)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
