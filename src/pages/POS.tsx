@@ -12,6 +12,7 @@ import { POSOrderCard, OrderRewardInfo } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
 import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
+import { POSPointsPaymentModal } from '@/components/pos/POSPointsPaymentModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
@@ -105,6 +106,7 @@ const POS = () => {
   const [newOrderPending, setNewOrderPending] = useState<Order | null>(null);
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
   const [pendingPrepTime, setPendingPrepTime] = useState<number>(20);
+  const [pointsModalOpen, setPointsModalOpen] = useState(false);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
@@ -383,12 +385,44 @@ const POS = () => {
       setPendingPaymentOrderId(newOrderPending.id);
       setShowPaymentChoice(false);
       setCashModalOpen(true);
+    } else if (method === 'points') {
+      // Show points redemption modal
+      setShowPaymentChoice(false);
+      setPointsModalOpen(true);
     } else {
-      // Card or points payment - mark as paid directly
+      // Card payment - mark as paid directly
       updatePaymentStatus(newOrderPending.id, 'paid', method);
       setShowPaymentChoice(false);
       setNewOrderPending(null);
       setSelectedOrderId(null);
+    }
+  };
+
+  // Handle points applied — check if remaining balance needs cash/card
+  const handlePointsApplied = (pointsUsed: number, dollarValue: number, remainingBalance: number) => {
+    setPointsModalOpen(false);
+    if (!newOrderPending) return;
+    
+    if (remainingBalance <= 0.01) {
+      // Fully paid with points
+      updatePaymentStatus(newOrderPending.id, 'paid', 'points');
+      setNewOrderPending(null);
+      setSelectedOrderId(null);
+    } else {
+      // Partial payment — update the order's discount, then show cash/card for remaining
+      // Store the points discount on the order via the rewards fields
+      supabase
+        .from('orders')
+        .update({ 
+          rewards_used: pointsUsed, 
+          rewards_discount: dollarValue,
+        })
+        .eq('order_number', newOrderPending.id)
+        .then(() => {
+          // Show cash modal for remaining balance
+          setPendingPaymentOrderId(newOrderPending.id);
+          setCashModalOpen(true);
+        });
     }
   };
 
@@ -722,68 +756,75 @@ const POS = () => {
         }
       }}>
         <AlertDialogContent 
-          className="sm:max-w-md" 
-          style={{ backgroundColor: '#ffffff' }}
+          className="sm:max-w-md border-0" 
+          style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: '#e2e8f0' }}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
+          <div style={{ position: 'relative', zIndex: 1 }}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-xl">
-              <DollarSign className="w-6 h-6 text-primary" />
+            <AlertDialogTitle className="flex items-center gap-2 text-xl" style={{ color: '#e2e8f0' }}>
+              <DollarSign className="w-6 h-6" style={{ color: '#0ea5e9' }} />
               Select Payment Type
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-base">
+            <AlertDialogDescription className="text-base" style={{ color: '#94a3b8' }}>
               Order {newOrderPending?.id ?? ''} - ${(newOrderPending?.total ?? 0).toFixed(2)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
           <div className="grid grid-cols-3 gap-4 py-6">
-            <Button
-              variant="outline"
-              className="h-24 text-xl font-semibold border-2 hover:border-green-500 hover:bg-green-50"
+            <button
+              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
+              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#22c55e'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleNewOrderPaymentChoice('cash');
               }}
             >
-              <DollarSign className="w-8 h-8 mr-2 text-green-600" />
+              <DollarSign className="w-8 h-8" style={{ color: '#22c55e' }} />
               Cash
-            </Button>
-            <Button
-              variant="outline"
-              className="h-24 text-xl font-semibold border-2 hover:border-blue-500 hover:bg-blue-50"
+            </button>
+            <button
+              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
+              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0ea5e9'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleNewOrderPaymentChoice('card');
               }}
             >
-              <svg className="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8" style={{ color: '#0ea5e9' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
                 <path d="M2 10h20" strokeWidth="2"/>
               </svg>
               Card
-            </Button>
-            <Button
-              variant="outline"
-              className="h-24 text-xl font-semibold border-2 hover:border-amber-500 hover:bg-amber-50"
+            </button>
+            <button
+              className="h-24 text-xl font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
+              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: 'hsl(220, 20%, 28%)', color: '#e2e8f0' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#f59e0b'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'hsl(220, 20%, 28%)'; }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleNewOrderPaymentChoice('points');
               }}
             >
-              <svg className="w-8 h-8 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8" style={{ color: '#f59e0b' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Points
-            </Button>
+            </button>
           </div>
           
           <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              className="w-full"
+            <button
+              className="w-full py-3 rounded-lg font-medium transition-all"
+              style={{ color: '#94a3b8' }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -797,10 +838,27 @@ const POS = () => {
               }}
             >
               Skip - Leave Unpaid
-            </Button>
+            </button>
+          </div>
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Points Payment Modal */}
+      <POSPointsPaymentModal
+        open={pointsModalOpen}
+        orderTotal={newOrderPending?.total ?? 0}
+        customerPhone={newOrderPending?.customerPhone ?? ''}
+        orderId={newOrderPending?.id ?? ''}
+        customerId={newOrderPending?.customerId}
+        onPointsApplied={handlePointsApplied}
+        onClose={() => {
+          setPointsModalOpen(false);
+          // Leave order as unpaid preparing
+          setNewOrderPending(null);
+          setSelectedOrderId(null);
+        }}
+      />
 
       {/* Settings Panel */}
       {showSettings && (
