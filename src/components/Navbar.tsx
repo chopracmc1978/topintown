@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User, MapPin } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, MapPin, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { useLocation as useLocationContext, LOCATIONS } from '@/contexts/LocationContext';
+import { useRewardsByPhone } from '@/hooks/useRewards';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo.png';
 import LocationSelector from '@/components/LocationSelector';
@@ -23,6 +24,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedLocation, setSelectedLocation } = useLocationContext();
+  const { data: rewards } = useRewardsByPhone(customer?.phone);
 
   const accountHref = customer
     ? "/my-orders"
@@ -80,10 +82,16 @@ const Navbar = () => {
             <div className="hidden md:flex items-center gap-3">
               <LocationSelector />
               
-              <Link to={accountHref}>
+              <Link to={accountHref} className="relative flex items-center">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                   <User className="w-5 h-5" />
                 </Button>
+                {customer && rewards && rewards.points > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center font-bold gap-0.5">
+                    <Gift className="w-2.5 h-2.5" />
+                    {rewards.points}
+                  </span>
+                )}
               </Link>
               
               <Link to="/cart" className="relative">
@@ -132,6 +140,12 @@ const Navbar = () => {
                 <Link to={accountHref} onClick={() => setIsOpen(false)} className={cn("text-sm font-medium py-2 transition-colors flex items-center gap-2", isActive('/my-orders') || isActive('/customer-login') ? "text-primary" : "text-muted-foreground")}>
                   <User className="w-4 h-4" />
                   {customer ? "My Orders" : "Login"}
+                  {customer && rewards && rewards.points > 0 && (
+                    <span className="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-bold">
+                      <Gift className="w-3 h-3" />
+                      {rewards.points} pts
+                    </span>
+                  )}
                 </Link>
                 <Button 
                   onClick={() => {
