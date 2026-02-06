@@ -965,7 +965,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               />
             </div>
 
-            {/* Coupon & Discount */}
+            {/* Coupon, Discount & Redeem */}
             <div className="px-4 py-2 flex gap-2 items-center" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               {appliedCoupon ? (
                 <div className="flex items-center gap-2 flex-1 bg-green-900/30 border border-green-700 rounded px-3 py-1.5">
@@ -1012,7 +1012,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <Button
                     variant="outline"
                     className={cn(
-                      "h-9 w-28 justify-start text-sm font-normal text-gray-300",
+                      "h-9 w-24 justify-start text-sm font-normal text-gray-300",
                       appliedCoupon && "opacity-50 cursor-not-allowed"
                     )}
                     disabled={!!appliedCoupon}
@@ -1060,94 +1060,79 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   </div>
                 </PopoverContent>
               </Popover>
-            </div>
 
-            {/* Reward Redemption Suggestion */}
-            {showRewardsSuggestion && !isEditMode && canApplyRewards && !appliedCoupon && (
-              <div className="px-4 py-2 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
-                <div className="flex items-center gap-2">
-                  <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
-                  <span className="text-sm flex-1" style={{ color: '#d97706' }}>
-                    {rewardPoints} pts available (${REWARD_MIN_DOLLAR}-${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)})
-                  </span>
-                  <Button
-                    size="sm"
-                    className="h-8 px-3 text-sm font-medium"
-                    style={{ backgroundColor: '#d97706', color: '#fff' }}
-                    onClick={() => handleApplyRewards(smartRedeemDollars)}
-                  >
-                    Use ${smartRedeemDollars}
-                  </Button>
-                  {/* Custom amount via keypad */}
-                  <Popover open={showRewardsKeypad} onOpenChange={setShowRewardsKeypad}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 px-2 text-sm"
-                        style={{ borderColor: '#d97706', color: '#d97706' }}
-                      >
-                        Custom
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
-                      <div className="space-y-2">
-                        <div className="text-xs text-center" style={{ color: '#d97706' }}>
-                          ${REWARD_MIN_DOLLAR} - ${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)} range
-                        </div>
-                        <div className="text-center p-2 rounded text-lg font-bold text-white" style={{ background: 'hsl(220, 22%, 22%)' }}>
-                          ${rewardsInput || '0'}
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'].map((key) => (
-                            <Button
-                              key={key}
-                              variant="outline"
-                              onClick={() => handleRewardsKeyPress(key)}
-                              disabled={key === '.'}
-                              className={cn(
-                                "h-10 text-base font-semibold text-white",
-                                key === 'C' && "text-red-400 hover:bg-red-900/30",
-                                key === '.' && "opacity-30"
-                              )}
-                              style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
-                            >
-                              {key}
-                            </Button>
-                          ))}
+              {/* Redeem Points Button with Keypad Popover */}
+              {rewardPoints >= REWARD_MIN_POINTS && !rewardsApplied && !appliedCoupon && !isEditMode && (
+                <Popover open={showRewardsKeypad} onOpenChange={setShowRewardsKeypad}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-9 px-3 text-sm font-normal"
+                      style={{ borderColor: '#d97706', color: '#d97706' }}
+                    >
+                      <Gift className="w-4 h-4 mr-1" />
+                      Redeem
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                    <div className="space-y-2">
+                      <div className="text-xs text-center" style={{ color: '#d97706' }}>
+                        {rewardPoints} pts • ${REWARD_MIN_DOLLAR}-${Math.min(availableDollarsFromPoints, REWARD_MAX_DOLLAR)} range
+                      </div>
+                      <div className="text-center p-2 rounded text-lg font-bold text-white" style={{ background: 'hsl(220, 22%, 22%)' }}>
+                        ${rewardsInput || '0'}
+                      </div>
+                      <div className="grid grid-cols-3 gap-1">
+                        {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'].map((key) => (
                           <Button
+                            key={key}
                             variant="outline"
-                            onClick={() => handleRewardsKeyPress('DEL')}
-                            className="col-span-2 h-10 text-orange-400 hover:bg-orange-900/30"
+                            onClick={() => handleRewardsKeyPress(key)}
+                            disabled={key === '.'}
+                            className={cn(
+                              "h-10 text-base font-semibold text-white",
+                              key === 'C' && "text-red-400 hover:bg-red-900/30",
+                              key === '.' && "opacity-30"
+                            )}
                             style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
                           >
-                            <Delete className="w-4 h-4 mr-1" />
-                            Del
+                            {key}
                           </Button>
-                          <Button
-                            variant="default"
-                            onClick={handleRewardsKeypadApply}
-                            className="h-10 text-white"
-                            style={{ backgroundColor: '#d97706' }}
-                          >
-                            OK
-                          </Button>
-                        </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => handleRewardsKeyPress('DEL')}
+                          className="col-span-2 h-10 text-orange-400 hover:bg-orange-900/30"
+                          style={{ backgroundColor: 'hsl(220, 22%, 22%)' }}
+                        >
+                          <Delete className="w-4 h-4 mr-1" />
+                          Del
+                        </Button>
+                        <Button
+                          variant="default"
+                          onClick={handleRewardsKeypadApply}
+                          className="h-10 text-white"
+                          style={{ backgroundColor: '#d97706' }}
+                        >
+                          OK
+                        </Button>
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    style={{ color: 'hsl(215, 15%, 60%)' }}
-                    onClick={() => setShowRewardsSuggestion(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
+                      {/* Quick apply smart amount */}
+                      {canApplyRewards && (
+                        <Button
+                          variant="outline"
+                          className="w-full h-8 text-sm"
+                          style={{ borderColor: '#d97706', color: '#d97706' }}
+                          onClick={() => handleApplyRewards(smartRedeemDollars)}
+                        >
+                          Quick: Use ${smartRedeemDollars}
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
 
             {/* Applied Rewards Badge */}
             {rewardsApplied && (
