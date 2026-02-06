@@ -12,7 +12,7 @@ import { useGlobalSauces } from '@/hooks/useGlobalSauces';
 import type { SideSpicyLevel, ToppingQuantity, SelectedTopping, PizzaSide } from '@/types/pizzaCustomization';
 import type { CartItem } from '@/types/menu';
 import { cn } from '@/lib/utils';
-import { Flame, ArrowRight, X } from 'lucide-react';
+import { Flame, ArrowRight } from 'lucide-react';
 import UpsellModal from '@/components/upsell/UpsellModal';
 
 interface PizzaCustomizationModalProps {
@@ -364,18 +364,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
   return (
     <>
     <Dialog open={isOpen && !showUpsell} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] overflow-y-auto [&>button]:hidden">
-        {/* Fixed Close Button */}
-        <button 
-          onClick={() => onClose()} 
-          className="fixed top-4 right-4 z-50 p-1.5 rounded-full bg-card border border-border shadow-md hover:bg-muted transition-colors"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5 text-muted-foreground" />
-        </button>
-        
+      <DialogContent className="max-w-4xl w-full p-0 bg-card overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-4 py-3 border-b sticky top-0 bg-card z-10">
+        <div className="flex items-center px-4 py-3 border-b bg-card">
           <div className="flex items-center gap-3 flex-1">
             <img src={item.image_url || '/placeholder.svg'} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
             <h2 className="font-serif text-lg font-bold">{item.name}</h2>
@@ -392,8 +383,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
           )}
         </div>
 
-        <div className="px-4 py-3 space-y-4">
-          {/* 1. SIZE & CRUST */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           <div className="bg-primary/10 rounded-lg overflow-hidden">
             <div className="bg-primary text-primary-foreground px-4 py-2 font-bold">1. SIZE & CRUST</div>
             <div className="p-4">
