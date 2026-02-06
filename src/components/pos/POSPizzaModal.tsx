@@ -930,8 +930,18 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <input
               type="text"
               value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Special requests..."
+              onChange={(e) => {
+                const val = e.target.value;
+                // Keyboard shortcuts: 1 = Half Cheese, 2 = 3 Slice Cheese
+                if (val === '1') {
+                  setNote('Half Cheese');
+                } else if (val === '2') {
+                  setNote('3 Slice Cheese');
+                } else {
+                  setNote(val);
+                }
+              }}
+              placeholder="Special requests... (1=Half Cheese, 2=3 Slice)"
               className="flex-1 min-w-0 px-2 py-1.5 text-xs border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
             />
           </div>
