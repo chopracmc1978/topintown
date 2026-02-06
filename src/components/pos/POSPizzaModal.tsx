@@ -758,65 +758,81 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {pizzaDefaultToppings.length > 0 && (
             <div>
               <h3 className="font-medium text-[10px] mb-0.5 text-slate-700">Default Toppings</h3>
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-2">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className={cn(
-                      "rounded p-1.5 border bg-white",
-                      isRemoved ? "border-red-300 bg-red-50/50" : "border-slate-200"
-                    )}>
-                      {/* Name row - clickable to toggle */}
+                    <div key={topping.id} className="rounded p-1.5 border border-slate-200 bg-white">
+                      {/* Name row - clickable to toggle, green if included, red if removed */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className="flex items-center gap-1.5 mb-1 w-full text-left"
+                        className={cn(
+                          "flex items-center gap-1.5 mb-1 w-full px-2 py-1 rounded",
+                          isRemoved 
+                            ? "bg-red-500 text-white" 
+                            : "bg-emerald-500 text-white"
+                        )}
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                          topping.isVeg ? "bg-green-500" : "bg-red-500"
+                          topping.isVeg ? "bg-green-200" : "bg-red-200"
                         )} />
                         <span className={cn(
                           "text-xs font-medium truncate",
-                          isRemoved ? "line-through text-slate-400" : "text-slate-800"
+                          isRemoved && "line-through"
                         )}>
                           {topping.name}
                         </span>
                       </button>
                       {/* Quantity: Less/Reg/Extra */}
-                      {!isRemoved && (
-                        <div className="flex gap-0.5 mb-0.5">
-                          {QUANTITY_OPTIONS.map(opt => (
+                      <div className="flex gap-0.5 mb-0.5">
+                        {QUANTITY_OPTIONS.map(opt => {
+                          const isSelected = topping.quantity === opt.value;
+                          return (
                             <button
                               key={opt.value}
                               onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
+                              disabled={isRemoved}
                               className={cn(
-                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
-                                topping.quantity === opt.value ? btnActive : btnInactive
+                                "flex-1 px-1 py-1 text-[10px] rounded border font-medium transition-colors",
+                                isRemoved 
+                                  ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                  : isSelected 
+                                    ? "border-emerald-500 bg-emerald-500 text-white" 
+                                    : "border-red-500 bg-red-500 text-white"
                               )}
                             >
                               {opt.label}
                             </button>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        })}
+                      </div>
                       {/* Side: Left/Whole/Right (Large only) */}
-                      {!isRemoved && isLargePizza && (
+                      {isLargePizza && (
                         <div className="flex gap-0.5">
-                          {SIDE_OPTIONS.map(side => (
-                            <button
-                              key={side.value}
-                              onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
-                              className={cn(
-                                "flex-1 px-1 py-0.5 text-[10px] rounded border font-medium transition-colors",
-                                topping.side === side.value ? btnActive : btnInactive
-                              )}
-                            >
-                              {side.label}
-                            </button>
-                          ))}
+                          {SIDE_OPTIONS.map(side => {
+                            const isSelected = topping.side === side.value;
+                            return (
+                              <button
+                                key={side.value}
+                                onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                                disabled={isRemoved}
+                                className={cn(
+                                  "flex-1 px-1 py-1 text-[10px] rounded border font-medium transition-colors",
+                                  isRemoved 
+                                    ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                    : isSelected 
+                                      ? "border-emerald-500 bg-emerald-500 text-white" 
+                                      : "border-red-500 bg-red-500 text-white"
+                                )}
+                              >
+                                {side.label}
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
