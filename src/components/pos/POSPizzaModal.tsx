@@ -450,7 +450,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             
             {/* Spicy Level section - on same row */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-700">Spicy Level</span>
+              <span className={cn(
+                "text-xs font-medium px-3 py-2 rounded",
+                (leftSpicy === 'none' && rightSpicy === 'none') 
+                  ? "bg-emerald-500 text-white" 
+                  : "bg-red-500 text-white"
+              )}>Spicy Level</span>
               {/* None button */}
               <button
                 onClick={() => {
