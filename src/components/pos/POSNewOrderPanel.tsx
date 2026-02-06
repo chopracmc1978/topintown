@@ -129,6 +129,8 @@ interface POSNewOrderPanelProps {
     notes?: string;
      discount?: number;
      couponCode?: string;
+     rewardsUsed?: number;
+     rewardsDiscount?: number;
   }) => void;
   onCancel: () => void;
   editingOrder?: Order | null;
@@ -185,6 +187,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const [manualDiscount, setManualDiscount] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [showDiscountKeypad, setShowDiscountKeypad] = useState(false);
+  
+  // Reward redemption state
+  const [rewardsApplied, setRewardsApplied] = useState<{ points: number; dollarValue: number } | null>(null);
+  const [showRewardsSuggestion, setShowRewardsSuggestion] = useState(false);
   
   // Coupon validation
   const validateCouponMutation = useValidateCoupon();
@@ -255,6 +261,42 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
       setCustomerName(customerInfo.full_name);
     }
   }, [showOrderHistory, customerInfo]);
+
+  // Auto-suggest reward redemption when customer has 200+ points and cart has items
+  useEffect(() => {
+    if (rewardPoints >= 200 && cartItems.length > 0 && !rewardsApplied && !isEditMode) {
+      setShowRewardsSuggestion(true);
+    } else if (rewardPoints < 200 || cartItems.length === 0) {
+      setShowRewardsSuggestion(false);
+    }
+  }, [rewardPoints, cartItems.length, rewardsApplied, isEditMode]);
+
+  // Reward redemption constants
+  const REWARD_MIN_POINTS = 200;
+  const REWARD_POINTS_PER_DOLLAR = 10; // 10 points = $1
+  const REWARD_MAX_DOLLAR = 35; // max $35 per redemption
+
+  // Calculate max redeemable
+  const maxRedeemablePoints = Math.min(rewardPoints, REWARD_MAX_DOLLAR * REWARD_POINTS_PER_DOLLAR);
+  const maxRedeemableDollars = Math.min(Math.floor(rewardPoints / REWARD_POINTS_PER_DOLLAR), REWARD_MAX_DOLLAR);
+
+  const handleApplyRewards = () => {
+    if (rewardPoints < REWARD_MIN_POINTS) return;
+    // Apply max possible (capped at $35 or available points)
+    const dollarValue = maxRedeemableDollars;
+    const pointsUsed = dollarValue * REWARD_POINTS_PER_DOLLAR;
+    setRewardsApplied({ points: pointsUsed, dollarValue });
+    setShowRewardsSuggestion(false);
+    toast.success(`Reward applied: -$${dollarValue.toFixed(2)} (${pointsUsed} pts)`);
+  };
+
+  const handleClearRewards = () => {
+    setRewardsApplied(null);
+    // Re-show suggestion if still eligible
+    if (rewardPoints >= REWARD_MIN_POINTS && cartItems.length > 0) {
+      setShowRewardsSuggestion(true);
+    }
+  };
 
   // Handle selecting order from history
   const handleSelectPastOrder = (items: CartItem[], mode: 'exact' | 'edit') => {
@@ -418,7 +460,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   // Use coupon discount if applied, otherwise manual discount
   const discountAmount = appliedCoupon ? appliedCoupon.discount : (parseFloat(manualDiscount) || 0);
-  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const rewardsDiscount = rewardsApplied?.dollarValue || 0;
+  const totalDiscount = discountAmount + rewardsDiscount;
+  const discountedSubtotal = Math.max(0, subtotal - totalDiscount);
   const tax = discountedSubtotal * 0.05; // 5% GST (Alberta)
   const total = discountedSubtotal + tax;
 
@@ -493,8 +537,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
         source: 'walk-in',
         tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
         notes: notes || undefined,
-         discount: discountAmount > 0 ? discountAmount : undefined,
+         discount: totalDiscount > 0 ? totalDiscount : undefined,
          couponCode: appliedCoupon?.code || undefined,
+         rewardsUsed: rewardsApplied?.points || undefined,
+         rewardsDiscount: rewardsApplied?.dollarValue || undefined,
       });
     }
   };
@@ -973,6 +1019,51 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </Popover>
             </div>
 
+            {/* Reward Redemption Suggestion */}
+            {showRewardsSuggestion && !isEditMode && (
+              <div className="px-4 py-2 flex items-center gap-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.1)' }}>
+                <Gift className="w-4 h-4 shrink-0" style={{ color: '#d97706' }} />
+                <span className="text-sm flex-1" style={{ color: '#d97706' }}>
+                  {rewardPoints} pts available (max ${maxRedeemableDollars})
+                </span>
+                <Button
+                  size="sm"
+                  className="h-8 px-3 text-sm font-medium"
+                  style={{ backgroundColor: '#d97706', color: '#fff' }}
+                  onClick={handleApplyRewards}
+                >
+                  Use ${maxRedeemableDollars}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  style={{ color: 'hsl(215, 15%, 60%)' }}
+                  onClick={() => setShowRewardsSuggestion(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Applied Rewards Badge */}
+            {rewardsApplied && (
+              <div className="px-4 py-1.5 flex items-center gap-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(38, 92%, 50%, 0.08)' }}>
+                <Gift className="w-4 h-4" style={{ color: '#d97706' }} />
+                <span className="text-sm font-medium flex-1" style={{ color: '#d97706' }}>
+                  Rewards: -{rewardsApplied.points} pts (${rewardsApplied.dollarValue.toFixed(2)})
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearRewards}
+                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
             {/* Totals & Submit */}
             <div className="px-4 py-2 space-y-1" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
               <div className="flex justify-between text-sm">
@@ -983,6 +1074,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 <div className="flex justify-between text-sm text-green-400">
                   <span>Discount</span>
                   <span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              {rewardsDiscount > 0 && (
+                <div className="flex justify-between text-sm" style={{ color: '#d97706' }}>
+                  <span>Rewards ({rewardsApplied?.points} pts)</span>
+                  <span>-${rewardsDiscount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">

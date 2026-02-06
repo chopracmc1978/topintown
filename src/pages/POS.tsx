@@ -247,6 +247,8 @@ const POS = () => {
     notes?: string;
      discount?: number;
      couponCode?: string;
+     rewardsUsed?: number;
+     rewardsDiscount?: number;
   }) => {
     const subtotal = orderData.items.reduce((sum, item) => sum + item.totalPrice, 0);
      const discount = orderData.discount || 0;
@@ -264,6 +266,55 @@ const POS = () => {
       status: 'pending',
       paymentStatus: 'unpaid',
     }, currentLocationId);
+
+    // If rewards were used, deduct points from customer's balance
+    if (newOrder && orderData.rewardsUsed && orderData.rewardsDiscount && orderData.customerPhone) {
+      try {
+        const { data: existing } = await supabase
+          .from('customer_rewards')
+          .select('*')
+          .eq('phone', orderData.customerPhone)
+          .single();
+
+        if (existing && existing.points >= orderData.rewardsUsed) {
+          await supabase
+            .from('customer_rewards')
+            .update({ points: existing.points - orderData.rewardsUsed })
+            .eq('id', existing.id);
+
+          // Record redemption in history
+          const { data: orderRecord } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('order_number', newOrder.id)
+            .maybeSingle();
+
+          await supabase
+            .from('rewards_history')
+            .insert({
+              phone: orderData.customerPhone,
+              customer_id: existing.customer_id || null,
+              order_id: orderRecord?.id || null,
+              points_change: -orderData.rewardsUsed,
+              transaction_type: 'redeemed',
+              description: `Redeemed ${orderData.rewardsUsed} pts for $${orderData.rewardsDiscount.toFixed(2)} discount`,
+            });
+
+          // Also store rewards info on the order
+          if (orderRecord) {
+            await supabase
+              .from('orders')
+              .update({
+                rewards_used: orderData.rewardsUsed,
+                rewards_discount: orderData.rewardsDiscount,
+              })
+              .eq('id', orderRecord.id);
+          }
+        }
+      } catch (err) {
+        console.error('Error deducting reward points:', err);
+      }
+    }
 
     setShowNewOrder(false);
     
