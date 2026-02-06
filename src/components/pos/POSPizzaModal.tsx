@@ -636,7 +636,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-6">
               <span className="text-xs font-medium text-slate-700">Free Add-ons</span>
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
