@@ -376,8 +376,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             {/* Cheese section */}
             <div className="flex items-center gap-2">
               <span className={cn(
-                "text-xs font-medium",
-                selectedCheese === 'No Cheese' ? "text-red-500" : "text-emerald-500"
+                "text-xs font-medium px-2 py-1 rounded",
+                selectedCheese === 'No Cheese' ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
               )}>Cheese</span>
               {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => (
                 <button
