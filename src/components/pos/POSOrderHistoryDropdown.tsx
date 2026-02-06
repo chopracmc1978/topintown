@@ -74,9 +74,9 @@ export const POSOrderHistoryDropdown = ({
       {/* Solid background shield for legacy Android WebView */}
       <div className="absolute inset-0" style={{ backgroundColor: '#ffffff', zIndex: -1 }} />
       
-      <div className="px-3 py-2 border-b border-border flex items-center gap-2 relative" style={{ backgroundColor: '#f3f4f6' }}>
-        <History className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium">Last {displayOrders.length} Order{displayOrders.length > 1 ? 's' : ''}</span>
+      <div className="px-3 py-2 border-b flex items-center gap-2 relative" style={{ backgroundColor: '#f3f4f6', borderColor: '#e5e7eb' }}>
+        <History className="w-4 h-4" style={{ color: '#2563eb' }} />
+        <span className="text-sm font-medium" style={{ color: '#111827' }}>Last {displayOrders.length} Order{displayOrders.length > 1 ? 's' : ''}</span>
       </div>
       
       <ScrollArea className="max-h-[calc(100vh-160px)]" style={{ backgroundColor: '#ffffff' }}>
@@ -91,18 +91,18 @@ export const POSOrderHistoryDropdown = ({
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex-1 min-w-0">
                     {/* Line 1: Name or Phone */}
-                    <p className="font-bold text-base text-foreground truncate leading-tight">
+                    <p className="font-bold text-base truncate leading-tight" style={{ color: '#111827' }}>
                       {hasName ? order.customer_name : (order.customer_phone || 'No phone')}
                     </p>
                     {/* Line 2: Phone (only if name exists) */}
                     {hasName && (
-                      <p className="text-sm text-muted-foreground leading-tight">{order.customer_phone}</p>
+                      <p className="text-sm leading-tight" style={{ color: '#6b7280' }}>{order.customer_phone}</p>
                     )}
                   </div>
                   <div className="shrink-0 ml-2 text-right">
-                    <span className="font-bold text-sm">${order.total.toFixed(2)}</span>
+                    <span className="font-bold text-sm" style={{ color: '#111827' }}>${order.total.toFixed(2)}</span>
                     {showRewardPoints && (
-                      <div className="flex items-center gap-1 text-xs font-medium text-amber-600 justify-end mt-0.5">
+                      <div className="flex items-center gap-1 text-xs font-medium justify-end mt-0.5" style={{ color: '#d97706' }}>
                         <Gift className="w-3 h-3" />
                         <span>{rewardPoints} pts</span>
                       </div>
@@ -112,19 +112,19 @@ export const POSOrderHistoryDropdown = ({
                 
                 {/* Order number + date */}
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="font-mono text-xs text-primary font-bold">{order.order_number}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="font-mono text-xs font-bold" style={{ color: '#2563eb' }}>{order.order_number}</span>
+                  <span className="text-xs" style={{ color: '#9ca3af' }}>
                     {format(new Date(order.created_at), 'MMM d, h:mm a')}
                   </span>
                 </div>
                 
                 {/* Order Items Preview */}
-                <div className="text-xs text-muted-foreground mb-2 space-y-0.5">
+                <div className="text-xs mb-2 space-y-0.5" style={{ color: '#6b7280' }}>
                   {order.items.slice(0, 3).map((item, idx) => (
                     <p key={idx} className="truncate">{formatItemSummary(item)}</p>
                   ))}
                   {order.items.length > 3 && (
-                    <p className="text-primary">+{order.items.length - 3} more items</p>
+                    <p style={{ color: '#2563eb' }}>+{order.items.length - 3} more items</p>
                   )}
                 </div>
                 
