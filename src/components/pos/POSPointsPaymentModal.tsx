@@ -253,6 +253,20 @@ export const POSPointsPaymentModal = ({
                           <Delete className="w-5 h-5" />
                         </button>
                       </div>
+                      {/* Apply button right below keypad */}
+                      <button
+                        className="w-full h-12 rounded-lg text-lg font-bold transition-all mt-2"
+                        style={{
+                          backgroundColor: isApplyEnabled ? accentAmber : darkCard,
+                          color: isApplyEnabled ? '#000' : mutedText,
+                          border: `1px solid ${isApplyEnabled ? accentAmber : borderColor}`,
+                          opacity: isApplyEnabled ? 1 : 0.5,
+                        }}
+                        disabled={!isApplyEnabled}
+                        onClick={handleApply}
+                      >
+                        {isApplyEnabled ? `Apply $${activeAmount}` : `Enter $${MIN_REDEEM_DOLLAR}-$${MAX_REDEEM_DOLLAR}`}
+                      </button>
                     </div>
                   )}
                 </div>
