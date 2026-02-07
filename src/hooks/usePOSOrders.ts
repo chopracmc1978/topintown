@@ -848,6 +848,7 @@ export const usePOSOrders = (locationId?: string) => {
                 tax: updatedOrder.tax,
                 total: updatedOrder.total,
                  amountPaid: updatedOrder.amount_paid || undefined,
+                pickupTime: updatedOrder.pickup_time ? new Date(updatedOrder.pickup_time) : undefined,
               };
             }
             return order;
@@ -861,6 +862,42 @@ export const usePOSOrders = (locationId?: string) => {
     };
   }, [currentLocationId]);
 
+  // Start preparing an advance order: clears future pickup_time so it moves from Advance → Preparing tab
+  const startPreparingAdvanceOrder = async (orderNumber: string) => {
+    try {
+      const now = new Date();
+      
+      // Set pickup_time to now so it's no longer "in the future"
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          pickup_time: now.toISOString(),
+          updated_at: now.toISOString() 
+        })
+        .eq('order_number', orderNumber);
+
+      if (error) throw error;
+
+      // Get order for SMS
+      const order = orders.find(o => o.id === orderNumber);
+      
+      // Send "preparing" SMS
+      if (order?.customerPhone || order?.customerId) {
+        await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime: 20 });
+      }
+
+      // Update local state
+      setOrders(prev => prev.map(o => 
+        o.id === orderNumber ? { ...o, pickupTime: now } : o
+      ));
+
+      toast.success('Order moved to Preparing');
+    } catch (err: any) {
+      console.error('Error starting advance order preparation:', err);
+      setError(err.message);
+    }
+  };
+
   return {
     orders,
     loading,
@@ -871,6 +908,7 @@ export const usePOSOrders = (locationId?: string) => {
     updateOrder,
     getOrderById,
     clearEndOfDayOrders,
+    startPreparingAdvanceOrder,
     refetch: fetchOrders,
   };
 };
