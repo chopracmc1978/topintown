@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { compareSync, hashSync } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
     const isBcryptHash = customer.password_hash.startsWith("$2");
 
     if (isBcryptHash) {
-      passwordValid = await bcrypt.compare(password, customer.password_hash);
+      passwordValid = compareSync(password, customer.password_hash);
     } else {
       // Legacy SHA-256 comparison
       const sha256Result = await sha256Hash(password);
@@ -92,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
       // If valid, transparently migrate to bcrypt
       if (passwordValid) {
         console.log("Migrating password hash to bcrypt for:", email);
-        const bcryptHash = await bcrypt.hash(password);
+        const bcryptHash = hashSync(password);
         await supabase
           .from("customers")
           .update({ password_hash: bcryptHash })
