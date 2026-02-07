@@ -133,7 +133,7 @@ export const usePOSOrders = (locationId?: string) => {
       let query = supabase
         .from('orders')
         .select('*')
-        .gte('created_at', today.toISOString());
+        .or(`created_at.gte.${today.toISOString()},and(pickup_time.gte.${today.toISOString()},status.neq.delivered,status.neq.cancelled)`);
       
       // Filter by location if specified
       if (currentLocationId) {
@@ -398,6 +398,7 @@ export const usePOSOrders = (locationId?: string) => {
            discount: orderData.discount || null,
            coupon_code: orderData.couponCode || null,
           notes: orderData.notes || null,
+          pickup_time: orderData.pickupTime ? orderData.pickupTime.toISOString() : null,
         })
         .select()
         .single();

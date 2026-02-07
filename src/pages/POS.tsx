@@ -57,6 +57,7 @@ const CashRegisterIcon = ({ className }: { className?: string }) => (
 const statusTabs = [
   { id: 'all', label: 'All', icon: Package },
   { id: 'pending', label: 'New', icon: Clock },
+  { id: 'advance', label: 'Advance', icon: CalendarClock },
   { id: 'preparing', label: 'Preparing', icon: ChefHat },
   { id: 'ready', label: 'Ready', icon: CheckCircle },
   { id: 'delivered', label: 'Done', icon: CheckCircle },
@@ -106,7 +107,7 @@ const POS = () => {
   const [existingPointsOrder, setExistingPointsOrder] = useState<Order | null>(null);
   
   // Notification sound for new web/app orders
-  const { hasPendingRemoteOrders, pendingCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
+  const { hasPendingRemoteOrders, pendingCount, hasAdvanceAlerts, advanceAlertCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
   
   // Print receipts hook
   const { printKitchenTicket, printCustomerReceipt, openTill, hasPrinters } = usePrintReceipts(currentLocationId);
@@ -215,11 +216,19 @@ const POS = () => {
     }} />;
   }
 
+  // Helper: is this an advance order (accepted but waiting for scheduled time)
+  const isAdvanceOrder = (o: Order) => 
+    o.status === 'preparing' && o.pickupTime && new Date(o.pickupTime) > new Date();
+
   // Filter orders
   const filteredOrders = activeTab === 'all'
     ? orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled')
     : activeTab === 'delivered'
     ? orders.filter(o => o.status === 'delivered')
+    : activeTab === 'advance'
+    ? orders.filter(o => isAdvanceOrder(o))
+    : activeTab === 'preparing'
+    ? orders.filter(o => o.status === 'preparing' && !isAdvanceOrder(o))
     : orders.filter(o => o.status === activeTab);
 
   const selectedOrder = selectedOrderId 
@@ -227,10 +236,12 @@ const POS = () => {
     : null;
 
   // Counts
+  const advanceCount = orders.filter(o => isAdvanceOrder(o)).length;
   const counts = {
     all: orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length,
     pending: orders.filter(o => o.status === 'pending').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
+    advance: advanceCount,
+    preparing: orders.filter(o => o.status === 'preparing' && !isAdvanceOrder(o)).length,
     ready: orders.filter(o => o.status === 'ready').length,
     delivered: orders.filter(o => o.status === 'delivered').length,
   };
@@ -248,6 +259,7 @@ const POS = () => {
      couponCode?: string;
      rewardsUsed?: number;
      rewardsDiscount?: number;
+     pickupTime?: Date;
   }) => {
     const subtotal = orderData.items.reduce((sum, item) => sum + item.totalPrice, 0);
      const discount = orderData.discount || 0;
@@ -264,6 +276,7 @@ const POS = () => {
        couponCode: orderData.couponCode,
       status: 'pending',
       paymentStatus: 'unpaid',
+      pickupTime: orderData.pickupTime,
     }, currentLocationId);
 
     // If rewards were used, deduct points from customer's balance
@@ -317,11 +330,19 @@ const POS = () => {
 
     setShowNewOrder(false);
     
-    // Step 2: Immediately show prep time modal for the new order
+    // Step 2: For scheduled orders, skip prep time and go to payment
     if (newOrder) {
-      setNewOrderPending(newOrder);
-      setPendingPrepOrderId(newOrder.id);
-      setPrepTimeModalOpen(true);
+      if (orderData.pickupTime) {
+        // Scheduled order: skip prep time, go directly to payment choice
+        setNewOrderPending(newOrder);
+        setPendingPrepTime(0); // No prep time for advance orders
+        setShowPaymentChoice(true);
+      } else {
+        // ASAP order: show prep time modal
+        setNewOrderPending(newOrder);
+        setPendingPrepOrderId(newOrder.id);
+        setPrepTimeModalOpen(true);
+      }
     }
   };
 
@@ -545,7 +566,8 @@ const POS = () => {
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
         "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
-        hasPendingRemoteOrders ? "!bg-orange-900/50 animate-pulse" : ""
+        hasPendingRemoteOrders ? "!bg-orange-900/50 animate-pulse" : "",
+        hasAdvanceAlerts && !hasPendingRemoteOrders ? "!bg-amber-900/50 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -579,6 +601,12 @@ const POS = () => {
               <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
                 <Bell className="w-4 h-4" />
                 <span className="font-semibold">{pendingCount} New!</span>
+              </div>
+            )}
+            {hasAdvanceAlerts && !hasPendingRemoteOrders && (
+              <div className="flex items-center gap-1 bg-amber-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
+                <CalendarClock className="w-4 h-4" />
+                <span className="font-semibold">{advanceAlertCount} Due Soon!</span>
               </div>
             )}
           </div>
