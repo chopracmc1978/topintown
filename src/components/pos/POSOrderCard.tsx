@@ -1,4 +1,4 @@
-import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift } from 'lucide-react';
+import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift, CalendarClock } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 
@@ -74,8 +74,18 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
           <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
           {source.label}
         </span>
-        <span className={statusBadgeClass[order.status] || 'pos-badge'}>
-          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+        <span className={
+          order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+            ? 'pos-badge'
+            : (statusBadgeClass[order.status] || 'pos-badge')
+        } style={
+          order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+            ? { background: 'hsl(260,50%,30%)', borderColor: 'hsl(260,60%,50%)', color: 'hsl(260,80%,80%)' }
+            : undefined
+        }>
+          {order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+            ? 'Scheduled'
+            : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
         </span>
       </div>
 
@@ -112,6 +122,14 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
           {getTimeSince(order.createdAt)}
         </span>
       </div>
+
+      {/* Scheduled pickup time for advance orders */}
+      {order.pickupTime && new Date(order.pickupTime) > new Date() && (
+        <div className="text-[11px] font-medium mb-1 flex items-center gap-1" style={{ color: 'hsl(260,70%,75%)' }}>
+          <CalendarClock className="w-3 h-3" />
+          Pickup: {new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+        </div>
+      )}
 
       {/* Items Preview */}
       <div className="text-[11px] mb-1" style={{ color: 'hsl(215,15%,55%)' }}>
