@@ -312,7 +312,7 @@ const Checkout = () => {
   const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('pickup');
   const [editingPizzaItem, setEditingPizzaItem] = useState<CartItem | null>(null);
   const [editingWingsItem, setEditingWingsItem] = useState<CartItem | null>(null);
-  const [showAuthOptions, setShowAuthOptions] = useState(false);
+  const [showAuthOptions, setShowAuthOptions] = useState(() => !customer?.id);
   const [verifiedCustomerId, setVerifiedCustomerId] = useState<string | null>(customer?.id || null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
@@ -423,7 +423,6 @@ const Checkout = () => {
   const handleGuestCheckoutComplete = (customerId: string) => {
     setVerifiedCustomerId(customerId);
     setShowAuthOptions(false);
-    handlePlaceOrder(customerId);
   };
 
   const handlePlaceOrder = async (customerId: string) => {
