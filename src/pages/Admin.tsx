@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon, MessageSquare } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
@@ -13,6 +13,7 @@ import PromotionsManager from '@/components/admin/PromotionsManager';
 import CombosManager from '@/components/admin/CombosManager';
 import PopupPostersManager from '@/components/admin/PopupPostersManager';
 import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
+import MessagesManager from '@/components/admin/MessagesManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -105,7 +106,11 @@ const Admin = () => {
             </TabsList>
             
             {/* Row 2: Settings & Management */}
-            <TabsList className="grid grid-cols-8 w-full max-w-5xl">
+            <TabsList className="grid grid-cols-9 w-full max-w-5xl">
+              <TabsTrigger value="messages" className="gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Messages</span>
+              </TabsTrigger>
               <TabsTrigger value="toppings" className="gap-2">
                 <Layers className="w-4 h-4" />
                 <span className="hidden sm:inline">Toppings</span>
@@ -162,6 +167,10 @@ const Admin = () => {
                 <MenuItemsManager category={category} />
               </TabsContent>
             ))}
+
+            <TabsContent value="messages" className="mt-0">
+              <MessagesManager />
+            </TabsContent>
 
             <TabsContent value="toppings" className="mt-0">
               <ToppingsManager />
