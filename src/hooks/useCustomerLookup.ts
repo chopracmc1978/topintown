@@ -10,6 +10,7 @@ interface CustomerOrderHistory {
   items: CartItem[];
   customer_name: string | null;
   customer_phone: string | null;
+  reward_points: number;
 }
 
 interface CustomerInfo {
@@ -85,7 +86,21 @@ export const useCustomerLookup = () => {
         .select('*')
         .in('order_id', orderIds);
 
+      // Fetch per-order reward points earned
+      const { data: rewardsHistoryData } = await supabase
+        .from('rewards_history')
+        .select('order_id, points_change, transaction_type')
+        .in('order_id', orderIds);
+
       if (itemsError) throw itemsError;
+
+      // Build per-order points map
+      const orderPointsMap: Record<string, number> = {};
+      (rewardsHistoryData || []).forEach(rh => {
+        if (rh.order_id && rh.transaction_type === 'earned') {
+          orderPointsMap[rh.order_id] = (orderPointsMap[rh.order_id] || 0) + rh.points_change;
+        }
+      });
 
       // Map items to orders
       const ordersWithItems: CustomerOrderHistory[] = orders.map(order => {
@@ -141,6 +156,7 @@ export const useCustomerLookup = () => {
           items: orderItems,
           customer_name: order.customer_name,
           customer_phone: order.customer_phone,
+          reward_points: orderPointsMap[order.id] || 0,
         };
       });
 
