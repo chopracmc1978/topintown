@@ -9,6 +9,17 @@ import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal'
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
 import UpsellModal from '@/components/upsell/UpsellModal';
 
+// Helper to get optimized Supabase image URL
+const getOptimizedImageUrl = (url: string | null, width = 400): string => {
+  if (!url || url === '/placeholder.svg') return '/placeholder.svg';
+  // Supabase storage transform: append render/image/t_ params
+  if (url.includes('supabase.co/storage/v1/object/public/')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${width}&quality=75`;
+  }
+  return url;
+};
+
 interface MenuCardDBProps {
   item: MenuItem;
 }
@@ -118,10 +129,12 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
         className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer flex flex-col h-full"
         onClick={handleAddToCart}
       >
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
-            src={item.image_url || '/placeholder.svg'}
+            src={getOptimizedImageUrl(item.image_url)}
             alt={item.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           {item.is_popular && (
