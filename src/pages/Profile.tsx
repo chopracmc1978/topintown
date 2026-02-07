@@ -101,14 +101,13 @@ const Profile = () => {
         throw new Error(data?.error || error?.message || 'Invalid verification code');
       }
 
-      // Update customer phone in database
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({ phone: newPhone, phone_verified: true })
-        .eq('id', customer?.id);
+      // Update customer phone via edge function
+      const { data: updateData, error: updateError } = await supabase.functions.invoke('customer-profile', {
+        body: { action: 'update', customerId: customer?.id, phone: newPhone, phone_verified: true },
+      });
 
-      if (updateError) {
-        throw new Error('Failed to update phone number');
+      if (updateError || updateData?.error) {
+        throw new Error(updateData?.error || 'Failed to update phone number');
       }
 
       await refreshCustomer();

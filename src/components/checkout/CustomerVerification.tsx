@@ -89,34 +89,31 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
           return;
         }
 
-        // Update phone if different
+        // Update phone if different via edge function
         if (existing.phone !== phone) {
-          await supabase
-            .from('customers')
-            .update({ phone, full_name: fullName })
-            .eq('id', custId);
+          const { data: updateData, error: updateError } = await supabase.functions.invoke('customer-profile', {
+            body: { action: 'update', customerId: custId, phone, full_name: fullName },
+          });
+          if (updateError || updateData?.error) {
+            console.warn('Failed to update customer phone:', updateData?.error || updateError?.message);
+          }
         }
       } else {
-        // Create new customer
-        const { data: newCustomer, error: createError } = await supabase
-          .from('customers')
-          .insert({
-            email: email.toLowerCase().trim(),
-            phone,
-            full_name: fullName,
-          })
-          .select()
-          .single();
+        // Create new customer via edge function
+        const { data: regData, error: regError } = await supabase.functions.invoke('customer-profile', {
+          body: { action: 'register', email: email.toLowerCase().trim(), phone, fullName },
+        });
 
-        if (createError) {
-          if (createError.code === '23505') {
+        if (regError) throw regError;
+        if (regData?.error) {
+          if (regData.code === '23505') {
             toast.error('This email is already registered');
             return;
           }
-          throw createError;
+          throw new Error(regData.error);
         }
 
-        custId = newCustomer.id;
+        custId = regData.customer.id;
         setCustomerId(custId);
       }
 
@@ -157,11 +154,10 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
       
       // If guest mode (no account creation), complete now
       if (!createAccount) {
-        // Update customer as verified (email only for guest)
-        await supabase
-          .from('customers')
-          .update({ email_verified: true })
-          .eq('id', customerId);
+        // Update customer as verified (email only for guest) via edge function
+        await supabase.functions.invoke('customer-profile', {
+          body: { action: 'update', customerId, email_verified: true },
+        });
         
         // Set customer in context (partial - no password)
         setCustomer({
