@@ -86,10 +86,10 @@ const Footer = () => {
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm text-background/70">
                 <Clock className="w-4 h-4 text-primary" />
-                <span>Mon - Thu: 11am - 10pm</span>
+                <span>Mon - Thu: 11:15am - 10:30pm</span>
               </li>
-              <li className="text-sm text-background/70 pl-6">Fri - Sat: 11am - 11pm</li>
-              <li className="text-sm text-background/70 pl-6">Sunday: 12pm - 9pm</li>
+              <li className="text-sm text-background/70 pl-6">Fri - Sat: 11:15am - 11pm</li>
+              <li className="text-sm text-background/70 pl-6">Sunday: 12pm - 10:30pm</li>
             </ul>
           </div>
         </div>
