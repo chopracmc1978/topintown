@@ -235,9 +235,9 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
 
     setLoading(true);
     try {
-      // Hash password server-side via edge function
+      // Hash password server-side via edge function (pass OTP for verification)
       const { data, error } = await supabase.functions.invoke('set-password', {
-        body: { customerId, password },
+        body: { customerId, password, otpCode: emailOtp || phoneOtp },
       });
 
       if (error) throw error;

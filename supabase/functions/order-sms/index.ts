@@ -11,8 +11,42 @@ interface OrderSmsRequest {
   phone?: string;
   customerId?: string;
   type: "accepted" | "preparing" | "ready" | "complete" | "cancelled";
-  prepTime?: number; // in minutes, only for "preparing" type
-  pickupTime?: string; // ISO string for scheduled pickup time
+  prepTime?: number;
+  pickupTime?: string;
+}
+
+async function verifyStaffAuth(req: Request): Promise<{ userId: string } | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claims, error } = await supabase.auth.getClaims(token);
+  if (error || !claims?.claims?.sub) return null;
+
+  const userId = claims.claims.sub as string;
+
+  // Check user has staff or admin role
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const { data: roleData } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["admin", "staff"])
+    .limit(1);
+
+  if (!roleData || roleData.length === 0) return null;
+
+  return { userId };
 }
 
 async function sendSmsWithTwilio(to: string, message: string): Promise<void> {
@@ -24,7 +58,6 @@ async function sendSmsWithTwilio(to: string, message: string): Promise<void> {
     throw new Error("Twilio credentials are not configured");
   }
 
-  // Format phone number to E.164 format if needed
   let formattedPhone = to;
   if (!to.startsWith("+")) {
     formattedPhone = "+1" + to.replace(/\D/g, "");
@@ -64,16 +97,37 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+
+  // Verify staff authentication
+  const staffUser = await verifyStaffAuth(req);
+  if (!staffUser) {
+    return json(401, { error: "Staff authentication required" });
+  }
+
   try {
     const { orderNumber, phone, customerId, type, prepTime, pickupTime }: OrderSmsRequest = await req.json();
-    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime, pickupTime });
+    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime, pickupTime, staffUserId: staffUser.userId });
+
+    // Input validation
+    if (!orderNumber || typeof orderNumber !== "string") {
+      return json(400, { error: "Order number is required" });
+    }
+    const validTypes = ["accepted", "preparing", "ready", "complete", "cancelled"];
+    if (!validTypes.includes(type)) {
+      return json(400, { error: "Invalid SMS type" });
+    }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Try to find customer - first by customerId, then by phone
+    // Try to find customer
     let customer: { id: string; phone: string; phone_verified: boolean } | null = null;
 
     if (customerId) {
@@ -90,7 +144,6 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // If no customer found by ID, try by phone
     if (!customer && phone) {
       const normalizedPhone = phone.replace(/\D/g, "");
       const { data, error } = await supabase
@@ -108,41 +161,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!customer) {
       console.log("No customer found, skipping SMS");
-      return new Response(
-        JSON.stringify({ success: true, message: "Customer not found, SMS skipped" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return json(200, { success: true, message: "Customer not found, SMS skipped" });
     }
 
     if (!customer.phone_verified) {
-      console.log(`Customer phone not verified, skipping SMS`);
-      return new Response(
-        JSON.stringify({ success: true, message: "Phone not verified, SMS skipped" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      console.log("Customer phone not verified, skipping SMS");
+      return json(200, { success: true, message: "Phone not verified, SMS skipped" });
     }
 
     if (!customer.phone) {
       console.log("Customer has no phone, skipping SMS");
-      return new Response(
-        JSON.stringify({ success: true, message: "No phone number, SMS skipped" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return json(200, { success: true, message: "No phone number, SMS skipped" });
     }
 
     let message = "";
 
-    // Helper to format pickup time
     const formatPickupTime = (isoString: string): string => {
       const date = new Date(isoString);
       return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
+        weekday: 'short', month: 'short', day: 'numeric',
       }) + ' at ' + date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
+        hour: 'numeric', minute: '2-digit', hour12: true,
       });
     };
 
@@ -167,21 +206,15 @@ const handler = async (req: Request): Promise<Response> => {
         message = `Top In Town Pizza: Your order ${orderNumber} has been cancelled. If you have any questions, please contact us. We hope to serve you again soon!`;
         break;
       default:
-        throw new Error("Invalid SMS type");
+        return json(400, { error: "Invalid SMS type" });
     }
 
     await sendSmsWithTwilio(customer.phone, message);
 
-    return new Response(
-      JSON.stringify({ success: true, message: `SMS sent for ${type}` }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    return json(200, { success: true, message: `SMS sent for ${type}` });
   } catch (error: any) {
     console.error("Error in order-sms:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    return json(400, { error: "Failed to send SMS" });
   }
 };
 
