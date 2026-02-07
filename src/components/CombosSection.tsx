@@ -4,6 +4,16 @@ import { useActiveCombos, Combo } from '@/hooks/useCombos';
 import { ComboBuilderModal } from '@/components/combo/ComboBuilderModal';
 import { Package } from 'lucide-react';
 
+// Helper to get optimized Supabase image URL
+const getOptimizedImageUrl = (url: string | null, width = 400): string => {
+  if (!url) return '';
+  if (url.includes('supabase.co/storage/v1/object/public/')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${width}&quality=75`;
+  }
+  return url;
+};
+
 const CombosSection = () => {
   const { data: combos, isLoading } = useActiveCombos();
   const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null);
@@ -33,9 +43,11 @@ const CombosSection = () => {
             >
               {combo.image_url ? (
                 <img
-                  src={combo.image_url}
+                  src={getOptimizedImageUrl(combo.image_url)}
                   alt={combo.name}
-                  className="w-full h-48 object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-48 object-cover bg-muted"
                 />
               ) : (
                 <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
