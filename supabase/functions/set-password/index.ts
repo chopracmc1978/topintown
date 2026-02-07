@@ -22,6 +22,8 @@ const handler = async (req: Request): Promise<Response> => {
     const body = await req.json();
     const customerId = typeof body.customerId === "string" ? body.customerId.trim() : "";
     const password = typeof body.password === "string" ? body.password : "";
+    const otpCode = typeof body.otpCode === "string" ? body.otpCode.trim() : "";
+    const currentPassword = typeof body.currentPassword === "string" ? body.currentPassword : "";
 
     // Input validation
     if (!customerId || !password) {
@@ -37,22 +39,89 @@ const handler = async (req: Request): Promise<Response> => {
       return json(400, { error: "Password must be less than 128 characters" });
     }
 
-    console.log("Set password request for customer:", customerId);
+    // Must provide either OTP code or current password for verification
+    if (!otpCode && !currentPassword) {
+      return json(400, { error: "Verification required: provide OTP code or current password" });
+    }
+
+    console.log("Set password request for customer:", customerId, "mode:", otpCode ? "otp" : "password");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify customer exists
+    // Verify customer exists and get current data
     const { data: customer, error: customerError } = await supabase
       .from("customers")
-      .select("id")
+      .select("id, email, phone, password_hash")
       .eq("id", customerId)
       .single();
 
     if (customerError || !customer) {
       return json(400, { error: "Customer not found" });
+    }
+
+    // Verify authorization based on mode
+    if (otpCode) {
+      // OTP mode: verify that an OTP with this code was recently verified for this customer
+      // The OTP was already verified by verify-otp (marked as used=true)
+      // We check it was used within the last 10 minutes as proof of recent verification
+      if (!/^\d{6}$/.test(otpCode)) {
+        return json(400, { error: "Invalid OTP code format" });
+      }
+
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      
+      // Look for a recently-verified OTP matching the code for this customer's email or phone
+      const { data: otpRecords, error: otpError } = await supabase
+        .from("otp_codes")
+        .select("id")
+        .eq("code", otpCode)
+        .eq("used", true)
+        .gt("created_at", tenMinutesAgo)
+        .or(`email.eq.${customer.email},phone.eq.${customer.phone}`)
+        .limit(1);
+
+      if (otpError) {
+        console.error("Error checking OTP verification:", otpError);
+        return json(400, { error: "Verification failed" });
+      }
+
+      if (!otpRecords || otpRecords.length === 0) {
+        console.log("No recently verified OTP found for customer:", customerId);
+        return json(400, { error: "Verification expired. Please verify your identity again." });
+      }
+
+    } else if (currentPassword) {
+      // Current password mode: verify the existing password (for password changes)
+      if (!customer.password_hash) {
+        return json(400, { error: "No existing password set. Use OTP verification instead." });
+      }
+
+      if (currentPassword.length > 128) {
+        return json(400, { error: "Invalid credentials" });
+      }
+
+      const isBcryptHash = customer.password_hash.startsWith("$2");
+      let passwordValid = false;
+
+      if (isBcryptHash) {
+        passwordValid = await bcrypt.compare(currentPassword, customer.password_hash);
+      } else {
+        // Legacy SHA-256 comparison
+        const encoder = new TextEncoder();
+        const data = encoder.encode(currentPassword);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const sha256Result = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+        passwordValid = sha256Result === customer.password_hash;
+      }
+
+      if (!passwordValid) {
+        await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+        return json(400, { error: "Current password is incorrect" });
+      }
     }
 
     // Hash with bcrypt
