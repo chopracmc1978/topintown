@@ -115,7 +115,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   return (
     <>
       <Card 
-        className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer"
+        className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer flex flex-col h-full"
         onClick={handleAddToCart}
       >
         <div className="relative aspect-[4/3] overflow-hidden">
@@ -130,40 +130,42 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
             </div>
           )}
         </div>
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-serif text-lg font-semibold text-foreground">{item.name}</h3>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
+        <CardContent className="p-4 flex flex-col flex-1">
+          <div className="flex-1 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-serif text-lg font-semibold text-foreground">{item.name}</h3>
+                <p className="text-sm text-muted-foreground">{item.description}</p>
+              </div>
             </div>
+
+            {item.default_toppings && item.default_toppings.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Includes: {item.default_toppings.map(t => t.topping?.name).filter(Boolean).join(', ')}
+              </p>
+            )}
+
+            {!isPizza && item.sizes && item.sizes.length > 0 && (
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                {item.sizes.map((size) => (
+                  <button
+                    key={size.id}
+                    onClick={() => setSelectedSize(size.name)}
+                    className={cn(
+                      "text-xs px-3 py-1.5 rounded-full transition-all border",
+                      selectedSize === size.name
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary text-secondary-foreground border-border hover:border-primary"
+                    )}
+                  >
+                    {size.name.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {item.default_toppings && item.default_toppings.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Includes: {item.default_toppings.map(t => t.topping?.name).filter(Boolean).join(', ')}
-            </p>
-          )}
-
-          {!isPizza && item.sizes && item.sizes.length > 0 && (
-            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-              {item.sizes.map((size) => (
-                <button
-                  key={size.id}
-                  onClick={() => setSelectedSize(size.name)}
-                  className={cn(
-                    "text-xs px-3 py-1.5 rounded-full transition-all border",
-                    selectedSize === size.name
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-secondary text-secondary-foreground border-border hover:border-primary"
-                  )}
-                >
-                  {size.name.split(' ')[0]}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border">
             <div>
               <span className="text-xl font-bold text-primary">
                 {isPizza ? `From $${(item.sizes?.[0]?.price || item.base_price).toFixed(2)}` : `$${currentPrice.toFixed(2)}`}
