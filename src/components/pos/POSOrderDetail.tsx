@@ -226,7 +226,9 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
   const hasNewDiscount = newDiscounts > 0;
   
   // Check if this is an advance order (has scheduled pickup time in the future)
-  const isAdvanceOrder = order.pickupTime && new Date(order.pickupTime) > new Date();
+  const hasFuturePickup = order.pickupTime && new Date(order.pickupTime) > new Date();
+  // Only show as "advance/scheduled" when already accepted (preparing status)
+  const isAdvanceOrder = hasFuturePickup && order.status === 'preparing';
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -623,7 +625,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             </Button>
           )}
           
-          {/* Advance order: "Start Preparing" button */}
+          {/* Advance order in preparing status: "Start Preparing" button */}
           {isAdvanceOrder && onStartPreparing && (
             <Button 
               className="flex-1 text-white bg-purple-600 hover:bg-purple-700"
@@ -634,7 +636,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             </Button>
           )}
 
-          {/* Normal status flow button (skip for advance orders since they use Start Preparing) */}
+          {/* Normal status flow button (show for pending orders including scheduled, and non-advance preparing/ready) */}
           {nextStatus && !isAdvanceOrder && (
             <Button 
               className={cn(
