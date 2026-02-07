@@ -150,21 +150,8 @@ const Contact = () => {
               </div>
             </div>
 
-            {/* Map + Contact Form */}
-            <div className="grid md:grid-cols-2 gap-10">
-              {/* Google Map */}
-              <div className="rounded-xl overflow-hidden shadow-card h-[400px] md:h-full min-h-[350px]">
-                <iframe
-                  title="Top In Town Pizza Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2505.889!2d-113.9828!3d51.0879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTHCsDA1JzE2LjQiTiAxMTPCsDU4JzU4LjEiVw!5e0!3m2!1sen!2sca!4v1700000000000"
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-
-              {/* Contact Form */}
+            {/* Contact Form */}
+            <div className="max-w-xl mx-auto">
               <div className="bg-card rounded-xl p-8 shadow-card">
                 <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground text-center mb-8">
                   Send Us A Message
