@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { useSubmitContactMessage } from '@/hooks/useContactMessages';
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -19,6 +20,7 @@ const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const submitMessage = useSubmitContactMessage();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -43,12 +45,16 @@ const Contact = () => {
       return;
     }
     setSending(true);
-    // Simulate send — in production, wire to an edge function / email service
-    await new Promise((r) => setTimeout(r, 1000));
-    toast.success('Message sent! We will get back to you within 24 hours.');
-    setForm({ name: '', email: '', subject: '', message: '' });
-    setErrors({});
-    setSending(false);
+    try {
+      await submitMessage.mutateAsync(result.data as { name: string; email: string; subject: string; message: string });
+      toast.success('Message sent! We will get back to you within 24 hours.');
+      setForm({ name: '', email: '', subject: '', message: '' });
+      setErrors({});
+    } catch {
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
