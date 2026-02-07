@@ -141,8 +141,9 @@ const Profile = () => {
 
     setPasswordLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: { email: customer?.email, newPassword },
+      // Use set-password for authenticated profile password changes (no OTP needed)
+      const { data, error } = await supabase.functions.invoke('set-password', {
+        body: { customerId: customer?.id, password: newPassword },
       });
 
       if (error || data?.error) {

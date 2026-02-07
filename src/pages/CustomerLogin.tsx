@@ -180,7 +180,7 @@ const CustomerLogin = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('reset-password', {
-        body: { email: resetEmail.toLowerCase().trim(), newPassword }
+        body: { email: resetEmail.toLowerCase().trim(), newPassword, otpCode: otp }
       });
 
       if (error) throw error;

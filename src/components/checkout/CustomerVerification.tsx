@@ -64,9 +64,10 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
     setLoading(true);
     try {
       // Check if customer exists
+      // Never select password_hash on the client - check account status without exposing secrets
       const { data: existingCustomers, error: checkError } = await supabase
         .from('customers')
-        .select('id, email, phone, full_name, email_verified, phone_verified, password_hash')
+        .select('id, email, phone, full_name, email_verified, phone_verified')
         .eq('email', email.toLowerCase().trim());
 
       if (checkError) throw checkError;
@@ -80,8 +81,8 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
         setCustomerId(custId);
         setExistingCustomer(true);
 
-        // If already fully verified with password, log them in
-        if (existing.email_verified && existing.phone_verified && existing.password_hash) {
+        // If already fully verified, redirect to login
+        if (existing.email_verified && existing.phone_verified) {
           toast.info('Account exists. Please login to continue.');
           onBack();
           return;
