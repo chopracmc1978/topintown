@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useCustomer } from '@/contexts/CustomerContext';
-import { useRewardsByPhone, MIN_POINTS_TO_REDEEM } from '@/hooks/useRewards';
+import { useRewardsByPhone, MIN_POINTS_TO_REDEEM, MAX_REDEEM_DOLLAR, MIN_REDEEM_DOLLAR, POINTS_TO_DOLLAR_RATIO } from '@/hooks/useRewards';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -44,7 +44,7 @@ const Rewards = () => {
                 My Rewards
               </h1>
               <p className="text-muted-foreground mt-1">
-                Earn 1 point for every $2 spent. Redeem 200 points for $20 off!
+                Earn 1 point for every $2 spent. Redeem 200–350 points for $20–$35 off!
               </p>
             </div>
 
@@ -66,8 +66,8 @@ const Rewards = () => {
               <Progress value={progressPercent} className="h-3" />
               <p className="text-sm text-muted-foreground">
                 {currentPoints >= MIN_POINTS_TO_REDEEM 
-                  ? `You can redeem ${Math.floor(currentPoints / MIN_POINTS_TO_REDEEM) * 20} dollars at checkout!`
-                  : `${pointsToNextReward} more points until your next $20 reward`
+                  ? `You can redeem $${MIN_REDEEM_DOLLAR}–$${Math.min(Math.floor(currentPoints / POINTS_TO_DOLLAR_RATIO), MAX_REDEEM_DOLLAR)} at checkout!`
+                  : `${pointsToNextReward} more points until your next $${MIN_REDEEM_DOLLAR} reward`
                 }
               </p>
             </div>
@@ -85,6 +85,7 @@ const Rewards = () => {
                 <li>• Earn 1 point for every $2 you spend</li>
                 <li>• Points are added when your order is completed</li>
                 <li>• Redeem 200 points for $20 off at checkout</li>
+                <li>• Maximum redemption: 350 points for $35 off per order</li>
               </ul>
             </div>
 
