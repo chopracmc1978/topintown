@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { MapPin, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { useSubmitContactMessage } from '@/hooks/useContactMessages';
+import CaptchaWidget from '@/components/contact/CaptchaWidget';
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -20,7 +21,19 @@ const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const [captchaValid, setCaptchaValid] = useState(false);
   const submitMessage = useSubmitContactMessage();
+
+  const handleCaptchaVerify = useCallback((isValid: boolean) => {
+    setCaptchaValid(isValid);
+    if (isValid && errors.captcha) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.captcha;
+        return next;
+      });
+    }
+  }, [errors.captcha]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -42,6 +55,10 @@ const Contact = () => {
         if (issue.path[0]) fieldErrors[issue.path[0] as string] = issue.message;
       });
       setErrors(fieldErrors);
+      return;
+    }
+    if (!captchaValid) {
+      setErrors((prev) => ({ ...prev, captcha: 'Please enter the captcha code correctly' }));
       return;
     }
     setSending(true);
@@ -203,6 +220,13 @@ const Contact = () => {
                     />
                     {errors.message && <p className="text-destructive text-xs mt-1">{errors.message}</p>}
                   </div>
+                  {/* Captcha - only visible when message has content */}
+                  {form.message.trim().length > 0 && (
+                    <div>
+                      <CaptchaWidget onVerify={handleCaptchaVerify} error={errors.captcha} />
+                      {errors.captcha && <p className="text-destructive text-xs mt-1">{errors.captcha}</p>}
+                    </div>
+                  )}
                   <Button
                     type="submit"
                     disabled={sending}
