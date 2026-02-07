@@ -143,8 +143,8 @@ const Contact = () => {
                   <a href="tel:+14032807373" className="text-muted-foreground text-sm hover:text-foreground transition-colors block">
                     +1 (403) 280-7373
                   </a>
-                  <a href="tel:+14038007373" className="text-muted-foreground text-sm hover:text-foreground transition-colors block">
-                    +1 (403) 800-7373
+                  <a href="tel:+14032807374" className="text-muted-foreground text-sm hover:text-foreground transition-colors block">
+                    +1 (403) 280-7374
                   </a>
                 </div>
               </div>
