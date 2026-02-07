@@ -6,6 +6,16 @@ import { useMenuItems } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 import { Plus, Minus, ArrowRight, Check, X } from 'lucide-react';
 
+// Helper to get optimized Supabase image URL
+const getOptimizedImageUrl = (url: string | null, width = 300): string => {
+  if (!url) return '';
+  if (url.includes('supabase.co/storage/v1/object/public/')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${width}&quality=75`;
+  }
+  return url;
+};
+
 interface UpsellItem {
   id: string;
   name: string;
@@ -174,8 +184,10 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                     <div className="aspect-square bg-muted rounded-md mb-1.5 overflow-hidden">
                       {item.image_url ? (
                         <img 
-                          src={item.image_url} 
+                          src={getOptimizedImageUrl(item.image_url)} 
                           alt={item.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                       ) : (
