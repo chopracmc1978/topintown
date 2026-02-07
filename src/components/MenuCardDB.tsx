@@ -8,18 +8,7 @@ import type { MenuItem } from '@/hooks/useMenuItems';
 import PizzaCustomizationModal from '@/components/pizza/PizzaCustomizationModal';
 import WingsCustomizationModal from '@/components/wings/WingsCustomizationModal';
 import UpsellModal from '@/components/upsell/UpsellModal';
-
-// Helper to get optimized Supabase image URL
-const getOptimizedImageUrl = (url: string | null, width = 400): string => {
-  if (!url || url === '/placeholder.svg') return '/placeholder.svg';
-  // Use Supabase render endpoint for actual server-side resizing
-  if (url.includes('supabase.co/storage/v1/object/public/')) {
-    const renderUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-    const separator = renderUrl.includes('?') ? '&' : '?';
-    return `${renderUrl}${separator}width=${width}&quality=75&resize=contain`;
-  }
-  return url;
-};
+import OptimizedImage from '@/components/OptimizedImage';
 
 interface MenuCardDBProps {
   item: MenuItem;
@@ -44,7 +33,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   const isPizza = item.category === 'pizza';
   const isWings = item.category === 'chicken_wings';
   const isLasagna = item.category === 'baked_lasagna';
-  // Check if it's a garlic toast item (exclude from upsell flow)
   const isGarlicToast = isLasagna && (item.name.toLowerCase().includes('garlic') || item.name.toLowerCase().includes('toast'));
 
   const handleAddToCart = () => {
@@ -58,7 +46,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
       return;
     }
 
-    // Baked lasagna items (except garlic toast) get upsell flow
     if (isLasagna && !isGarlicToast) {
       const cartItem = {
         id: item.id,
@@ -74,7 +61,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
       return;
     }
 
-    // Other items go directly to cart
     const cartItem = {
       id: item.id,
       name: item.name,
@@ -92,12 +78,10 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   };
 
   const handleLasagnaUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number }[]) => {
-    // First add the lasagna item
     if (pendingLasagnaItem) {
       addToCart(pendingLasagnaItem);
     }
     
-    // Then add all upsell items
     upsellItems.forEach(upsellItem => {
       for (let i = 0; i < upsellItem.quantity; i++) {
         addToCart({
@@ -111,7 +95,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
       }
     });
     
-    // Reset and show added feedback
     setPendingLasagnaItem(null);
     setShowLasagnaUpsell(false);
     setIsAdded(true);
@@ -119,7 +102,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
   };
 
   const handleLasagnaUpsellClose = () => {
-    // User cancelled - don't add anything
     setPendingLasagnaItem(null);
     setShowLasagnaUpsell(false);
   };
@@ -130,12 +112,12 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
         className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer flex flex-col h-full"
         onClick={handleAddToCart}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <img
-            src={getOptimizedImageUrl(item.image_url)}
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <OptimizedImage
+            src={item.image_url}
             alt={item.name}
-            loading="lazy"
-            decoding="async"
+            width={400}
+            containerClassName="w-full h-full"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           {item.is_popular && (
@@ -221,7 +203,6 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
         />
       )}
 
-      {/* Lasagna upsell - Drinks and Garlic Toast only */}
       {isLasagna && !isGarlicToast && (
         <UpsellModal
           isOpen={showLasagnaUpsell}

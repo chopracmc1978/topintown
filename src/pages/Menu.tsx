@@ -9,6 +9,7 @@ import { ComboBuilderModal } from '@/components/combo/ComboBuilderModal';
 import { Button } from '@/components/ui/button';
 import { Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import OptimizedImage from '@/components/OptimizedImage';
 
 const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
@@ -164,17 +165,18 @@ const Menu = () => {
                     key={combo.id}
                     className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow"
                   >
-                    {combo.image_url ? (
-                      <img
-                        src={combo.image_url}
-                        alt={combo.name}
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        <Package className="h-16 w-16 text-primary/50" />
-                      </div>
-                    )}
+                    <OptimizedImage
+                      src={combo.image_url}
+                      alt={combo.name}
+                      width={500}
+                      containerClassName="w-full h-48"
+                      className="w-full h-full object-cover"
+                      fallback={
+                        <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <Package className="h-16 w-16 text-primary/50" />
+                        </div>
+                      }
+                    />
                     
                     <div className="p-4">
                       <h3 className="font-serif text-xl font-bold text-foreground mb-2">
