@@ -28,7 +28,7 @@ const CombosSection = () => {
           {combos.map((combo) => (
             <div
               key={combo.id}
-              className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow cursor-pointer"
+              className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow cursor-pointer flex flex-col h-full"
               onClick={() => setSelectedCombo(combo)}
             >
               {combo.image_url ? (
@@ -43,30 +43,32 @@ const CombosSection = () => {
                 </div>
               )}
               
-              <div className="p-4">
-                <h3 className="font-serif text-xl font-bold text-foreground mb-2">
-                  {combo.name}
-                </h3>
-                {combo.description && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {combo.description}
-                  </p>
-                )}
-                
-                {/* Show combo items */}
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {combo.combo_items?.map((item, i) => (
-                    <span
-                      key={i}
-                      className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full"
-                    >
-                      {item.quantity}x {item.item_type.replace('_', ' ')}
-                      {item.size_restriction && ` (${item.size_restriction})`}
-                    </span>
-                  ))}
+              <div className="p-4 flex flex-col flex-1">
+                <div className="flex-1">
+                  <h3 className="font-serif text-xl font-bold text-foreground mb-2">
+                    {combo.name}
+                  </h3>
+                  {combo.description && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {combo.description}
+                    </p>
+                  )}
+                  
+                  {/* Show combo items */}
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {combo.combo_items?.map((item, i) => (
+                      <span
+                        key={i}
+                        className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full"
+                      >
+                        {item.quantity}x {item.item_type.replace('_', ' ')}
+                        {item.size_restriction && ` (${item.size_restriction})`}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-border">
                   <span className="text-2xl font-bold text-primary">
                     ${combo.price.toFixed(2)}
                   </span>
