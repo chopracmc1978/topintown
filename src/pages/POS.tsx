@@ -82,7 +82,7 @@ const POS = () => {
   });
   
   // Pass location to orders hook for filtering
-  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, refetch } = usePOSOrders(currentLocationId);
+  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, startPreparingAdvanceOrder, refetch } = usePOSOrders(currentLocationId);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -765,6 +765,12 @@ const POS = () => {
               onPrintTicket={handlePrintTicket}
               onPrintReceipt={() => printCustomerReceipt(selectedOrder)}
               onEditOrder={handleEditOrder}
+              onStartPreparing={() => {
+                if (selectedOrderId) {
+                  startPreparingAdvanceOrder(selectedOrderId);
+                  setSelectedOrderId(null);
+                }
+              }}
             />
           ) : (
             <div className="h-full flex items-center justify-center" style={{ color: 'hsl(215, 15%, 55%)' }}>

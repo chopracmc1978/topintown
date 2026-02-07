@@ -31,6 +31,7 @@ interface POSOrderDetailProps {
   onPrintTicket: () => void;
   onPrintReceipt: () => void;
   onEditOrder: () => void;
+  onStartPreparing?: () => void;
 }
 
 // Helper to format pizza customization details for kitchen
@@ -194,6 +195,9 @@ const getStatusButtonLabel = (status: OrderStatus, isAdvanceOrder: boolean): str
   if (status === 'pending') {
     return 'Accept';
   }
+  if (status === 'preparing' && isAdvanceOrder) {
+    return 'Start Preparing';
+  }
   const labels: Record<OrderStatus, string> = {
     pending: 'Accept',
     preparing: 'Mark Ready',
@@ -204,7 +208,7 @@ const getStatusButtonLabel = (status: OrderStatus, isAdvanceOrder: boolean): str
   return labels[status];
 };
 
-export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, onPrintTicket, onPrintReceipt, onEditOrder }: POSOrderDetailProps) => {
+export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, onPrintTicket, onPrintReceipt, onEditOrder, onStartPreparing }: POSOrderDetailProps) => {
   const nextStatus = statusFlow[order.status];
   const location = LOCATIONS.find(l => l.id === locationId);
 
@@ -272,13 +276,14 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             className={cn(
               "text-sm px-3 py-1",
               order.status === 'pending' && "bg-yellow-900/40 text-yellow-300 border-yellow-600",
-              order.status === 'preparing' && "bg-blue-900/40 text-blue-300 border-blue-600",
+              order.status === 'preparing' && isAdvanceOrder && "bg-purple-900/40 text-purple-300 border-purple-600",
+              order.status === 'preparing' && !isAdvanceOrder && "bg-blue-900/40 text-blue-300 border-blue-600",
               order.status === 'ready' && "bg-green-900/40 text-green-300 border-green-600",
               order.status === 'delivered' && "bg-gray-800 text-gray-300 border-gray-600",
               order.status === 'cancelled' && "bg-red-900/40 text-red-300 border-red-600",
             )}
           >
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            {isAdvanceOrder ? 'Scheduled' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </Badge>
         </div>
         <div className="flex items-center gap-4 text-sm text-gray-400">
@@ -618,7 +623,19 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             </Button>
           )}
           
-          {nextStatus && (
+          {/* Advance order: "Start Preparing" button */}
+          {isAdvanceOrder && onStartPreparing && (
+            <Button 
+              className="flex-1 text-white bg-purple-600 hover:bg-purple-700"
+              onClick={onStartPreparing}
+            >
+              <ChefHat className="w-4 h-4 mr-2" />
+              Start Preparing
+            </Button>
+          )}
+
+          {/* Normal status flow button (skip for advance orders since they use Start Preparing) */}
+          {nextStatus && !isAdvanceOrder && (
             <Button 
               className={cn(
                 "flex-1 text-white",
@@ -639,7 +656,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               ) : (
                 <ChefHat className="w-4 h-4 mr-2" />
               )}
-              {getStatusButtonLabel(order.status, !!isAdvanceOrder)}
+              {getStatusButtonLabel(order.status, false)}
             </Button>
           )}
         </div>
