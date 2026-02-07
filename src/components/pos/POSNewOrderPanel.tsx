@@ -1053,20 +1053,20 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 {isScheduled && (
                   <div className="flex gap-2">
                     <Select value={scheduledDate} onValueChange={(v) => { setScheduledDate(v); setScheduledTime(''); }}>
-                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Date" />
                       </SelectTrigger>
-                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: 'hsl(210, 20%, 98%)' }}>
                         {availableScheduleDates.map(d => (
                           <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <Select value={scheduledTime} onValueChange={setScheduledTime}>
-                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Time" />
                       </SelectTrigger>
-                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: 'hsl(210, 20%, 98%)' }}>
                         {availableScheduleTimes.map(t => (
                           <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                         ))}
