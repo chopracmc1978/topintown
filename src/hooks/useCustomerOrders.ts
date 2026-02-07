@@ -68,55 +68,41 @@ export const useCustomerOrders = (customerId: string | undefined) => {
     queryFn: async (): Promise<CustomerOrder[]> => {
       if (!customerId) return [];
 
-      // Exclude cancelled orders from customer history
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('customer_id', customerId)
-        .neq('status', 'cancelled')
-        .order('created_at', { ascending: false });
+      // Use edge function to fetch orders securely (avoids public SELECT on orders table)
+      const { data, error } = await supabase.functions.invoke('get-customer-orders', {
+        body: { customerId },
+      });
 
-      if (ordersError) throw ordersError;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // Fetch order items for each order
-      const ordersWithItems = await Promise.all(
-        (orders || []).map(async (order) => {
-          const { data: items, error: itemsError } = await supabase
-            .from('order_items')
-            .select('*')
-            .eq('order_id', order.id);
+      const orders = data?.orders || [];
 
-          if (itemsError) throw itemsError;
-
-          return {
-            id: order.id,
-            orderNumber: order.order_number,
-            locationId: order.location_id,
-            status: order.status,
-            orderType: order.order_type,
-            subtotal: Number(order.subtotal),
-            tax: Number(order.tax),
-            total: Number(order.total),
-            notes: order.notes,
-            createdAt: order.created_at,
-            pickupTime: order.pickup_time,
-            customerName: order.customer_name,
-            customerPhone: order.customer_phone,
-            paymentStatus: order.payment_status,
-            paymentMethod: order.payment_method,
-            items: (items || []).map((item) => ({
-              id: item.id,
-              name: item.name,
-              quantity: item.quantity,
-              unitPrice: Number(item.unit_price),
-              totalPrice: Number(item.total_price),
-              customizations: item.customizations as OrderItemCustomization | null,
-            })),
-          };
-        })
-      );
-
-      return ordersWithItems;
+      return orders.map((order: any) => ({
+        id: order.id,
+        orderNumber: order.order_number,
+        locationId: order.location_id,
+        status: order.status,
+        orderType: order.order_type,
+        subtotal: Number(order.subtotal),
+        tax: Number(order.tax),
+        total: Number(order.total),
+        notes: order.notes,
+        createdAt: order.created_at,
+        pickupTime: order.pickup_time,
+        customerName: order.customer_name,
+        customerPhone: order.customer_phone,
+        paymentStatus: order.payment_status,
+        paymentMethod: order.payment_method,
+        items: (order.items || []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: Number(item.unit_price),
+          totalPrice: Number(item.total_price),
+          customizations: item.customizations as OrderItemCustomization | null,
+        })),
+      }));
     },
     enabled: !!customerId,
   });

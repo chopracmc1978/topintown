@@ -189,20 +189,19 @@ export const CustomerProvider = ({ children }: { children: ReactNode }) => {
     if (!customer?.id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('id, email, phone, full_name, email_verified, phone_verified')
-        .eq('id', customer.id)
-        .single();
+      // Use edge function to refresh customer (avoids public SELECT on customers table)
+      const { data, error } = await supabase.functions.invoke('customer-profile', {
+        body: { customerId: customer.id },
+      });
 
-      if (!error && data) {
+      if (!error && data?.customer) {
         setCustomer({
-          id: data.id,
-          email: data.email,
-          phone: data.phone,
-          fullName: data.full_name,
-          emailVerified: data.email_verified,
-          phoneVerified: data.phone_verified,
+          id: data.customer.id,
+          email: data.customer.email,
+          phone: data.customer.phone,
+          fullName: data.customer.full_name,
+          emailVerified: data.customer.email_verified,
+          phoneVerified: data.customer.phone_verified,
         });
       }
     } catch (error) {

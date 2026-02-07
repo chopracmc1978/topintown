@@ -35,3 +35,12 @@ verify_jwt = false
 
 [functions.set-password]
 verify_jwt = false
+
+[functions.get-customer-orders]
+verify_jwt = false
+
+[functions.get-order-details]
+verify_jwt = false
+
+[functions.customer-profile]
+verify_jwt = false

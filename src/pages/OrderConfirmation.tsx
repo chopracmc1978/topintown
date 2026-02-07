@@ -103,43 +103,28 @@ const OrderConfirmation = () => {
 
     const fetchOrder = async (id: string) => {
       try {
-        // First try to find by order_number, then by id
-        let { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('order_number', id)
-          .single();
+        // Use edge function to fetch order securely (avoids public SELECT on orders table)
+        const { data, error: fetchError } = await supabase.functions.invoke('get-order-details', {
+          body: { orderNumber: id, orderId: id },
+        });
 
-        if (orderError || !orderData) {
-          // Try by id
-          const result = await supabase
-            .from('orders')
-            .select('*')
-            .eq('id', id)
-            .single();
-          orderData = result.data;
-          orderError = result.error;
-        }
-
-        if (orderError || !orderData) {
+        if (fetchError) {
+          console.error('Error fetching order:', fetchError);
           setError('Order not found');
           setLoading(false);
           return;
         }
 
-        // Fetch order items
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('order_items')
-          .select('*')
-          .eq('order_id', orderData.id);
-
-        if (itemsError) {
-          console.error('Error fetching items:', itemsError);
+        if (data?.error || !data?.order) {
+          setError('Order not found');
+          setLoading(false);
+          return;
         }
 
+        const orderData = data.order;
         setOrder({
           ...orderData,
-          items: itemsData || [],
+          items: orderData.items || [],
         });
       } catch (err) {
         console.error('Error fetching order:', err);
