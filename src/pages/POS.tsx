@@ -82,7 +82,7 @@ const POS = () => {
   });
   
   // Pass location to orders hook for filtering
-  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders } = usePOSOrders(currentLocationId);
+  const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, refetch } = usePOSOrders(currentLocationId);
   
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -821,13 +821,28 @@ const POS = () => {
       {/* Prep Time Modal */}
       <POSPrepTimeModal
         open={prepTimeModalOpen}
-        onClose={() => {
+        onClose={async () => {
           setPrepTimeModalOpen(false);
           setPendingPrepOrderId(null);
-          // Only clean up if we're NOT going to payment choice (user cancelled)
+          // If cancelling during new order creation, delete the order from DB
           if (newOrderPending && !showPaymentChoice) {
+            const cancelledOrderNumber = newOrderPending.id;
             setNewOrderPending(null);
-            // Order stays pending unpaid
+            try {
+              const { data: orderRecord } = await supabase
+                .from('orders')
+                .select('id')
+                .eq('order_number', cancelledOrderNumber)
+                .maybeSingle();
+              if (orderRecord) {
+                await supabase.from('order_items').delete().eq('order_id', orderRecord.id);
+                await supabase.from('orders').delete().eq('id', orderRecord.id);
+              }
+              // Refetch to sync local state
+              refetch();
+            } catch (err) {
+              console.error('Error deleting cancelled order:', err);
+            }
           }
         }}
         onConfirm={handlePrepTimeConfirm}
