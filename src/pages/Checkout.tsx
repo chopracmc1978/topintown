@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useCart } from '@/contexts/CartContext';
-import { useLocation as useLocationContext } from '@/contexts/LocationContext';
+import { useLocation as useLocationContext, LOCATIONS } from '@/contexts/LocationContext';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -304,7 +304,7 @@ const OrderItemCard = ({
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, total } = useCart();
-  const { selectedLocation } = useLocationContext();
+  const { selectedLocation, setSelectedLocation } = useLocationContext();
   const { customer } = useCustomer();
   const { data: menuItems } = useMenuItems();
   const { checkIfOpen } = useIsLocationOpen(selectedLocation?.id || 'calgary');
@@ -329,6 +329,7 @@ const Checkout = () => {
   
   // Location confirmation dialog
   const [showLocationConfirm, setShowLocationConfirm] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   
   // Advance ordering state - initialize from localStorage if available
   const [scheduledDate, setScheduledDate] = useState<Date | null>(() => {
@@ -894,10 +895,47 @@ const Checkout = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => navigate('/#locations')}>Change Location</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowLocationPicker(true)}>Change Location</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmLocation} className="bg-primary hover:bg-primary/90">
               Confirm & Continue
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Location Picker Dialog */}
+      <AlertDialog open={showLocationPicker} onOpenChange={setShowLocationPicker}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">Select Your Location</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="space-y-3 py-2">
+            {LOCATIONS.map((location) => (
+              <button
+                key={location.id}
+                onClick={() => {
+                  setSelectedLocation(location);
+                  setShowLocationPicker(false);
+                  // Re-open confirmation with the new location
+                  setTimeout(() => setShowLocationConfirm(true), 150);
+                }}
+                className={cn(
+                  "w-full flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-colors",
+                  selectedLocation?.id === location.id
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <MapPin className="w-5 h-5 mt-0.5 text-foreground flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-foreground">{location.name}</p>
+                  <p className="text-sm text-muted-foreground">{location.address}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
