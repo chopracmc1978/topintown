@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History, Gift, Check, Delete } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Plus, Minus, Search, X, Utensils, Package, Truck, Edit2, History, Gift, Check, Delete, CalendarClock, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useMenuItems, MenuItem } from '@/hooks/useMenuItems';
 import { useActiveCombos, Combo } from '@/hooks/useCombos';
@@ -131,6 +132,7 @@ interface POSNewOrderPanelProps {
      couponCode?: string;
      rewardsUsed?: number;
      rewardsDiscount?: number;
+     pickupTime?: Date;
   }) => void;
   onCancel: () => void;
   editingOrder?: Order | null;
@@ -182,6 +184,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const [tableNumber, setTableNumber] = useState(editingOrder?.tableNumber || '');
   const [notes, setNotes] = useState(editingOrder?.notes || '');
   
+  // Schedule order state
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   // Discount fields
   const [couponCode, setCouponCode] = useState('');
   const [manualDiscount, setManualDiscount] = useState('');
@@ -272,6 +278,56 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
       setShowRewardsSuggestion(false);
     }
   }, [rewardPoints, cartItems.length, rewardsApplied, isEditMode]);
+
+  // Generate available dates for scheduling (next 7 days)
+  const availableScheduleDates = useMemo(() => {
+    const dates: { value: string; label: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(now);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      let label = '';
+      if (i === 0) label = 'Today';
+      else if (i === 1) label = 'Tomorrow';
+      else label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      dates.push({ value: dateStr, label });
+    }
+    return dates;
+  }, []);
+
+  // Generate time slots (every 30 min from now if today, else from 10am to 10pm)
+  const availableScheduleTimes = useMemo(() => {
+    const times: { value: string; label: string }[] = [];
+    const now = new Date();
+    const isToday = scheduledDate === now.toISOString().split('T')[0];
+    
+    let startHour = 10;
+    let startMin = 0;
+    
+    if (isToday) {
+      // Start from next 30-min slot, at least 1 hour from now
+      const minTime = new Date(now.getTime() + 60 * 60 * 1000);
+      startHour = minTime.getHours();
+      startMin = minTime.getMinutes() >= 30 ? 30 : 0;
+      if (minTime.getMinutes() >= 30) {
+        startMin = 0;
+        startHour += 1;
+      }
+    }
+    
+    for (let h = startHour; h <= 22; h++) {
+      for (let m = (h === startHour ? startMin : 0); m < 60; m += 30) {
+        if (h === 22 && m > 0) break;
+        const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        const hour12 = h % 12 || 12;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const label = `${hour12}:${m.toString().padStart(2, '0')} ${ampm}`;
+        times.push({ value: timeStr, label });
+      }
+    }
+    return times;
+  }, [scheduledDate]);
 
   // Reward redemption constants
   const REWARD_MIN_POINTS = 200;
@@ -567,6 +623,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
         notes: notes || undefined,
       });
     } else {
+      // Build pickupTime from scheduled date/time
+      let pickupTime: Date | undefined;
+      if (isScheduled && scheduledDate && scheduledTime) {
+        pickupTime = new Date(`${scheduledDate}T${scheduledTime}:00`);
+      }
+
       onCreateOrder({
         items: cartItems,
         customerName: customerName || 'Walk-in Customer',
@@ -580,6 +642,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
          couponCode: appliedCoupon?.code || undefined,
          rewardsUsed: rewardsApplied?.points || undefined,
          rewardsDiscount: rewardsApplied?.dollarValue || undefined,
+         pickupTime,
       });
     }
   };
@@ -954,6 +1017,65 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </ScrollArea>
 
             <Separator style={{ background: 'hsl(220, 20%, 28%)' }} />
+
+            {/* Schedule Order Toggle */}
+            {!isEditMode && (
+              <div className="px-4 py-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    onClick={() => { setIsScheduled(false); setScheduledDate(''); setScheduledTime(''); }}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      !isScheduled ? "bg-blue-600 text-white" : "text-gray-300"
+                    )}
+                    style={{ background: !isScheduled ? undefined : 'hsl(220, 22%, 22%)' }}
+                  >
+                    <Clock className="w-4 h-4" />
+                    ASAP
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsScheduled(true);
+                      if (!scheduledDate) {
+                        setScheduledDate(availableScheduleDates[0]?.value || '');
+                      }
+                    }}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isScheduled ? "bg-blue-600 text-white" : "text-gray-300"
+                    )}
+                    style={{ background: isScheduled ? undefined : 'hsl(220, 22%, 22%)' }}
+                  >
+                    <CalendarClock className="w-4 h-4" />
+                    Schedule
+                  </button>
+                </div>
+                {isScheduled && (
+                  <div className="flex gap-2">
+                    <Select value={scheduledDate} onValueChange={(v) => { setScheduledDate(v); setScheduledTime(''); }}>
+                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                        <SelectValue placeholder="Date" />
+                      </SelectTrigger>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                        {availableScheduleDates.map(d => (
+                          <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={scheduledTime} onValueChange={setScheduledTime}>
+                      <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                        <SelectValue placeholder="Time" />
+                      </SelectTrigger>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+                        {availableScheduleTimes.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Order Notes */}
             <div className="p-4" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>

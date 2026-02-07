@@ -4,16 +4,28 @@ import { Order } from '@/types/menu';
 export const usePOSNotificationSound = (orders: Order[]) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const advanceAlertIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false); // Start false until user enables
   const [volume, setVolume] = useState(0.8); // Volume 0-1
   const [isAudioReady, setIsAudioReady] = useState(false); // Whether AudioContext is initialized
   const previousPendingIdsRef = useRef<Set<string>>(new Set());
+  const alertedAdvanceIdsRef = useRef<Set<string>>(new Set()); // Track which advance orders already triggered 30-min alert
   const userToggledOffRef = useRef(false); // Track if user explicitly disabled
+  const [advanceAlertOrderIds, setAdvanceAlertOrderIds] = useState<string[]>([]); // Currently alerting advance orders
 
   // Track pending web/app orders (not walk-in)
   const pendingRemoteOrders = orders.filter(
     o => o.status === 'pending' && (o.source === 'web' || o.source === 'app')
   );
+
+  // Track advance orders that are within 30 minutes of pickup time
+  const advanceOrdersDueSoon = orders.filter(o => {
+    if (o.status !== 'preparing' || !o.pickupTime) return false;
+    const pickupTime = new Date(o.pickupTime);
+    const now = new Date();
+    const minutesUntil = (pickupTime.getTime() - now.getTime()) / (1000 * 60);
+    return minutesUntil <= 30 && minutesUntil > -5; // 30 min before to 5 min after
+  });
 
   // Initialize AudioContext (doesn't mean audio is enabled)
   const initAudioContext = useCallback(() => {
@@ -191,14 +203,49 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     previousPendingIdsRef.current = currentIds;
   }, [pendingRemoteOrders, isAudioEnabled, startSound]);
 
-  // Start/stop based on pending orders
+  // Start/stop based on pending orders OR advance order alerts
   useEffect(() => {
-    if (pendingRemoteOrders.length > 0 && isAudioEnabled) {
+    if ((pendingRemoteOrders.length > 0 || advanceAlertOrderIds.length > 0) && isAudioEnabled) {
       startSound();
-    } else if (pendingRemoteOrders.length === 0) {
+    } else if (pendingRemoteOrders.length === 0 && advanceAlertOrderIds.length === 0) {
       stopSound();
     }
-  }, [pendingRemoteOrders.length, isAudioEnabled, startSound, stopSound]);
+  }, [pendingRemoteOrders.length, advanceAlertOrderIds.length, isAudioEnabled, startSound, stopSound]);
+
+  // Check advance orders every 30 seconds for 30-min alert
+  useEffect(() => {
+    if (!isAudioEnabled) return;
+
+    const checkAdvanceOrders = () => {
+      const newAlerts: string[] = [];
+      advanceOrdersDueSoon.forEach(o => {
+        if (!alertedAdvanceIdsRef.current.has(o.id)) {
+          alertedAdvanceIdsRef.current.add(o.id);
+          newAlerts.push(o.id);
+          console.log('⏰ Advance order approaching pickup time:', o.id, o.pickupTime);
+        }
+      });
+      if (newAlerts.length > 0) {
+        setAdvanceAlertOrderIds(prev => [...prev, ...newAlerts]);
+      }
+    };
+
+    checkAdvanceOrders();
+    advanceAlertIntervalRef.current = setInterval(checkAdvanceOrders, 30000); // Check every 30s
+
+    return () => {
+      if (advanceAlertIntervalRef.current) {
+        clearInterval(advanceAlertIntervalRef.current);
+        advanceAlertIntervalRef.current = null;
+      }
+    };
+  }, [advanceOrdersDueSoon, isAudioEnabled]);
+
+  // Clear advance alerts when those orders move past 'preparing' or are handled
+  useEffect(() => {
+    const activeAdvanceIds = new Set(advanceOrdersDueSoon.map(o => o.id));
+    setAdvanceAlertOrderIds(prev => prev.filter(id => activeAdvanceIds.has(id)));
+  }, [advanceOrdersDueSoon]);
 
   // Cleanup on unmount - use empty deps to only run on unmount
   useEffect(() => {
@@ -206,6 +253,10 @@ export const usePOSNotificationSound = (orders: Order[]) => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      if (advanceAlertIntervalRef.current) {
+        clearInterval(advanceAlertIntervalRef.current);
+        advanceAlertIntervalRef.current = null;
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -217,6 +268,8 @@ export const usePOSNotificationSound = (orders: Order[]) => {
   return {
     hasPendingRemoteOrders: pendingRemoteOrders.length > 0,
     pendingCount: pendingRemoteOrders.length,
+    hasAdvanceAlerts: advanceAlertOrderIds.length > 0,
+    advanceAlertCount: advanceAlertOrderIds.length,
     isAudioEnabled,
     volume,
     enableAudio,
@@ -224,5 +277,8 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     toggleAudio,
     adjustVolume,
     playTestSound,
+    dismissAdvanceAlert: (orderId: string) => {
+      setAdvanceAlertOrderIds(prev => prev.filter(id => id !== orderId));
+    },
   };
 };
