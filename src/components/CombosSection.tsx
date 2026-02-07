@@ -3,17 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useActiveCombos, Combo } from '@/hooks/useCombos';
 import { ComboBuilderModal } from '@/components/combo/ComboBuilderModal';
 import { Package } from 'lucide-react';
-
-// Helper to get optimized Supabase image URL
-const getOptimizedImageUrl = (url: string | null, width = 400): string => {
-  if (!url) return '';
-  if (url.includes('supabase.co/storage/v1/object/public/')) {
-    const renderUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-    const separator = renderUrl.includes('?') ? '&' : '?';
-    return `${renderUrl}${separator}width=${width}&quality=75&resize=contain`;
-  }
-  return url;
-};
+import OptimizedImage from '@/components/OptimizedImage';
 
 const CombosSection = () => {
   const { data: combos, isLoading } = useActiveCombos();
@@ -42,19 +32,18 @@ const CombosSection = () => {
               className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow cursor-pointer flex flex-col h-full"
               onClick={() => setSelectedCombo(combo)}
             >
-              {combo.image_url ? (
-                <img
-                  src={getOptimizedImageUrl(combo.image_url)}
-                  alt={combo.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-48 object-cover bg-muted"
-                />
-              ) : (
-                <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <Package className="h-16 w-16 text-primary/50" />
-                </div>
-              )}
+              <OptimizedImage
+                src={combo.image_url}
+                alt={combo.name}
+                width={500}
+                containerClassName="w-full h-48"
+                className="w-full h-full object-cover"
+                fallback={
+                  <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <Package className="h-16 w-16 text-primary/50" />
+                  </div>
+                }
+              />
               
               <div className="p-4 flex flex-col flex-1">
                 <div className="flex-1">
@@ -67,7 +56,6 @@ const CombosSection = () => {
                     </p>
                   )}
                   
-                  {/* Show combo items */}
                   <div className="flex flex-wrap gap-1 mb-4">
                     {combo.combo_items?.map((item, i) => (
                       <span
@@ -98,7 +86,6 @@ const CombosSection = () => {
         </div>
       </div>
 
-      {/* Combo Builder Modal */}
       {selectedCombo && (
         <ComboBuilderModal
           combo={selectedCombo}

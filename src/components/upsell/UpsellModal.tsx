@@ -5,17 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 import { Plus, Minus, ArrowRight, Check, X } from 'lucide-react';
-
-// Helper to get optimized Supabase image URL
-const getOptimizedImageUrl = (url: string | null, width = 300): string => {
-  if (!url) return '';
-  if (url.includes('supabase.co/storage/v1/object/public/')) {
-    const renderUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-    const separator = renderUrl.includes('?') ? '&' : '?';
-    return `${renderUrl}${separator}width=${width}&quality=75&resize=contain`;
-  }
-  return url;
-};
+import OptimizedImage from '@/components/OptimizedImage';
 
 interface UpsellItem {
   id: string;
@@ -46,7 +36,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   const [selectedItems, setSelectedItems] = useState<UpsellItem[]>([]);
   const { addToCart } = useCart();
 
-  // Filter out excluded steps
   const UPSELL_STEPS = useMemo(() => 
     ALL_UPSELL_STEPS.filter(s => !excludeSteps.includes(s.step)),
     [excludeSteps]
@@ -55,7 +44,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   const currentStep = UPSELL_STEPS[currentStepIndex];
   const isLastStep = currentStepIndex === UPSELL_STEPS.length - 1;
 
-  // Fetch items for current category
   const { data: drinks } = useMenuItems('drinks');
   const { data: dippingSauces } = useMenuItems('dipping_sauce');
   const { data: wings } = useMenuItems('chicken_wings');
@@ -70,7 +58,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
       case 'chicken_wings':
         return wings || [];
       case 'baked_lasagna':
-        // Filter for garlic toast items from baked lasagna category
         return (bakedLasagna || []).filter(item => 
           item.name.toLowerCase().includes('garlic') || 
           item.name.toLowerCase().includes('toast')
@@ -108,7 +95,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
 
   const handleNext = () => {
     if (isLastStep) {
-      // Add all selected items to cart and complete
       onComplete(selectedItems);
     } else {
       setCurrentStepIndex(prev => prev + 1);
@@ -124,7 +110,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   };
 
   const handleClose = () => {
-    // Reset state and close
     setCurrentStepIndex(0);
     setSelectedItems([]);
     onClose();
@@ -133,7 +118,6 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   const stepItemsTotal = useMemo(() => {
     return selectedItems
       .filter(item => {
-        // Check if item belongs to current step's category
         const categoryItems = currentItems.map(i => i.id);
         return categoryItems.includes(item.id);
       })
@@ -161,7 +145,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
           </div>
         </div>
 
-        {/* Items Grid - Compact Layout */}
+        {/* Items Grid */}
         <div className="p-3 overflow-y-auto max-h-[60vh]">
           {currentItems.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
@@ -181,28 +165,22 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                       isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                     )}
                   >
-                    {/* Item Image - Smaller */}
-                    <div className="aspect-square bg-muted rounded-md mb-1.5 overflow-hidden">
-                      {item.image_url ? (
-                        <img 
-                          src={getOptimizedImageUrl(item.image_url)} 
-                          alt={item.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    <OptimizedImage
+                      src={item.image_url}
+                      alt={item.name}
+                      width={200}
+                      containerClassName="aspect-square rounded-md mb-1.5"
+                      className="w-full h-full object-cover"
+                      fallback={
+                        <div className="aspect-square rounded-md mb-1.5 bg-muted flex items-center justify-center text-muted-foreground">
                           <span className="text-2xl">🍕</span>
                         </div>
-                      )}
-                    </div>
+                      }
+                    />
                     
-                    {/* Item Info - Compact */}
                     <h3 className="font-medium text-xs line-clamp-2 mb-0.5 leading-tight">{item.name}</h3>
                     <p className="text-primary font-bold text-xs mb-1.5">${item.base_price.toFixed(2)}</p>
                     
-                    {/* Quantity Controls - Smaller */}
                     <div className="flex items-center justify-center gap-1">
                       {isSelected ? (
                         <>
