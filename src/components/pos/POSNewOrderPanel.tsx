@@ -1056,9 +1056,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Date" />
                       </SelectTrigger>
-                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: 'hsl(210, 20%, 98%)' }}>
+                      <SelectContent className="pos-premium-theme" style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)' }}>
                         {availableScheduleDates.map(d => (
-                          <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                          <SelectItem key={d.value} value={d.value} style={{ color: 'hsl(210, 20%, 98%)' }}>{d.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1066,9 +1066,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Time" />
                       </SelectTrigger>
-                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', color: 'hsl(210, 20%, 98%)' }}>
+                      <SelectContent className="pos-premium-theme" style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)' }}>
                         {availableScheduleTimes.map(t => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          <SelectItem key={t.value} value={t.value} style={{ color: 'hsl(210, 20%, 98%)' }}>{t.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
