@@ -63,14 +63,15 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
 
     setLoading(true);
     try {
-      // Check if customer exists
-      // Never select password_hash on the client - check account status without exposing secrets
-      const { data: existingCustomers, error: checkError } = await supabase
-        .from('customers')
-        .select('id, email, phone, full_name, email_verified, phone_verified')
-        .eq('email', email.toLowerCase().trim());
+      // Check if customer exists via edge function (avoids public SELECT on customers table)
+      const { data: profileData, error: profileError } = await supabase.functions.invoke('customer-profile', {
+        body: { email: email.toLowerCase().trim() },
+      });
 
-      if (checkError) throw checkError;
+      if (profileError) throw profileError;
+      if (profileData?.error) throw new Error(profileData.error);
+
+      const existingCustomers = profileData?.customers || [];
 
       let custId: string;
 
