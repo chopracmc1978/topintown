@@ -1056,9 +1056,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Date" />
                       </SelectTrigger>
-                      <SelectContent className="pos-premium-theme" style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         {availableScheduleDates.map(d => (
-                          <SelectItem key={d.value} value={d.value} style={{ color: 'hsl(210, 20%, 98%)' }}>{d.label}</SelectItem>
+                          <SelectItem key={d.value} value={d.value} className="data-[highlighted]:bg-[hsl(220,22%,28%)] hover:!bg-[hsl(220,22%,28%)]" style={{ color: 'hsl(210, 20%, 98%)', backgroundColor: 'hsl(220, 25%, 18%)' }}>{d.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1066,9 +1066,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <SelectTrigger className="flex-1 h-9 text-sm" style={{ backgroundColor: 'hsl(220, 22%, 22%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         <SelectValue placeholder="Time" />
                       </SelectTrigger>
-                      <SelectContent className="pos-premium-theme" style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)' }}>
+                      <SelectContent style={{ backgroundColor: 'hsl(220, 25%, 18%)', borderColor: 'hsl(220, 20%, 35%)', color: 'hsl(210, 20%, 98%)' }}>
                         {availableScheduleTimes.map(t => (
-                          <SelectItem key={t.value} value={t.value} style={{ color: 'hsl(210, 20%, 98%)' }}>{t.label}</SelectItem>
+                          <SelectItem key={t.value} value={t.value} className="data-[highlighted]:bg-[hsl(220,22%,28%)] hover:!bg-[hsl(220,22%,28%)]" style={{ color: 'hsl(210, 20%, 98%)', backgroundColor: 'hsl(220, 25%, 18%)' }}>{t.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
