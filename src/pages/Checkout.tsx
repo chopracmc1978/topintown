@@ -894,7 +894,7 @@ const Checkout = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Change Location</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => navigate('/#locations')}>Change Location</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmLocation} className="bg-primary hover:bg-primary/90">
               Confirm & Continue
             </AlertDialogAction>
