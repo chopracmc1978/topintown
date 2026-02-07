@@ -9,12 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface SendOtpRequest {
-  email?: string;
-  phone?: string;
-  type: "email" | "phone";
-  customerId?: string;
-}
+const MAX_OTP_PER_HOUR = 5;
 
 function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -55,13 +50,11 @@ async function sendSmsWithTwilio(to: string, code: string): Promise<void> {
     throw new Error("Twilio credentials are not configured");
   }
 
-  // Format phone number to E.164 format if needed
   let formattedPhone = to;
   if (!to.startsWith("+")) {
-    formattedPhone = "+1" + to.replace(/\D/g, ""); // Default to US/Canada
+    formattedPhone = "+1" + to.replace(/\D/g, "");
   }
 
-  // Use Twilio REST API directly instead of SDK (better Deno compatibility)
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
   
   const body = new URLSearchParams({
@@ -90,33 +83,71 @@ async function sendSmsWithTwilio(to: string, code: string): Promise<void> {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { email, phone, type, customerId }: SendOtpRequest = await req.json();
-    console.log("Send OTP request:", { email, phone, type, customerId });
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
 
-    // Validate input
-    if (type === "email" && !email) {
-      throw new Error("Email is required for email OTP");
+  try {
+    const body = await req.json();
+    const type = body.type;
+    const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : undefined;
+    const phone = typeof body.phone === "string" ? body.phone.trim() : undefined;
+    const customerId = typeof body.customerId === "string" ? body.customerId : undefined;
+
+    // Input validation
+    if (type !== "email" && type !== "phone") {
+      return json(400, { error: "Invalid OTP type" });
     }
-    if (type === "phone" && !phone) {
-      throw new Error("Phone is required for phone OTP");
+    if (type === "email") {
+      if (!email || email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json(400, { error: "Valid email is required" });
+      }
     }
+    if (type === "phone") {
+      if (!phone || phone.replace(/\D/g, "").length < 10 || phone.replace(/\D/g, "").length > 15) {
+        return json(400, { error: "Valid phone number is required" });
+      }
+    }
+
+    console.log("Send OTP request:", { type, hasEmail: !!email, hasPhone: !!phone });
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Rate limiting: check how many OTPs were sent in the last hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    let rateLimitQuery = supabase
+      .from("otp_codes")
+      .select("id", { count: "exact", head: true })
+      .eq("type", type)
+      .gt("created_at", oneHourAgo);
+
+    if (type === "email" && email) {
+      rateLimitQuery = rateLimitQuery.eq("email", email);
+    }
+    if (type === "phone" && phone) {
+      rateLimitQuery = rateLimitQuery.eq("phone", phone);
+    }
+
+    const { count: otpCount } = await rateLimitQuery;
+    if (otpCount !== null && otpCount >= MAX_OTP_PER_HOUR) {
+      console.log("Rate limit exceeded for:", type === "email" ? email : phone);
+      return json(400, { error: "Too many requests. Please wait before requesting another code." });
+    }
+
     // Generate OTP
     const code = generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Invalidate previous OTP codes for this email/phone
+    // Invalidate previous OTP codes
     if (type === "email" && email) {
       await supabase
         .from("otp_codes")
@@ -142,41 +173,28 @@ const handler = async (req: Request): Promise<Response> => {
       code,
       type,
       expires_at: expiresAt.toISOString(),
+      attempts: 0,
     });
 
     if (insertError) {
       console.error("Error inserting OTP:", insertError);
-      throw new Error("Failed to generate OTP");
+      return json(400, { error: "Failed to generate OTP" });
     }
 
-    // Send OTP via email using Resend
+    // Send OTP
     if (type === "email" && email) {
       await sendEmailWithResend(email, code);
-      console.log("Email OTP sent successfully via Resend to:", email);
+      console.log("Email OTP sent successfully to:", email);
     }
-
-    // Send OTP via SMS using Twilio
     if (type === "phone" && phone) {
       await sendSmsWithTwilio(phone, code);
-      console.log("Phone OTP sent successfully via Twilio to:", phone);
+      console.log("Phone OTP sent successfully to:", phone);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: `OTP sent to ${type}` }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(200, { success: true, message: `OTP sent to ${type}` });
   } catch (error: any) {
     console.error("Error in send-otp:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(400, { error: "Failed to send verification code. Please try again." });
   }
 };
 

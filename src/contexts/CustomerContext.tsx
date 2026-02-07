@@ -191,7 +191,7 @@ export const CustomerProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('customers')
-        .select('*')
+        .select('id, email, phone, full_name, email_verified, phone_verified')
         .eq('id', customer.id)
         .single();
 

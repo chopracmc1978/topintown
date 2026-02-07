@@ -18,14 +18,7 @@ export interface CustomerVerificationProps {
   createAccount?: boolean;
 }
 
-// Simple password hashing matching the edge function
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+// Password is now hashed server-side via the set-password edge function
 
 export const CustomerVerification = ({ onComplete, onBack, createAccount = true }: CustomerVerificationProps) => {
   const { setCustomer } = useCustomer();
@@ -73,7 +66,7 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
       // Check if customer exists
       const { data: existingCustomers, error: checkError } = await supabase
         .from('customers')
-        .select('*')
+        .select('id, email, phone, full_name, email_verified, phone_verified, password_hash')
         .eq('email', email.toLowerCase().trim());
 
       if (checkError) throw checkError;
@@ -241,18 +234,13 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
 
     setLoading(true);
     try {
-      const hashedPassword = await hashPassword(password);
-
-      const { error } = await supabase
-        .from('customers')
-        .update({ 
-          password_hash: hashedPassword,
-          email_verified: true,
-          phone_verified: true,
-        })
-        .eq('id', customerId);
+      // Hash password server-side via edge function
+      const { data, error } = await supabase.functions.invoke('set-password', {
+        body: { customerId, password },
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       // Set customer in context
       setCustomer({

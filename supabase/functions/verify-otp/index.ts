@@ -6,33 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface VerifyOtpRequest {
-  email?: string;
-  phone?: string;
-  code: string;
-  type: "email" | "phone";
-}
+const MAX_ATTEMPTS = 5;
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { email, phone, code, type }: VerifyOtpRequest = await req.json();
-    console.log("Verify OTP request:", { email, phone, type, code: "***" });
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
 
-    // Validate input
-    if (!code) {
-      throw new Error("OTP code is required");
+  try {
+    const body = await req.json();
+    const email = typeof body.email === "string" ? body.email.toLowerCase().trim() : undefined;
+    const phone = typeof body.phone === "string" ? body.phone.trim() : undefined;
+    const code = typeof body.code === "string" ? body.code.trim() : "";
+    const type = body.type;
+
+    // Input validation
+    if (!code || !/^\d{6}$/.test(code)) {
+      return json(400, { error: "Invalid verification code format" });
     }
-    if (type === "email" && !email) {
-      throw new Error("Email is required for email verification");
+    if (type !== "email" && type !== "phone") {
+      return json(400, { error: "Invalid verification type" });
     }
-    if (type === "phone" && !phone) {
-      throw new Error("Phone is required for phone verification");
+    if (type === "email" && (!email || email.length > 255)) {
+      return json(400, { error: "Valid email is required for email verification" });
     }
+    if (type === "phone" && (!phone || phone.length > 20)) {
+      return json(400, { error: "Valid phone is required for phone verification" });
+    }
+
+    console.log("Verify OTP request:", { email, phone, type, code: "***" });
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -42,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Find the OTP code
     let query = supabase
       .from("otp_codes")
-      .select("*")
+      .select("id, customer_id, attempts")
       .eq("code", code)
       .eq("type", type)
       .eq("used", false)
@@ -61,60 +69,86 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (queryError) {
       console.error("Error querying OTP:", queryError);
-      throw new Error("Failed to verify OTP");
+      return json(400, { error: "Failed to verify OTP" });
     }
 
+    // If no matching OTP found, check if there's an active OTP for this identifier
+    // and increment its attempt counter
     if (!otpRecords || otpRecords.length === 0) {
-      throw new Error("Invalid or expired verification code");
+      // Find the most recent active OTP for this identifier to track attempts
+      let attemptQuery = supabase
+        .from("otp_codes")
+        .select("id, attempts")
+        .eq("type", type)
+        .eq("used", false)
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (type === "email" && email) {
+        attemptQuery = attemptQuery.eq("email", email);
+      }
+      if (type === "phone" && phone) {
+        attemptQuery = attemptQuery.eq("phone", phone);
+      }
+
+      const { data: activeOtp } = await attemptQuery;
+      if (activeOtp && activeOtp.length > 0) {
+        const newAttempts = (activeOtp[0].attempts || 0) + 1;
+        await supabase
+          .from("otp_codes")
+          .update({ attempts: newAttempts })
+          .eq("id", activeOtp[0].id);
+
+        if (newAttempts >= MAX_ATTEMPTS) {
+          // Invalidate the OTP after too many attempts
+          await supabase
+            .from("otp_codes")
+            .update({ used: true })
+            .eq("id", activeOtp[0].id);
+          return json(400, { error: "Too many failed attempts. Please request a new code." });
+        }
+      }
+
+      return json(400, { error: "Invalid or expired verification code" });
     }
 
     const otpRecord = otpRecords[0];
 
+    // Check attempt limit
+    if ((otpRecord.attempts || 0) >= MAX_ATTEMPTS) {
+      await supabase
+        .from("otp_codes")
+        .update({ used: true })
+        .eq("id", otpRecord.id);
+      return json(400, { error: "Too many failed attempts. Please request a new code." });
+    }
+
     // Mark OTP as used
-    const { error: updateOtpError } = await supabase
+    await supabase
       .from("otp_codes")
       .update({ used: true })
       .eq("id", otpRecord.id);
 
-    if (updateOtpError) {
-      console.error("Error marking OTP as used:", updateOtpError);
-    }
-
     // If customer exists, update their verification status
     if (otpRecord.customer_id) {
       const updateField = type === "email" ? "email_verified" : "phone_verified";
-      const { error: updateCustomerError } = await supabase
+      await supabase
         .from("customers")
         .update({ [updateField]: true })
         .eq("id", otpRecord.customer_id);
-
-      if (updateCustomerError) {
-        console.error("Error updating customer verification:", updateCustomerError);
-      }
     }
 
     console.log("OTP verified successfully for:", type === "email" ? email : phone);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `${type} verified successfully`,
-        customerId: otpRecord.customer_id 
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(200, {
+      success: true,
+      message: `${type} verified successfully`,
+      customerId: otpRecord.customer_id,
+    });
   } catch (error: any) {
     console.error("Error in verify-otp:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(400, { error: "Verification failed. Please try again." });
   }
 };
 
