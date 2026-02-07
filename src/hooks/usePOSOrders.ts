@@ -321,14 +321,40 @@ export const usePOSOrders = (locationId?: string) => {
         orderDate: order.createdAt.toISOString(),
         orderType: order.orderType,
         pickupTime: order.pickupTime?.toISOString(),
-        items: order.items.map(item => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: item.totalPrice,
-          customizations: item.pizzaCustomization || item.wingsCustomization,
-        })),
+        items: order.items.map(item => {
+          const customizations: any = {};
+          if (item.pizzaCustomization) {
+            customizations.size = item.pizzaCustomization.size;
+            customizations.crust = item.pizzaCustomization.crust;
+            customizations.sauceName = item.pizzaCustomization.sauceName;
+            customizations.sauceQuantity = item.pizzaCustomization.sauceQuantity;
+            customizations.cheeseType = item.pizzaCustomization.cheeseType;
+            customizations.spicyLevel = item.pizzaCustomization.spicyLevel;
+            customizations.freeToppings = item.pizzaCustomization.freeToppings;
+            customizations.defaultToppings = item.pizzaCustomization.defaultToppings;
+            customizations.extraToppings = item.pizzaCustomization.extraToppings;
+            customizations.note = item.pizzaCustomization.note;
+          }
+          if (item.wingsCustomization) {
+            customizations.flavor = item.wingsCustomization.flavor;
+          }
+          if (item.comboCustomization) {
+            customizations.comboId = item.comboCustomization.comboId;
+            customizations.comboName = item.comboCustomization.comboName;
+            customizations.selections = item.comboCustomization.selections;
+          }
+          if (item.selectedSize && !item.pizzaCustomization) {
+            customizations.selectedSize = item.selectedSize;
+          }
+          return {
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            totalPrice: item.totalPrice,
+            customizations: Object.keys(customizations).length > 0 ? customizations : undefined,
+          };
+        }),
         subtotal: order.subtotal,
         tax: order.tax,
         total: order.total,

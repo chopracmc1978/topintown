@@ -100,6 +100,46 @@ const formatPickupTime = (dateString: string): string => {
   });
 };
 
+const buildPizzaDetailsHtml = (pc: any, indent: number = 15): string => {
+  const lines: string[] = [];
+  const style = `color: #666; font-size: 12px; margin-left: ${indent}px;`;
+  
+  if (pc.size?.name) {
+    lines.push(`<div style="${style}">${pc.size.name}, ${pc.crust?.name || 'Regular'}</div>`);
+  }
+  if (pc.sauceName) {
+    const sauceLabel = pc.sauceQuantity === 'extra' ? `${pc.sauceName} (Extra)` : pc.sauceName;
+    lines.push(`<div style="${style}">Sauce: ${sauceLabel}</div>`);
+  }
+  if (pc.cheeseType) {
+    lines.push(`<div style="${style}">${pc.cheeseType}</div>`);
+  }
+  if (pc.spicyLevel) {
+    const sl = pc.spicyLevel;
+    if (typeof sl === 'object' && (sl.left !== 'none' || sl.right !== 'none')) {
+      lines.push(`<div style="${style}">Spicy: L:${sl.left || 'None'} R:${sl.right || 'None'}</div>`);
+    } else if (typeof sl === 'string' && sl !== 'none') {
+      lines.push(`<div style="${style}">Spicy: ${sl}</div>`);
+    }
+  }
+  if (pc.freeToppings && pc.freeToppings.length > 0) {
+    lines.push(`<div style="${style}">Add: ${pc.freeToppings.join(', ')}</div>`);
+  }
+  if (pc.defaultToppings) {
+    const removed = pc.defaultToppings.filter((t: any) => t.quantity === 'none');
+    if (removed.length > 0) {
+      lines.push(`<div style="${style}">NO ${removed.map((t: any) => t.name).join(', ')}</div>`);
+    }
+  }
+  if (pc.extraToppings && pc.extraToppings.length > 0) {
+    lines.push(`<div style="${style}">+${pc.extraToppings.map((t: any) => t.name).join(', ')}</div>`);
+  }
+  if (pc.note) {
+    lines.push(`<div style="${style}; font-style: italic;">Note: ${pc.note}</div>`);
+  }
+  return lines.join('');
+};
+
 const buildEmailHtml = (data: SendReceiptRequest): string => {
   const itemsHtml = data.items.map(item => {
     let customization = '';
@@ -111,47 +151,20 @@ const buildEmailHtml = (data: SendReceiptRequest): string => {
         let selDetail = `<div style="color: #666; font-size: 12px; margin-left: 15px;">- ${sel.itemName}${sel.flavor ? ` (${sel.flavor})` : ''}</div>`;
         
         if (sel.pizzaCustomization) {
-          const pc = sel.pizzaCustomization;
-          const pizzaDetails: string[] = [];
-          
-          if (pc.size?.name) {
-            pizzaDetails.push(`${pc.size.name}, ${pc.crust?.name || 'Regular'}`);
-          }
-          if (pc.extraToppings && pc.extraToppings.length > 0) {
-            pizzaDetails.push(`+${pc.extraToppings.map(t => t.name).join(', ')}`);
-          }
-          if (pc.defaultToppings) {
-            const removed = pc.defaultToppings.filter(t => t.quantity === 'none');
-            if (removed.length > 0) {
-              pizzaDetails.push(`NO: ${removed.map(t => t.name).join(', ')}`);
-            }
-          }
-          
-          if (pizzaDetails.length > 0) {
-            selDetail += `<div style="color: #888; font-size: 11px; margin-left: 25px;">${pizzaDetails.join(' | ')}</div>`;
-          }
+          selDetail += buildPizzaDetailsHtml(sel.pizzaCustomization, 25);
         }
         return selDetail;
       }).join('');
       customization = selectionsHtml;
     } else if (item.customizations?.size && item.customizations?.crust) {
-      // Standalone pizza
-      const details: string[] = [`${item.customizations.size.name}, ${item.customizations.crust.name}`];
-      
-      if (item.customizations.extraToppings && item.customizations.extraToppings.length > 0) {
-        details.push(`+${item.customizations.extraToppings.map(t => t.name).join(', ')}`);
-      }
-      if (item.customizations.defaultToppings) {
-        const removed = item.customizations.defaultToppings.filter(t => t.quantity === 'none');
-        if (removed.length > 0) {
-          details.push(`NO: ${removed.map(t => t.name).join(', ')}`);
-        }
-      }
-      
-      customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${details.join(' | ')}</span>`;
+      // Standalone pizza - full details
+      customization = `<br>${buildPizzaDetailsHtml(item.customizations, 10)}`;
     } else if (item.customizations?.flavor) {
       // Standalone wings
       customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${item.customizations.flavor}</span>`;
+    } else if (item.customizations?.selectedSize) {
+      // Non-pizza item with size
+      customization = `<br><span style="color: #666; font-size: 12px; margin-left: 10px;">${item.customizations.selectedSize}</span>`;
     }
     
     return `
