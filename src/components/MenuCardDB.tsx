@@ -12,10 +12,11 @@ import UpsellModal from '@/components/upsell/UpsellModal';
 // Helper to get optimized Supabase image URL
 const getOptimizedImageUrl = (url: string | null, width = 400): string => {
   if (!url || url === '/placeholder.svg') return '/placeholder.svg';
-  // Supabase storage transform: append render/image/t_ params
+  // Use Supabase render endpoint for actual server-side resizing
   if (url.includes('supabase.co/storage/v1/object/public/')) {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}width=${width}&quality=75`;
+    const renderUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+    const separator = renderUrl.includes('?') ? '&' : '?';
+    return `${renderUrl}${separator}width=${width}&quality=75&resize=contain`;
   }
   return url;
 };
