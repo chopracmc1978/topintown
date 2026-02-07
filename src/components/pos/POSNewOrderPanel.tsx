@@ -609,41 +609,55 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
     }
   };
 
+  const isSubmittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async () => {
     if (cartItems.length === 0) return;
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
 
-    // Save customer to database if phone provided
-    if (customerPhone && !isEditMode) {
-      await saveCustomer(customerPhone, customerName);
-    }
-
-    if (isEditMode && onUpdateOrder) {
-      onUpdateOrder({
-        items: cartItems,
-        notes: notes || undefined,
-      });
-    } else {
-      // Build pickupTime from scheduled date/time
-      let pickupTime: Date | undefined;
-      if (isScheduled && scheduledDate && scheduledTime) {
-        pickupTime = new Date(`${scheduledDate}T${scheduledTime}:00`);
+    try {
+      // Save customer to database if phone provided
+      if (customerPhone && !isEditMode) {
+        await saveCustomer(customerPhone, customerName);
       }
 
-      onCreateOrder({
-        items: cartItems,
-        customerName: customerName || 'Walk-in Customer',
-        customerPhone,
-        customerAddress,
-        orderType,
-        source: 'walk-in',
-        tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
-        notes: notes || undefined,
-         discount: totalDiscount > 0 ? totalDiscount : undefined,
-         couponCode: appliedCoupon?.code || undefined,
-         rewardsUsed: rewardsApplied?.points || undefined,
-         rewardsDiscount: rewardsApplied?.dollarValue || undefined,
-         pickupTime,
-      });
+      if (isEditMode && onUpdateOrder) {
+        onUpdateOrder({
+          items: cartItems,
+          notes: notes || undefined,
+        });
+      } else {
+        // Build pickupTime from scheduled date/time
+        let pickupTime: Date | undefined;
+        if (isScheduled && scheduledDate && scheduledTime) {
+          pickupTime = new Date(`${scheduledDate}T${scheduledTime}:00`);
+        }
+
+        onCreateOrder({
+          items: cartItems,
+          customerName: customerName || 'Walk-in Customer',
+          customerPhone,
+          customerAddress,
+          orderType,
+          source: 'walk-in',
+          tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
+          notes: notes || undefined,
+           discount: totalDiscount > 0 ? totalDiscount : undefined,
+           couponCode: appliedCoupon?.code || undefined,
+           rewardsUsed: rewardsApplied?.points || undefined,
+           rewardsDiscount: rewardsApplied?.dollarValue || undefined,
+           pickupTime,
+        });
+      }
+    } finally {
+      // Re-enable after a short delay to allow state to settle
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+        setIsSubmitting(false);
+      }, 2000);
     }
   };
 
@@ -1305,10 +1319,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               
               <Button 
                 className="w-full mt-2 text-base py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={cartItems.length === 0}
+                disabled={cartItems.length === 0 || isSubmitting}
                 onClick={handleSubmit}
               >
-                {isEditMode ? 'Update Order' : 'Create Order'}
+                {isSubmitting ? 'Creating...' : (isEditMode ? 'Update Order' : 'Create Order')}
               </Button>
             </div>
           </div>
