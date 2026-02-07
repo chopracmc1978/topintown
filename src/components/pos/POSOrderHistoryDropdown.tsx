@@ -22,7 +22,7 @@ interface POSOrderHistoryDropdownProps {
   isSearching: boolean;
   onSelectOrder: (items: CartItem[], mode: 'exact' | 'edit') => void;
   onClose: () => void;
-  rewardPoints?: number;
+  rewardPoints?: number; // Current balance (shown in search badge, not per-order)
 }
 
 // Compact item summary with customization details
@@ -83,7 +83,7 @@ export const POSOrderHistoryDropdown = ({
         <div className="divide-y divide-border">
           {displayOrders.map((order) => {
             const hasName = order.customer_name && order.customer_name !== 'Walk-in Customer';
-            const showRewardPoints = rewardPoints > 0;
+            const orderEarnedPoints = order.reward_points || 0;
             
             return (
               <div key={order.id} className="p-3 transition-colors" style={{ backgroundColor: '#ffffff' }}>
@@ -101,10 +101,10 @@ export const POSOrderHistoryDropdown = ({
                   </div>
                   <div className="shrink-0 ml-2 text-right">
                     <span className="font-bold text-sm" style={{ color: '#111827' }}>${order.total.toFixed(2)}</span>
-                    {showRewardPoints && (
+                    {orderEarnedPoints > 0 && (
                       <div className="flex items-center gap-1 text-xs font-medium justify-end mt-0.5" style={{ color: '#d97706' }}>
                         <Gift className="w-3 h-3" />
-                        <span>{rewardPoints} pts</span>
+                        <span>+{orderEarnedPoints} pts</span>
                       </div>
                     )}
                   </div>
