@@ -16,6 +16,9 @@ import {
   useRewardsByPhone, 
   useRewardsHistory, 
   MIN_POINTS_TO_REDEEM, 
+  MAX_REDEEM_DOLLAR,
+  MIN_REDEEM_DOLLAR,
+  POINTS_TO_DOLLAR_RATIO,
   canRedeemRewards,
   calculateRewardDollarValue,
   POINTS_PER_DOLLAR
@@ -192,7 +195,7 @@ const Profile = () => {
                   My Rewards
                 </CardTitle>
                 <CardDescription>
-                  Earn 1 point for every $2 spent. Redeem 200 points for $20 off!
+                  Earn 1 point for every $2 spent. Redeem 200–350 points for $20–$35 off!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -244,6 +247,7 @@ const Profile = () => {
                       <p>• Earn 1 point for every $2 you spend</p>
                       <p>• Points are added when your order is completed</p>
                       <p>• Redeem 200 points for $20 off at checkout</p>
+                      <p>• Maximum redemption: 350 points for $35 off per order</p>
                     </div>
                   </>
                 )}
