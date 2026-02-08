@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { Order } from '@/types/menu';
 
 export const usePOSNotificationSound = (orders: Order[]) => {
@@ -13,19 +13,21 @@ export const usePOSNotificationSound = (orders: Order[]) => {
   const userToggledOffRef = useRef(false); // Track if user explicitly disabled
   const [advanceAlertOrderIds, setAdvanceAlertOrderIds] = useState<string[]>([]); // Currently alerting advance orders
 
-  // Track pending web/app orders (not walk-in)
-  const pendingRemoteOrders = orders.filter(
-    o => o.status === 'pending' && (o.source === 'web' || o.source === 'app')
+  // Track pending web/app orders (not walk-in) — memoised to prevent infinite re-renders
+  const pendingRemoteOrders = useMemo(
+    () => orders.filter(o => o.status === 'pending' && (o.source === 'web' || o.source === 'app')),
+    [orders]
   );
 
-  // Track advance orders that are within 30 minutes of pickup time
-  const advanceOrdersDueSoon = orders.filter(o => {
-    if (o.status !== 'preparing' || !o.pickupTime) return false;
-    const pickupTime = new Date(o.pickupTime);
-    const now = new Date();
-    const minutesUntil = (pickupTime.getTime() - now.getTime()) / (1000 * 60);
-    return minutesUntil <= 30 && minutesUntil > -5; // 30 min before to 5 min after
-  });
+  // Track advance orders that are within 30 minutes of pickup time — memoised
+  const advanceOrdersDueSoon = useMemo(() => {
+    const now = Date.now();
+    return orders.filter(o => {
+      if (o.status !== 'preparing' || !o.pickupTime) return false;
+      const minutesUntil = (new Date(o.pickupTime).getTime() - now) / (1000 * 60);
+      return minutesUntil <= 30 && minutesUntil > -5;
+    });
+  }, [orders]);
 
   // Initialize AudioContext (doesn't mean audio is enabled)
   const initAudioContext = useCallback(() => {
@@ -244,7 +246,11 @@ export const usePOSNotificationSound = (orders: Order[]) => {
   // Clear advance alerts when those orders move past 'preparing' or are handled
   useEffect(() => {
     const activeAdvanceIds = new Set(advanceOrdersDueSoon.map(o => o.id));
-    setAdvanceAlertOrderIds(prev => prev.filter(id => activeAdvanceIds.has(id)));
+    setAdvanceAlertOrderIds(prev => {
+      const next = prev.filter(id => activeAdvanceIds.has(id));
+      // Only update if something actually changed to prevent unnecessary re-renders
+      return next.length === prev.length ? prev : next;
+    });
   }, [advanceOrdersDueSoon]);
 
   // Cleanup on unmount - use empty deps to only run on unmount
