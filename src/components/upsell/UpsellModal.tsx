@@ -7,12 +7,22 @@ import { cn } from '@/lib/utils';
 import { Plus, Minus, ArrowRight, Check, X } from 'lucide-react';
 import OptimizedImage from '@/components/OptimizedImage';
 
-interface UpsellItem {
+const WING_FLAVORS = [
+  { id: 'hot', name: 'Hot' },
+  { id: 'honey-garlic', name: 'Honey Garlic' },
+  { id: 'bbq', name: 'BBQ' },
+  { id: 'salt-pepper', name: 'Salt & Pepper' },
+  { id: 'plain', name: 'Plain' },
+];
+
+export interface UpsellItem {
   id: string;
   name: string;
   price: number;
   image_url?: string | null;
   quantity: number;
+  flavor?: string;
+  category?: string;
 }
 
 interface UpsellModalProps {
@@ -34,6 +44,7 @@ const ALL_UPSELL_STEPS: { step: UpsellStep; title: string; subtitle: string; cat
 const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellModalProps) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedItems, setSelectedItems] = useState<UpsellItem[]>([]);
+  const [flavorPickerItemId, setFlavorPickerItemId] = useState<string | null>(null);
   const { addToCart } = useCart();
 
   const UPSELL_STEPS = useMemo(() => 
@@ -67,8 +78,38 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
     }
   }, [currentStep?.category, drinks, dippingSauces, wings, bakedLasagna]);
 
+  const isWingsStep = currentStep?.category === 'chicken_wings';
+
   const getItemQuantity = (itemId: string) => {
     return selectedItems.find(i => i.id === itemId)?.quantity || 0;
+  };
+
+  const getItemFlavor = (itemId: string) => {
+    return selectedItems.find(i => i.id === itemId)?.flavor;
+  };
+
+  const handleAddWingsItem = (item: { id: string; name: string; base_price: number; image_url?: string | null }) => {
+    // Show flavor picker for this item
+    setFlavorPickerItemId(item.id);
+  };
+
+  const handleFlavorSelect = (item: { id: string; name: string; base_price: number; image_url?: string | null }, flavorName: string) => {
+    setSelectedItems(prev => {
+      const existing = prev.find(i => i.id === item.id);
+      if (existing) {
+        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1, flavor: flavorName } : i);
+      }
+      return [...prev, {
+        id: item.id,
+        name: item.name,
+        price: item.base_price,
+        image_url: item.image_url,
+        quantity: 1,
+        flavor: flavorName,
+        category: 'chicken_wings',
+      }];
+    });
+    setFlavorPickerItemId(null);
   };
 
   const updateItemQuantity = (item: { id: string; name: string; base_price: number; image_url?: string | null }, delta: number) => {
@@ -94,6 +135,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   };
 
   const handleNext = () => {
+    setFlavorPickerItemId(null);
     if (isLastStep) {
       onComplete(selectedItems);
     } else {
@@ -102,6 +144,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   };
 
   const handleSkip = () => {
+    setFlavorPickerItemId(null);
     if (isLastStep) {
       onComplete(selectedItems);
     } else {
@@ -112,25 +155,13 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   const handleClose = () => {
     setCurrentStepIndex(0);
     setSelectedItems([]);
+    setFlavorPickerItemId(null);
     onClose();
   };
-
-  const stepItemsTotal = useMemo(() => {
-    return selectedItems
-      .filter(item => {
-        const categoryItems = currentItems.map(i => i.id);
-        return categoryItems.includes(item.id);
-      })
-      .reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  }, [selectedItems, currentItems]);
 
   const totalUpsellPrice = useMemo(() => {
     return selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }, [selectedItems]);
-
-  const hasSelectionsInCurrentStep = selectedItems.some(item => 
-    currentItems.some(ci => ci.id === item.id)
-  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -156,6 +187,8 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
               {currentItems.map((item) => {
                 const qty = getItemQuantity(item.id);
                 const isSelected = qty > 0;
+                const flavor = getItemFlavor(item.id);
+                const showFlavorPicker = isWingsStep && flavorPickerItemId === item.id;
                 
                 return (
                   <div 
@@ -179,7 +212,27 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                     />
                     
                     <h3 className="font-medium text-xs line-clamp-2 mb-0.5 leading-tight">{item.name}</h3>
-                    <p className="text-primary font-bold text-xs mb-1.5">${item.base_price.toFixed(2)}</p>
+                    <p className="text-primary font-bold text-xs mb-1">${item.base_price.toFixed(2)}</p>
+                    
+                    {/* Show selected flavor label */}
+                    {isWingsStep && isSelected && flavor && (
+                      <p className="text-[10px] text-muted-foreground mb-1 truncate">🌶 {flavor}</p>
+                    )}
+
+                    {/* Flavor picker dropdown */}
+                    {showFlavorPicker && (
+                      <div className="space-y-0.5 mb-1.5">
+                        {WING_FLAVORS.map((f) => (
+                          <button
+                            key={f.id}
+                            onClick={() => handleFlavorSelect(item, f.name)}
+                            className="w-full text-left text-[11px] px-2 py-1 rounded hover:bg-primary/10 transition-colors border border-border"
+                          >
+                            {f.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     
                     <div className="flex items-center justify-center gap-1">
                       {isSelected ? (
@@ -192,7 +245,13 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                           </button>
                           <span className="font-bold w-5 text-center text-sm">{qty}</span>
                           <button
-                            onClick={() => updateItemQuantity(item, 1)}
+                            onClick={() => {
+                              if (isWingsStep) {
+                                handleAddWingsItem(item);
+                              } else {
+                                updateItemQuantity(item, 1);
+                              }
+                            }}
                             className="w-6 h-6 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-colors"
                           >
                             <Plus className="w-3 h-3" />
@@ -202,7 +261,13 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateItemQuantity(item, 1)}
+                          onClick={() => {
+                            if (isWingsStep) {
+                              handleAddWingsItem(item);
+                            } else {
+                              updateItemQuantity(item, 1);
+                            }
+                          }}
                           className="w-full h-7 text-xs px-2"
                         >
                           <Plus className="w-3 h-3 mr-0.5" /> Add
