@@ -23,6 +23,8 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     // Use hardware acceleration for smoother HD rendering
     useLegacyBridge: false,
+    // Match POS dark navy background to prevent white flash on load
+    backgroundColor: '#1a2332',
   },
   // Ensure proper viewport handling
   plugins: {

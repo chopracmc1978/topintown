@@ -2,9 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- Default: 1920px for native Android HD tablets (Capacitor). Web overrides below. -->
+    <meta name="viewport" content="width=1920, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="1920" />
     <meta name="format-detection" content="telephone=no" />
+    <script>
+      // CRITICAL: Runs BEFORE any module loading.
+      // If we're in a web browser (not Capacitor native), revert to responsive viewport.
+      // This ensures the native WebView gets width=1920 from the very first layout pass.
+      (function() {
+        var isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        if (!isNative) {
+          var meta = document.querySelector('meta[name="viewport"]');
+          if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+          var mob = document.querySelector('meta[name="MobileOptimized"]');
+          if (mob) mob.remove();
+        }
+      })();
+    </script>
     <title>Top In Town Pizza - Authentic Italian Pizza</title>
     <meta name="description" content="Authentic Italian pizza made with love, fresh ingredients, and generations of tradition. Order online for delivery or pickup.">
     <meta name="author" content="Top In Town Pizza" />
