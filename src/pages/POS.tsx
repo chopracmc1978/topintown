@@ -21,6 +21,7 @@ import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSStaffPinScreen } from '@/components/pos/POSStaffPinScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
+import { POSStaffReportCard } from '@/components/pos/POSStaffReportCard';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -216,6 +217,7 @@ const POSDashboard = ({
   const [showSettings, setShowSettings] = useState(false);
   const [showEndDay, setShowEndDay] = useState(false);
   const [showReports, setShowReports] = useState(false);
+  const [showStaffReport, setShowStaffReport] = useState(false);
   
   // New order flow state
   const [newOrderPending, setNewOrderPending] = useState<Order | null>(null);
@@ -776,15 +778,15 @@ const POSDashboard = ({
               size="icon"
               onClick={() => {
                 if (activeStaff) {
-                  // Staff logout: go back to PIN screen
-                  onStaffLogout();
+                  // Show staff report card with End Day option
+                  setShowStaffReport(true);
                 } else {
                   // Full logout
                   localStorage.removeItem('pos_location_id');
                   signOut();
                 }
               }}
-              title={activeStaff ? 'Switch User' : 'Log Out'}
+              title={activeStaff ? 'Log Off' : 'Log Out'}
               className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8 lg:h-10 lg:w-10"
             >
               <LogOut className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
@@ -1042,6 +1044,23 @@ const POSDashboard = ({
           onTestSound={playTestSound}
         />
       )}
+
+      {/* Staff Report Card Modal */}
+      <POSStaffReportCard
+        open={showStaffReport}
+        onClose={() => setShowStaffReport(false)}
+        onEndDay={() => {
+          setShowStaffReport(false);
+          setShowEndDay(true);
+        }}
+        onSwitchUser={() => {
+          setShowStaffReport(false);
+          onStaffLogout();
+        }}
+        staffName={activeStaff?.name || 'Staff'}
+        activeSession={activeSession}
+        locationId={currentLocationId}
+      />
 
       {/* End of Day Modal */}
       <POSEndDayModal
