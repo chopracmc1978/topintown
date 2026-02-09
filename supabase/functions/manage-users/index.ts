@@ -185,6 +185,49 @@ Deno.serve(async (req) => {
         )
       }
 
+      case 'getLocationPin': {
+        const { locationId: pinLocationId } = data
+        if (!pinLocationId) {
+          return new Response(
+            JSON.stringify({ error: 'locationId is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // Find any profile that has a settings PIN for this location (location-level lock)
+        const { data: profiles, error: pinError } = await adminClient
+          .from('profiles')
+          .select('settings_pins')
+          .not('settings_pins', 'is', null)
+
+        if (pinError) {
+          console.error('Error fetching location pins:', pinError)
+          return new Response(
+            JSON.stringify({ error: pinError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // Search through all profiles for a PIN matching this location
+        let locationPin: string | null = null
+        for (const profile of (profiles || [])) {
+          const pins = typeof profile.settings_pins === 'string'
+            ? JSON.parse(profile.settings_pins)
+            : profile.settings_pins
+          if (pins && pins[pinLocationId]) {
+            locationPin = pins[pinLocationId]
+            break
+          }
+        }
+
+        console.log('Location PIN lookup for:', pinLocationId, 'found:', locationPin ? 'yes' : 'no')
+
+        return new Response(
+          JSON.stringify({ pin: locationPin }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
