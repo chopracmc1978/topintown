@@ -24,12 +24,16 @@ const loadedImages = new Set<string>();
  * before they're even in the viewport.
  */
 export const preloadImage = (url: string | null | undefined, width = 400): void => {
-  const optimizedSrc = getOptimizedImageUrl(url, width);
-  if (optimizedSrc === '/placeholder.svg' || loadedImages.has(optimizedSrc)) return;
-  
-  const img = new Image();
-  img.src = optimizedSrc;
-  img.onload = () => loadedImages.add(optimizedSrc);
+  try {
+    const optimizedSrc = getOptimizedImageUrl(url, width);
+    if (optimizedSrc === '/placeholder.svg' || loadedImages.has(optimizedSrc)) return;
+    
+    const img = new Image();
+    img.src = optimizedSrc;
+    img.onload = () => loadedImages.add(optimizedSrc);
+  } catch {
+    // Silently ignore – never crash for image preloading
+  }
 };
 
 /**
@@ -106,7 +110,6 @@ const OptimizedImage = ({
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding={priority ? 'sync' : 'async'}
-        fetchPriority={priority ? 'high' : undefined}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(
