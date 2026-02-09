@@ -194,9 +194,18 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                   <div 
                     key={item.id}
                     className={cn(
-                      "border rounded-lg p-2 transition-all flex flex-col",
+                      "border rounded-lg p-2 transition-all flex flex-col cursor-pointer",
                       isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                     )}
+                    onClick={() => {
+                      if (!isSelected) {
+                        if (isWingsStep) {
+                          handleAddWingsItem(item);
+                        } else {
+                          updateItemQuantity(item, 1);
+                        }
+                      }
+                    }}
                   >
                     <OptimizedImage
                       src={item.image_url}
@@ -238,14 +247,15 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                       {isSelected ? (
                         <>
                           <button
-                            onClick={() => updateItemQuantity(item, -1)}
+                            onClick={(e) => { e.stopPropagation(); updateItemQuantity(item, -1); }}
                             className="w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
                           <span className="font-bold w-5 text-center text-sm">{qty}</span>
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               if (isWingsStep) {
                                 handleAddWingsItem(item);
                               } else {
@@ -261,7 +271,8 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (isWingsStep) {
                               handleAddWingsItem(item);
                             } else {
