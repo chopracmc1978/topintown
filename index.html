@@ -4,10 +4,12 @@
     <meta charset="UTF-8" />
     <!--
       Use device-width for ALL platforms (web + native).
-      width=1920 was causing the WebView to downscale on non-mdpi devices,
-      resulting in blurry text, faded colors, and wrong sizing.
+      CRITICAL: color-scheme: light only — prevents Android 10+ force-dark mode
+      from algorithmically washing out / fading all colors in the WebView.
     -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="format-detection" content="telephone=no" />
     <title>Top In Town Pizza - Authentic Italian Pizza</title>
