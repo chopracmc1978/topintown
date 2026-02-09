@@ -78,6 +78,8 @@ const UsersManager = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newPinCalgary, setNewPinCalgary] = useState('');
   const [newPinChestermere, setNewPinChestermere] = useState('');
+  const [newStaffPinCalgary, setNewStaffPinCalgary] = useState('');
+  const [newStaffPinChestermere, setNewStaffPinChestermere] = useState('');
 
   // Delete user state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -91,6 +93,8 @@ const UsersManager = () => {
   const [editPassword, setEditPassword] = useState('');
   const [editLocationId, setEditLocationId] = useState<string>('');
   const [editEmail, setEditEmail] = useState('');
+  const [editStaffPinCalgary, setEditStaffPinCalgary] = useState('');
+  const [editStaffPinChestermere, setEditStaffPinChestermere] = useState('');
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
@@ -101,6 +105,8 @@ const UsersManager = () => {
     setEditPinChestermere(user.settings_pins?.chestermere || '');
     setEditPassword('');
     setEditLocationId(user.location_id || '');
+    setEditStaffPinCalgary('');
+    setEditStaffPinChestermere('');
   };
 
   const handleSaveProfile = async () => {
@@ -114,6 +120,10 @@ const UsersManager = () => {
     setIsUpdating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const staffPins: Record<string, string> = {};
+      if (editStaffPinCalgary) staffPins.calgary = editStaffPinCalgary;
+      if (editStaffPinChestermere) staffPins.chestermere = editStaffPinChestermere;
+
       const body: Record<string, unknown> = {
         action: 'update',
         targetUserId: editingUser.user_id,
@@ -121,6 +131,7 @@ const UsersManager = () => {
         username: editUsername,
         settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
         locationId: editLocationId || null,
+        staffPins: Object.keys(staffPins).length > 0 ? staffPins : undefined,
       };
       if (editEmail && editEmail !== editingUser.email) body.email = editEmail;
       if (editPassword) body.password = editPassword;
@@ -196,6 +207,10 @@ const UsersManager = () => {
     if (newPinCalgary) settingsPins.calgary = newPinCalgary;
     if (newPinChestermere) settingsPins.chestermere = newPinChestermere;
 
+    const staffPins: Record<string, string> = {};
+    if (newStaffPinCalgary) staffPins.calgary = newStaffPinCalgary;
+    if (newStaffPinChestermere) staffPins.chestermere = newStaffPinChestermere;
+
     setIsCreating(true);
     try {
       const response = await supabase.functions.invoke('manage-users', {
@@ -208,6 +223,7 @@ const UsersManager = () => {
           role: newRole,
           locationId: newLocationId || null,
           settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
+          staffPins: Object.keys(staffPins).length > 0 ? staffPins : undefined,
         },
       });
 
@@ -234,6 +250,8 @@ const UsersManager = () => {
       setNewLocationId('');
       setNewPinCalgary('');
       setNewPinChestermere('');
+      setNewStaffPinCalgary('');
+      setNewStaffPinChestermere('');
       refetch();
     } catch (err: any) {
       toast({ title: 'Error creating user', description: err.message, variant: 'destructive' });
@@ -534,6 +552,39 @@ const UsersManager = () => {
                 Each location can have its own PIN to protect POS Settings access
               </p>
             </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                POS Staff PIN — Admin Override (per location)
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="newStaffPinCalgary" className="text-xs text-muted-foreground">Calgary</Label>
+                  <Input
+                    id="newStaffPinCalgary"
+                    type="password"
+                    value={newStaffPinCalgary}
+                    onChange={(e) => setNewStaffPinCalgary(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="PIN (optional)"
+                    maxLength={6}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="newStaffPinChestermere" className="text-xs text-muted-foreground">Chestermere</Label>
+                  <Input
+                    id="newStaffPinChestermere"
+                    type="password"
+                    value={newStaffPinChestermere}
+                    onChange={(e) => setNewStaffPinChestermere(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="PIN (optional)"
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Admin override PIN for POS staff login screen. Use when staff forget their PIN.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -640,6 +691,39 @@ const UsersManager = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Each location has its own PIN. Leave empty to remove.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                POS Staff PIN — Admin Override (per location)
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="editStaffPinCalgary" className="text-xs text-muted-foreground">Calgary</Label>
+                  <Input
+                    id="editStaffPinCalgary"
+                    type="password"
+                    value={editStaffPinCalgary}
+                    onChange={(e) => setEditStaffPinCalgary(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Leave empty to keep current"
+                    maxLength={6}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="editStaffPinChestermere" className="text-xs text-muted-foreground">Chestermere</Label>
+                  <Input
+                    id="editStaffPinChestermere"
+                    type="password"
+                    value={editStaffPinChestermere}
+                    onChange={(e) => setEditStaffPinChestermere(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Leave empty to keep current"
+                    maxLength={6}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Admin override PIN for POS staff login. Set to allow this user's PIN to unlock any staff session.
               </p>
             </div>
           </div>
