@@ -602,22 +602,20 @@ const POSDashboard = ({
       <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(220, 26%, 14%)' }} aria-hidden="true" />
       {/* Main POS container - truly full viewport, no rounding or padding */}
       <div className="flex-1 flex flex-col overflow-hidden w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
-      {/* Header - Tablet optimized with larger touch targets */}
+      {/* Header - Compact for small tablets */}
       <header className={cn(
-        "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
+        "border-b py-1.5 px-2 flex-shrink-0 shadow-sm transition-colors pos-header",
         hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : "",
         hasAdvanceAlerts && !hasPendingRemoteOrders ? "pos-bg-amber-900-50 animate-pulse" : ""
       )}>
-        <div className="flex items-center gap-2 w-full">
-          <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 w-full">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
               title="Home"
               onPointerDown={(e) => {
-                // Prevent any native tap highlight/selection artifacts
                 e.preventDefault();
               }}
               onClick={() => {
-                // Reset to home state - close all modals/panels
                 setSelectedOrderId(null);
                 setShowNewOrder(false);
                 setEditingOrder(null);
@@ -626,8 +624,7 @@ const POSDashboard = ({
                 setActiveTab('all');
               }}
               className={cn(
-                "font-serif text-lg font-bold transition-colors cursor-pointer whitespace-nowrap",
-                // Ensure absolutely no outline/border/ring can render
+                "font-serif text-base font-bold transition-colors cursor-pointer whitespace-nowrap",
                 "bg-transparent border-0 p-0 m-0 outline-none ring-0 shadow-none",
                 "hover:bg-transparent active:bg-transparent",
                 "select-none [-webkit-tap-highlight-color:transparent] [-webkit-user-select:none] [-webkit-touch-callout:none]"
@@ -637,36 +634,36 @@ const POSDashboard = ({
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
             </span>
             {hasPendingRemoteOrders && (
-              <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
-                <Bell className="w-4 h-4" />
+              <div className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full animate-bounce text-xs">
+                <Bell className="w-3.5 h-3.5" />
                 <span className="font-semibold">{pendingCount} New!</span>
               </div>
             )}
             {hasAdvanceAlerts && !hasPendingRemoteOrders && (
-              <div className="flex items-center gap-1 bg-amber-500 text-white px-3 py-1.5 rounded-full animate-bounce text-sm">
-                <CalendarClock className="w-4 h-4" />
-                <span className="font-semibold">{advanceAlertCount} Due Soon!</span>
+              <div className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full animate-bounce text-xs">
+                <CalendarClock className="w-3.5 h-3.5" />
+                <span className="font-semibold">{advanceAlertCount} Due!</span>
               </div>
             )}
           </div>
           
-          {/* Status Tabs - Premium style */}
-          <div className="flex gap-1.5 flex-1 justify-center">
+          {/* Status Tabs - Compact for small tablets */}
+          <div className="flex gap-1 flex-1 justify-center">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "pos-tab-button flex items-center gap-1.5",
+                  "pos-tab-button-compact flex items-center gap-1",
                   "outline-none focus:outline-none focus-visible:outline-none",
                   "border-none focus:ring-0 focus-visible:ring-0",
                   activeTab === tab.id ? "active" : ""
                 )}
               >
-                <tab.icon className="w-4 h-4" />
+                <tab.icon className="w-3.5 h-3.5" />
                 {tab.label}
                 <span className={cn(
-                  "text-xs font-semibold px-2 py-0.5 rounded-full min-w-[22px] text-center",
+                  "text-[10px] font-semibold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none",
                   activeTab === tab.id
                     ? "pos-bg-white-25 text-white"
                     : "bg-gray-700 text-gray-300"
@@ -677,22 +674,22 @@ const POSDashboard = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-0.5 flex-shrink-0">
             <Button 
               onClick={() => {
                 setShowNewOrder(true);
                 setSelectedOrderId(null);
               }}
-              className="text-sm px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
+              className="text-xs px-2.5 py-1.5 h-auto bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-1" />
-              New Order
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              New
             </Button>
 
             <button
               onClick={() => openTill()}
               className={cn(
-                "h-10 w-10 shrink-0 flex items-center justify-center rounded-md",
+                "h-8 w-8 shrink-0 flex items-center justify-center rounded-md",
                 "bg-transparent border-none",
                 "outline-none focus:outline-none focus-visible:outline-none",
                 "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -703,20 +700,17 @@ const POSDashboard = ({
               title="Till"
               aria-label="Till"
             >
-              <img src={tillIcon} alt="Till" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
+              <img src={tillIcon} alt="Till" className="w-6 h-6 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
             </button>
-
-
-
 
             <Button 
               variant="ghost"
               size="icon"
               onClick={() => setShowSettings(true)}
               title="Settings"
-              className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
+              className="h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-700/50"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4" />
             </Button>
 
             <Button 
@@ -726,9 +720,9 @@ const POSDashboard = ({
                 localStorage.removeItem('pos_location_id');
                 signOut();
               }}
-              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-10 w-10"
+              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
@@ -737,7 +731,7 @@ const POSDashboard = ({
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[18%] min-w-[180px] max-w-[260px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
+        <div className="w-[18%] min-w-[160px] max-w-[240px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
           <ScrollArea className="flex-1 p-2">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
