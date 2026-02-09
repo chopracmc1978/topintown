@@ -41,7 +41,52 @@ Deno.serve(async (req) => {
 
     const userId = callingUser.id
 
-    // Check admin role using admin client (bypasses RLS to avoid chicken-and-egg problem)
+    const { action, ...data } = await req.json()
+    console.log('User management action:', action, data)
+
+    // getLocationPin is allowed for any authenticated user (staff + admin)
+    if (action === 'getLocationPin') {
+      const { locationId: pinLocationId } = data
+      if (!pinLocationId) {
+        return new Response(
+          JSON.stringify({ error: 'locationId is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const { data: profiles, error: pinError } = await adminClient
+        .from('profiles')
+        .select('settings_pins')
+        .not('settings_pins', 'is', null)
+
+      if (pinError) {
+        console.error('Error fetching location pins:', pinError)
+        return new Response(
+          JSON.stringify({ error: pinError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      let locationPin: string | null = null
+      for (const profile of (profiles || [])) {
+        const pins = typeof profile.settings_pins === 'string'
+          ? JSON.parse(profile.settings_pins)
+          : profile.settings_pins
+        if (pins && pins[pinLocationId]) {
+          locationPin = pins[pinLocationId]
+          break
+        }
+      }
+
+      console.log('Location PIN lookup for:', pinLocationId, 'found:', locationPin ? 'yes' : 'no')
+
+      return new Response(
+        JSON.stringify({ pin: locationPin }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // All other actions require admin role
     const { data: roleData, error: roleError } = await adminClient
       .from('user_roles')
       .select('role')
@@ -57,9 +102,6 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const { action, ...data } = await req.json()
-    console.log('User management action:', action, data)
 
     switch (action) {
       case 'create': {
@@ -181,49 +223,6 @@ Deno.serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: true }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      case 'getLocationPin': {
-        const { locationId: pinLocationId } = data
-        if (!pinLocationId) {
-          return new Response(
-            JSON.stringify({ error: 'locationId is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        // Find any profile that has a settings PIN for this location (location-level lock)
-        const { data: profiles, error: pinError } = await adminClient
-          .from('profiles')
-          .select('settings_pins')
-          .not('settings_pins', 'is', null)
-
-        if (pinError) {
-          console.error('Error fetching location pins:', pinError)
-          return new Response(
-            JSON.stringify({ error: pinError.message }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        // Search through all profiles for a PIN matching this location
-        let locationPin: string | null = null
-        for (const profile of (profiles || [])) {
-          const pins = typeof profile.settings_pins === 'string'
-            ? JSON.parse(profile.settings_pins)
-            : profile.settings_pins
-          if (pins && pins[pinLocationId]) {
-            locationPin = pins[pinLocationId]
-            break
-          }
-        }
-
-        console.log('Location PIN lookup for:', pinLocationId, 'found:', locationPin ? 'yes' : 'no')
-
-        return new Response(
-          JSON.stringify({ pin: locationPin }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
