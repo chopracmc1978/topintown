@@ -45,6 +45,19 @@ interface OrderSourceData {
   percentage: number;
 }
 
+interface StaffSalesData {
+  staffId: string;
+  staffName: string;
+  role: string;
+  totalSales: number;
+  orderCount: number;
+  avgTicket: number;
+  cashSales: number;
+  cardSales: number;
+  sessionCount: number;
+  totalHours: number;
+}
+
 export const usePOSReports = (locationId: string) => {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today');
@@ -412,6 +425,103 @@ export const usePOSReports = (locationId: string) => {
     }
   };
 
+  // Fetch staff performance
+  const fetchStaffSales = async (start: Date, end: Date): Promise<StaffSalesData[]> => {
+    setLoading(true);
+    try {
+      // Fetch staff members for this location
+      const { data: staffMembers, error: staffError } = await supabase
+        .from('pos_staff')
+        .select('id, name, role')
+        .eq('location_id', locationId)
+        .eq('is_active', true);
+
+      if (staffError) throw staffError;
+      if (!staffMembers || staffMembers.length === 0) return [];
+
+      // Fetch orders with pos_staff_id in the date range
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, total, payment_method, pos_staff_id, status')
+        .eq('location_id', locationId)
+        .gte('created_at', startOfDay(start).toISOString())
+        .lte('created_at', endOfDay(end).toISOString())
+        .neq('status', 'cancelled');
+
+      if (ordersError) throw ordersError;
+
+      // Fetch sessions for each staff member
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('pos_sessions')
+        .select('pos_staff_id, start_time, end_time')
+        .eq('location_id', locationId)
+        .gte('start_time', startOfDay(start).toISOString())
+        .lte('start_time', endOfDay(end).toISOString());
+
+      if (sessionsError) throw sessionsError;
+
+      // Build report per staff
+      const staffMap: Record<string, StaffSalesData> = {};
+
+      staffMembers.forEach(staff => {
+        staffMap[staff.id] = {
+          staffId: staff.id,
+          staffName: staff.name,
+          role: staff.role,
+          totalSales: 0,
+          orderCount: 0,
+          avgTicket: 0,
+          cashSales: 0,
+          cardSales: 0,
+          sessionCount: 0,
+          totalHours: 0,
+        };
+      });
+
+      // Aggregate orders
+      (orders || []).forEach(order => {
+        const staffId = order.pos_staff_id;
+        if (staffId && staffMap[staffId]) {
+          staffMap[staffId].totalSales += order.total || 0;
+          staffMap[staffId].orderCount += 1;
+          if (order.payment_method === 'cash') {
+            staffMap[staffId].cashSales += order.total || 0;
+          } else if (order.payment_method === 'card') {
+            staffMap[staffId].cardSales += order.total || 0;
+          }
+        }
+      });
+
+      // Aggregate sessions
+      (sessions || []).forEach(session => {
+        const staffId = session.pos_staff_id;
+        if (staffId && staffMap[staffId]) {
+          staffMap[staffId].sessionCount += 1;
+          if (session.end_time) {
+            const hours = (new Date(session.end_time).getTime() - new Date(session.start_time).getTime()) / (1000 * 60 * 60);
+            staffMap[staffId].totalHours += hours;
+          } else {
+            // Active session – calculate up to now
+            const hours = (Date.now() - new Date(session.start_time).getTime()) / (1000 * 60 * 60);
+            staffMap[staffId].totalHours += hours;
+          }
+        }
+      });
+
+      // Calculate averages
+      Object.values(staffMap).forEach(s => {
+        s.avgTicket = s.orderCount > 0 ? s.totalSales / s.orderCount : 0;
+      });
+
+      return Object.values(staffMap).sort((a, b) => b.totalSales - a.totalSales);
+    } catch (err) {
+      console.error('Error fetching staff sales:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     dateRange,
@@ -427,6 +537,7 @@ export const usePOSReports = (locationId: string) => {
     fetchPaymentTypes,
     fetchOrderSources,
     fetchCancelledOrders,
+    fetchStaffSales,
   };
 };
 
