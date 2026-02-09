@@ -264,24 +264,17 @@ const POSDashboard = ({
     initSession();
   }, [user, activeSession]);
 
-  // Fetch settings PIN for current location
+  // Fetch settings PIN for current location (location-level, not per-user)
   useEffect(() => {
     const fetchSettingsPin = async () => {
       if (!user) return;
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('settings_pins')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        console.log('[POS] Settings PIN fetch for user:', user.id, 'location:', currentLocationId, 'data:', JSON.stringify(data), 'error:', error);
-        if (data) {
-          const rawPins = data.settings_pins;
-          // Handle both string and object formats
-          const pins = typeof rawPins === 'string' ? JSON.parse(rawPins) : rawPins;
-          const locationPin = pins?.[currentLocationId] || null;
-          console.log('[POS] Parsed pins:', JSON.stringify(pins), 'locationPin:', locationPin);
-          setSettingsPin(locationPin);
+        const { data: responseData, error } = await supabase.functions.invoke('manage-users', {
+          body: { action: 'getLocationPin', locationId: currentLocationId },
+        });
+        console.log('[POS] Location PIN lookup for:', currentLocationId, 'result:', responseData, 'error:', error);
+        if (responseData?.pin) {
+          setSettingsPin(responseData.pin);
         } else {
           setSettingsPin(null);
         }
