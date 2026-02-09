@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POS Diagnostics</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #1a2332; color: #e2e8f0; padding: 16px; font-size: 14px; }
+  h1 { font-size: 20px; margin-bottom: 12px; color: #60a5fa; }
+  h2 { font-size: 16px; margin: 16px 0 8px; color: #93c5fd; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+  .info { background: #1e293b; padding: 8px 12px; margin: 4px 0; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; }
+  .pass { border-left: 3px solid #22c55e; }
+  .fail { border-left: 3px solid #ef4444; }
+  .warn { border-left: 3px solid #f59e0b; }
+
+  /* Test: CSS Custom Properties */
+  :root { --test-color: #22c55e; }
+  .test-var { color: var(--test-color); }
+
+  /* Test: Modern rgb() syntax */
+  .test-modern-rgb { color: rgb(34 197 94); }
+  .test-modern-rgba { color: rgb(34 197 94 / 0.5); }
+  .test-legacy-rgba { color: rgba(34, 197, 94, 1); }
+  .test-hsl { color: hsl(142, 71%, 45%); }
+  .test-hsla { color: hsla(142, 71%, 45%, 0.5); }
+
+  /* Test: Color blocks */
+  .color-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+  .color-block { width: 80px; height: 50px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
+
+  /* Font test */
+  .font-inter { font-family: 'Inter', sans-serif; }
+  .font-dm { font-family: 'DM Sans', sans-serif; }
+  .font-playfair { font-family: 'Playfair Display', serif; }
+  .font-system { font-family: system-ui, sans-serif; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Inter:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<h1>🔧 POS Rendering Diagnostics</h1>
+
+<h2>1. Environment</h2>
+<div class="info" id="ua">Loading...</div>
+<div class="info" id="viewport">Loading...</div>
+<div class="info" id="dpr">Loading...</div>
+<div class="info" id="screen">Loading...</div>
+<div class="info" id="webview">Loading...</div>
+<div class="info" id="capacitor">Loading...</div>
+
+<h2>2. CSS Color Support</h2>
+<div class="color-row">
+  <div class="color-block" style="background: #3b82f6; color: #fff;">HEX ✓</div>
+  <div class="color-block" style="background: hsl(217, 91%, 60%); color: #fff;">HSL</div>
+  <div class="color-block" style="background: hsla(217, 91%, 60%, 0.5); color: #fff;">HSLA</div>
+  <div class="color-block" style="background: rgba(59, 130, 246, 1); color: #fff;">RGBA</div>
+  <div class="color-block" style="background: rgb(59 130 246); color: #fff;">RGB L4</div>
+  <div class="color-block" style="background: rgb(59 130 246 / 0.5); color: #fff;">RGB/A L4</div>
+</div>
+<div class="info" id="color-test">Testing...</div>
+
+<h2>3. CSS Variables</h2>
+<div class="color-row">
+  <div class="color-block test-var" style="background: var(--test-color); color: #fff;">var()</div>
+  <div class="color-block" style="background: hsl(220, 26%, 14%); color: #fff;">POS bg</div>
+  <div class="color-block" style="background: hsl(220, 25%, 18%); color: #fff;">Card</div>
+  <div class="color-block" style="background: hsl(220, 22%, 22%); color: #fff;">Sec</div>
+</div>
+<div class="info" id="var-test">Testing...</div>
+
+<h2>4. Font Rendering</h2>
+<div class="info font-system">System UI: The quick brown fox jumps (system-ui)</div>
+<div class="info font-inter">Inter Font: The quick brown fox jumps (Inter)</div>
+<div class="info font-dm">DM Sans: The quick brown fox jumps (DM Sans)</div>
+<div class="info font-playfair">Playfair: The quick brown fox jumps (Playfair Display)</div>
+<div class="info" id="font-test">Checking font loading...</div>
+
+<h2>5. Text Rendering</h2>
+<div class="info" id="text-rendering">Testing...</div>
+<div style="margin: 8px 0;">
+  <span style="font-size: 12px;">12px text sample </span>
+  <span style="font-size: 14px;">14px text </span>
+  <span style="font-size: 16px;">16px text </span>
+  <span style="font-size: 20px;">20px text </span>
+  <span style="font-size: 24px; font-weight: 700;">24px bold</span>
+</div>
+
+<h2>6. Viewport Test Pattern</h2>
+<div style="width: 100%; height: 4px; background: repeating-linear-gradient(90deg, #3b82f6 0px, #3b82f6 1px, transparent 1px, transparent 2px); margin: 8px 0;"></div>
+<div class="info">↑ Pattern should show crisp 1px blue lines. If blurry = viewport scaling issue.</div>
+
+<h2>7. POS Theme Test</h2>
+<div style="background: hsl(220, 26%, 14%); padding: 12px; border-radius: 8px; border: 1px solid hsl(220, 20%, 28%);">
+  <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+    <button style="background: hsl(217, 91%, 60%); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600;">Active Tab</button>
+    <button style="background: hsl(220, 22%, 22%); color: hsl(215, 15%, 70%); border: none; padding: 8px 16px; border-radius: 6px;">Inactive</button>
+    <button style="background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 6px;">New Order</button>
+  </div>
+  <div style="background: hsl(220, 25%, 18%); border: 1px solid hsl(220, 20%, 28%); border-radius: 8px; padding: 12px;">
+    <div style="color: #e2e8f0; font-weight: 600;">#TIT-001 · John Smith</div>
+    <div style="color: hsl(215, 15%, 65%); font-size: 12px;">Pickup · 2 items · $24.99</div>
+    <div style="display: flex; gap: 6px; margin-top: 8px;">
+      <span style="background: hsla(45, 97%, 20%, 0.4); color: hsl(45, 80%, 70%); border: 1px solid hsl(40, 70%, 50%); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Pending</span>
+      <span style="background: hsl(25, 60%, 25%); color: hsl(20, 80%, 70%); border: 1px solid hsl(25, 70%, 50%); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Unpaid</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1. Environment
+  document.getElementById('ua').textContent = 'UA: ' + navigator.userAgent;
+  document.getElementById('viewport').textContent = 'Viewport: ' + window.innerWidth + 'x' + window.innerHeight + ' (CSS px)';
+  document.getElementById('dpr').textContent = 'Device Pixel Ratio: ' + window.devicePixelRatio;
+  document.getElementById('screen').textContent = 'Screen: ' + screen.width + 'x' + screen.height + ' @ ' + (screen.colorDepth || '?') + 'bit';
+  
+  var isCap = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+  document.getElementById('capacitor').textContent = 'Capacitor Native: ' + (isCap ? 'YES' : 'NO');
+  
+  // Detect Chrome version from UA
+  var match = navigator.userAgent.match(/Chrome\/(\d+)/);
+  var chromeVer = match ? parseInt(match[1]) : 0;
+  var wvEl = document.getElementById('webview');
+  if (chromeVer) {
+    wvEl.textContent = 'Chrome/WebView version: ' + chromeVer;
+    wvEl.className = 'info ' + (chromeVer >= 65 ? 'pass' : 'fail');
+    if (chromeVer < 65) wvEl.textContent += ' — ⚠️ BELOW Chrome 65! Modern CSS colors will FAIL.';
+  } else {
+    wvEl.textContent = 'Chrome version: unknown';
+    wvEl.className = 'info warn';
+  }
+
+  // 2. Color support test
+  (function() {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:absolute;visibility:hidden;';
+    document.body.appendChild(el);
+    
+    var results = [];
+    
+    // Test modern rgb()
+    el.style.backgroundColor = '';
+    el.style.backgroundColor = 'rgb(59 130 246)';
+    var computed = getComputedStyle(el).backgroundColor;
+    var modernRgb = computed !== '' && computed !== 'transparent';
+    results.push('Modern rgb(): ' + (modernRgb ? '✅ PASS' : '❌ FAIL'));
+    
+    // Test modern rgb() with alpha
+    el.style.backgroundColor = '';
+    el.style.backgroundColor = 'rgb(59 130 246 / 0.5)';
+    computed = getComputedStyle(el).backgroundColor;
+    var modernRgbA = computed !== '' && computed !== 'transparent';
+    results.push('Modern rgb(/alpha): ' + (modernRgbA ? '✅ PASS' : '❌ FAIL'));
+    
+    // Test hsla
+    el.style.backgroundColor = '';
+    el.style.backgroundColor = 'hsla(217, 91%, 60%, 0.5)';
+    computed = getComputedStyle(el).backgroundColor;
+    var hsla = computed !== '' && computed !== 'transparent';
+    results.push('HSLA: ' + (hsla ? '✅ PASS' : '❌ FAIL'));
+    
+    // Test CSS var
+    el.style.backgroundColor = '';
+    el.style.backgroundColor = 'var(--test-color)';
+    computed = getComputedStyle(el).backgroundColor;
+    var cssVar = computed !== '' && computed !== 'transparent';
+    results.push('CSS var(): ' + (cssVar ? '✅ PASS' : '❌ FAIL'));
+    
+    document.body.removeChild(el);
+    
+    var colorEl = document.getElementById('color-test');
+    colorEl.textContent = results.join(' | ');
+    colorEl.className = 'info ' + (modernRgb && modernRgbA ? 'pass' : 'fail');
+  })();
+
+  // 3. CSS var test
+  (function() {
+    var el = document.querySelector('.test-var');
+    var color = getComputedStyle(el).color;
+    var varEl = document.getElementById('var-test');
+    varEl.textContent = 'CSS variable computed color: ' + color;
+    varEl.className = 'info ' + (color.indexOf('34') >= 0 || color.indexOf('22c55e') >= 0 ? 'pass' : 'fail');
+  })();
+
+  // 4. Font detection
+  (function() {
+    setTimeout(function() {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      if (!ctx) { document.getElementById('font-test').textContent = 'Canvas not supported'; return; }
+      
+      function measureFont(fontFamily) {
+        ctx.font = '16px ' + fontFamily;
+        return ctx.measureText('mmmmmmm').width;
+      }
+      
+      var systemWidth = measureFont('system-ui, sans-serif');
+      var interWidth = measureFont("'Inter', system-ui, sans-serif");
+      var dmWidth = measureFont("'DM Sans', system-ui, sans-serif");
+      var playfairWidth = measureFont("'Playfair Display', serif");
+      
+      var interLoaded = Math.abs(interWidth - systemWidth) > 0.5;
+      var dmLoaded = Math.abs(dmWidth - systemWidth) > 0.5;
+      var playfairLoaded = true; // serif vs sans always differs
+      
+      var fontEl = document.getElementById('font-test');
+      var msgs = [];
+      msgs.push('Inter: ' + (interLoaded ? '✅ loaded' : '❌ NOT loaded (using fallback)'));
+      msgs.push('DM Sans: ' + (dmLoaded ? '✅ loaded' : '❌ NOT loaded (using fallback)'));
+      msgs.push('Playfair: measuring...');
+      fontEl.textContent = msgs.join(' | ');
+      fontEl.className = 'info ' + (interLoaded && dmLoaded ? 'pass' : 'fail');
+    }, 2000); // Wait for fonts to load
+  })();
+
+  // 5. Text rendering
+  (function() {
+    var el = document.getElementById('text-rendering');
+    var cs = getComputedStyle(document.body);
+    el.textContent = 'textRendering: ' + cs.textRendering + 
+      ' | fontSmoothing: ' + (cs.webkitFontSmoothing || 'N/A') + 
+      ' | textSizeAdjust: ' + (cs.webkitTextSizeAdjust || cs.textSizeAdjust || 'N/A');
+  })();
+</script>
+</body>
+</html>
