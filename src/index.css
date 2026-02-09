@@ -301,26 +301,30 @@
   border-color: #d1d5db !important;
 }
 
-/* POS Sharp Rendering - clean approach (no GPU compositing hacks) */
+/* POS Sharp Rendering - GPU acceleration for native HD */
 .pos-no-focus-ring {
-  /* Do NOT use translateZ(0) or backface-visibility — they cause blur on Android WebView */
+  /* Selective GPU compositing for sharpness on Android WebView */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-/* Crisp text in POS */
+/* Crisp text in POS - geometricPrecision for HD tablets */
 .pos-no-focus-ring *,
 .pos-hd-text,
 .pos-hd-text * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
-/* POS buttons: solid backgrounds, no blur-inducing transforms */
+/* POS buttons: GPU-accelerated solid backgrounds */
 .pos-no-focus-ring button,
 .pos-no-focus-ring [role="button"] {
-  /* Intentionally no translateZ — keeps native resolution rendering */
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* =====================================================
