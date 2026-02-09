@@ -277,12 +277,12 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             variant="outline" 
             className={cn(
               "text-sm px-3 py-1",
-              order.status === 'pending' && "bg-yellow-900/40 text-yellow-300 border-yellow-600",
-              order.status === 'preparing' && isAdvanceOrder && "bg-purple-900/40 text-purple-300 border-purple-600",
-              order.status === 'preparing' && !isAdvanceOrder && "bg-blue-900/40 text-blue-300 border-blue-600",
-              order.status === 'ready' && "bg-green-900/40 text-green-300 border-green-600",
+              order.status === 'pending' && "pos-bg-yellow-900-40 text-yellow-300 border-yellow-600",
+              order.status === 'preparing' && isAdvanceOrder && "pos-bg-purple-900-40 text-purple-300 border-purple-600",
+              order.status === 'preparing' && !isAdvanceOrder && "pos-bg-blue-900-40 text-blue-300 border-blue-600",
+              order.status === 'ready' && "pos-bg-green-900-40 text-green-300 border-green-600",
               order.status === 'delivered' && "bg-gray-800 text-gray-300 border-gray-600",
-              order.status === 'cancelled' && "bg-red-900/40 text-red-300 border-red-600",
+              order.status === 'cancelled' && "pos-bg-red-900-40 text-red-300 border-red-600",
             )}
           >
             {isAdvanceOrder ? 'Scheduled' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -302,7 +302,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
         
         {/* Advance Order Pickup Time */}
         {order.pickupTime && (
-          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-blue-300 bg-blue-900/30 px-3 py-1.5 rounded-lg w-fit">
+          <div className="mt-2 flex items-center gap-2 text-sm font-medium text-blue-300 pos-bg-blue-900-30 px-3 py-1.5 rounded-lg w-fit">
             <CalendarDays className="w-4 h-4" />
             <span>Scheduled Pickup: {formatPickupDateTime(order.pickupTime)}</span>
           </div>

@@ -139,5 +139,17 @@ export default {
   		}
   	}
   },
+  // CRITICAL: Disable Tailwind's modern rgb(R G B / var(--tw-*-opacity)) syntax
+  // so it outputs legacy-compatible hex colors (#3b82f6) instead.
+  // Without this, ALL default palette colors (bg-blue-600, text-white, bg-gray-700, etc.)
+  // render as transparent on Android WebViews running Chrome < 65 (e.g. Android 8.1).
+  corePlugins: {
+    backgroundOpacity: false,
+    borderOpacity: false,
+    divideOpacity: false,
+    placeholderOpacity: false,
+    ringOpacity: false,
+    textOpacity: false,
+  },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
