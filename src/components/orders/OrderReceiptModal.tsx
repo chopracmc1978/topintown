@@ -99,6 +99,16 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
     });
   };
 
+  // Sanitize a string for safe use in HTML template literals (prevents XSS in document.write)
+  const escapeHtml = (str: string): string => {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   const handlePrint = () => {
     const printContent = receiptRef.current;
     if (!printContent) return;
@@ -106,10 +116,17 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    // Sanitize the order number for use in the title (defense-in-depth)
+    const safeOrderNumber = escapeHtml(order.orderNumber || '');
+
+    // The innerHTML comes from React-rendered JSX which auto-escapes user content.
+    // We use cloneNode to safely copy the DOM instead of raw string interpolation.
+    const receiptClone = printContent.cloneNode(true) as HTMLElement;
+
     printWindow.document.write(`
       <html>
         <head>
-          <title>Receipt - ${order.orderNumber}</title>
+          <title>Receipt - ${safeOrderNumber}</title>
           <style>
             body {
               font-family: 'Courier New', monospace;
@@ -133,12 +150,14 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
             .text-gray { color: #666; }
           </style>
         </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
+        <body></body>
       </html>
     `);
     printWindow.document.close();
+    // Safely append the cloned DOM node instead of using innerHTML string interpolation
+    printWindow.document.body.appendChild(
+      printWindow.document.importNode(receiptClone, true)
+    );
     printWindow.print();
   };
 

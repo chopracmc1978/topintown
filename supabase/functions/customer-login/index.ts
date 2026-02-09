@@ -16,6 +16,27 @@ async function sha256Hash(password: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Create a signed session token (HMAC-SHA256) embedding customerId + expiry
+async function createSessionToken(customerId: string, secret: string): Promise<string> {
+  const payload = JSON.stringify({
+    sub: customerId,
+    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
+    iat: Math.floor(Date.now() / 1000),
+  });
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const payloadB64 = btoa(payload);
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(payloadB64));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return `${payloadB64}.${sigB64}`;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,9 +69,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Customer login request for:", email);
 
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceRoleKey
     );
 
     // Find customer by email (server-side, password_hash needed for verification)
@@ -105,7 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
       return invalidCredentials();
     }
 
-    const sessionToken = crypto.randomUUID();
+    // Create a signed session token (replaces random UUID)
+    const sessionToken = await createSessionToken(customer.id, serviceRoleKey);
     console.log("Customer login successful:", email);
 
     return json(200, {
