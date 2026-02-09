@@ -109,6 +109,8 @@ export const useMenuItems = (category?: MenuCategory) => {
       preloadImages(items.map(item => item.image_url));
       return items;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes - avoid refetching on category switch
+    gcTime: 10 * 60 * 1000,   // 10 minutes - keep in cache longer
   });
 };
 
