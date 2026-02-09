@@ -264,17 +264,19 @@ const POSDashboard = ({
     initSession();
   }, [user, activeSession]);
 
-  // Fetch settings PIN for current user
+  // Fetch settings PIN for current location
   useEffect(() => {
     const fetchSettingsPin = async () => {
       if (!user) return;
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('settings_pin')
+          .select('settings_pins')
           .eq('user_id', user.id)
           .maybeSingle();
-        setSettingsPin((data as any)?.settings_pin || null);
+        const pins = (data as any)?.settings_pins;
+        const locationPin = pins?.[currentLocationId] || null;
+        setSettingsPin(locationPin);
       } catch (err) {
         console.error('Error fetching settings pin:', err);
       } finally {
@@ -282,7 +284,7 @@ const POSDashboard = ({
       }
     };
     fetchSettingsPin();
-  }, [user]);
+  }, [user, currentLocationId]);
   
   // Setup auto-logout at 2 AM Mountain Time
   useEffect(() => {

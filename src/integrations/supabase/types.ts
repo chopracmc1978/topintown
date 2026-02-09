@@ -1089,7 +1089,7 @@ export type Database = {
           full_name: string | null
           id: string
           location_id: string | null
-          settings_pin: string | null
+          settings_pins: Json | null
           updated_at: string
           user_id: string
           username: string | null
@@ -1101,7 +1101,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           location_id?: string | null
-          settings_pin?: string | null
+          settings_pins?: Json | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -1113,7 +1113,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           location_id?: string | null
-          settings_pin?: string | null
+          settings_pins?: Json | null
           updated_at?: string
           user_id?: string
           username?: string | null

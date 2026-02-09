@@ -76,7 +76,8 @@ const UsersManager = () => {
   const [newRole, setNewRole] = useState<AppRole>('user');
   const [newLocationId, setNewLocationId] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
-  const [newSettingsPin, setNewSettingsPin] = useState('');
+  const [newPinCalgary, setNewPinCalgary] = useState('');
+  const [newPinChestermere, setNewPinChestermere] = useState('');
 
   // Delete user state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -85,17 +86,24 @@ const UsersManager = () => {
 
   // Edit user state
   const [isUpdating, setIsUpdating] = useState(false);
-  const [editSettingsPin, setEditSettingsPin] = useState('');
+  const [editPinCalgary, setEditPinCalgary] = useState('');
+  const [editPinChestermere, setEditPinChestermere] = useState('');
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
     setEditName(user.full_name || '');
     setEditUsername(user.username || '');
-    setEditSettingsPin(user.settings_pin || '');
+    setEditPinCalgary(user.settings_pins?.calgary || '');
+    setEditPinChestermere(user.settings_pins?.chestermere || '');
   };
 
   const handleSaveProfile = async () => {
     if (!editingUser) return;
+
+    // Build per-location pins object
+    const settingsPins: Record<string, string> = {};
+    if (editPinCalgary) settingsPins.calgary = editPinCalgary;
+    if (editPinChestermere) settingsPins.chestermere = editPinChestermere;
 
     setIsUpdating(true);
     try {
@@ -106,7 +114,7 @@ const UsersManager = () => {
           targetUserId: editingUser.user_id,
           fullName: editName,
           username: editUsername,
-          settingsPin: editSettingsPin || null,
+          settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
         },
       });
 
@@ -174,6 +182,11 @@ const UsersManager = () => {
       return;
     }
 
+    // Build per-location pins object
+    const settingsPins: Record<string, string> = {};
+    if (newPinCalgary) settingsPins.calgary = newPinCalgary;
+    if (newPinChestermere) settingsPins.chestermere = newPinChestermere;
+
     setIsCreating(true);
     try {
       const response = await supabase.functions.invoke('manage-users', {
@@ -185,7 +198,7 @@ const UsersManager = () => {
           fullName: newFullName,
           role: newRole,
           locationId: newLocationId || null,
-          settingsPin: newSettingsPin || null,
+          settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
         },
       });
 
@@ -210,7 +223,8 @@ const UsersManager = () => {
       setNewFullName('');
       setNewRole('user');
       setNewLocationId('');
-      setNewSettingsPin('');
+      setNewPinCalgary('');
+      setNewPinChestermere('');
       refetch();
     } catch (err: any) {
       toast({ title: 'Error creating user', description: err.message, variant: 'destructive' });
@@ -479,20 +493,36 @@ const UsersManager = () => {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newSettingsPin" className="flex items-center gap-1">
+              <Label className="flex items-center gap-1">
                 <Lock className="w-3 h-3" />
-                Settings PIN
+                Settings PIN (per location)
               </Label>
-              <Input
-                id="newSettingsPin"
-                type="password"
-                value={newSettingsPin}
-                onChange={(e) => setNewSettingsPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="Numeric PIN (optional)"
-                maxLength={8}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="newPinCalgary" className="text-xs text-muted-foreground">Calgary</Label>
+                  <Input
+                    id="newPinCalgary"
+                    type="password"
+                    value={newPinCalgary}
+                    onChange={(e) => setNewPinCalgary(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="PIN (optional)"
+                    maxLength={8}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="newPinChestermere" className="text-xs text-muted-foreground">Chestermere</Label>
+                  <Input
+                    id="newPinChestermere"
+                    type="password"
+                    value={newPinChestermere}
+                    onChange={(e) => setNewPinChestermere(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="PIN (optional)"
+                    maxLength={8}
+                  />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                PIN to protect POS Settings access
+                Each location can have its own PIN to protect POS Settings access
               </p>
             </div>
           </div>
@@ -540,20 +570,36 @@ const UsersManager = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editSettingsPin" className="flex items-center gap-1">
+              <Label className="flex items-center gap-1">
                 <Lock className="w-3 h-3" />
-                Settings PIN
+                Settings PIN (per location)
               </Label>
-              <Input
-                id="editSettingsPin"
-                type="password"
-                value={editSettingsPin}
-                onChange={(e) => setEditSettingsPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="Numeric PIN (leave empty to remove)"
-                maxLength={8}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="editPinCalgary" className="text-xs text-muted-foreground">Calgary</Label>
+                  <Input
+                    id="editPinCalgary"
+                    type="password"
+                    value={editPinCalgary}
+                    onChange={(e) => setEditPinCalgary(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="PIN (leave empty to remove)"
+                    maxLength={8}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="editPinChestermere" className="text-xs text-muted-foreground">Chestermere</Label>
+                  <Input
+                    id="editPinChestermere"
+                    type="password"
+                    value={editPinChestermere}
+                    onChange={(e) => setEditPinChestermere(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="PIN (leave empty to remove)"
+                    maxLength={8}
+                  />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                PIN to protect POS Settings access. Leave empty to remove.
+                Each location has its own PIN. Leave empty to remove.
               </p>
             </div>
           </div>

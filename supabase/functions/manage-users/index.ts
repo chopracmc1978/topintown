@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'create': {
-        const { email, password, username, fullName, role, locationId, settingsPin } = data
+        const { email, password, username, fullName, role, locationId, settingsPins } = data
 
         // Create user
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -81,15 +81,15 @@ Deno.serve(async (req) => {
           )
         }
 
-        // Update profile with username, location, and settings pin
+        // Update profile with username, location, and settings pins
         if (newUser.user) {
           const profileUpdate: Record<string, unknown> = {
             username: username?.toLowerCase(),
             full_name: fullName,
             location_id: locationId || null,
           }
-          if (settingsPin !== undefined) {
-            profileUpdate.settings_pin = settingsPin || null
+          if (settingsPins !== undefined) {
+            profileUpdate.settings_pins = settingsPins || null
           }
 
           await adminClient
@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        const { targetUserId, email, password, fullName, username, settingsPin } = data
+        const { targetUserId, email, password, fullName, username, settingsPins } = data
 
         // Update auth user if email/password changed
         if (email || password) {
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
         const profileUpdate: Record<string, unknown> = {}
         if (fullName !== undefined) profileUpdate.full_name = fullName
         if (username !== undefined) profileUpdate.username = username?.toLowerCase()
-        if (settingsPin !== undefined) profileUpdate.settings_pin = settingsPin || null
+        if (settingsPins !== undefined) profileUpdate.settings_pins = settingsPins || null
 
         if (Object.keys(profileUpdate).length > 0) {
           const { error: profileError } = await adminClient
