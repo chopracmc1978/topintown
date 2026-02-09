@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
@@ -68,10 +69,13 @@ const LOCATION_NAMES: Record<string, string> = {
   'chestermere': 'Chestermere (Kinniburgh)',
 };
 
+/**
+ * Auth gate: renders the login screen or loading spinner BEFORE mounting
+ * any heavy POS hooks (orders, notifications, printing, sessions).
+ * This prevents hook failures from causing a white screen on native.
+ */
 const POS = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  
-  // Get location from localStorage (set during login) - wrapped in try-catch for native safety
   const [currentLocationId, setCurrentLocationId] = useState<string>(() => {
     try {
       return localStorage.getItem('pos_location_id') || 'calgary';
@@ -80,7 +84,74 @@ const POS = () => {
       return 'calgary';
     }
   });
-  
+
+  // Sync location from localStorage on login
+  useEffect(() => {
+    try {
+      const savedLocation = localStorage.getItem('pos_location_id');
+      if (savedLocation && savedLocation !== currentLocationId) {
+        setCurrentLocationId(savedLocation);
+      }
+    } catch (error) {
+      console.error('Failed to read location from localStorage:', error);
+    }
+  }, [user]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <POSLoginScreen onLoginSuccess={() => {
+      try {
+        const savedLocation = localStorage.getItem('pos_location_id');
+        if (savedLocation) {
+          setCurrentLocationId(savedLocation);
+        }
+      } catch {}
+    }} />;
+  }
+
+  // Only mount the heavy dashboard AFTER authentication succeeds
+  return (
+    <ErrorBoundary fallback={
+      <div className="h-screen flex items-center justify-center p-6" style={{ background: 'hsl(220, 26%, 14%)', color: '#e2e8f0' }}>
+        <div className="text-center max-w-md space-y-4">
+          <h1 className="text-xl font-semibold">POS failed to load</h1>
+          <p className="text-sm opacity-70">An error occurred while loading the dashboard.</p>
+          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Reload</button>
+        </div>
+      </div>
+    }>
+      <POSDashboard
+        user={user}
+        signOut={signOut}
+        currentLocationId={currentLocationId}
+        setCurrentLocationId={setCurrentLocationId}
+      />
+    </ErrorBoundary>
+  );
+};
+
+/**
+ * The heavy POS dashboard. Only mounted when user is authenticated.
+ * All hooks (orders, notifications, printing, sessions) live here.
+ */
+const POSDashboard = ({
+  user,
+  signOut,
+  currentLocationId,
+  setCurrentLocationId,
+}: {
+  user: NonNullable<ReturnType<typeof useAuth>['user']>;
+  signOut: () => Promise<void>;
+  currentLocationId: string;
+  setCurrentLocationId: (id: string) => void;
+}) => {
   // Pass location to orders hook for filtering
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, startPreparingAdvanceOrder, refetch } = usePOSOrders(currentLocationId);
   
@@ -96,7 +167,7 @@ const POS = () => {
   const [showEndDay, setShowEndDay] = useState(false);
   const [showReports, setShowReports] = useState(false);
   
-  // New order flow state: Create Order -> Prep Time -> Payment Type
+  // New order flow state
   const [newOrderPending, setNewOrderPending] = useState<Order | null>(null);
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
   const [pendingPrepTime, setPendingPrepTime] = useState<number>(20);
@@ -122,7 +193,7 @@ const POS = () => {
     setupAutoLogout 
   } = usePOSSession(currentLocationId, user?.id);
   
-  // Start session on login if none exists - wrapped in try-catch for native safety
+  // Start session on login if none exists
   useEffect(() => {
     const initSession = async () => {
       try {
@@ -132,7 +203,6 @@ const POS = () => {
         }
       } catch (error) {
         console.error('Failed to initialize POS session:', error);
-        // Don't throw - just log the error to prevent crash
       }
     };
     initSession();
@@ -144,7 +214,6 @@ const POS = () => {
       try {
         return setupAutoLogout(async () => {
           try {
-            // Auto end session with calculated cash
             const expectedCash = (activeSession?.start_cash || 0) + todayCashSales;
             await endSession(expectedCash);
             localStorage.removeItem('pos_location_id');
@@ -164,7 +233,6 @@ const POS = () => {
   
   useEffect(() => {
     const fetchRewards = async () => {
-      // Collect unique phone numbers from orders
       const phones = [...new Set(orders.map(o => o.customerPhone).filter(Boolean))];
       if (phones.length === 0) {
         setRewardsMap({});
@@ -187,36 +255,6 @@ const POS = () => {
     fetchRewards();
   }, [orders]);
 
-  useEffect(() => {
-    try {
-      const savedLocation = localStorage.getItem('pos_location_id');
-      if (savedLocation && savedLocation !== currentLocationId) {
-        setCurrentLocationId(savedLocation);
-      }
-    } catch (error) {
-      console.error('Failed to read location from localStorage:', error);
-    }
-  }, [user]);
-
-  // Show login screen if not authenticated
-  if (authLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <POSLoginScreen onLoginSuccess={() => {
-      const savedLocation = localStorage.getItem('pos_location_id');
-      if (savedLocation) {
-        setCurrentLocationId(savedLocation);
-      }
-    }} />;
-  }
-
-  // Helper: is this an advance order (accepted but waiting for scheduled time)
   const isAdvanceOrder = (o: Order) => 
     o.status === 'preparing' && o.pickupTime && new Date(o.pickupTime) > new Date();
 
