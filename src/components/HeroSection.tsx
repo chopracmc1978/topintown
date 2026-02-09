@@ -36,7 +36,7 @@ const HeroSection = () => {
         <Button 
           onClick={() => setShowLocationDialog(true)}
           size="lg"
-          className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-lg text-sm sm:text-base hover:scale-105 transition-transform"
+          className="bg-[#5CACDB] hover:bg-[#4a9bc9] text-white font-semibold px-4 sm:px-8 py-1.5 sm:py-3 rounded-full shadow-lg text-xs sm:text-base hover:scale-105 transition-transform"
         >
           Order Now
         </Button>
