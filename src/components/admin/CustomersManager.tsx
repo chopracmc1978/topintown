@@ -192,15 +192,30 @@ const CustomersManager = () => {
     },
   });
 
-  // Delete customer mutation
+  // Delete customer mutation — cascades cleanup of rewards, history, and order links
   const deleteCustomer = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('customers').delete().eq('id', id);
+    mutationFn: async (customer: Customer) => {
+      const cleanPhone = normalizePhone(customer.phone);
+
+      // 1. Delete rewards history (by phone — covers all records)
+      await supabase.from('rewards_history').delete().eq('phone', cleanPhone);
+
+      // 2. Delete customer rewards record
+      await supabase.from('customer_rewards').delete().eq('phone', cleanPhone);
+
+      // 3. Unlink orders (set customer_id to null so order records are preserved)
+      await supabase.from('orders').update({ customer_id: null }).eq('customer_id', customer.id);
+
+      // 4. Unlink coupon usage
+      await supabase.from('coupon_usage').update({ customer_id: null }).eq('customer_id', customer.id);
+
+      // 5. Finally delete the customer record
+      const { error } = await supabase.from('customers').delete().eq('id', customer.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-customers'] });
-      toast.success('Customer deleted successfully');
+      toast.success('Customer and all related history deleted successfully');
       setDeleteDialogOpen(false);
       setCustomerToDelete(null);
     },
@@ -514,13 +529,13 @@ const CustomersManager = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Customer</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{customerToDelete?.full_name || customerToDelete?.email}</strong>? This action cannot be undone. Their order history will remain but won't be linked to this customer.
+              Are you sure you want to delete <strong>{customerToDelete?.full_name || customerToDelete?.email}</strong>? This will also remove all their reward points and history. Order records will be preserved but unlinked.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => customerToDelete && deleteCustomer.mutate(customerToDelete.id)}
+              onClick={() => customerToDelete && deleteCustomer.mutate(customerToDelete)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteCustomer.isPending ? (
