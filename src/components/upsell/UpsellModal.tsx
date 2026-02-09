@@ -194,7 +194,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                   <div 
                     key={item.id}
                     className={cn(
-                      "border rounded-lg p-2 transition-all",
+                      "border rounded-lg p-2 transition-all flex flex-col",
                       isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                     )}
                   >
@@ -234,7 +234,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-1 mt-auto pt-1">
                       {isSelected ? (
                         <>
                           <button
