@@ -213,7 +213,10 @@ const POS = () => {
         currentLocationId={currentLocationId}
         setCurrentLocationId={setCurrentLocationId}
         activeStaff={activeStaff}
-        onStaffLogout={() => setActiveStaff(null)}
+        onStaffLogout={() => {
+          setActiveStaff(null);
+          localStorage.removeItem('pos_active_staff');
+        }}
       />
     </ErrorBoundary>
   );
@@ -329,8 +332,8 @@ const POSDashboard = ({
           try {
             const expectedCash = (activeSession?.start_cash || 0) + todayCashSales;
             await endSession(expectedCash);
-            localStorage.removeItem('pos_location_id');
-            signOut();
+            // Return to staff PIN screen, keep store login alive
+            onStaffLogout();
           } catch (error) {
             console.error('Auto-logout failed:', error);
           }
@@ -1157,8 +1160,8 @@ const POSDashboard = ({
             // Clear orders from POS view (keep advance orders)
             await clearEndOfDayOrders(currentLocationId);
             setShowEndDay(false);
-            localStorage.removeItem('pos_location_id');
-            signOut();
+            // Return to staff PIN screen, keep store login alive
+            onStaffLogout();
           }
         }}
         activeSession={activeSession}
