@@ -508,15 +508,27 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         key={side}
                         disabled={isDisabled}
                         onClick={() => {
-                          if (side === 'whole') {
-                            setLeftSpicy('medium');
-                            setRightSpicy('medium');
-                          } else if (side === 'left') {
-                            setLeftSpicy('medium');
-                            if (rightSpicy !== 'hot') setRightSpicy('none');
+                          if (isActive) {
+                            // Deselect: reset medium sides to none
+                            if (side === 'whole') {
+                              setLeftSpicy('none');
+                              setRightSpicy('none');
+                            } else if (side === 'left') {
+                              setLeftSpicy('none');
+                            } else {
+                              setRightSpicy('none');
+                            }
                           } else {
-                            setRightSpicy('medium');
-                            if (leftSpicy !== 'hot') setLeftSpicy('none');
+                            if (side === 'whole') {
+                              setLeftSpicy('medium');
+                              setRightSpicy('medium');
+                            } else if (side === 'left') {
+                              setLeftSpicy('medium');
+                              if (rightSpicy !== 'hot') setRightSpicy('none');
+                            } else {
+                              setRightSpicy('medium');
+                              if (leftSpicy !== 'hot') setLeftSpicy('none');
+                            }
                           }
                         }}
                         className={cn(
@@ -536,8 +548,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               ) : (
                 <button
                   onClick={() => {
-                    setLeftSpicy('medium');
-                    setRightSpicy('medium');
+                    if (leftSpicy === 'medium') {
+                      setLeftSpicy('none');
+                      setRightSpicy('none');
+                    } else {
+                      setLeftSpicy('medium');
+                      setRightSpicy('medium');
+                    }
                   }}
                   className={cn(
                     btnSmall, 
@@ -584,15 +601,27 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         key={side}
                         disabled={isDisabled}
                         onClick={() => {
-                          if (side === 'whole') {
-                            setLeftSpicy('hot');
-                            setRightSpicy('hot');
-                          } else if (side === 'left') {
-                            setLeftSpicy('hot');
-                            if (rightSpicy !== 'medium') setRightSpicy('none');
+                          if (isActive) {
+                            // Deselect: reset hot sides to none
+                            if (side === 'whole') {
+                              setLeftSpicy('none');
+                              setRightSpicy('none');
+                            } else if (side === 'left') {
+                              setLeftSpicy('none');
+                            } else {
+                              setRightSpicy('none');
+                            }
                           } else {
-                            setRightSpicy('hot');
-                            if (leftSpicy !== 'medium') setLeftSpicy('none');
+                            if (side === 'whole') {
+                              setLeftSpicy('hot');
+                              setRightSpicy('hot');
+                            } else if (side === 'left') {
+                              setLeftSpicy('hot');
+                              if (rightSpicy !== 'medium') setRightSpicy('none');
+                            } else {
+                              setRightSpicy('hot');
+                              if (leftSpicy !== 'medium') setLeftSpicy('none');
+                            }
                           }
                         }}
                         className={cn(
@@ -612,8 +641,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               ) : (
                 <button
                   onClick={() => {
-                    setLeftSpicy('hot');
-                    setRightSpicy('hot');
+                    if (leftSpicy === 'hot') {
+                      setLeftSpicy('none');
+                      setRightSpicy('none');
+                    } else {
+                      setLeftSpicy('hot');
+                      setRightSpicy('hot');
+                    }
                   }}
                   className={cn(
                     btnSmall, 
