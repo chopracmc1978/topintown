@@ -419,7 +419,7 @@
   background-color: hsl(220, 22%, 28%);
 }
 
-/* Compact tab button for small tablets */
+/* Compact tab button for small tablets, scales up on large screens */
 .pos-tab-button-compact {
   font-weight: 500;
   font-size: 11px;
@@ -428,6 +428,13 @@
   transition: background 0.15s, color 0.15s;
   background-color: hsl(220, 22%, 22%);
   color: hsl(215, 15%, 70%);
+}
+@media (min-width: 1024px) {
+  .pos-tab-button-compact {
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
 }
 .pos-tab-button-compact.active {
   background-color: hsl(217, 91%, 60%) !important;
