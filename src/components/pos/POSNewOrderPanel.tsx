@@ -941,21 +941,21 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           </div>
 
-          {/* Order Summary - Wider for tablet */}
-          <div className="w-96 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          {/* Order Summary - Responsive width for tablets */}
+          <div className="w-80 min-w-[280px] max-w-[320px] flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-lg">
+                <div className="text-center py-6 text-gray-400 text-sm">
                   Tap items to add to order
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {cartItems.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="p-3 rounded-lg" style={{ background: 'hsl(220, 25%, 20%)' }}>
-                      <div className="flex items-start gap-3">
+                    <div key={`${item.id}-${index}`} className="p-2 rounded-lg" style={{ background: 'hsl(220, 25%, 20%)' }}>
+                      <div className="flex items-start gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-base truncate text-white">{item.name}</p>
+                          <p className="font-medium text-sm truncate text-white">{item.name}</p>
                           {item.selectedSize && !item.pizzaCustomization && (
                             <p className="text-sm text-gray-400">{item.selectedSize}</p>
                           )}
@@ -985,43 +985,43 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 shrink-0 text-gray-300 hover:text-white hover:bg-gray-700/50"
+                            className="h-8 w-8 shrink-0 text-gray-300 hover:text-white hover:bg-gray-700/50"
                             onClick={() => handleEditItem(item, index)}
                           >
-                            <Edit2 className="w-5 h-5" />
+                            <Edit2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            className="h-10 w-10 flex items-center justify-center rounded-md"
+                            className="h-8 w-8 flex items-center justify-center rounded-md"
                             style={{ background: 'hsl(220, 22%, 25%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 32%)' }}
                             onClick={() => updateQuantity(index, -1)}
                           >
-                            <Minus className="w-5 h-5" />
+                            <Minus className="w-4 h-4" />
                           </button>
-                          <span className="w-8 text-center text-lg font-medium" style={{ color: '#ffffff' }}>{item.quantity}</span>
+                          <span className="w-6 text-center text-sm font-medium" style={{ color: '#ffffff' }}>{item.quantity}</span>
                           <button
                             type="button"
-                            className="h-10 w-10 flex items-center justify-center rounded-md"
+                            className="h-8 w-8 flex items-center justify-center rounded-md"
                             style={{ background: 'hsl(220, 22%, 25%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 32%)' }}
                             onClick={() => updateQuantity(index, 1)}
                           >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-4 h-4" />
                           </button>
                         </div>
-                        <span className="text-base font-medium text-white">
+                        <span className="text-sm font-medium text-white">
                           ${item.totalPrice.toFixed(2)}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/30"
                           onClick={() => removeItem(index)}
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -1092,17 +1092,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
 
             {/* Order Notes */}
-            <div className="p-4" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="px-3 py-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               <Textarea
                 placeholder="Order notes..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="text-base resize-none h-20"
+                className="text-sm resize-none h-14"
               />
             </div>
 
             {/* Coupon, Discount & Redeem Row */}
-            <div className="px-4 py-2 space-y-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="px-3 py-1.5 space-y-1.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               {/* Row 1: Coupon code + Apply + Discount - always visible */}
               <div className="flex gap-2 items-center">
                 {appliedCoupon ? (
@@ -1291,7 +1291,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
 
             {/* Totals & Submit */}
-            <div className="px-4 py-2 space-y-1" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
+            <div className="px-3 py-2 space-y-0.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Subtotal</span>
                 <span className="text-white">${subtotal.toFixed(2)}</span>
@@ -1312,13 +1312,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 <span className="text-gray-400">GST (5%)</span>
                 <span className="text-white">${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg pt-1 text-white">
+              <div className="flex justify-between font-bold text-base pt-0.5 text-white">
                 <span className="text-white">Total</span>
                 <span className="text-blue-400">${total.toFixed(2)}</span>
               </div>
               
               <Button 
-                className="w-full mt-2 text-base py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full mt-1.5 text-sm py-1.5 h-auto bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={cartItems.length === 0 || isSubmitting}
                 onClick={handleSubmit}
               >
