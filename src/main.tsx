@@ -34,13 +34,26 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
+    // Force 1920px viewport for HD rendering on high-DPI tablets
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
       meta.setAttribute(
         "content",
-        "width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        "width=1920, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover, target-densitydpi=device-dpi"
       );
     }
+
+    // Add native-only meta tags for sharp rendering
+    const addMeta = (name: string, content: string) => {
+      if (!document.querySelector(`meta[name="${name}"]`)) {
+        const m = document.createElement("meta");
+        m.name = name;
+        m.content = content;
+        document.head.appendChild(m);
+      }
+    };
+    addMeta("HandheldFriendly", "true");
+    addMeta("MobileOptimized", "1920");
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;
