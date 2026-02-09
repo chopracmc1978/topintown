@@ -1,4 +1,4 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,7 @@ import { POSPrinterSettings } from './POSPrinterSettings';
 import { POSReceiptSettings } from './POSReceiptSettings';
 import { POSOrderHistory } from './POSOrderHistory';
 import { POSReportsPanel } from './POSReportsPanel';
+import { POSStaffManager } from './POSStaffManager';
 
 interface POSSettingsPanelProps {
   locationId: string;
@@ -102,6 +103,13 @@ export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled
                 >
                   {isAudioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                   Sound
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="staff" 
+                  className="pos-solid-tabs-trigger gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Staff
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -212,6 +220,10 @@ export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled
                   Test Sound
                 </Button>
               </div>
+            </TabsContent>
+
+            <TabsContent value="staff" className="p-4 mt-0">
+              <POSStaffManager locationId={locationId} />
             </TabsContent>
           </Tabs>
         </div>

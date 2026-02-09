@@ -750,6 +750,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string
           pickup_time: string | null
+          pos_staff_id: string | null
           rewards_discount: number | null
           rewards_used: number | null
           source: string
@@ -778,6 +779,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           pickup_time?: string | null
+          pos_staff_id?: string | null
           rewards_discount?: number | null
           rewards_used?: number | null
           source?: string
@@ -806,6 +808,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string
           pickup_time?: string | null
+          pos_staff_id?: string | null
           rewards_discount?: number | null
           rewards_used?: number | null
           source?: string
@@ -823,6 +826,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_pos_staff_id_fkey"
+            columns: ["pos_staff_id"]
+            isOneToOne: false
+            referencedRelation: "pos_staff"
             referencedColumns: ["id"]
           },
         ]
@@ -920,6 +930,7 @@ export type Database = {
           id: string
           is_active: boolean
           location_id: string
+          pos_staff_id: string | null
           start_cash: number
           start_time: string
           updated_at: string
@@ -934,6 +945,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           location_id: string
+          pos_staff_id?: string | null
           start_cash?: number
           start_time?: string
           updated_at?: string
@@ -948,10 +960,52 @@ export type Database = {
           id?: string
           is_active?: boolean
           location_id?: string
+          pos_staff_id?: string | null
           start_cash?: number
           start_time?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sessions_pos_staff_id_fkey"
+            columns: ["pos_staff_id"]
+            isOneToOne: false
+            referencedRelation: "pos_staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_staff: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          location_id: string
+          name: string
+          pin: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_id: string
+          name: string
+          pin: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_id?: string
+          name?: string
+          pin?: string
+          role?: string
+          updated_at?: string
         }
         Relationships: []
       }

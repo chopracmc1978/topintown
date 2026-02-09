@@ -95,7 +95,7 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
   }, [locationId]);
 
   // Start a new session
-  const startSession = async (startCash: number = 0): Promise<POSSession | null> => {
+  const startSession = async (startCash: number = 0, posStaffId?: string): Promise<POSSession | null> => {
     if (!userId || !locationId) return null;
 
     try {
@@ -111,14 +111,19 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
         .eq('is_active', true);
 
       // Create new session
+      const insertData: any = {
+        location_id: locationId,
+        user_id: userId,
+        start_cash: startCash,
+        is_active: true,
+      };
+      if (posStaffId) {
+        insertData.pos_staff_id = posStaffId;
+      }
+
       const { data, error } = await supabase
         .from('pos_sessions')
-        .insert({
-          location_id: locationId,
-          user_id: userId,
-          start_cash: startCash,
-          is_active: true,
-        })
+        .insert(insertData)
         .select()
         .single();
 
