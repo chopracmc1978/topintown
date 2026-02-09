@@ -6,7 +6,8 @@ export const usePOSNotificationSound = (orders: Order[]) => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const advanceAlertIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false); // Start false until user enables
-  const [volume, setVolume] = useState(0.8); // Volume 0-1
+  const [volume, setVolume] = useState(0.8); // Volume 0-2 (0-200%)
+  const gainNodeRef = useRef<GainNode | null>(null);
   const [isAudioReady, setIsAudioReady] = useState(false); // Whether AudioContext is initialized
   const previousPendingIdsRef = useRef<Set<string>>(new Set());
   const alertedAdvanceIdsRef = useRef<Set<string>>(new Set()); // Track which advance orders already triggered 30-min alert
@@ -36,6 +37,11 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       audioContextRef.current = new AudioContextClass();
+      
+      // Create a master gain node for volume amplification (supports >100%)
+      gainNodeRef.current = audioContextRef.current.createGain();
+      gainNodeRef.current.connect(audioContextRef.current.destination);
+      gainNodeRef.current.gain.value = volume;
       
       if (audioContextRef.current.state === 'suspended') {
         audioContextRef.current.resume();
@@ -67,20 +73,23 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     const currentVolume = volume;
     
     // Create a LOUD alarm-style sound sequence
+    // Use master gain node for amplification (supports 0-200%)
+    const masterGain = gainNodeRef.current || ctx.destination;
+    
     const playTone = (freq: number, startTime: number, duration: number) => {
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
       oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      gainNode.connect(masterGain);
       
       oscillator.type = 'square'; // Harsh, attention-grabbing
       oscillator.frequency.setValueAtTime(freq, startTime);
       
-      // Use current volume setting
+      // Envelope (0 to 1, volume is controlled by master gain)
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(currentVolume, startTime + 0.01);
-      gainNode.gain.setValueAtTime(currentVolume, startTime + duration - 0.05);
+      gainNode.gain.linearRampToValueAtTime(1, startTime + 0.01);
+      gainNode.gain.setValueAtTime(1, startTime + duration - 0.05);
       gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
       
       oscillator.start(startTime);
@@ -157,10 +166,14 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     }
   }, [enableAudio, disableAudio]);
 
-  // Adjust volume
+  // Adjust volume (0-2 for 0-200%)
   const adjustVolume = useCallback((newVolume: number) => {
-    const clamped = Math.max(0, Math.min(1, newVolume));
+    const clamped = Math.max(0, Math.min(2, newVolume));
     setVolume(clamped);
+    // Update master gain node in real-time
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = clamped;
+    }
     console.log('🔊 Volume set to:', Math.round(clamped * 100) + '%');
   }, []);
 
