@@ -269,14 +269,22 @@ const POSDashboard = ({
     const fetchSettingsPin = async () => {
       if (!user) return;
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('settings_pins')
           .eq('user_id', user.id)
           .maybeSingle();
-        const pins = (data as any)?.settings_pins;
-        const locationPin = pins?.[currentLocationId] || null;
-        setSettingsPin(locationPin);
+        console.log('[POS] Settings PIN fetch for user:', user.id, 'location:', currentLocationId, 'data:', JSON.stringify(data), 'error:', error);
+        if (data) {
+          const rawPins = data.settings_pins;
+          // Handle both string and object formats
+          const pins = typeof rawPins === 'string' ? JSON.parse(rawPins) : rawPins;
+          const locationPin = pins?.[currentLocationId] || null;
+          console.log('[POS] Parsed pins:', JSON.stringify(pins), 'locationPin:', locationPin);
+          setSettingsPin(locationPin);
+        } else {
+          setSettingsPin(null);
+        }
       } catch (err) {
         console.error('Error fetching settings pin:', err);
       } finally {
