@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.customer-profile]
 verify_jwt = false
+
+[functions.customer-rewards]
+verify_jwt = false

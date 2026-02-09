@@ -53,67 +53,63 @@ export const canRedeemRewards = (points: number): boolean => {
 };
 
 /**
- * Hook to fetch rewards by phone number
+ * Hook to fetch rewards by phone number.
+ * Uses edge function proxy (no Supabase Auth needed for web customers).
  */
 export const useRewardsByPhone = (phone: string | undefined) => {
   return useQuery({
     queryKey: ['rewards', phone],
     queryFn: async (): Promise<CustomerReward | null> => {
       if (!phone) return null;
-      
-      const { data, error } = await supabase
-        .from('customer_rewards')
-        .select('*')
-        .eq('phone', phone)
-        .maybeSingle();
+
+      const { data, error } = await supabase.functions.invoke('customer-rewards', {
+        body: { phone },
+      });
 
       if (error) throw error;
-      return data;
+      return data?.rewards || null;
     },
     enabled: !!phone,
   });
 };
 
 /**
- * Hook to fetch rewards by customer ID
+ * Hook to fetch rewards by customer ID.
+ * Uses edge function proxy.
  */
 export const useRewardsByCustomerId = (customerId: string | undefined) => {
   return useQuery({
     queryKey: ['rewards', 'customer', customerId],
     queryFn: async (): Promise<CustomerReward | null> => {
       if (!customerId) return null;
-      
-      const { data, error } = await supabase
-        .from('customer_rewards')
-        .select('*')
-        .eq('customer_id', customerId)
-        .maybeSingle();
+
+      const { data, error } = await supabase.functions.invoke('customer-rewards', {
+        body: { customerId },
+      });
 
       if (error) throw error;
-      return data;
+      return data?.rewards || null;
     },
     enabled: !!customerId,
   });
 };
 
 /**
- * Hook to fetch rewards history
+ * Hook to fetch rewards history.
+ * Uses edge function proxy.
  */
 export const useRewardsHistory = (phone: string | undefined) => {
   return useQuery({
     queryKey: ['rewards-history', phone],
     queryFn: async (): Promise<RewardHistory[]> => {
       if (!phone) return [];
-      
-      const { data, error } = await supabase
-        .from('rewards_history')
-        .select('*')
-        .eq('phone', phone)
-        .order('created_at', { ascending: false })
-        .limit(50);
+
+      const { data, error } = await supabase.functions.invoke('customer-rewards', {
+        body: { phone, includeHistory: true },
+      });
 
       if (error) throw error;
-      return (data || []) as RewardHistory[];
+      return (data?.history || []) as RewardHistory[];
     },
     enabled: !!phone,
   });
@@ -121,6 +117,7 @@ export const useRewardsHistory = (phone: string | undefined) => {
 
 /**
  * Hook to add points to a customer's rewards
+ * (Used from POS - staff are Supabase Auth users, direct DB access works)
  */
 export const useAddRewardPoints = () => {
   const queryClient = useQueryClient();
@@ -196,6 +193,7 @@ export const useAddRewardPoints = () => {
 
 /**
  * Hook to redeem reward points
+ * (Used from POS - staff are Supabase Auth users, direct DB access works)
  */
 export const useRedeemRewardPoints = () => {
   const queryClient = useQueryClient();
@@ -261,6 +259,7 @@ export const useRedeemRewardPoints = () => {
 
 /**
  * Hook to link phone rewards to a customer account
+ * (Used from POS - staff are Supabase Auth users, direct DB access works)
  */
 export const useLinkRewardsToCustomer = () => {
   const queryClient = useQueryClient();
