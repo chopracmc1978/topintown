@@ -106,7 +106,18 @@ const UsersManager = () => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        // Try to extract the actual error from the response body
+        const ctx = response.error?.context;
+        let msg = response.error.message;
+        try {
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            if (body?.error) msg = body.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (response.data?.error) throw new Error(response.data.error);
 
       toast({ title: 'Profile updated successfully' });
@@ -173,7 +184,17 @@ const UsersManager = () => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        const ctx = response.error?.context;
+        let msg = response.error.message;
+        try {
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            if (body?.error) msg = body.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (response.data?.error) throw new Error(response.data.error);
 
       toast({ title: 'User created successfully' });
@@ -204,7 +225,17 @@ const UsersManager = () => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        const ctx = response.error?.context;
+        let msg = response.error.message;
+        try {
+          if (ctx && typeof ctx.json === 'function') {
+            const body = await ctx.json();
+            if (body?.error) msg = body.error;
+          }
+        } catch {}
+        throw new Error(msg);
+      }
       if (response.data?.error) throw new Error(response.data.error);
 
       toast({ title: 'User deleted successfully' });
