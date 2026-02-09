@@ -115,19 +115,21 @@ serve(async (req) => {
     // Create a Stripe coupon on-the-fly if there's any discount
     let discounts: { coupon: string }[] | undefined;
     if (totalDiscount > 0) {
-      const discountParts: string[] = [];
-      if (rewardsDiscount && rewardsDiscount > 0) {
-        discountParts.push(`Rewards (${rewardsUsed} pts): -$${rewardsDiscount.toFixed(2)}`);
-      }
-      if (discount && discount > 0) {
-        discountParts.push(`Coupon${couponCode ? ` (${couponCode})` : ''}: -$${discount.toFixed(2)}`);
+      // Stripe coupon name max 40 chars
+      let couponName = "Discount";
+      if (rewardsDiscount && rewardsDiscount > 0 && discount && discount > 0) {
+        couponName = `Rewards + Coupon`;
+      } else if (rewardsDiscount && rewardsDiscount > 0) {
+        couponName = `Rewards (${rewardsUsed} pts)`;
+      } else if (discount && discount > 0) {
+        couponName = couponCode ? `Coupon: ${couponCode}`.slice(0, 40) : "Coupon Discount";
       }
 
       const coupon = await stripe.coupons.create({
         amount_off: Math.round(totalDiscount * 100),
         currency: "cad",
         duration: "once",
-        name: discountParts.join(' | '),
+        name: couponName.slice(0, 40),
       });
       discounts = [{ coupon: coupon.id }];
       console.log("Created Stripe coupon for discount:", coupon.id, totalDiscount);
