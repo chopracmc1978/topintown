@@ -79,7 +79,7 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 pos-no-focus-ring" style={{ backgroundColor: '#0891b2' }}>
+    <div className="fixed inset-0 flex items-center justify-center p-4 pos-no-focus-ring" style={{ backgroundColor: '#0891b2' }}>
       <Card className="w-full max-w-md relative overflow-hidden" style={{ backgroundColor: '#e8f4fc' }}>
         {/* Shield layer for legacy Android WebView opacity */}
         <div style={{ position: 'absolute', inset: 0, backgroundColor: '#e8f4fc', zIndex: 0 }} />

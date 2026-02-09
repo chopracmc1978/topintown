@@ -293,6 +293,8 @@
   /* Selective GPU compositing for sharpness on Android WebView */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* Ensure POS fills the entire viewport on any device */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Crisp text in POS - geometricPrecision for HD tablets */

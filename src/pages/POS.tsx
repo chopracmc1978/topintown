@@ -99,7 +99,7 @@ const POS = () => {
 
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -119,7 +119,7 @@ const POS = () => {
   // Only mount the heavy dashboard AFTER authentication succeeds
   return (
     <ErrorBoundary fallback={
-      <div className="h-screen flex items-center justify-center p-6" style={{ background: 'hsl(220, 26%, 14%)', color: '#e2e8f0' }}>
+      <div className="fixed inset-0 flex items-center justify-center p-6" style={{ background: 'hsl(220, 26%, 14%)', color: '#e2e8f0' }}>
         <div className="text-center max-w-md space-y-4">
           <h1 className="text-xl font-semibold">POS failed to load</h1>
           <p className="text-sm opacity-70">An error occurred while loading the dashboard.</p>
@@ -596,11 +596,11 @@ const POSDashboard = ({
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col p-2 overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ minHeight: '100vh', minWidth: '100vw', background: 'hsl(220, 26%, 14%)', paddingTop: 'max(env(safe-area-inset-top), 8px)' }}>
+    <div className="fixed inset-0 flex flex-col overflow-hidden pos-no-focus-ring pos-hd-text pos-premium-theme" style={{ background: 'hsl(220, 26%, 14%)', paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}>
       {/* Full-screen solid background shield to prevent any bleed-through on Android tablets */}
       <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(220, 26%, 14%)' }} aria-hidden="true" />
-      {/* Main POS container with rounded corners - full viewport */}
-      <div className="flex-1 flex flex-col rounded-lg overflow-hidden shadow-md w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
+      {/* Main POS container - truly full viewport, no rounding or padding */}
+      <div className="flex-1 flex flex-col overflow-hidden w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
         "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
@@ -746,7 +746,7 @@ const POSDashboard = ({
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[18%] min-w-[200px] max-w-[280px] border-r flex flex-col" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
+        <div className="w-[18%] min-w-[180px] max-w-[260px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
           <ScrollArea className="flex-1 p-2">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -778,7 +778,7 @@ const POSDashboard = ({
         </div>
 
         {/* Right Panel - Detail, Edit, or New Order - Fill remaining space */}
-        <div className="flex-1 p-3 overflow-auto min-h-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
+        <div className="flex-1 p-2 overflow-auto min-h-0 min-w-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
           {editingOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
