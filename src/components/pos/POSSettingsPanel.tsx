@@ -27,26 +27,26 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
       style={{ backgroundColor: 'hsla(0, 0%, 0%, 0.5)' }}
     >
       <div
-        className="rounded-xl border border-border shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col relative overflow-hidden"
-        style={{ backgroundColor: 'hsl(0, 0%, 100%)', colorScheme: 'light', color: '#222222' }}
+        className="pos-light-panel rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col relative overflow-hidden"
+        style={{ backgroundColor: '#ffffff', colorScheme: 'light', color: '#222222', borderColor: '#e5e5e5', borderWidth: '1px', borderStyle: 'solid' }}
       >
         {/* Shield layer for legacy Android WebView opacity */}
         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'hsl(0, 0%, 100%)', zIndex: 0 }} />
         {/* Header */}
         <div
-          className="flex items-center justify-between p-4 border-b border-border relative"
-          style={{ zIndex: 1, backgroundColor: 'hsl(0, 0%, 100%)' }}
+          className="flex items-center justify-between p-4 relative"
+          style={{ zIndex: 1, backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5e5' }}
         >
-          <h2 className="font-serif text-xl font-bold">Settings</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <h2 className="font-serif text-xl font-bold" style={{ color: '#222222' }}>Settings</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} style={{ color: '#222222' }}>
             <X className="w-5 h-5" />
           </Button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto relative" style={{ zIndex: 1, backgroundColor: 'hsl(0, 0%, 100%)' }}>
+        <div className="flex-1 overflow-auto relative" style={{ zIndex: 1, backgroundColor: '#ffffff' }}>
           <Tabs defaultValue="hours" className="w-full">
-            <div className="border-b border-border px-4">
+            <div className="px-4" style={{ borderBottom: '1px solid #e5e5e5' }}>
               <TabsList className="h-12 bg-transparent flex-wrap">
                 <TabsTrigger 
                   value="hours" 
