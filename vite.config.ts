@@ -37,5 +37,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Prevent duplicate React instances in native Capacitor builds
+    dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
 }));
