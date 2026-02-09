@@ -12,6 +12,7 @@ export interface UserWithRole {
   username: string | null;
   avatar_url: string | null;
   settings_pins: Record<string, string> | null;
+  location_id: string | null;
   created_at: string;
   roles: AppRole[];
 }
@@ -44,6 +45,7 @@ export const useUsers = () => {
         username: profile.username,
         avatar_url: profile.avatar_url,
         settings_pins: (profile as any).settings_pins ?? null,
+        location_id: profile.location_id ?? null,
         created_at: profile.created_at,
         roles: (roles || [])
           .filter((r) => r.user_id === profile.user_id)

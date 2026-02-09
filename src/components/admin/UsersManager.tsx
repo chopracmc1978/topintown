@@ -88,6 +88,8 @@ const UsersManager = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [editPinCalgary, setEditPinCalgary] = useState('');
   const [editPinChestermere, setEditPinChestermere] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editLocationId, setEditLocationId] = useState<string>('');
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
@@ -95,6 +97,8 @@ const UsersManager = () => {
     setEditUsername(user.username || '');
     setEditPinCalgary(user.settings_pins?.calgary || '');
     setEditPinChestermere(user.settings_pins?.chestermere || '');
+    setEditPassword('');
+    setEditLocationId(user.location_id || '');
   };
 
   const handleSaveProfile = async () => {
@@ -108,15 +112,17 @@ const UsersManager = () => {
     setIsUpdating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const response = await supabase.functions.invoke('manage-users', {
-        body: {
-          action: 'update',
-          targetUserId: editingUser.user_id,
-          fullName: editName,
-          username: editUsername,
-          settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
-        },
-      });
+      const body: Record<string, unknown> = {
+        action: 'update',
+        targetUserId: editingUser.user_id,
+        fullName: editName,
+        username: editUsername,
+        settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
+        locationId: editLocationId || null,
+      };
+      if (editPassword) body.password = editPassword;
+
+      const response = await supabase.functions.invoke('manage-users', { body });
 
       if (response.error) {
         // Try to extract the actual error from the response body
@@ -561,6 +567,16 @@ const UsersManager = () => {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="editPassword">Password</Label>
+              <Input
+                id="editPassword"
+                type="password"
+                value={editPassword}
+                onChange={(e) => setEditPassword(e.target.value)}
+                placeholder="Leave empty to keep current"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input
                 id="fullName"
@@ -568,6 +584,21 @@ const UsersManager = () => {
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder="Enter full name"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editLocation">Store Location (for POS)</Label>
+              <Select value={editLocationId} onValueChange={setEditLocationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="calgary">Calgary</SelectItem>
+                  <SelectItem value="chestermere">Chestermere (Kinniburgh)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Assign a store for POS staff login
+              </p>
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-1">
