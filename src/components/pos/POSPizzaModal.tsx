@@ -334,6 +334,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // POS color constants - very light red for unselected state
   const redOff = "border-red-300 bg-red-300 text-white";
   const redOffBg = "border-red-300 bg-red-300";
+  // Hardcoded inline styles for legacy Android WebView compatibility (prevents grey/transparent backgrounds)
+  const redOffInline: React.CSSProperties = { backgroundColor: '#fca5a5', borderColor: '#fca5a5' };
+  const greenOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981' };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -904,12 +907,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   return (
                     <div 
                       key={topping.id} 
-                      className={cn(
-                        "flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors overflow-hidden",
-                        isSelected 
-                          ? "border-emerald-500 bg-emerald-500" 
-                          : redOffBg
-                      )}
+                      className="flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors overflow-hidden"
+                      style={isSelected ? greenOnInline : redOffInline}
                     >
                       {/* Topping name with veg indicator */}
                       <button
