@@ -176,8 +176,17 @@ const POS = () => {
     }} />;
   }
 
+  // Show loader while staff data is loading (prevent falling through to dashboard)
+  if (staffLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center" style={{ background: 'hsl(220, 26%, 14%)' }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#e2e8f0' }} />
+      </div>
+    );
+  }
+
   // If staff members exist for this location, require PIN login
-  if (!staffLoading && staff.length > 0 && !activeStaff) {
+  if (staff.length > 0 && !activeStaff) {
     return (
       <POSStaffPinScreen
         locationName={LOCATION_NAMES[currentLocationId] || currentLocationId}
