@@ -419,6 +419,25 @@
   background-color: hsl(220, 22%, 28%);
 }
 
+/* Compact tab button for small tablets */
+.pos-tab-button-compact {
+  font-weight: 500;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  background-color: hsl(220, 22%, 22%);
+  color: hsl(215, 15%, 70%);
+}
+.pos-tab-button-compact.active {
+  background-color: hsl(217, 91%, 60%) !important;
+  color: hsl(0, 0%, 100%) !important;
+  box-shadow: 0 2px 6px rgba(59,130,246,0.3);
+}
+.pos-tab-button-compact:not(.active):hover {
+  background-color: hsl(220, 22%, 28%);
+}
+
 /* Android contrast boost: force opaque backgrounds */
 .pos-premium-theme .bg-muted { background: hsl(220, 20%, 25%) !important; }
 .pos-premium-theme .bg-background { background: hsl(220, 26%, 14%) !important; }
