@@ -1,4 +1,4 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock, Users } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock, Users, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +10,7 @@ import { POSReceiptSettings } from './POSReceiptSettings';
 import { POSOrderHistory } from './POSOrderHistory';
 import { POSReportsPanel } from './POSReportsPanel';
 import { POSStaffManager } from './POSStaffManager';
+import { POSNoteShortcutsSettings } from './POSNoteShortcutsSettings';
 
 interface POSSettingsPanelProps {
   locationId: string;
@@ -110,6 +111,13 @@ export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled
                 >
                   <Users className="w-4 h-4" />
                   Staff
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="shortcuts" 
+                  className="pos-solid-tabs-trigger gap-2"
+                >
+                  <Hash className="w-4 h-4" />
+                  Shortcuts
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -224,6 +232,10 @@ export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled
 
             <TabsContent value="staff" className="p-4 mt-0">
               <POSStaffManager locationId={locationId} />
+            </TabsContent>
+
+            <TabsContent value="shortcuts" className="p-4 mt-0">
+              <POSNoteShortcutsSettings locationId={locationId} />
             </TabsContent>
           </Tabs>
         </div>
