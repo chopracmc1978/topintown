@@ -60,28 +60,28 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-xl">
+      <DialogContent className="max-w-sm p-4">
+        <DialogHeader className="pb-1">
+          <DialogTitle className="font-serif text-base">
             {editingItem ? `Edit ${item.name}` : item.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {item.description && (
-            <p className="text-sm text-muted-foreground">{item.description}</p>
+            <p className="text-xs text-muted-foreground">{item.description}</p>
           )}
 
-          <div className="space-y-3">
-            <h3 className="font-medium text-foreground">Choose Your Flavor</h3>
-            <div className="flex flex-col gap-2">
+          <div className="space-y-1.5">
+            <h3 className="font-medium text-sm text-foreground">Choose Your Flavor</h3>
+            <div className="flex flex-col gap-1">
               {FLAVOR_OPTIONS.map((flavor) => {
                 const isSelected = selectedFlavor === flavor.id;
                 return (
                   <button
                     key={flavor.id}
                     onClick={() => setSelectedFlavor(flavor.id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
                       isSelected
                         ? 'bg-emerald-500 text-white'
                         : 'bg-red-300 text-white'
@@ -94,15 +94,15 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t">
-            <span className="text-xl font-bold text-primary">
+          <div className="flex items-center justify-between pt-2 border-t">
+            <span className="text-lg font-bold text-primary">
               ${item.base_price.toFixed(2)}
             </span>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" size="sm" onClick={onClose}>
                 Cancel
               </Button>
-              <Button variant="pizza" onClick={handleAddToOrder}>
+              <Button variant="pizza" size="sm" onClick={handleAddToOrder}>
                 {editingItem ? 'Update' : 'Add to Order'}
               </Button>
             </div>
