@@ -920,7 +920,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 key={side.value}
                                 type="button"
                                 onClick={() => {
-                                  if (!isSelected) {
+                                  if (isThisSideActive) {
+                                    // Deselect: remove this extra topping
+                                    toggleExtraTopping(topping);
+                                  } else if (!isSelected) {
                                     toggleExtraTopping(topping);
                                     setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
                                   } else {
