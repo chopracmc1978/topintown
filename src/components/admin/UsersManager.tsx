@@ -90,11 +90,13 @@ const UsersManager = () => {
   const [editPinChestermere, setEditPinChestermere] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editLocationId, setEditLocationId] = useState<string>('');
+  const [editEmail, setEditEmail] = useState('');
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
     setEditName(user.full_name || '');
     setEditUsername(user.username || '');
+    setEditEmail(user.email || '');
     setEditPinCalgary(user.settings_pins?.calgary || '');
     setEditPinChestermere(user.settings_pins?.chestermere || '');
     setEditPassword('');
@@ -120,6 +122,7 @@ const UsersManager = () => {
         settingsPins: Object.keys(settingsPins).length > 0 ? settingsPins : null,
         locationId: editLocationId || null,
       };
+      if (editEmail && editEmail !== editingUser.email) body.email = editEmail;
       if (editPassword) body.password = editPassword;
 
       const response = await supabase.functions.invoke('manage-users', { body });
@@ -554,8 +557,14 @@ const UsersManager = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" value={editingUser?.email || ''} disabled />
+              <Label htmlFor="editEmail">Email</Label>
+              <Input
+                id="editEmail"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="Enter email address"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="editUsername">Username</Label>
