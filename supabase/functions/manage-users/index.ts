@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'create': {
-        const { email, password, username, fullName, role, locationId, settingsPins } = data
+        const { email, password, username, fullName, role, locationId, settingsPins, staffPins } = data
 
         // Create user
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -145,6 +145,24 @@ Deno.serve(async (req) => {
               .from('user_roles')
               .insert({ user_id: newUser.user.id, role })
           }
+
+          // Create POS staff admin override PINs
+          if (staffPins && typeof staffPins === 'object') {
+            for (const [locId, pin] of Object.entries(staffPins)) {
+              if (pin) {
+                const staffName = fullName || username || email
+                await adminClient
+                  .from('pos_staff')
+                  .insert({
+                    location_id: locId,
+                    name: `${staffName} (Admin)`,
+                    pin: pin as string,
+                    role: 'admin',
+                    is_active: true,
+                  })
+              }
+            }
+          }
         }
 
         return new Response(
@@ -181,7 +199,7 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        const { targetUserId, email, password, fullName, username, settingsPins, locationId } = data
+        const { targetUserId, email, password, fullName, username, settingsPins, locationId, staffPins } = data
 
         // Update auth user if email/password changed
         if (email || password) {
@@ -218,6 +236,49 @@ Deno.serve(async (req) => {
               JSON.stringify({ error: profileError.message }),
               { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
+          }
+        }
+
+        // Handle POS staff admin override PINs
+        if (staffPins && typeof staffPins === 'object') {
+          // Get user's name for the staff entry
+          const { data: profile } = await adminClient
+            .from('profiles')
+            .select('full_name, username, email')
+            .eq('user_id', targetUserId)
+            .maybeSingle()
+          
+          const staffName = profile?.full_name || profile?.username || profile?.email || 'Admin'
+
+          for (const [locId, pin] of Object.entries(staffPins)) {
+            if (pin) {
+              // Try to find existing admin staff entry for this user+location
+              // We match by name pattern since we don't have a user_id on pos_staff
+              const { data: existing } = await adminClient
+                .from('pos_staff')
+                .select('id')
+                .eq('location_id', locId)
+                .eq('role', 'admin')
+                .ilike('name', `%${staffName}%`)
+                .maybeSingle()
+
+              if (existing) {
+                await adminClient
+                  .from('pos_staff')
+                  .update({ pin: pin as string, name: `${staffName} (Admin)`, is_active: true })
+                  .eq('id', existing.id)
+              } else {
+                await adminClient
+                  .from('pos_staff')
+                  .insert({
+                    location_id: locId,
+                    name: `${staffName} (Admin)`,
+                    pin: pin as string,
+                    role: 'admin',
+                    is_active: true,
+                  })
+              }
+            }
           }
         }
 
