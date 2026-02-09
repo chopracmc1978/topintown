@@ -145,6 +145,11 @@ const UsersManager = () => {
   };
 
   const handleRemoveRole = async (userId: string, role: AppRole) => {
+    // Prevent removing your own admin role to avoid lockout
+    if (userId === currentUser?.id && role === 'admin') {
+      toast({ title: 'Cannot remove your own admin role', description: 'You would be locked out. Ask another admin to do this.', variant: 'destructive' });
+      return;
+    }
 
     try {
       await removeRole.mutateAsync({ userId, role });
@@ -330,18 +335,21 @@ const UsersManager = () => {
                         {user.roles.length === 0 ? (
                           <span className="text-muted-foreground text-sm">No roles</span>
                         ) : (
-                          user.roles.map((role) => (
+                          user.roles.map((role) => {
+                            const isSelfAdmin = user.user_id === currentUser?.id && role === 'admin';
+                            return (
                               <Badge
                                 key={role}
                                 variant={roleConfig[role].variant}
-                                className="gap-1 cursor-pointer hover:opacity-80"
-                                onClick={() => handleRemoveRole(user.user_id, role)}
+                                className={`gap-1 ${isSelfAdmin ? 'cursor-default' : 'cursor-pointer hover:opacity-80'}`}
+                                onClick={() => !isSelfAdmin && handleRemoveRole(user.user_id, role)}
                               >
                                 {roleConfig[role].icon}
                                 {roleConfig[role].label}
-                                <Trash2 className="w-3 h-3 ml-1" />
+                                {!isSelfAdmin && <Trash2 className="w-3 h-3 ml-1" />}
                               </Badge>
-                          ))
+                            );
+                          })
                         )}
                         {getAvailableRoles(user.roles).length > 0 && (
                           <Button
