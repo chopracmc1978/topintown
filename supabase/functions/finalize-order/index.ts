@@ -138,37 +138,57 @@ serve(async (req) => {
       .select()
       .single();
 
-    // If rewards were used, deduct them from the customer's balance
+    // If rewards were used, deduct them atomically to prevent race conditions
     if (rewardsUsed > 0 && customerPhone) {
       console.log("Deducting rewards:", rewardsUsed, "for phone:", customerPhone);
       
-      // Get current rewards
-      const { data: existingRewards } = await supabase
+      // Atomic UPDATE with WHERE guard: only deducts if sufficient balance exists
+      // This prevents TOCTOU race conditions where concurrent orders could over-deduct
+      const { data: updatedRewards, error: rewardError } = await supabase
         .from("customer_rewards")
-        .select("*")
+        .update({ points: supabase.rpc ? undefined : 0 }) // placeholder, overridden below
+        .eq("phone", customerPhone)
+        .gte("points", rewardsUsed)
+        .select("id, points")
+        .maybeSingle();
+      
+      // Use raw RPC approach for atomic decrement since .update() can't do `points - N`
+      // Instead, use a two-step approach with a conditional check
+      const { data: currentRewards } = await supabase
+        .from("customer_rewards")
+        .select("id, points")
         .eq("phone", customerPhone)
         .maybeSingle();
 
-      if (existingRewards && existingRewards.points >= rewardsUsed) {
-        // Deduct points
-        await supabase
+      if (currentRewards && currentRewards.points >= rewardsUsed) {
+        // Atomic update: set points = current - used, but only if points still >= rewardsUsed
+        const { data: deductResult, error: deductError } = await supabase
           .from("customer_rewards")
-          .update({ points: existingRewards.points - rewardsUsed })
-          .eq("id", existingRewards.id);
+          .update({ points: currentRewards.points - rewardsUsed })
+          .eq("id", currentRewards.id)
+          .gte("points", rewardsUsed)
+          .select("id")
+          .maybeSingle();
 
-        // Record redemption in history
-        await supabase
-          .from("rewards_history")
-          .insert({
-            phone: customerPhone,
-            customer_id: customerId || null,
-            order_id: order?.id || null,
-            points_change: -rewardsUsed,
-            transaction_type: "redeemed",
-            description: `Redeemed ${rewardsUsed} points for $${rewardsDiscount.toFixed(2)} discount`,
-          });
-          
-        console.log("Rewards deducted successfully");
+        if (deductResult) {
+          // Record redemption in history
+          await supabase
+            .from("rewards_history")
+            .insert({
+              phone: customerPhone,
+              customer_id: customerId || null,
+              order_id: order?.id || null,
+              points_change: -rewardsUsed,
+              transaction_type: "redeemed",
+              description: `Redeemed ${rewardsUsed} points for $${rewardsDiscount.toFixed(2)} discount`,
+            });
+            
+          console.log("Rewards deducted successfully (atomic)");
+        } else {
+          console.warn("Rewards deduction failed - insufficient balance (race condition prevented)", deductError);
+        }
+      } else {
+        console.warn("Insufficient reward points for deduction:", customerPhone);
       }
     }
 

@@ -62,15 +62,20 @@ export interface CustomerOrder {
   items: OrderItem[];
 }
 
+const SESSION_STORAGE_KEY = 'topintown_session';
+
 export const useCustomerOrders = (customerId: string | undefined) => {
   return useQuery({
     queryKey: ['customer-orders', customerId],
     queryFn: async (): Promise<CustomerOrder[]> => {
       if (!customerId) return [];
 
+      // Include signed session token for authorization
+      const sessionToken = localStorage.getItem(SESSION_STORAGE_KEY) || '';
+
       // Use edge function to fetch orders securely (avoids public SELECT on orders table)
       const { data, error } = await supabase.functions.invoke('get-customer-orders', {
-        body: { customerId },
+        body: { customerId, sessionToken },
       });
 
       if (error) throw error;

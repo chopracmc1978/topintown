@@ -7,6 +7,39 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Verify a signed session token (HMAC-SHA256) and extract the customerId
+async function verifySessionToken(token: string, secret: string): Promise<string | null> {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+
+    const [payloadB64, sigB64] = parts;
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+
+    const sig = Uint8Array.from(atob(sigB64), (c) => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify("HMAC", key, sig, encoder.encode(payloadB64));
+    if (!valid) return null;
+
+    const payload = JSON.parse(atob(payloadB64));
+
+    // Check expiry
+    if (typeof payload.exp === "number" && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+
+    return typeof payload.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -19,7 +52,7 @@ serve(async (req: Request) => {
     });
 
   try {
-    const { customerId } = await req.json();
+    const { customerId, sessionToken } = await req.json();
 
     if (!customerId || typeof customerId !== "string") {
       return json(400, { error: "customerId is required" });
@@ -31,9 +64,32 @@ serve(async (req: Request) => {
       return json(400, { error: "Invalid customerId format" });
     }
 
+    // --- Authorization: verify session token matches the requested customerId ---
+    if (!sessionToken || typeof sessionToken !== "string") {
+      console.warn("get-customer-orders: missing sessionToken");
+      return json(401, { error: "Unauthorized" });
+    }
+
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const tokenCustomerId = await verifySessionToken(sessionToken, serviceRoleKey);
+
+    if (!tokenCustomerId) {
+      console.warn("get-customer-orders: invalid or expired session token");
+      return json(401, { error: "Session expired. Please log in again." });
+    }
+
+    if (tokenCustomerId !== customerId) {
+      console.warn("get-customer-orders: token customerId mismatch", {
+        tokenCustomerId,
+        requestedCustomerId: customerId,
+      });
+      return json(403, { error: "Unauthorized" });
+    }
+
+    // --- Authorized: proceed with query ---
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceRoleKey
     );
 
     // Fetch orders for this customer (excluding cancelled)
