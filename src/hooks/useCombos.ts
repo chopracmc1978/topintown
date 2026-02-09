@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { preloadImages } from '@/components/OptimizedImage';
 
 export interface ComboItem {
   id: string;
@@ -76,8 +77,10 @@ export const useActiveCombos = () => {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      // Filter by schedule
-      return (data as Combo[]).filter(isComboActiveToday);
+      const combos = (data as Combo[]).filter(isComboActiveToday);
+      // Preload all combo images as soon as data arrives
+      preloadImages(combos.map(c => c.image_url));
+      return combos;
     },
   });
 };

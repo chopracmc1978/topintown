@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { preloadImages } from '@/components/OptimizedImage';
 import { useToast } from '@/hooks/use-toast';
 
 export type MenuCategory = 'pizza' | 'sides' | 'drinks' | 'desserts' | 'dipping_sauce' | 'chicken_wings' | 'baked_lasagna';
@@ -103,7 +104,10 @@ export const useMenuItems = (category?: MenuCategory) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as MenuItem[];
+      const items = data as MenuItem[];
+      // Preload all item images as soon as data arrives
+      preloadImages(items.map(item => item.image_url));
+      return items;
     },
   });
 };

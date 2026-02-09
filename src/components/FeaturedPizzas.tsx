@@ -5,6 +5,7 @@ import MenuCardDB from '@/components/MenuCardDB';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { preloadImages } from '@/components/OptimizedImage';
 
 // Featured pizza names in the order they should appear
 const FEATURED_PIZZA_NAMES = [
@@ -36,6 +37,11 @@ const FeaturedPizzas = () => {
         const indexB = FEATURED_PIZZA_NAMES.indexOf(b.name);
         return indexA - indexB;
       });
+
+      // Preload images immediately when data arrives
+      if (sortedData) {
+        preloadImages(sortedData.map(p => p.image_url));
+      }
 
       return sortedData || [];
     },
