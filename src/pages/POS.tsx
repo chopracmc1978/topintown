@@ -785,7 +785,9 @@ const POSDashboard = ({
             <Button 
               variant="ghost"
               size="icon"
+              disabled={!settingsPinLoaded}
               onClick={() => {
+                if (!settingsPinLoaded) return;
                 if (settingsPin) {
                   setShowSettingsPin(true);
                 } else {
