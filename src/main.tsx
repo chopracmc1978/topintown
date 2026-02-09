@@ -16,6 +16,21 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+/* ── Self-hosted fonts (bundled in dist/, no CDN dependency) ── */
+import "@fontsource/inter/300.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/600.css";
+import "@fontsource/dm-sans/700.css";
+import "@fontsource/playfair-display/400.css";
+import "@fontsource/playfair-display/500.css";
+import "@fontsource/playfair-display/600.css";
+import "@fontsource/playfair-display/700.css";
+
 /* ── Native POS viewport & route fixes ─────────────────────── */
 
 function applyNativeFixes() {
@@ -34,9 +49,8 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // Viewport is already set to width=1920 in index.html for native builds.
-    // No need to change it here — the inline script in index.html handles the
-    // web vs native distinction BEFORE any layout occurs.
+    // Viewport is set to device-width in index.html for all platforms.
+    // color-scheme: light only prevents Android force-dark from fading colors.
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;

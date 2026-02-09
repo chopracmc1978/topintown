@@ -1,6 +1,5 @@
-/* Only import fonts that are actually used in the app.
-   Removed 15+ unused imports that slow loading and may fail in bundled native apps. */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+/* Fonts are now self-hosted via @fontsource packages (imported in main.tsx).
+   No Google Fonts CDN dependency — fonts load reliably in bundled Capacitor apps. */
 
 /* Force CSS rebuild - v2 */
 @tailwind base;
@@ -9,6 +8,9 @@
 
 @layer base {
   :root {
+    /* CRITICAL: Prevent Android 10+ WebView from algorithmically darkening/fading colors */
+    color-scheme: light only;
+
     /* IMPORTANT (legacy Android WebView): store full CSS colors (e.g. hsl(...)) in vars.
        Tailwind config uses var(--token) directly, so these MUST be valid CSS colors. */
     --background: hsl(209, 40%, 96%);
