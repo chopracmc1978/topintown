@@ -80,8 +80,8 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Build line items for Stripe
-    const lineItems = items.map((item: any) => ({
+    // Build line items for Stripe — individual items for clear visibility
+    const lineItems: any[] = items.map((item: any) => ({
       price_data: {
         currency: "cad",
         product_data: {
@@ -97,43 +97,52 @@ serve(async (req) => {
       quantity: item.quantity,
     }));
 
-    // Add tax as a separate line item
-    lineItems.push({
-      price_data: {
-        currency: "cad",
-        product_data: {
-          name: "GST (5%)",
-        },
-        unit_amount: Math.round(tax * 100),
-      },
-      quantity: 1,
-    });
-
-    // Calculate total discount (rewards + coupon discount)
+    // Calculate total discount (rewards + coupon)
     const totalDiscount = (rewardsDiscount || 0) + (discount || 0);
 
-    // Create a Stripe coupon on-the-fly if there's any discount
-    let discounts: { coupon: string }[] | undefined;
+    // If there's a discount, add it as a visible line item by reducing from subtotal
+    // We do this by adding a "Discount" line item and adjusting tax line accordingly
     if (totalDiscount > 0) {
-      // Stripe coupon name max 40 chars
-      let couponName = "Discount";
-      if (rewardsDiscount && rewardsDiscount > 0 && discount && discount > 0) {
-        couponName = `Rewards + Coupon`;
-      } else if (rewardsDiscount && rewardsDiscount > 0) {
-        couponName = `Rewards (${rewardsUsed} pts)`;
-      } else if (discount && discount > 0) {
-        couponName = couponCode ? `Coupon: ${couponCode}`.slice(0, 40) : "Coupon Discount";
-      }
+      // Build a short label for the discount
+      const discountLabel = rewardsDiscount && discount
+        ? "Rewards + Coupon Discount"
+        : rewardsDiscount
+        ? `Rewards (${rewardsUsed} pts)`
+        : couponCode
+        ? `Coupon (${couponCode})`
+        : "Discount";
 
-      const coupon = await stripe.coupons.create({
-        amount_off: Math.round(totalDiscount * 100),
-        currency: "cad",
-        duration: "once",
-        name: couponName.slice(0, 40),
-      });
-      discounts = [{ coupon: coupon.id }];
-      console.log("Created Stripe coupon for discount:", coupon.id, totalDiscount);
+      // Add discount as a separate item that reduces the total
+      // Stripe doesn't allow negative unit_amount, so we subtract discount
+      // proportionally from each item. Instead, we use a simpler approach:
+      // Just send the final total as a single charge line + item details as metadata
     }
+
+    // ROBUST APPROACH: Use the pre-calculated total directly.
+    // Our checkout page already shows the full item breakdown.
+    // This avoids coupon API limits, character restrictions, and math drift.
+    const totalInCents = Math.round(total * 100);
+
+    // Build a summary description from items
+    const itemSummary = items
+      .map((item: any) => `${item.name} x${item.quantity}`)
+      .join(', ');
+
+    const stripeLineItems = [
+      {
+        price_data: {
+          currency: "cad",
+          product_data: {
+            name: "Order Total",
+            description: itemSummary.length > 500 
+              ? itemSummary.slice(0, 497) + '...' 
+              : itemSummary,
+          },
+          unit_amount: totalInCents,
+        },
+        quantity: 1,
+      },
+    ];
 
     // Get the origin for redirect URLs
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
@@ -143,15 +152,16 @@ serve(async (req) => {
       draftId: draft.id,
     };
 
-    // Create Stripe checkout session
+    console.log("Charging total:", total, "totalInCents:", totalInCents, "discount:", totalDiscount);
+
+    // Create Stripe checkout session with the exact total
     const session = await stripe.checkout.sessions.create({
       customer_email: customerEmail || undefined,
-      line_items: lineItems,
+      line_items: stripeLineItems,
       mode: "payment",
       success_url: `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout`,
       metadata,
-      ...(discounts ? { discounts } : {}),
     });
 
     console.log("Checkout session created:", session.id);
