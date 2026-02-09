@@ -24,7 +24,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
   const receiptRef = useRef<HTMLDivElement>(null);
   const [rewardPoints, setRewardPoints] = useState<RewardPoints | undefined>(undefined);
 
-  // Fetch reward points for customer
+  // Fetch reward points via edge function (customers aren't Supabase-authed, so direct queries are blocked by RLS)
   useEffect(() => {
     const fetchRewards = async () => {
       if (!order?.customerPhone) {
@@ -33,42 +33,36 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
       }
       const phone = order.customerPhone.replace(/\D/g, '');
       if (!phone) return;
-      
-      // Fetch reward balance and points earned for this specific order
-      const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
-        supabase
-          .from('customer_rewards')
-          .select('points, lifetime_points')
-          .eq('phone', phone)
-          .maybeSingle(),
-        supabase
-          .from('rewards_history')
-          .select('points_change')
-          .eq('phone', phone)
-          .eq('order_id', order.id)
-          .eq('transaction_type', 'earned')
-          .maybeSingle(),
-        supabase
-          .from('rewards_history')
-          .select('points_change')
-          .eq('phone', phone)
-          .eq('order_id', order.id)
-          .eq('transaction_type', 'redeemed')
-          .maybeSingle(),
-      ]);
-      
-      if (rewardsResult.data) {
-        const currentBalance = rewardsResult.data.points;
-        const earned = earnedResult.data?.points_change || 0;
-        const used = Math.abs(redeemedResult.data?.points_change || 0);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('customer-rewards', {
+          body: { phone, includeHistory: true },
+        });
+
+        if (error || !data?.rewards) {
+          setRewardPoints(undefined);
+          return;
+        }
+
+        const currentBalance = data.rewards.points || 0;
+        const history = data.history || [];
+        
+        // Find earned/redeemed entries for this specific order
+        const earnedEntry = history.find((h: any) => h.order_id === order.id && h.transaction_type === 'earned');
+        const redeemedEntry = history.find((h: any) => h.order_id === order.id && h.transaction_type === 'redeemed');
+        
+        const earned = earnedEntry?.points_change || 0;
+        const used = Math.abs(redeemedEntry?.points_change || 0);
         const lastBalance = currentBalance - earned + used;
+
         setRewardPoints({
           lastBalance,
           earned,
           used,
           balance: currentBalance,
         });
-      } else {
+      } catch (err) {
+        console.error('Error fetching rewards for receipt:', err);
         setRewardPoints(undefined);
       }
     };
