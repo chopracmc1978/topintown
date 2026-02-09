@@ -652,14 +652,14 @@ const POSDashboard = ({
       <div className="fixed inset-0 z-[-1]" style={{ background: 'hsl(220, 26%, 14%)' }} aria-hidden="true" />
       {/* Main POS container - truly full viewport, no rounding or padding */}
       <div className="flex-1 flex flex-col overflow-hidden w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
-      {/* Header - Compact for small tablets */}
+      {/* Header - Compact for small tablets, normal for large screens */}
       <header className={cn(
-        "border-b py-1.5 px-2 flex-shrink-0 shadow-sm transition-colors pos-header",
+        "border-b py-1.5 lg:py-2.5 px-2 lg:px-4 flex-shrink-0 shadow-sm transition-colors pos-header",
         hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : "",
         hasAdvanceAlerts && !hasPendingRemoteOrders ? "pos-bg-amber-900-50 animate-pulse" : ""
       )}>
-        <div className="flex items-center gap-1 w-full">
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 lg:gap-2 w-full">
+          <div className="flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
             <span
               title="Home"
               onPointerDown={(e) => {
@@ -674,7 +674,7 @@ const POSDashboard = ({
                 setActiveTab('all');
               }}
               className={cn(
-                "font-serif text-base font-bold transition-colors cursor-pointer whitespace-nowrap",
+                "font-serif text-base lg:text-lg font-bold transition-colors cursor-pointer whitespace-nowrap",
                 "bg-transparent border-0 p-0 m-0 outline-none ring-0 shadow-none",
                 "hover:bg-transparent active:bg-transparent",
                 "select-none [-webkit-tap-highlight-color:transparent] [-webkit-user-select:none] [-webkit-touch-callout:none]"
@@ -697,23 +697,23 @@ const POSDashboard = ({
             )}
           </div>
           
-          {/* Status Tabs - Compact for small tablets */}
-          <div className="flex gap-1 flex-1 justify-center">
+          {/* Status Tabs - Compact for small tablets, larger for big screens */}
+          <div className="flex gap-1 lg:gap-1.5 flex-1 justify-center">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "pos-tab-button-compact flex items-center gap-1",
+                  "pos-tab-button-compact flex items-center gap-1 lg:gap-1.5",
                   "outline-none focus:outline-none focus-visible:outline-none",
                   "border-none focus:ring-0 focus-visible:ring-0",
                   activeTab === tab.id ? "active" : ""
                 )}
               >
-                <tab.icon className="w-3.5 h-3.5" />
+                <tab.icon className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
                 {tab.label}
                 <span className={cn(
-                  "text-[10px] font-semibold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none",
+                  "text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none",
                   activeTab === tab.id
                     ? "pos-bg-white-25 text-white"
                     : "bg-gray-700 text-gray-300"
@@ -724,22 +724,22 @@ const POSDashboard = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-0.5 flex-shrink-0">
+          <div className="flex items-center gap-0.5 lg:gap-1 flex-shrink-0">
             <Button 
               onClick={() => {
                 setShowNewOrder(true);
                 setSelectedOrderId(null);
               }}
-              className="text-xs px-2.5 py-1.5 h-auto bg-blue-600 hover:bg-blue-700 text-white"
+              className="text-xs lg:text-sm px-2.5 lg:px-4 py-1.5 lg:py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
+              <Plus className="w-3.5 lg:w-4 h-3.5 lg:h-4 mr-1" />
               New
             </Button>
 
             <button
               onClick={() => openTill()}
               className={cn(
-                "h-8 w-8 shrink-0 flex items-center justify-center rounded-md",
+                "h-8 w-8 lg:h-10 lg:w-10 shrink-0 flex items-center justify-center rounded-md",
                 "bg-transparent border-none",
                 "outline-none focus:outline-none focus-visible:outline-none",
                 "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -750,7 +750,7 @@ const POSDashboard = ({
               title="Till"
               aria-label="Till"
             >
-              <img src={tillIcon} alt="Till" className="w-6 h-6 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
+              <img src={tillIcon} alt="Till" className="w-6 h-6 lg:w-7 lg:h-7 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
             </button>
 
             <Button 
@@ -758,16 +758,16 @@ const POSDashboard = ({
               size="icon"
               onClick={() => setShowSettings(true)}
               title="Settings"
-              className="h-8 w-8 text-gray-300 hover:text-white hover:bg-gray-700/50"
+              className="h-8 w-8 lg:h-10 lg:w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 lg:w-5 h-4 lg:h-5" />
             </Button>
 
             {/* Active staff name */}
             {activeStaff && (
-              <div className="flex items-center gap-1 px-1.5" style={{ color: '#94a3b8' }}>
-                <User className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium truncate max-w-[80px]">{activeStaff.name}</span>
+              <div className="flex items-center gap-1 px-1.5 lg:px-2" style={{ color: '#94a3b8' }}>
+                <User className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
+                <span className="text-xs lg:text-sm font-medium truncate max-w-[80px] lg:max-w-[120px]">{activeStaff.name}</span>
               </div>
             )}
 
@@ -785,9 +785,9 @@ const POSDashboard = ({
                 }
               }}
               title={activeStaff ? 'Switch User' : 'Log Out'}
-              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8"
+              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8 lg:h-10 lg:w-10"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
             </Button>
           </div>
         </div>
@@ -796,8 +796,8 @@ const POSDashboard = ({
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[18%] min-w-[160px] max-w-[240px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
-          <ScrollArea className="flex-1 p-2">
+        <div className="w-[18%] min-w-[160px] max-w-[240px] lg:min-w-[200px] lg:max-w-[280px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
+          <ScrollArea className="flex-1 p-2 lg:p-3">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin" />
@@ -828,7 +828,7 @@ const POSDashboard = ({
         </div>
 
         {/* Right Panel - Detail, Edit, or New Order - Fill remaining space */}
-        <div className="flex-1 p-2 overflow-auto min-h-0 min-w-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
+        <div className="flex-1 p-2 lg:p-4 overflow-auto min-h-0 min-w-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
           {editingOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
