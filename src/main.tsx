@@ -56,24 +56,17 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // ── DIAGNOSTIC: Log viewport info to help debug tablet rendering ──
-    // This will show in Chrome DevTools remote debugging (chrome://inspect)
-    // and also as a temporary toast on the tablet screen for 10 seconds.
-    const diagInfo = [
-      `innerWidth: ${window.innerWidth}`,
-      `innerHeight: ${window.innerHeight}`,
-      `devicePixelRatio: ${window.devicePixelRatio}`,
-      `screen: ${screen.width}x${screen.height}`,
-      `availScreen: ${screen.availWidth}x${screen.availHeight}`,
-    ].join(' | ');
-    console.log('[POS-DIAG]', diagInfo);
-
-    // Show a small temporary overlay with viewport info
-    const diagDiv = document.createElement('div');
-    diagDiv.textContent = diagInfo;
-    diagDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;font-size:14px;padding:4px 8px;text-align:center;font-family:monospace;';
-    document.body.appendChild(diagDiv);
-    setTimeout(() => diagDiv.remove(), 15000);
+    // ── Force viewport width to 1280px on native ──
+    // Combined with setUseWideViewPort(true) + setLoadWithOverviewMode(true)
+    // in MainActivity.java, this makes the WebView render at 1280px layout
+    // width and auto-scale to fit the screen — matching the web preview exactly.
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute(
+        'content',
+        'width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+      );
+    }
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;
