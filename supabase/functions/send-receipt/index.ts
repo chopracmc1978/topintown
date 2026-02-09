@@ -248,7 +248,7 @@ const buildEmailHtml = (data: SendReceiptRequest): string => {
           <p style="text-align: center; font-weight: bold; margin: 0 0 10px 0; font-size: 16px;">🎁 Reward Points</p>
           <table style="width: 100%; font-size: 14px;">
             <tr><td style="padding: 3px 0;">Last Balance:</td><td style="text-align: right; font-weight: 600;">${data.rewardPoints.lastBalance} pts</td></tr>
-            ${data.rewardPoints.earned > 0 ? `<tr><td style="padding: 3px 0; color: #2e7d32;">Add:</td><td style="text-align: right; font-weight: 600; color: #2e7d32;">+${data.rewardPoints.earned} pts</td></tr>` : ''}
+            <tr><td style="padding: 3px 0; color: #2e7d32;">Add:</td><td style="text-align: right; font-weight: 600; color: #2e7d32;">+${data.rewardPoints.earned} pts</td></tr>
             ${data.rewardPoints.used > 0 ? `<tr><td style="padding: 3px 0; color: #d32f2f;">Used:</td><td style="text-align: right; font-weight: 600; color: #d32f2f;">-${data.rewardPoints.used} pts</td></tr>` : ''}
             <tr style="font-weight: bold; border-top: 1px solid #e0c97f;"><td style="padding: 5px 0;">Balance:</td><td style="text-align: right;">${data.rewardPoints.balance} pts</td></tr>
           </table>
