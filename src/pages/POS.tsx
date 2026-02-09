@@ -23,6 +23,7 @@ import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { POSStaffReportCard } from '@/components/pos/POSStaffReportCard';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
+import { POSSettingsPinModal } from '@/components/pos/POSSettingsPinModal';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
@@ -218,6 +219,9 @@ const POSDashboard = ({
   const [showEndDay, setShowEndDay] = useState(false);
   const [showReports, setShowReports] = useState(false);
   const [showStaffReport, setShowStaffReport] = useState(false);
+  const [showSettingsPin, setShowSettingsPin] = useState(false);
+  const [settingsPin, setSettingsPin] = useState<string | null>(null);
+  const [settingsPinLoaded, setSettingsPinLoaded] = useState(false);
   
   // New order flow state
   const [newOrderPending, setNewOrderPending] = useState<Order | null>(null);
@@ -259,6 +263,26 @@ const POSDashboard = ({
     };
     initSession();
   }, [user, activeSession]);
+
+  // Fetch settings PIN for current user
+  useEffect(() => {
+    const fetchSettingsPin = async () => {
+      if (!user) return;
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('settings_pin')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setSettingsPin((data as any)?.settings_pin || null);
+      } catch (err) {
+        console.error('Error fetching settings pin:', err);
+      } finally {
+        setSettingsPinLoaded(true);
+      }
+    };
+    fetchSettingsPin();
+  }, [user]);
   
   // Setup auto-logout at 2 AM Mountain Time
   useEffect(() => {
@@ -758,7 +782,13 @@ const POSDashboard = ({
             <Button 
               variant="ghost"
               size="icon"
-              onClick={() => setShowSettings(true)}
+              onClick={() => {
+                if (settingsPin) {
+                  setShowSettingsPin(true);
+                } else {
+                  setShowSettings(true);
+                }
+              }}
               title="Settings"
               className="h-8 w-8 lg:h-10 lg:w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
             >
@@ -1031,6 +1061,16 @@ const POSDashboard = ({
         </div>
       )}
 
+      {/* Settings PIN Modal */}
+      <POSSettingsPinModal
+        open={showSettingsPin}
+        onClose={() => setShowSettingsPin(false)}
+        onSuccess={() => {
+          setShowSettingsPin(false);
+          setShowSettings(true);
+        }}
+        correctPin={settingsPin || ''}
+      />
 
       {showSettings && (
         <POSSettingsPanel

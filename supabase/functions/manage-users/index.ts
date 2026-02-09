@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     switch (action) {
       case 'create': {
-        const { email, password, username, fullName, role, locationId } = data
+        const { email, password, username, fullName, role, locationId, settingsPin } = data
 
         // Create user
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
@@ -81,15 +81,20 @@ Deno.serve(async (req) => {
           )
         }
 
-        // Update profile with username and location
+        // Update profile with username, location, and settings pin
         if (newUser.user) {
+          const profileUpdate: Record<string, unknown> = {
+            username: username?.toLowerCase(),
+            full_name: fullName,
+            location_id: locationId || null,
+          }
+          if (settingsPin !== undefined) {
+            profileUpdate.settings_pin = settingsPin || null
+          }
+
           await adminClient
             .from('profiles')
-            .update({ 
-              username: username?.toLowerCase(), 
-              full_name: fullName,
-              location_id: locationId || null
-            })
+            .update(profileUpdate)
             .eq('user_id', newUser.user.id)
 
           // Add role if specified
@@ -134,7 +139,7 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        const { targetUserId, email, password, fullName, username } = data
+        const { targetUserId, email, password, fullName, username, settingsPin } = data
 
         // Update auth user if email/password changed
         if (email || password) {
@@ -153,9 +158,10 @@ Deno.serve(async (req) => {
         }
 
         // Update profile
-        const profileUpdate: { full_name?: string; username?: string } = {}
+        const profileUpdate: Record<string, unknown> = {}
         if (fullName !== undefined) profileUpdate.full_name = fullName
         if (username !== undefined) profileUpdate.username = username?.toLowerCase()
+        if (settingsPin !== undefined) profileUpdate.settings_pin = settingsPin || null
 
         if (Object.keys(profileUpdate).length > 0) {
           const { error: profileError } = await adminClient
