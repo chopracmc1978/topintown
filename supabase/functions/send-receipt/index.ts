@@ -292,7 +292,7 @@ const handler = async (req: Request): Promise<Response> => {
       return json(400, { error: "Missing required fields: email and orderNumber" });
     }
     // Basic email validation
-    if (data.email.length > 255 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(data.email)) {
+    if (data.email.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       return json(400, { error: "Invalid email format" });
     }
 
