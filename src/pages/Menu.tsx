@@ -163,7 +163,8 @@ const Menu = () => {
                 {combos?.map((combo) => (
                   <div
                     key={combo.id}
-                    className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow"
+                    className="bg-card rounded-xl overflow-hidden shadow-lg border hover:shadow-xl transition-shadow cursor-pointer"
+                    onClick={() => setSelectedCombo(combo)}
                   >
                     <OptimizedImage
                       src={combo.image_url}
