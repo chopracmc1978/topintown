@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MenuCardDB from '@/components/MenuCardDB';
@@ -10,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OptimizedImage from '@/components/OptimizedImage';
+import { supabase } from '@/integrations/supabase/client';
+import { preloadImages } from '@/components/OptimizedImage';
 
 const mainCategories: { id: string; name: string; dbCategory?: MenuCategory }[] = [
   { id: 'pizza', name: 'Pizzas', dbCategory: 'pizza' },
@@ -41,11 +44,40 @@ const Menu = () => {
   });
   const [activePizzaSubCategory, setActivePizzaSubCategory] = useState<string | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<Combo | null>(null);
+  const queryClient = useQueryClient();
 
   // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Prefetch ALL menu categories on mount so switching tabs is instant
+  useEffect(() => {
+    const allDbCategories: MenuCategory[] = ['pizza', 'chicken_wings', 'baked_lasagna', 'drinks', 'dipping_sauce'];
+    allDbCategories.forEach(cat => {
+      queryClient.prefetchQuery({
+        queryKey: ['menu_items', cat],
+        queryFn: async () => {
+          const { data, error } = await supabase
+            .from('menu_items')
+            .select(`
+              *,
+              sizes:item_sizes(*),
+              default_toppings:item_default_toppings(*, topping:toppings(*)),
+              default_sauces:item_default_sauces(*, sauce_option:sauce_options(*)),
+              default_global_sauces:item_default_global_sauces(*, global_sauce:global_sauces(*))
+            `)
+            .eq('category', cat)
+            .order('sort_order', { ascending: true });
+          if (error) throw error;
+          // Preload images immediately
+          preloadImages((data || []).map((item: any) => item.image_url));
+          return data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    });
+  }, [queryClient]);
 
   // Sync state when URL changes
   useEffect(() => {

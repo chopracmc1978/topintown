@@ -82,6 +82,8 @@ export const useActiveCombos = () => {
       preloadImages(combos.map(c => c.image_url));
       return combos;
     },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 
