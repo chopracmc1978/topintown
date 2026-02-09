@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock, User } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { usePOSOrders } from '@/hooks/usePOSOrders';
 import { usePOSNotificationSound } from '@/hooks/usePOSNotificationSound';
 import { usePrintReceipts } from '@/hooks/usePrintReceipts';
 import { usePOSSession } from '@/hooks/usePOSSession';
+import { usePOSStaff, type POSStaffMember } from '@/hooks/usePOSStaff';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
 import { POSOrderCard, OrderRewardInfo } from '@/components/pos/POSOrderCard';
 import { POSOrderDetail } from '@/components/pos/POSOrderDetail';
@@ -17,6 +18,7 @@ import { POSPointsPaymentModal } from '@/components/pos/POSPointsPaymentModal';
 import { POSPaymentChoiceModal } from '@/components/pos/POSPaymentChoiceModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
+import { POSStaffPinScreen } from '@/components/pos/POSStaffPinScreen';
 import { POSSettingsPanel } from '@/components/pos/POSSettingsPanel';
 import { POSEndDayModal } from '@/components/pos/POSEndDayModal';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
@@ -85,6 +87,12 @@ const POS = () => {
       return 'calgary';
     }
   });
+  const [activeStaff, setActiveStaff] = useState<POSStaffMember | null>(() => {
+    try {
+      const saved = localStorage.getItem('pos_active_staff');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
 
   // Sync location from localStorage on login
   useEffect(() => {
@@ -97,6 +105,20 @@ const POS = () => {
       console.error('Failed to read location from localStorage:', error);
     }
   }, [user]);
+
+  // POS staff hook (only load when user is authenticated)
+  const { staff, verifyPin, loading: staffLoading } = usePOSStaff(currentLocationId);
+
+  // Persist active staff to localStorage
+  useEffect(() => {
+    try {
+      if (activeStaff) {
+        localStorage.setItem('pos_active_staff', JSON.stringify(activeStaff));
+      } else {
+        localStorage.removeItem('pos_active_staff');
+      }
+    } catch {}
+  }, [activeStaff]);
 
   if (authLoading) {
     return (
@@ -114,7 +136,24 @@ const POS = () => {
           setCurrentLocationId(savedLocation);
         }
       } catch {}
+      // Clear any previous staff session
+      setActiveStaff(null);
     }} />;
+  }
+
+  // If staff members exist for this location, require PIN login
+  if (!staffLoading && staff.length > 0 && !activeStaff) {
+    return (
+      <POSStaffPinScreen
+        locationName={LOCATION_NAMES[currentLocationId] || currentLocationId}
+        onPinVerified={(staffMember) => setActiveStaff(staffMember)}
+        onBack={() => {
+          localStorage.removeItem('pos_location_id');
+          signOut();
+        }}
+        verifyPin={verifyPin}
+      />
+    );
   }
 
   // Only mount the heavy dashboard AFTER authentication succeeds
@@ -130,9 +169,15 @@ const POS = () => {
     }>
       <POSDashboard
         user={user}
-        signOut={signOut}
+        signOut={async () => {
+          setActiveStaff(null);
+          localStorage.removeItem('pos_active_staff');
+          await signOut();
+        }}
         currentLocationId={currentLocationId}
         setCurrentLocationId={setCurrentLocationId}
+        activeStaff={activeStaff}
+        onStaffLogout={() => setActiveStaff(null)}
       />
     </ErrorBoundary>
   );
@@ -147,11 +192,15 @@ const POSDashboard = ({
   signOut,
   currentLocationId,
   setCurrentLocationId,
+  activeStaff,
+  onStaffLogout,
 }: {
   user: NonNullable<ReturnType<typeof useAuth>['user']>;
   signOut: () => Promise<void>;
   currentLocationId: string;
   setCurrentLocationId: (id: string) => void;
+  activeStaff: POSStaffMember | null;
+  onStaffLogout: () => void;
 }) => {
   // Pass location to orders hook for filtering
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, startPreparingAdvanceOrder, refetch } = usePOSOrders(currentLocationId);
@@ -200,7 +249,7 @@ const POSDashboard = ({
       try {
         if (user && !activeSession) {
           const lastCash = await getLastSessionEndCash();
-          await startSession(lastCash);
+          await startSession(lastCash, activeStaff?.id);
         }
       } catch (error) {
         console.error('Failed to initialize POS session:', error);
@@ -316,6 +365,7 @@ const POSDashboard = ({
       status: 'pending',
       paymentStatus: 'unpaid',
       pickupTime: orderData.pickupTime,
+      posStaffId: activeStaff?.id,
     }, currentLocationId);
 
     // If rewards were used, deduct points from customer's balance
@@ -713,13 +763,28 @@ const POSDashboard = ({
               <Settings className="w-4 h-4" />
             </Button>
 
+            {/* Active staff name */}
+            {activeStaff && (
+              <div className="flex items-center gap-1 px-1.5" style={{ color: '#94a3b8' }}>
+                <User className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium truncate max-w-[80px]">{activeStaff.name}</span>
+              </div>
+            )}
+
             <Button 
               variant="ghost"
               size="icon"
               onClick={() => {
-                localStorage.removeItem('pos_location_id');
-                signOut();
+                if (activeStaff) {
+                  // Staff logout: go back to PIN screen
+                  onStaffLogout();
+                } else {
+                  // Full logout
+                  localStorage.removeItem('pos_location_id');
+                  signOut();
+                }
               }}
+              title={activeStaff ? 'Switch User' : 'Log Out'}
               className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8"
             >
               <LogOut className="w-3.5 h-3.5" />

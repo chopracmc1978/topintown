@@ -384,7 +384,7 @@ export const usePOSOrders = (locationId?: string) => {
   };
 
   // Add new order (for POS walk-in orders)
-  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>, locationId: string = 'calgary'): Promise<Order | null> => {
+  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'> & { posStaffId?: string }, locationId: string = 'calgary'): Promise<Order | null> => {
     try {
       const orderNumber = await generateOrderNumber(locationId);
       
@@ -427,6 +427,7 @@ export const usePOSOrders = (locationId?: string) => {
            coupon_code: orderData.couponCode || null,
           notes: orderData.notes || null,
           pickup_time: orderData.pickupTime ? orderData.pickupTime.toISOString() : null,
+          pos_staff_id: orderData.posStaffId || null,
         })
         .select()
         .single();
