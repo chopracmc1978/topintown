@@ -139,8 +139,10 @@ const POS = () => {
     }
   }, [user]);
 
-  // POS staff hook (only load when user is authenticated)
-  const { staff, verifyPin, loading: staffLoading } = usePOSStaff(currentLocationId);
+  // POS staff hook — pass empty string when not authed so hook stays in loading
+  // state until user logs in. When user authenticates, locationId switches from
+  // '' → 'calgary' which triggers the fetch with proper RLS credentials.
+  const { staff, verifyPin, loading: staffLoading } = usePOSStaff(user ? currentLocationId : '');
 
   // Persist active staff to localStorage
   useEffect(() => {
