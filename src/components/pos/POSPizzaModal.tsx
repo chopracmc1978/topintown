@@ -691,8 +691,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             <button
                               key={side}
                               onClick={() => {
-                                if (!isSelected) toggleFreeTopping(topping.name);
-                                updateFreeToppingSide(topping.name, side);
+                                if (isSideSelected) {
+                                  // Deselect: remove this free topping
+                                  toggleFreeTopping(topping.name);
+                                } else if (!isSelected) {
+                                  toggleFreeTopping(topping.name);
+                                  // Need to set side after adding
+                                  setTimeout(() => updateFreeToppingSide(topping.name, side), 0);
+                                } else {
+                                  updateFreeToppingSide(topping.name, side);
+                                }
                               }}
                               className={cn(
                                 btnSmall,
@@ -709,7 +717,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     ) : (
                       <button
                         onClick={() => {
-                          if (!isSelected) toggleFreeTopping(topping.name);
+                          toggleFreeTopping(topping.name);
                         }}
                         className={cn(
                           btnSmall,
