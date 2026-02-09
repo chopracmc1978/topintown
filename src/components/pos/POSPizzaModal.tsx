@@ -449,7 +449,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <span className={cn(
                 labelBox,
                 "px-3",
-                (leftSpicy === 'none' && rightSpicy === 'none') 
+                (leftSpicy !== 'none' || rightSpicy !== 'none') 
                   ? "bg-emerald-500 text-white" 
                   : "bg-red-300 text-white"
               )}>Spicy Level</span>
@@ -480,7 +480,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 return (
                   <span className={cn(
                     labelBox,
-                    hasMedium ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
+                    hasMedium ? "bg-emerald-500 text-white" : "bg-red-300 text-white"
                   )}>
                     Med Hot
                   </span>
@@ -573,7 +573,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 return (
                   <span className={cn(
                     labelBox,
-                    hasHot ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
+                    hasHot ? "bg-emerald-500 text-white" : "bg-red-300 text-white"
                   )}>
                     Hot
                   </span>
