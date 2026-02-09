@@ -475,3 +475,34 @@
 .pos-premium-theme .border-border {
   border-color: hsl(220, 20%, 28%) !important;
 }
+
+/* ======= POS Light Panel Override (Settings, modals that need light theme) ======= */
+.pos-light-panel,
+.pos-light-panel * {
+  color-scheme: light !important;
+}
+.pos-light-panel input,
+.pos-light-panel textarea,
+.pos-light-panel select {
+  background: #ffffff !important;
+  border-color: #cccccc !important;
+  color: #222222 !important;
+}
+.pos-light-panel input::placeholder,
+.pos-light-panel textarea::placeholder {
+  color: #999999 !important;
+}
+.pos-light-panel .border-border {
+  border-color: #e5e5e5 !important;
+}
+.pos-light-panel .bg-muted { background: #f5f5f5 !important; }
+.pos-light-panel .bg-background { background: #ffffff !important; }
+.pos-light-panel .bg-card { background: #ffffff !important; }
+.pos-light-panel .bg-secondary { background: #f0f0f0 !important; }
+.pos-light-panel .text-muted-foreground { color: #666666 !important; }
+.pos-light-panel .text-foreground { color: #222222 !important; }
+.pos-light-panel h2, .pos-light-panel h3, .pos-light-panel h4,
+.pos-light-panel label, .pos-light-panel p, .pos-light-panel span,
+.pos-light-panel div {
+  color: inherit;
+}
