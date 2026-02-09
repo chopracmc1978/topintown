@@ -74,10 +74,12 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
                     onChange={(e) => handleTimeChange(dayHours.id, 'open_time', e.target.value)}
                     className="rounded-md border px-3 py-2 text-sm"
                     style={{
-                      backgroundColor: 'hsl(0, 0%, 100%)',
-                      borderColor: 'hsl(0, 0%, 80%)',
-                      color: 'hsl(0, 0%, 15%)',
+                      backgroundColor: '#ffffff',
+                      borderColor: '#cccccc',
+                      color: '#222222',
+                      colorScheme: 'light',
                       width: '130px',
+                      WebkitAppearance: 'none',
                     }}
                   />
                 </div>
@@ -90,10 +92,12 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
                     onChange={(e) => handleTimeChange(dayHours.id, 'close_time', e.target.value)}
                     className="rounded-md border px-3 py-2 text-sm"
                     style={{
-                      backgroundColor: 'hsl(0, 0%, 100%)',
-                      borderColor: 'hsl(0, 0%, 80%)',
-                      color: 'hsl(0, 0%, 15%)',
+                      backgroundColor: '#ffffff',
+                      borderColor: '#cccccc',
+                      color: '#222222',
+                      colorScheme: 'light',
                       width: '130px',
+                      WebkitAppearance: 'none',
                     }}
                   />
                 </div>

@@ -28,7 +28,7 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
     >
       <div
         className="rounded-xl border border-border shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col relative overflow-hidden"
-        style={{ backgroundColor: 'hsl(0, 0%, 100%)' }}
+        style={{ backgroundColor: 'hsl(0, 0%, 100%)', colorScheme: 'light', color: '#222222' }}
       >
         {/* Shield layer for legacy Android WebView opacity */}
         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'hsl(0, 0%, 100%)', zIndex: 0 }} />
