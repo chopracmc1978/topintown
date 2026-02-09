@@ -128,8 +128,9 @@ serve(async (req: Request) => {
           return json(400, { error: "Invalid customerId format" });
         }
 
-        // Only allow specific safe fields to be updated (never password_hash)
-        const allowedFields = ["phone", "full_name", "email_verified", "phone_verified"];
+        // Only allow specific safe fields to be updated (never password_hash or verification flags)
+        // email_verified and phone_verified can ONLY be set by verify-otp and set-password functions
+        const allowedFields = ["phone", "full_name"];
         const safeUpdate: Record<string, unknown> = {};
         for (const key of allowedFields) {
           if (body[key] !== undefined) {
@@ -151,12 +152,6 @@ serve(async (req: Request) => {
           if (typeof safeUpdate.full_name !== "string" || (safeUpdate.full_name as string).length > 200) {
             return json(400, { error: "Invalid name" });
           }
-        }
-        if (safeUpdate.email_verified !== undefined && typeof safeUpdate.email_verified !== "boolean") {
-          return json(400, { error: "Invalid email_verified value" });
-        }
-        if (safeUpdate.phone_verified !== undefined && typeof safeUpdate.phone_verified !== "boolean") {
-          return json(400, { error: "Invalid phone_verified value" });
         }
 
         const { error: updateError } = await supabase

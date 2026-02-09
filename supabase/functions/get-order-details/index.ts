@@ -73,9 +73,19 @@ serve(async (req: Request) => {
       console.error("Error fetching order items:", itemsError);
     }
 
+    // Redact sensitive PII from unauthenticated responses
+    // This endpoint is publicly accessible (used after Stripe redirect)
+    const safeOrderData = {
+      ...orderData,
+      // Mask phone number: show only last 4 digits
+      customer_phone: orderData.customer_phone
+        ? "***" + orderData.customer_phone.slice(-4)
+        : null,
+    };
+
     return json(200, {
       order: {
-        ...orderData,
+        ...safeOrderData,
         items: items || [],
       },
     });
