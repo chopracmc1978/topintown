@@ -74,7 +74,7 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
     }
   };
 
-  const handleUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number }[]) => {
+  const handleUpsellComplete = (upsellItems: { id: string; name: string; price: number; image_url?: string | null; quantity: number; flavor?: string; category?: string }[]) => {
     // First add the wings
     if (pendingWingsData) {
       addWingsToCart(pendingWingsData.cartItem, pendingWingsData.flavorName);
@@ -83,14 +83,25 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
     // Then add all upsell items
     upsellItems.forEach(item => {
       for (let i = 0; i < item.quantity; i++) {
-        addToCart({
-          id: item.id,
-          name: item.name,
-          description: '',
-          price: item.price,
-          image: item.image_url || '/placeholder.svg',
-          category: 'sides',
-        });
+        if (item.category === 'chicken_wings' && item.flavor) {
+          addWingsToCart({
+            id: item.id,
+            name: item.name,
+            description: '',
+            price: item.price,
+            image: item.image_url || '/placeholder.svg',
+            category: 'chicken_wings',
+          }, item.flavor);
+        } else {
+          addToCart({
+            id: item.id,
+            name: item.name,
+            description: '',
+            price: item.price,
+            image: item.image_url || '/placeholder.svg',
+            category: 'sides',
+          });
+        }
       }
     });
     
