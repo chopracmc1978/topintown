@@ -20,32 +20,36 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Create client with user's token
-    const supabase = createClient(
+    // Create admin client first (bypasses RLS) for both auth verification and DB operations
+    const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    // Verify user is admin
+    // Verify the calling user's identity using the admin client
     const token = authHeader.replace('Bearer ', '')
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims(token)
-    if (claimsError || !claims?.claims) {
+    const { data: { user: callingUser }, error: userError } = await adminClient.auth.getUser(token)
+    
+    if (userError || !callingUser) {
+      console.error('Auth verification failed:', userError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const userId = claims.claims.sub as string
+    const userId = callingUser.id
 
-    // Check admin role
-    const { data: roleData } = await supabase
+    // Check admin role using admin client (bypasses RLS to avoid chicken-and-egg problem)
+    const { data: roleData, error: roleError } = await adminClient
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
       .eq('role', 'admin')
       .maybeSingle()
+
+    console.log('Admin check for user:', userId, 'result:', roleData, 'error:', roleError)
 
     if (!roleData) {
       return new Response(
@@ -53,13 +57,6 @@ Deno.serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Create admin client for user management
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
 
     const { action, ...data } = await req.json()
     console.log('User management action:', action, data)
