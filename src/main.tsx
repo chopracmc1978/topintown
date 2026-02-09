@@ -14,6 +14,10 @@
 
 /* ── Polyfills for older Android WebViews ───────────────── */
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
+import ResizeObserverPolyfill from 'resize-observer-polyfill';
+if (typeof window !== 'undefined' && !window.ResizeObserver) {
+  (window as any).ResizeObserver = ResizeObserverPolyfill;
+}
 
 import { createRoot } from "react-dom/client";
 import App from "./App";
