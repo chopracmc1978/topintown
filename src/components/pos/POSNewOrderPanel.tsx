@@ -994,23 +994,23 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       </div>
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
+                          <button
+                            type="button"
+                            className="h-10 w-10 flex items-center justify-center rounded-md"
+                            style={{ background: 'hsl(220, 22%, 25%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 32%)' }}
                             onClick={() => updateQuantity(index, -1)}
                           >
                             <Minus className="w-5 h-5" />
-                          </Button>
-                          <span className="w-8 text-center text-lg font-medium text-white">{item.quantity}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
+                          </button>
+                          <span className="w-8 text-center text-lg font-medium" style={{ color: '#ffffff' }}>{item.quantity}</span>
+                          <button
+                            type="button"
+                            className="h-10 w-10 flex items-center justify-center rounded-md"
+                            style={{ background: 'hsl(220, 22%, 25%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 32%)' }}
                             onClick={() => updateQuantity(index, 1)}
                           >
                             <Plus className="w-5 h-5" />
-                          </Button>
+                          </button>
                         </div>
                         <span className="text-base font-medium text-white">
                           ${item.totalPrice.toFixed(2)}
