@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Loader2, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,8 +18,8 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     
     if (!username.trim() || !password) {
       toast({
@@ -78,6 +78,21 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
     }
   };
 
+  // Numeric keypad handler
+  const handleKeyPress = (key: string) => {
+    if (key === 'C') {
+      setPassword('');
+    } else if (key === 'DEL') {
+      setPassword(prev => prev.slice(0, -1));
+    } else if (key === 'OK') {
+      handleSubmit();
+    } else {
+      setPassword(prev => prev + key);
+    }
+  };
+
+  const KEYPAD_KEYS = ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'];
+
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 pos-no-focus-ring" style={{ backgroundColor: '#0891b2' }}>
       <Card className="w-full max-w-md relative overflow-hidden" style={{ backgroundColor: '#e8f4fc' }}>
@@ -107,16 +122,57 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
+              <Label htmlFor="password-display">Password</Label>
+              {/* Read-only display so native keyboard doesn't open */}
+              <div
+                className="flex items-center w-full rounded-md border px-3 py-2 text-base min-h-[40px]"
+                style={{ backgroundColor: '#ffffff', borderColor: '#d1d5db', color: '#111827' }}
+              >
+                {password ? '•'.repeat(password.length) : <span style={{ color: '#9ca3af' }}>••••••••</span>}
+              </div>
             </div>
+
+            {/* Built-in numeric keypad */}
+            <div className="rounded-lg p-2 space-y-1.5" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
+              <div className="grid grid-cols-3 gap-1.5">
+                {KEYPAD_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleKeyPress(key)}
+                    className="h-12 rounded-md text-lg font-semibold transition-colors"
+                    style={{
+                      backgroundColor: 'hsl(220, 22%, 28%)',
+                      color: key === 'C' ? '#ef4444' : '#e2e8f0',
+                      border: key === 'C' ? '1px solid #ef4444' : '1px solid hsl(220, 20%, 35%)',
+                    }}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleKeyPress('DEL')}
+                  className="h-12 rounded-md text-base font-medium flex items-center justify-center gap-1"
+                  style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#fb923c', border: '1px solid hsl(220, 20%, 35%)' }}
+                >
+                  <Delete className="w-4 h-4" />
+                  Del
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleKeyPress('OK')}
+                  disabled={loading}
+                  className="col-span-2 h-12 rounded-md text-base font-bold transition-colors"
+                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                >
+                  {loading ? 'Signing in...' : 'OK'}
+                </button>
+              </div>
+            </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
