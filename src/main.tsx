@@ -30,7 +30,7 @@ function applyNativeFixes() {
 
     if (!isNative) return;
 
-    // Force 1920-wide viewport for POS tablets
+    // Prevent text zoom on Android
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
@@ -38,12 +38,9 @@ function applyNativeFixes() {
     if (meta) {
       meta.setAttribute(
         "content",
-        "width=1920, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi, viewport-fit=cover"
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
       );
     }
-
-    document.documentElement.style.setProperty("image-rendering", "crisp-edges");
-    document.documentElement.style.setProperty("-webkit-image-rendering", "crisp-edges");
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;

@@ -169,33 +169,18 @@
   }
 
   html {
-    /* Force crisp text on high-DPI displays */
+    /* Crisp text rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* HD image rendering */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    /* Prevent color washing on Android WebView */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
-    /* Ensure sharp rendering on Android tablets */
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-    /* Force crisp font rendering on Android */
     -webkit-font-smoothing: antialiased;
-    font-smooth: always;
-  }
-
-  /* Force HD rendering on images and icons */
-  img, svg, canvas {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -316,51 +301,26 @@
   border-color: #d1d5db !important;
 }
 
-/* POS Sharp Rendering - Premium Android tablet fixes */
+/* POS Sharp Rendering - clean approach (no GPU compositing hacks) */
 .pos-no-focus-ring {
-  /* Force hardware acceleration and sharp rendering */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  /* Force crisp pixel rendering */
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  /* Do NOT use translateZ(0) or backface-visibility — they cause blur on Android WebView */
 }
 
-/* Ensure all POS text is sharp and crisp */
-.pos-no-focus-ring * {
+/* Crisp text in POS */
+.pos-no-focus-ring *,
+.pos-hd-text,
+.pos-hd-text * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
-  font-smooth: always;
-  -webkit-text-stroke: 0;
-}
-
-/* POS High-DPI text optimization */
-.pos-hd-text {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
-  font-smooth: always;
+  text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  font-synthesis: none;
-  font-kerning: normal;
 }
 
-/* Force sharp borders and shadows in POS */
-.pos-no-focus-ring .border,
-.pos-no-focus-ring [class*="border"] {
-  border-style: solid;
-  border-width: 1px;
-}
-
-/* Ensure buttons have crisp edges */
+/* POS buttons: solid backgrounds, no blur-inducing transforms */
 .pos-no-focus-ring button,
 .pos-no-focus-ring [role="button"] {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  /* Intentionally no translateZ — keeps native resolution rendering */
 }
 
 /* =====================================================
