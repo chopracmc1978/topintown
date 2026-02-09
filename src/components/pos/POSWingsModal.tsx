@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import type { MenuItem } from '@/hooks/useMenuItems';
 import type { CartItem } from '@/types/menu';
 
@@ -76,16 +74,24 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           <div className="space-y-3">
             <h3 className="font-medium text-foreground">Choose Your Flavor</h3>
-            <RadioGroup value={selectedFlavor} onValueChange={setSelectedFlavor}>
-              {FLAVOR_OPTIONS.map((flavor) => (
-                <div key={flavor.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value={flavor.id} id={`pos-${flavor.id}-${item.id}`} />
-                  <Label htmlFor={`pos-${flavor.id}-${item.id}`} className="flex-1 cursor-pointer text-sm">
+            <div className="flex flex-col gap-2">
+              {FLAVOR_OPTIONS.map((flavor) => {
+                const isSelected = selectedFlavor === flavor.id;
+                return (
+                  <button
+                    key={flavor.id}
+                    onClick={() => setSelectedFlavor(flavor.id)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
+                      isSelected
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-red-300 text-white'
+                    }`}
+                  >
                     {flavor.name}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
