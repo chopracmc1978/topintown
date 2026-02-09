@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
-        const { targetUserId, email, password, fullName, username, settingsPins } = data
+        const { targetUserId, email, password, fullName, username, settingsPins, locationId } = data
 
         // Update auth user if email/password changed
         if (email || password) {
@@ -162,6 +162,7 @@ Deno.serve(async (req) => {
         if (fullName !== undefined) profileUpdate.full_name = fullName
         if (username !== undefined) profileUpdate.username = username?.toLowerCase()
         if (settingsPins !== undefined) profileUpdate.settings_pins = settingsPins || null
+        if (locationId !== undefined) profileUpdate.location_id = locationId || null
 
         if (Object.keys(profileUpdate).length > 0) {
           const { error: profileError } = await adminClient
