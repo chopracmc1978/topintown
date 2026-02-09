@@ -67,6 +67,7 @@ export type OrderSource = 'web' | 'app' | 'online' | 'phone' | 'walk-in';
 
 export interface Order {
   id: string;
+  dbId?: string; // The actual database UUID (id field may contain order_number for display)
   items: CartItem[];
   customerName: string;
   customerPhone: string;

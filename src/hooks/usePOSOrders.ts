@@ -85,6 +85,7 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
 
   return {
     id: dbOrder.order_number || dbOrder.id,
+    dbId: dbOrder.id,
     items,
     customerName: dbOrder.customer_name || 'Online Customer',
     customerPhone: dbOrder.customer_phone || '',
@@ -277,6 +278,7 @@ export const usePOSOrders = (locationId?: string) => {
       // Fetch reward points for the email
       let rewardPoints: { lastBalance: number; earned: number; used: number; balance: number } | undefined;
       const cleanPhone = order.customerPhone?.replace(/\D/g, '');
+      const dbOrderId = order.dbId || order.id; // Use actual DB UUID for rewards_history lookup
       if (cleanPhone) {
         const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
           supabase
@@ -288,14 +290,14 @@ export const usePOSOrders = (locationId?: string) => {
             .from('rewards_history')
             .select('points_change')
             .eq('phone', cleanPhone)
-            .eq('order_id', order.id)
+            .eq('order_id', dbOrderId)
             .eq('transaction_type', 'earned')
             .maybeSingle(),
           supabase
             .from('rewards_history')
             .select('points_change')
             .eq('phone', cleanPhone)
-            .eq('order_id', order.id)
+            .eq('order_id', dbOrderId)
             .eq('transaction_type', 'redeemed')
             .maybeSingle(),
         ]);
@@ -516,12 +518,8 @@ export const usePOSOrders = (locationId?: string) => {
           });
       }
 
-      // Get the order's database ID for the history record
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('order_number', order.id)
-        .maybeSingle();
+      // Use the actual database UUID for the history record
+      const dbOrderId = order.dbId;
 
       // Record in history
       await supabase
@@ -529,7 +527,7 @@ export const usePOSOrders = (locationId?: string) => {
         .insert({
           phone: order.customerPhone,
           customer_id: order.customerId || null,
-          order_id: orderData?.id || null,
+          order_id: dbOrderId || null,
           points_change: pointsToAward,
           transaction_type: 'earned',
           description: `Earned ${pointsToAward} points from order ${order.id}`,
@@ -549,10 +547,11 @@ export const usePOSOrders = (locationId?: string) => {
       if (!order.customerPhone) return;
 
       // Fetch order's rewards_used and rewards_discount from DB
+      const dbOrderId = order.dbId;
       const { data: orderData } = await supabase
         .from('orders')
-        .select('rewards_used, rewards_discount, id')
-        .eq('order_number', order.id)
+        .select('rewards_used, rewards_discount')
+        .eq('id', dbOrderId!)
         .maybeSingle();
 
       if (!orderData || !orderData.rewards_used || orderData.rewards_used <= 0) return;
@@ -584,7 +583,7 @@ export const usePOSOrders = (locationId?: string) => {
         .insert({
           phone: order.customerPhone,
           customer_id: order.customerId || null,
-          order_id: orderData.id || null,
+          order_id: dbOrderId || null,
           points_change: -pointsToRedeem,
           transaction_type: 'redeemed',
           description: `Redeemed ${pointsToRedeem} points for $${dollarValue.toFixed(2)} discount`,
