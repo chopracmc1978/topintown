@@ -263,15 +263,15 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <Badge variant="outline" className="capitalize text-gray-300 border-gray-600">
               {order.source || 'online'}
             </Badge>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-7 px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700/50"
+            <button
+              type="button"
+              className="h-7 px-2 flex items-center rounded-md text-xs"
+              style={{ background: 'hsl(220, 22%, 28%)', color: '#d1d5db', border: '1px solid hsl(220, 20%, 35%)' }}
               onClick={onPrintReceipt}
             >
               <Printer className="w-3.5 h-3.5 mr-1" />
               Receipt
-            </Button>
+            </button>
           </div>
           <Badge 
             variant="outline" 
