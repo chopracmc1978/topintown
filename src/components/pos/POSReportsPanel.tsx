@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
-import { X, Calendar, DollarSign, ShoppingBag, TrendingUp, TrendingDown, CreditCard, Clock, XCircle, Store, BarChart3 } from 'lucide-react';
+import { X, Calendar, DollarSign, ShoppingBag, TrendingUp, TrendingDown, CreditCard, Clock, XCircle, Store, BarChart3, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,6 +25,7 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
     fetchPaymentTypes,
     fetchOrderSources,
     fetchCancelledOrders,
+    fetchStaffSales,
   } = usePOSReports(locationId);
 
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('today');
@@ -38,6 +39,7 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
   const [paymentTypes, setPaymentTypes] = useState<any[]>([]);
   const [orderSources, setOrderSources] = useState<any[]>([]);
   const [cancelledOrders, setCancelledOrders] = useState<{ orders: any[]; count: number; totalLost: number }>({ orders: [], count: 0, totalLost: 0 });
+  const [staffSales, setStaffSales] = useState<any[]>([]);
 
   // Calculate date range
   const getDateRange = () => {
@@ -81,6 +83,9 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
         case 'cancelled':
           setCancelledOrders(await fetchCancelledOrders(start, end));
           break;
+        case 'staff':
+          setStaffSales(await fetchStaffSales(start, end));
+          break;
       }
     };
 
@@ -95,6 +100,7 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
     { id: 'payment', label: 'Payment Type', icon: CreditCard },
     { id: 'sources', label: 'Walk-in/Web/App', icon: Store },
     { id: 'cancelled', label: 'Cancelled Orders', icon: XCircle },
+    { id: 'staff', label: 'Staff Performance', icon: Users },
   ];
 
   // Embedded mode renders just the content without the full-screen wrapper
@@ -162,6 +168,7 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
         {activeTab === 'payment' && renderPaymentReport()}
         {activeTab === 'sources' && renderSourcesReport()}
         {activeTab === 'cancelled' && renderCancelledReport()}
+        {activeTab === 'staff' && renderStaffReport()}
       </>
     );
   }
@@ -558,6 +565,105 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
             )}
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  function renderStaffReport() {
+    const totalSales = staffSales.reduce((sum, s) => sum + s.totalSales, 0);
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Staff Performance</h2>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Active Staff</div>
+              <div className="text-2xl font-bold">{staffSales.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Total Orders</div>
+              <div className="text-2xl font-bold">
+                {staffSales.reduce((sum, s) => sum + s.orderCount, 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Total Sales</div>
+              <div className="text-2xl font-bold text-primary">
+                ${totalSales.toFixed(2)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Staff breakdown */}
+        <div className="space-y-4">
+          {staffSales.map((staff) => (
+            <Card key={staff.staffId}>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-base">{staff.staffName}</div>
+                      <div className="text-xs text-muted-foreground capitalize">{staff.role}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-primary">${staff.totalSales.toFixed(2)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {totalSales > 0 ? ((staff.totalSales / totalSales) * 100).toFixed(1) : 0}% of total
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-5 gap-3">
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Orders</div>
+                    <div className="font-bold">{staff.orderCount}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Avg Ticket</div>
+                    <div className="font-bold">${staff.avgTicket.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Cash</div>
+                    <div className="font-bold">${staff.cashSales.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Card</div>
+                    <div className="font-bold">${staff.cardSales.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-muted rounded-lg p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Hours</div>
+                    <div className="font-bold">{staff.totalHours.toFixed(1)}h</div>
+                  </div>
+                </div>
+
+                {/* Sales per hour metric */}
+                {staff.totalHours > 0 && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                    <TrendingUp className="w-4 h-4" />
+                    Sales per hour: <span className="font-semibold text-foreground">${(staff.totalSales / staff.totalHours).toFixed(2)}/hr</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {staffSales.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No staff members configured for this location. Add staff in Settings → Staff tab.
+          </div>
+        )}
       </div>
     );
   }
