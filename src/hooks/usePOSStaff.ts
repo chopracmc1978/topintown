@@ -21,14 +21,16 @@ export const usePOSStaff = (locationId: string) => {
   const fetchStaff = useCallback(async () => {
     if (!locationId) return;
     try {
+      // Select all columns EXCEPT pin to prevent client-side exposure
       const { data, error } = await supabase
         .from('pos_staff')
-        .select('*')
+        .select('id, location_id, name, role, is_active, created_at, updated_at')
         .eq('location_id', locationId)
         .order('name');
 
       if (error) throw error;
-      setStaff((data || []) as POSStaffMember[]);
+      // Map without pin — pin is never sent to client
+      setStaff((data || []).map(d => ({ ...d, pin: '••••' })) as POSStaffMember[]);
     } catch (err) {
       console.error('Error fetching POS staff:', err);
     } finally {
@@ -71,9 +73,15 @@ export const usePOSStaff = (locationId: string) => {
 
   const updateStaff = async (id: string, data: { name?: string; pin?: string; role?: string; is_active?: boolean }) => {
     try {
+      // Don't send pin if it's the masked placeholder
+      const updateData = { ...data };
+      if (updateData.pin === '••••' || updateData.pin === '') {
+        delete updateData.pin;
+      }
+
       const { error } = await supabase
         .from('pos_staff')
-        .update(data)
+        .update(updateData)
         .eq('id', id);
 
       if (error) {
@@ -113,9 +121,26 @@ export const usePOSStaff = (locationId: string) => {
     }
   };
 
+  // Server-side PIN verification via edge function — PIN never sent to client
   const verifyPin = async (pin: string): Promise<POSStaffMember | null> => {
-    const match = staff.find(s => s.pin === pin && s.is_active);
-    return match || null;
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-staff-pin', {
+        body: { locationId, pin },
+      });
+
+      if (error) {
+        console.error('PIN verification error:', error);
+        return null;
+      }
+
+      if (data?.staff) {
+        return { ...data.staff, pin: '••••' } as POSStaffMember;
+      }
+      return null;
+    } catch (err) {
+      console.error('PIN verification failed:', err);
+      return null;
+    }
   };
 
   return {

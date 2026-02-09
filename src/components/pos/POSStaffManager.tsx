@@ -29,17 +29,27 @@ export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
   };
 
   const handleEdit = (member: POSStaffMember) => {
-    setFormData({ name: member.name, pin: member.pin, role: member.role });
+    // Don't pre-fill PIN — it's masked and not available client-side
+    setFormData({ name: member.name, pin: '', role: member.role });
     setEditingId(member.id);
     setShowForm(true);
   };
 
   const handleSubmit = async () => {
-    if (!formData.name.trim() || !formData.pin.trim()) return;
+    // PIN is required for new staff, optional for edits (leave blank to keep existing)
+    if (!formData.name.trim()) return;
+    if (!editingId && !formData.pin.trim()) return;
 
     let success: boolean;
     if (editingId) {
-      success = await updateStaff(editingId, formData);
+      const updateData: { name: string; role: string; pin?: string } = {
+        name: formData.name,
+        role: formData.role,
+      };
+      if (formData.pin.trim()) {
+        updateData.pin = formData.pin;
+      }
+      success = await updateStaff(editingId, updateData);
     } else {
       success = await addStaff(formData);
     }
@@ -100,7 +110,7 @@ export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
                   const val = e.target.value.replace(/[^0-9]/g, '');
                   setFormData(prev => ({ ...prev, pin: val }));
                 }}
-                placeholder="1234"
+                placeholder={editingId ? 'Leave blank to keep' : '1234'}
                 maxLength={6}
                 className="h-9 text-sm font-mono"
               />
@@ -121,7 +131,7 @@ export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
-            <Button size="sm" onClick={handleSubmit} disabled={!formData.name.trim() || !formData.pin.trim()}>
+            <Button size="sm" onClick={handleSubmit} disabled={!formData.name.trim() || (!editingId && !formData.pin.trim())}>
               {editingId ? 'Update' : 'Add'}
             </Button>
           </div>
@@ -149,7 +159,7 @@ export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
               {staff.map((member) => (
                 <tr key={member.id} className="border-t" style={{ borderColor: '#e2e8f0' }}>
                   <td className="px-4 py-2.5 font-medium" style={{ color: '#222' }}>{member.name}</td>
-                  <td className="px-4 py-2.5 font-mono" style={{ color: '#666' }}>{member.pin}</td>
+                  <td className="px-4 py-2.5 font-mono" style={{ color: '#666' }}>••••</td>
                   <td className="px-4 py-2.5">
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded-full capitalize"
