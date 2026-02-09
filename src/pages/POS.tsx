@@ -204,15 +204,23 @@ const POS = () => {
 
   // Only mount the heavy dashboard AFTER authentication succeeds
   return (
-    <ErrorBoundary fallback={
+    <ErrorBoundary renderFallback={(error, retry) => (
       <div className="fixed inset-0 flex items-center justify-center p-6" style={{ background: 'hsl(220, 26%, 14%)', color: '#e2e8f0' }}>
         <div className="text-center max-w-md space-y-4">
           <h1 className="text-xl font-semibold">POS failed to load</h1>
           <p className="text-sm opacity-70">An error occurred while loading the dashboard.</p>
-          <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Reload</button>
+          {error && (
+            <p className="text-xs opacity-50 bg-black/30 p-3 rounded text-left overflow-auto max-h-32 break-words">
+              {error.message}
+            </p>
+          )}
+          <div className="flex gap-3 justify-center">
+            <button onClick={retry} className="bg-gray-600 text-white px-6 py-2 rounded-lg">Try Again</button>
+            <button onClick={() => window.location.reload()} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Reload</button>
+          </div>
         </div>
       </div>
-    }>
+    )}>
       <POSDashboard
         user={user}
         signOut={async () => {
@@ -252,6 +260,7 @@ const POSDashboard = ({
   activeStaff: POSStaffMember | null;
   onStaffLogout: () => void;
 }) => {
+  console.log('[POSDashboard] Mount — user:', user?.id, 'loc:', currentLocationId, 'staff:', activeStaff?.name);
   // Pass location to orders hook for filtering
   const { orders, loading, addOrder, updateOrderStatus, updatePaymentStatus, updateOrder, clearEndOfDayOrders, startPreparingAdvanceOrder, refetch } = usePOSOrders(currentLocationId);
   

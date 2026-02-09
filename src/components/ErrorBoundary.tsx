@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  renderFallback?: (error: Error | null, retry: () => void) => ReactNode;
 }
 
 interface State {
@@ -36,6 +37,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (this.props.renderFallback) {
+        return this.props.renderFallback(this.state.error, this.handleRetry);
+      }
       if (this.props.fallback) {
         return this.props.fallback;
       }
