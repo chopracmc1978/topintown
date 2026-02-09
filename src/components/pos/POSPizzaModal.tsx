@@ -894,7 +894,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-slate-700">
                 Extra <span className="text-slate-500 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className="grid grid-cols-3 lg:grid-cols-4 gap-px lg:gap-1">
+              <div className={cn(
+                "grid gap-px lg:gap-1",
+                isLargePizza ? "grid-cols-3" : "grid-cols-3 lg:grid-cols-4"
+              )}>
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
