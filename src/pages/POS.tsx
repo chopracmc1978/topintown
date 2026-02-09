@@ -787,10 +787,16 @@ const POSDashboard = ({
               size="icon"
               disabled={!settingsPinLoaded}
               onClick={() => {
-                if (!settingsPinLoaded) return;
+                console.log('[POS] Settings clicked - settingsPin:', JSON.stringify(settingsPin), 'settingsPinLoaded:', settingsPinLoaded, 'showSettingsPin:', showSettingsPin);
+                if (!settingsPinLoaded) {
+                  console.log('[POS] Settings blocked - PIN not loaded yet');
+                  return;
+                }
                 if (settingsPin) {
+                  console.log('[POS] Opening PIN modal for pin:', settingsPin);
                   setShowSettingsPin(true);
                 } else {
+                  console.log('[POS] No PIN set - opening settings directly');
                   setShowSettings(true);
                 }
               }}
