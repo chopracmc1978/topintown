@@ -56,33 +56,24 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // ── CRITICAL FIX: Android WebView viewport scaling ──
-    // Android WebView ignores viewport meta "width=1280" without native
-    // Java settings (setUseWideViewPort / setLoadWithOverviewMode).
-    // The WebView uses the tablet's native resolution (e.g. 1920px),
-    // making everything render too small compared to the web preview.
-    //
-    // Fix: Apply CSS zoom so content scales as if rendered at ~1280px width.
-    // This is a pure-JS workaround that doesn't need native code changes.
-    const DESIRED_WIDTH = 1280;
-    const applyZoom = () => {
-      const actualWidth = window.innerWidth;
-      if (actualWidth > DESIRED_WIDTH) {
-        const zoomLevel = actualWidth / DESIRED_WIDTH;
-        document.documentElement.style.zoom = String(zoomLevel);
-      }
-    };
-    applyZoom();
-    window.addEventListener('resize', applyZoom);
+    // ── DIAGNOSTIC: Log viewport info to help debug tablet rendering ──
+    // This will show in Chrome DevTools remote debugging (chrome://inspect)
+    // and also as a temporary toast on the tablet screen for 10 seconds.
+    const diagInfo = [
+      `innerWidth: ${window.innerWidth}`,
+      `innerHeight: ${window.innerHeight}`,
+      `devicePixelRatio: ${window.devicePixelRatio}`,
+      `screen: ${screen.width}x${screen.height}`,
+      `availScreen: ${screen.availWidth}x${screen.availHeight}`,
+    ].join(' | ');
+    console.log('[POS-DIAG]', diagInfo);
 
-    // Restore standard viewport (CSS zoom handles the scaling now)
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (viewportMeta) {
-      viewportMeta.setAttribute(
-        'content',
-        'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
-      );
-    }
+    // Show a small temporary overlay with viewport info
+    const diagDiv = document.createElement('div');
+    diagDiv.textContent = diagInfo;
+    diagDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:red;color:white;font-size:14px;padding:4px 8px;text-align:center;font-family:monospace;';
+    document.body.appendChild(diagDiv);
+    setTimeout(() => diagDiv.remove(), 15000);
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;
