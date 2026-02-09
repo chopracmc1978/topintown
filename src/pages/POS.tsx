@@ -706,21 +706,8 @@ const POSDashboard = ({
               <img src={tillIcon} alt="Till" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
             </button>
 
-            <button
-              onClick={() => setShowEndDay(true)}
-              className={cn(
-                "flex items-center gap-1 text-orange-400 text-sm px-2 py-2 rounded-md",
-                "bg-transparent border-none",
-                "outline-none focus:outline-none focus-visible:outline-none",
-                "ring-0 focus:ring-0 focus-visible:ring-0",
-                "shadow-none focus:shadow-none",
-                "select-none [-webkit-tap-highlight-color:transparent]",
-                "hover:opacity-80 transition-opacity"
-              )}
-            >
-              <CalendarClock className="w-4 h-4" />
-              End Day
-            </button>
+
+
 
             <Button 
               variant="ghost"
@@ -988,6 +975,7 @@ const POSDashboard = ({
         <POSSettingsPanel
           locationId={currentLocationId}
           onClose={() => setShowSettings(false)}
+          onEndDay={() => setShowEndDay(true)}
           isAudioEnabled={isAudioEnabled}
           volume={volume}
           onToggleAudio={toggleAudio}

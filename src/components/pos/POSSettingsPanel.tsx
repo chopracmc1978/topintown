@@ -1,4 +1,4 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -13,6 +13,7 @@ import { POSReportsPanel } from './POSReportsPanel';
 interface POSSettingsPanelProps {
   locationId: string;
   onClose: () => void;
+  onEndDay?: () => void;
   isAudioEnabled?: boolean;
   volume?: number;
   onToggleAudio?: (enabled: boolean) => void;
@@ -20,7 +21,7 @@ interface POSSettingsPanelProps {
   onTestSound?: () => void;
 }
 
-export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, volume = 0.8, onToggleAudio, onVolumeChange, onTestSound }: POSSettingsPanelProps) => {
+export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled = false, volume = 0.8, onToggleAudio, onVolumeChange, onTestSound }: POSSettingsPanelProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -38,9 +39,21 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
           style={{ zIndex: 1, backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5e5' }}
         >
           <h2 className="font-serif text-xl font-bold" style={{ color: '#222222' }}>Settings</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} style={{ color: '#222222' }}>
-            <X className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {onEndDay && (
+              <Button
+                variant="outline"
+                onClick={() => { onClose(); onEndDay(); }}
+                className="text-orange-600 border-orange-400 hover:bg-orange-50 text-sm px-3 py-2 h-auto"
+              >
+                <CalendarClock className="w-4 h-4 mr-1" />
+                End Day
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose} style={{ color: '#222222' }}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
