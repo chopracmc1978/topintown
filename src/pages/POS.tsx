@@ -23,6 +23,7 @@ import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
+import tillIcon from '@/assets/till-icon.png';
 
 import { cn } from '@/lib/utils';
 
@@ -688,35 +689,38 @@ const POSDashboard = ({
               New Order
             </Button>
 
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                // Always show/call; any errors are handled silently in /pos.
-                openTill();
-              }}
+            <button
+              onClick={() => openTill()}
               className={cn(
-                "h-10 w-10 shrink-0",
-                "border-green-500 text-green-400 hover:bg-green-900/30",
+                "h-10 w-10 shrink-0 flex items-center justify-center rounded-md",
+                "bg-transparent border-none",
                 "outline-none focus:outline-none focus-visible:outline-none",
                 "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
                 "shadow-none focus:shadow-none focus-visible:shadow-none",
-                "select-none [-webkit-tap-highlight-color:transparent]"
+                "select-none [-webkit-tap-highlight-color:transparent]",
+                "hover:opacity-80 transition-opacity"
               )}
               title="Till"
               aria-label="Till"
             >
-              <CashRegisterIcon className="w-10 h-10" />
-            </Button>
+              <img src={tillIcon} alt="Till" className="w-8 h-8 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
+            </button>
 
-            <Button
-              variant="outline"
+            <button
               onClick={() => setShowEndDay(true)}
-              className="text-orange-400 border-orange-500 hover:bg-orange-900/30 text-sm px-2 py-2 h-auto"
+              className={cn(
+                "flex items-center gap-1 text-orange-400 text-sm px-2 py-2 rounded-md",
+                "bg-transparent border-none",
+                "outline-none focus:outline-none focus-visible:outline-none",
+                "ring-0 focus:ring-0 focus-visible:ring-0",
+                "shadow-none focus:shadow-none",
+                "select-none [-webkit-tap-highlight-color:transparent]",
+                "hover:opacity-80 transition-opacity"
+              )}
             >
-              <CalendarClock className="w-4 h-4 mr-1" />
+              <CalendarClock className="w-4 h-4" />
               End Day
-            </Button>
+            </button>
 
             <Button 
               variant="ghost"
