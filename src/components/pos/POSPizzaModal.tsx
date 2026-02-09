@@ -894,7 +894,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-slate-700">
                 Extra <span className="text-slate-500 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className="grid grid-cols-4 gap-px lg:gap-1">
+              <div className="grid grid-cols-3 lg:grid-cols-4 gap-px lg:gap-1">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -902,7 +902,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     <div 
                       key={topping.id} 
                       className={cn(
-                        "flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors",
+                        "flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors overflow-hidden",
                         isSelected 
                           ? "border-emerald-500 bg-emerald-500" 
                           : redOffBg
@@ -911,7 +911,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       {/* Topping name with veg indicator */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className="flex items-center gap-1.5 flex-1 text-left min-w-0"
+                        className="flex items-center gap-1 flex-1 text-left min-w-0 overflow-hidden"
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full flex-shrink-0",
