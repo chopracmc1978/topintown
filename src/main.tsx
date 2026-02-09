@@ -12,6 +12,9 @@
  *     so manual polyfill imports have been removed.
  */
 
+/* ── Polyfills for older Android WebViews ───────────────── */
+import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
+
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
