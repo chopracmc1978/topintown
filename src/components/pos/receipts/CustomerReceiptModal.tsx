@@ -5,6 +5,7 @@ import { Order } from '@/types/menu';
 import { CustomerReceipt, ReceiptRewardPoints } from './CustomerReceipt';
 import { usePrinters } from '@/hooks/usePrinters';
 import { supabase } from '@/integrations/supabase/client';
+import { LOCATIONS } from '@/contexts/LocationContext';
 
 interface CustomerReceiptModalProps {
   order: Order;
@@ -25,6 +26,12 @@ export const CustomerReceiptModal = ({
 }: CustomerReceiptModalProps) => {
   const { printers } = usePrinters(locationId);
   const [rewardPoints, setRewardPoints] = useState<ReceiptRewardPoints | undefined>(undefined);
+
+  // Resolve location info from LOCATIONS if not provided via props
+  const resolvedLocation = LOCATIONS.find(l => l.id === locationId);
+  const finalName = locationName || resolvedLocation?.name || 'Top In Town Pizza';
+  const finalAddress = locationAddress || resolvedLocation?.address || '';
+  const finalPhone = locationPhone || resolvedLocation?.phone || '';
 
   // Fetch reward points for customer
   useEffect(() => {
@@ -100,9 +107,9 @@ export const CustomerReceiptModal = ({
           <div className="shadow-lg">
             <CustomerReceipt 
               order={order}
-              locationName={locationName}
-              locationAddress={locationAddress}
-              locationPhone={locationPhone}
+              locationName={finalName}
+              locationAddress={finalAddress}
+              locationPhone={finalPhone}
               rewardPoints={rewardPoints}
             />
           </div>

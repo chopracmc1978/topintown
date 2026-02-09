@@ -417,11 +417,19 @@ export const buildCustomerReceipt = (order: {
   receipt += DOUBLE_HEIGHT_ON + BOLD_ON + 'TOP IN TOWN PIZZA' + BOLD_OFF + NORMAL_SIZE + LF;
   receipt += LF; // Light gap after store name
   
-  // Address lines (centered, normal size)
-  receipt += 'Unit 5, 3250 - 60 St NE' + LF;
-  receipt += 'Calgary AB T1Y 3T5' + LF;
-  receipt += '403 280 7373 Ext -1' + LF;
-  receipt += 'www.topintownpizza.ca' + LF;
+  // Address lines (centered, normal size) - use location if provided
+  if (location?.address) {
+    // Strip postal code (e.g. "AB T1Y 3T5") from address for receipt
+    const cleanAddr = location.address.replace(/,?\s*AB\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d/i, '').trim().replace(/,\s*$/, '');
+    receipt += cleanAddr + LF;
+  } else {
+    receipt += '3250 60 ST NE, CALGARY' + LF;
+  }
+  if (location?.phone) {
+    receipt += location.phone + LF;
+  } else {
+    receipt += '(403) 280-7373 ext 1' + LF;
+  }
   
   receipt += LINE_STR + LF;
   
@@ -528,9 +536,7 @@ export const buildCustomerReceipt = (order: {
     receipt += BOLD_ON + 'REWARD POINTS' + BOLD_OFF + LF;
     receipt += ALIGN_LEFT;
     receipt += formatLine('Last Bal :', `${rewardPoints.lastBalance} pts`) + LF;
-    if (rewardPoints.earned > 0) {
-      receipt += formatLine('Add :', `+${rewardPoints.earned} pts`) + LF;
-    }
+    receipt += formatLine('Add :', `+${rewardPoints.earned} pts`) + LF;
     if (rewardPoints.used > 0) {
       receipt += formatLine('Used :', `-${rewardPoints.used} pts`) + LF;
     }
