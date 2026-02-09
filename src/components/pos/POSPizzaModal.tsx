@@ -6,6 +6,7 @@ import type { MenuItem } from '@/hooks/useMenuItems';
 import { useSizeCrustAvailability, useFreeToppings, getCrustsForSize } from '@/hooks/usePizzaOptions';
 import { useToppings } from '@/hooks/useMenuItems';
 import { useGlobalSauces } from '@/hooks/useGlobalSauces';
+import { useNoteShortcuts } from '@/hooks/useNoteShortcuts';
 import type { CartItem } from '@/types/menu';
 import type { SelectedTopping, ToppingQuantity, PizzaSide } from '@/types/pizzaCustomization';
 import { cn } from '@/lib/utils';
@@ -52,6 +53,15 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const { data: freeToppingsData } = useFreeToppings();
   const { data: allSauces } = useGlobalSauces();
   const { data: allToppings } = useToppings();
+
+  // Dynamic note shortcuts from database
+  const posLocationId = (() => { try { return localStorage.getItem('pos_location_id') || 'calgary'; } catch { return 'calgary'; } })();
+  const { shortcutMap, shortcuts } = useNoteShortcuts(posLocationId);
+  const shortcutPlaceholder = useMemo(() => {
+    if (shortcuts.length === 0) return 'Special requests...';
+    const hints = shortcuts.map(s => `${s.shortcut_key}=${s.replacement_text}`).join(', ');
+    return `Special requests... (${hints})`;
+  }, [shortcuts]);
 
   const defaultSauceIds = useMemo(
     () => item.default_global_sauces?.map(ds => ds.global_sauce_id) || [],
@@ -971,15 +981,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               value={note}
               onChange={(e) => {
                 const val = e.target.value;
-                if (val === '1') {
-                  setNote('Half Cheese');
-                } else if (val === '2') {
-                  setNote('3 Slice Cheese');
+                // Check dynamic shortcuts
+                if (shortcutMap[val]) {
+                  setNote(shortcutMap[val]);
                 } else {
                   setNote(val);
                 }
               }}
-              placeholder="Special requests... (1=Half Cheese, 2=3 Slice)"
+              placeholder={shortcutPlaceholder}
               className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
             />
           </div>
