@@ -116,9 +116,9 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
             <TabsContent value="sound" className="p-4 mt-0">
               <div className="max-w-md space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Notification Sound</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Enable sound notifications to hear alerts when new online orders arrive.
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: '#222' }}>Notification Sound</h3>
+                  <p className="text-sm mb-4" style={{ color: '#666' }}>
+                    Enable sound notifications to hear alerts when new online orders arrive. Volume can be boosted up to 200%.
                   </p>
                 </div>
                 
@@ -166,7 +166,7 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    <VolumeX className="w-5 h-5 text-muted-foreground" />
+                    <VolumeX className="w-5 h-5" style={{ color: '#999' }} />
                     <Slider
                       value={[volume * 100]}
                       onValueChange={(values) => {
@@ -174,13 +174,18 @@ export const POSSettingsPanel = ({ locationId, onClose, isAudioEnabled = false, 
                           onVolumeChange(values[0] / 100);
                         }
                       }}
-                      max={100}
+                      max={200}
                       min={0}
                       step={5}
                       className="flex-1"
                     />
-                    <Volume2 className="w-5 h-5 text-muted-foreground" />
+                    <Volume2 className="w-5 h-5" style={{ color: '#999' }} />
                   </div>
+                  {volume > 1 && (
+                    <p className="text-xs font-medium" style={{ color: '#d97706' }}>
+                      ⚠️ Volume above 100% — sound will be amplified
+                    </p>
+                  )}
                 </div>
 
                 {/* Test Sound Button */}
