@@ -56,8 +56,16 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // Viewport is set to device-width in index.html for all platforms.
-    // color-scheme: light only prevents Android force-dark from fading colors.
+    // Force a fixed viewport width so the WebView scales content to fit the
+    // screen instead of using the tablet's native (very wide) device-width.
+    // This makes the POS UI match the proportions seen in the web preview.
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute(
+        'content',
+        'width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+      );
+    }
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;
