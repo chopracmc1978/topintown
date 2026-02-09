@@ -203,8 +203,8 @@ const CustomersManager = () => {
       // 2. Delete customer rewards record
       await supabase.from('customer_rewards').delete().eq('phone', cleanPhone);
 
-      // 3. Unlink orders (set customer_id to null so order records are preserved)
-      await supabase.from('orders').update({ customer_id: null }).eq('customer_id', customer.id);
+      // 3. Unlink orders (clear customer_id, name, and phone so POS lookup won't find them)
+      await supabase.from('orders').update({ customer_id: null, customer_name: null, customer_phone: null }).eq('customer_id', customer.id);
 
       // 4. Unlink coupon usage
       await supabase.from('coupon_usage').update({ customer_id: null }).eq('customer_id', customer.id);
