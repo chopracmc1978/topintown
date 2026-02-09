@@ -942,7 +942,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Responsive width for tablets */}
-          <div className="w-80 min-w-[280px] max-w-[320px] flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          <div className="w-[260px] min-w-[240px] max-w-[280px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
@@ -1034,17 +1034,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Schedule Order Toggle */}
             {!isEditMode && (
-              <div className="px-4 py-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
-                <div className="flex items-center gap-2 mb-2">
+              <div className="px-2 py-1.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+                <div className="flex items-center gap-1.5 mb-1.5">
                   <button
                     onClick={() => { setIsScheduled(false); setScheduledDate(''); setScheduledTime(''); }}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors",
                       !isScheduled ? "bg-blue-600 text-white" : "text-gray-300"
                     )}
                     style={{ background: !isScheduled ? undefined : 'hsl(220, 22%, 22%)' }}
                   >
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-3.5 h-3.5" />
                     ASAP
                   </button>
                   <button
@@ -1055,13 +1055,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       }
                     }}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors",
                       isScheduled ? "bg-blue-600 text-white" : "text-gray-300"
                     )}
                     style={{ background: isScheduled ? undefined : 'hsl(220, 22%, 22%)' }}
                   >
-                    <CalendarClock className="w-4 h-4" />
-                    Schedule
+                    <CalendarClock className="w-3.5 h-3.5" />
+                    Sch
                   </button>
                 </div>
                 {isScheduled && (
@@ -1092,17 +1092,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
 
             {/* Order Notes */}
-            <div className="px-3 py-2" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="px-2 py-1.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               <Textarea
                 placeholder="Order notes..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="text-sm resize-none h-14"
+                className="text-xs resize-none h-10"
               />
             </div>
 
             {/* Coupon, Discount & Redeem Row */}
-            <div className="px-3 py-1.5 space-y-1.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="px-2 py-1 space-y-1" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               {/* Row 1: Coupon code + Apply + Discount - always visible */}
               <div className="flex gap-2 items-center">
                 {appliedCoupon ? (
@@ -1122,10 +1122,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 ) : (
                   <>
                     <Input
-                      placeholder="Coupon code"
+                      placeholder="Coupon"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="h-9 text-sm flex-1"
+                      className="h-8 text-xs flex-1"
                       disabled={!!rewardsApplied}
                       onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                     />
@@ -1134,7 +1134,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       size="sm"
                       onClick={handleApplyCoupon}
                       disabled={!couponCode.trim() || validateCouponMutation.isPending || !!rewardsApplied}
-                      className="h-9 px-3 text-green-400 border-green-600 hover:bg-green-900/30"
+                      className="h-8 px-2 text-xs text-green-400 border-green-600 hover:bg-green-900/30"
                     >
                       {validateCouponMutation.isPending ? '...' : 'Apply'}
                     </Button>
@@ -1147,12 +1147,12 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     <Button
                       variant="outline"
                       className={cn(
-                        "h-9 w-24 justify-start text-sm font-normal text-gray-300",
+                        "h-8 w-20 justify-start text-xs font-normal text-gray-300",
                         appliedCoupon && "opacity-50 cursor-not-allowed"
                       )}
                       disabled={!!appliedCoupon}
                     >
-                      {manualDiscount ? `$${manualDiscount}` : 'Discount'}
+                      {manualDiscount ? `$${manualDiscount}` : 'Disc'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-52 p-2" align="end" style={{ backgroundColor: 'hsl(220, 25%, 18%)' }}>
@@ -1291,7 +1291,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
 
             {/* Totals & Submit */}
-            <div className="px-3 py-2 space-y-0.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
+            <div className="px-2 py-1.5 space-y-0.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Subtotal</span>
                 <span className="text-white">${subtotal.toFixed(2)}</span>
