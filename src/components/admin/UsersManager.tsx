@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Shield, ShieldCheck, ShieldAlert, Pencil, Plus, Trash2, Loader2, UserPlus } from 'lucide-react';
+import { User, Shield, ShieldCheck, ShieldAlert, Pencil, Plus, Trash2, Loader2, UserPlus, Lock } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -76,6 +76,7 @@ const UsersManager = () => {
   const [newRole, setNewRole] = useState<AppRole>('user');
   const [newLocationId, setNewLocationId] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
+  const [newSettingsPin, setNewSettingsPin] = useState('');
 
   // Delete user state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -84,11 +85,13 @@ const UsersManager = () => {
 
   // Edit user state
   const [isUpdating, setIsUpdating] = useState(false);
+  const [editSettingsPin, setEditSettingsPin] = useState('');
 
   const handleEditUser = (user: UserWithRole) => {
     setEditingUser(user);
     setEditName(user.full_name || '');
     setEditUsername(user.username || '');
+    setEditSettingsPin(user.settings_pin || '');
   };
 
   const handleSaveProfile = async () => {
@@ -103,6 +106,7 @@ const UsersManager = () => {
           targetUserId: editingUser.user_id,
           fullName: editName,
           username: editUsername,
+          settingsPin: editSettingsPin || null,
         },
       });
 
@@ -181,6 +185,7 @@ const UsersManager = () => {
           fullName: newFullName,
           role: newRole,
           locationId: newLocationId || null,
+          settingsPin: newSettingsPin || null,
         },
       });
 
@@ -205,6 +210,7 @@ const UsersManager = () => {
       setNewFullName('');
       setNewRole('user');
       setNewLocationId('');
+      setNewSettingsPin('');
       refetch();
     } catch (err: any) {
       toast({ title: 'Error creating user', description: err.message, variant: 'destructive' });
@@ -472,6 +478,23 @@ const UsersManager = () => {
                 Assign a store for POS staff login
               </p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="newSettingsPin" className="flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Settings PIN
+              </Label>
+              <Input
+                id="newSettingsPin"
+                type="password"
+                value={newSettingsPin}
+                onChange={(e) => setNewSettingsPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="Numeric PIN (optional)"
+                maxLength={8}
+              />
+              <p className="text-xs text-muted-foreground">
+                PIN to protect POS Settings access
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -515,6 +538,23 @@ const UsersManager = () => {
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder="Enter full name"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editSettingsPin" className="flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Settings PIN
+              </Label>
+              <Input
+                id="editSettingsPin"
+                type="password"
+                value={editSettingsPin}
+                onChange={(e) => setEditSettingsPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="Numeric PIN (leave empty to remove)"
+                maxLength={8}
+              />
+              <p className="text-xs text-muted-foreground">
+                PIN to protect POS Settings access. Leave empty to remove.
+              </p>
             </div>
           </div>
           <DialogFooter>
