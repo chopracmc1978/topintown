@@ -7,6 +7,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter for brute-force protection
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 5; // max attempts
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return true;
+  return false;
+}
+
 // Legacy SHA-256 hash for backwards compatibility during migration
 async function sha256Hash(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -65,6 +82,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
     if (password.length > 128) {
       return json(200, { success: false, error: "Invalid credentials" });
+    }
+
+    // Rate limiting by email to prevent brute-force attacks
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = `login:${email}:${clientIp}`;
+    if (isRateLimited(rateLimitKey)) {
+      console.warn("Rate limited login attempt for:", email, "from:", clientIp);
+      return new Response(
+        JSON.stringify({ success: false, error: "Too many login attempts. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders, "Retry-After": "900" } }
+      );
     }
 
     console.log("Customer login request for:", email);

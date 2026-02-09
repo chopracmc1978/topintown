@@ -7,6 +7,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter for brute-force protection
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return true;
+  return false;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -42,6 +59,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
     if (!/^\d{6}$/.test(otpCode)) {
       return json(400, { error: "Invalid OTP code format" });
+    }
+
+    // Rate limiting by email+IP to prevent brute-force attacks
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = `reset:${email}:${clientIp}`;
+    if (isRateLimited(rateLimitKey)) {
+      console.warn("Rate limited reset-password attempt for:", email);
+      return new Response(
+        JSON.stringify({ error: "Too many attempts. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders, "Retry-After": "900" } }
+      );
     }
 
     console.log("Password reset request for:", email);

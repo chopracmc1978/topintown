@@ -1560,6 +1560,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      deduct_reward_points: {
+        Args: { p_phone: string; p_points_to_deduct: number }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
