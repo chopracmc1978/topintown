@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useUsers, useAddRole, useRemoveRole, useUpdateProfile, UserWithRole } from '@/hooks/useUsers';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,7 @@ const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode; varian
 };
 
 const UsersManager = () => {
+  const { user: currentUser } = useAuth();
   const { data: users, isLoading, error, refetch } = useUsers();
   const addRole = useAddRole();
   const removeRole = useRemoveRole();
@@ -132,6 +134,12 @@ const UsersManager = () => {
   };
 
   const handleRemoveRole = async (userId: string, role: AppRole) => {
+    // Prevent removing your own admin role
+    if (userId === currentUser?.id && role === 'admin') {
+      toast({ title: 'Cannot remove your own admin role', description: 'Ask another admin to do this.', variant: 'destructive' });
+      return;
+    }
+
     try {
       await removeRole.mutateAsync({ userId, role });
       toast({ title: 'Role removed successfully' });
@@ -296,18 +304,21 @@ const UsersManager = () => {
                         {user.roles.length === 0 ? (
                           <span className="text-muted-foreground text-sm">No roles</span>
                         ) : (
-                          user.roles.map((role) => (
-                            <Badge
-                              key={role}
-                              variant={roleConfig[role].variant}
-                              className="gap-1 cursor-pointer hover:opacity-80"
-                              onClick={() => handleRemoveRole(user.user_id, role)}
-                            >
-                              {roleConfig[role].icon}
-                              {roleConfig[role].label}
-                              <Trash2 className="w-3 h-3 ml-1" />
-                            </Badge>
-                          ))
+                          user.roles.map((role) => {
+                            const isSelfAdmin = user.user_id === currentUser?.id && role === 'admin';
+                            return (
+                              <Badge
+                                key={role}
+                                variant={roleConfig[role].variant}
+                                className={`gap-1 ${isSelfAdmin ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
+                                onClick={() => !isSelfAdmin && handleRemoveRole(user.user_id, role)}
+                              >
+                                {roleConfig[role].icon}
+                                {roleConfig[role].label}
+                                {!isSelfAdmin && <Trash2 className="w-3 h-3 ml-1" />}
+                              </Badge>
+                            );
+                          })
                         )}
                         {getAvailableRoles(user.roles).length > 0 && (
                           <Button
@@ -333,17 +344,19 @@ const UsersManager = () => {
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            setUserToDelete(user);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {user.user_id !== currentUser?.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setUserToDelete(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
