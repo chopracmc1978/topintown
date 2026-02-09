@@ -1106,7 +1106,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               {/* Row 1: Coupon code + Apply + Discount - always visible */}
               <div className="flex gap-2 items-center">
                 {appliedCoupon ? (
-                  <div className="flex items-center gap-2 flex-1 bg-green-900/30 border border-green-700 rounded px-3 py-1.5">
+                  <div className="flex items-center gap-2 flex-1 pos-bg-green-900-30 border border-green-700 rounded px-3 py-1.5">
                     <Check className="w-4 h-4 text-green-400" />
                     <span className="text-sm font-medium text-green-300">{appliedCoupon.code}</span>
                     <span className="text-sm text-green-400">-${appliedCoupon.discount.toFixed(2)}</span>

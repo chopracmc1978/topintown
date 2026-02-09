@@ -604,8 +604,8 @@ const POSDashboard = ({
       {/* Header - Tablet optimized with larger touch targets */}
       <header className={cn(
         "border-b py-2 px-3 flex-shrink-0 shadow-sm transition-colors pos-header",
-        hasPendingRemoteOrders ? "!bg-orange-900/50 animate-pulse" : "",
-        hasAdvanceAlerts && !hasPendingRemoteOrders ? "!bg-amber-900/50 animate-pulse" : ""
+        hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : "",
+        hasAdvanceAlerts && !hasPendingRemoteOrders ? "pos-bg-amber-900-50 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -667,7 +667,7 @@ const POSDashboard = ({
                 <span className={cn(
                   "text-xs font-semibold px-2 py-0.5 rounded-full min-w-[22px] text-center",
                   activeTab === tab.id
-                    ? "bg-white/25 text-white"
+                    ? "pos-bg-white-25 text-white"
                     : "bg-gray-700 text-gray-300"
                 )}>
                   {counts[tab.id as keyof typeof counts]}
