@@ -106,8 +106,9 @@ export const POSOrderHistory = ({ locationId }: POSOrderHistoryProps) => {
           };
         });
 
-        return {
+        const order: any = {
           id: dbOrder.order_number || dbOrder.id,
+          dbId: dbOrder.id,
           items,
           customerName: dbOrder.customer_name || 'Walk-in Customer',
           customerPhone: dbOrder.customer_phone || '',
@@ -126,6 +127,7 @@ export const POSOrderHistory = ({ locationId }: POSOrderHistoryProps) => {
           tableNumber: dbOrder.table_number || undefined,
           pickupTime: dbOrder.pickup_time ? new Date(dbOrder.pickup_time) : undefined,
         };
+        return order as Order;
       });
 
       setOrders(convertedOrders);

@@ -39,6 +39,9 @@ export const CustomerReceiptModal = ({
       const phone = order.customerPhone?.replace(/\D/g, '');
       if (!phone) return;
       
+      // Use dbId (real DB UUID) if available, otherwise fall back to order.id
+      const orderId = (order as any).dbId || order.id;
+      
       const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
         supabase
           .from('customer_rewards')
@@ -49,14 +52,14 @@ export const CustomerReceiptModal = ({
           .from('rewards_history')
           .select('points_change')
           .eq('phone', phone)
-          .eq('order_id', order.id)
+          .eq('order_id', orderId)
           .eq('transaction_type', 'earned')
           .maybeSingle(),
         supabase
           .from('rewards_history')
           .select('points_change')
           .eq('phone', phone)
-          .eq('order_id', order.id)
+          .eq('order_id', orderId)
           .eq('transaction_type', 'redeemed')
           .maybeSingle(),
       ]);
