@@ -28,7 +28,7 @@ export const ReceiptPreviewModal = ({ order, locationId, onClose }: ReceiptPrevi
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'hsla(0, 0%, 0%, 0.7)' }}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
