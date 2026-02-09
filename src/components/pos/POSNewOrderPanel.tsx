@@ -821,9 +821,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onCancel} className="h-10 w-10 lg:h-12 lg:w-12 text-gray-300 hover:text-white hover:bg-gray-700/50">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 w-10 lg:h-12 lg:w-12 flex items-center justify-center rounded-md"
+            style={{ background: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}
+          >
             <X className="w-5 h-5" />
-          </Button>
+          </button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
@@ -982,14 +987,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           )}
                         </div>
                         {(item.pizzaCustomization || item.wingsCustomization) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 shrink-0 text-gray-300 hover:text-white hover:bg-gray-700/50"
+                          <button
+                            type="button"
+                            className="h-8 w-8 shrink-0 flex items-center justify-center rounded-md"
+                            style={{ background: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
                             onClick={() => handleEditItem(item, index)}
                           >
                             <Edit2 className="w-4 h-4" />
-                          </Button>
+                          </button>
                         )}
                       </div>
                       <div className="flex items-center justify-between mt-2">
@@ -1015,14 +1020,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                         <span className="text-sm font-medium text-white">
                           ${item.totalPrice.toFixed(2)}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                        <button
+                          type="button"
+                          className="h-8 w-8 flex items-center justify-center rounded-md"
+                          style={{ background: 'hsl(0, 40%, 25%)', color: '#f87171', border: '1px solid hsl(0, 50%, 35%)' }}
                           onClick={() => removeItem(index)}
                         >
                           <X className="w-4 h-4" />
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1110,14 +1115,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     <Check className="w-4 h-4 text-green-400" />
                     <span className="text-sm font-medium text-green-300">{appliedCoupon.code}</span>
                     <span className="text-sm text-green-400">-${appliedCoupon.discount.toFixed(2)}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={handleClearCoupon}
-                      className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                      className="ml-auto h-6 w-6 p-0 flex items-center justify-center rounded"
+                      style={{ background: 'hsl(0, 40%, 25%)', color: '#f87171', border: '1px solid hsl(0, 50%, 35%)' }}
                     >
                       <X className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -1279,14 +1284,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 <span className="text-sm font-medium flex-1" style={{ color: '#d97706' }}>
                   Rewards: -{rewardsApplied.points} pts (${rewardsApplied.dollarValue.toFixed(2)})
                 </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={handleClearRewards}
-                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                  className="h-6 w-6 p-0 flex items-center justify-center rounded"
+                  style={{ background: 'hsl(0, 40%, 25%)', color: '#f87171', border: '1px solid hsl(0, 50%, 35%)' }}
                 >
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
             )}
 

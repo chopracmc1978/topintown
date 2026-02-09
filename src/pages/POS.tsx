@@ -839,9 +839,8 @@ const POSDashboard = ({
               <img src={tillIcon} alt="Till" className="w-6 h-6 lg:w-7 lg:h-7 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
             </button>
 
-            <Button 
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               disabled={!settingsPinLoaded}
               onClick={() => {
                 console.log('[POS] Settings clicked - settingsPin:', JSON.stringify(settingsPin), 'settingsPinLoaded:', settingsPinLoaded, 'showSettingsPin:', showSettingsPin);
@@ -858,10 +857,11 @@ const POSDashboard = ({
                 }
               }}
               title="Settings"
-              className="h-8 w-8 lg:h-10 lg:w-10 text-gray-300 hover:text-white hover:bg-gray-700/50"
+              className="h-8 w-8 lg:h-10 lg:w-10 flex items-center justify-center rounded-md"
+              style={{ background: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
             >
               <Settings className="w-4 lg:w-5 h-4 lg:h-5" />
-            </Button>
+            </button>
 
             {/* Active staff name */}
             {activeStaff && (
@@ -871,24 +871,22 @@ const POSDashboard = ({
               </div>
             )}
 
-            <Button 
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               onClick={() => {
                 if (activeStaff) {
-                  // Show staff report card with End Day option
                   setShowStaffReport(true);
                 } else {
-                  // Full logout
                   localStorage.removeItem('pos_location_id');
                   signOut();
                 }
               }}
               title={activeStaff ? 'Log Off' : 'Log Out'}
-              className="text-gray-400 hover:text-white hover:bg-gray-700/50 h-8 w-8 lg:h-10 lg:w-10"
+              className="h-8 w-8 lg:h-10 lg:w-10 flex items-center justify-center rounded-md"
+              style={{ background: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
             >
               <LogOut className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
-            </Button>
+            </button>
           </div>
         </div>
       </header>
