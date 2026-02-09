@@ -92,7 +92,7 @@ serve(async (req) => {
             ? `Flavor: ${item.wingsCustomization.flavor}`
             : item.selectedSize || undefined,
         },
-        unit_amount: Math.round((item.totalPrice / item.quantity) * 100), // Convert to cents
+        unit_amount: Math.round((item.totalPrice / item.quantity) * 100),
       },
       quantity: item.quantity,
     }));
@@ -108,6 +108,30 @@ serve(async (req) => {
       },
       quantity: 1,
     });
+
+    // Calculate total discount (rewards + coupon discount)
+    const totalDiscount = (rewardsDiscount || 0) + (discount || 0);
+
+    // Create a Stripe coupon on-the-fly if there's any discount
+    let discounts: { coupon: string }[] | undefined;
+    if (totalDiscount > 0) {
+      const discountParts: string[] = [];
+      if (rewardsDiscount && rewardsDiscount > 0) {
+        discountParts.push(`Rewards (${rewardsUsed} pts): -$${rewardsDiscount.toFixed(2)}`);
+      }
+      if (discount && discount > 0) {
+        discountParts.push(`Coupon${couponCode ? ` (${couponCode})` : ''}: -$${discount.toFixed(2)}`);
+      }
+
+      const coupon = await stripe.coupons.create({
+        amount_off: Math.round(totalDiscount * 100),
+        currency: "cad",
+        duration: "once",
+        name: discountParts.join(' | '),
+      });
+      discounts = [{ coupon: coupon.id }];
+      console.log("Created Stripe coupon for discount:", coupon.id, totalDiscount);
+    }
 
     // Get the origin for redirect URLs
     const origin = req.headers.get("origin") || "https://topintown.lovable.app";
@@ -125,6 +149,7 @@ serve(async (req) => {
       success_url: `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout`,
       metadata,
+      ...(discounts ? { discounts } : {}),
     });
 
     console.log("Checkout session created:", session.id);
