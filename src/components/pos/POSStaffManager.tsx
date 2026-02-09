@@ -13,6 +13,7 @@ interface POSStaffManagerProps {
 const ROLES = [
   { value: 'cashier', label: 'Cashier' },
   { value: 'manager', label: 'Manager' },
+  { value: 'admin', label: 'Admin (Override PIN)' },
 ];
 
 export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
@@ -164,11 +165,11 @@ export const POSStaffManager = ({ locationId }: POSStaffManagerProps) => {
                     <span
                       className="text-xs font-medium px-2 py-0.5 rounded-full capitalize"
                       style={{
-                        backgroundColor: member.role === 'manager' ? '#dbeafe' : '#f0fdf4',
-                        color: member.role === 'manager' ? '#1d4ed8' : '#16a34a',
+                        backgroundColor: member.role === 'admin' ? '#fef3c7' : member.role === 'manager' ? '#dbeafe' : '#f0fdf4',
+                        color: member.role === 'admin' ? '#b45309' : member.role === 'manager' ? '#1d4ed8' : '#16a34a',
                       }}
                     >
-                      {member.role}
+                      {member.role === 'admin' ? 'Admin' : member.role}
                     </span>
                   </td>
                   <td className="px-4 py-2.5">
