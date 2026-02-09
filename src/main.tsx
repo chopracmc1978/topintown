@@ -56,17 +56,9 @@ function applyNativeFixes() {
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // ── Force viewport width to 1280px on native ──
-    // Combined with setUseWideViewPort(true) + setLoadWithOverviewMode(true)
-    // in MainActivity.java, this makes the WebView render at 1280px layout
-    // width and auto-scale to fit the screen — matching the web preview exactly.
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (viewportMeta) {
-      viewportMeta.setAttribute(
-        'content',
-        'width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
-      );
-    }
+    // Use standard viewport - no forced width override
+    // The tablet's native resolution (1608x824 at 0.85 DPR) provides
+    // enough room for the UI without any scaling hacks.
 
     // Redirect root → /pos for native POS builds
     const path = window.location.pathname;
