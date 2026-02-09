@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useLocationHours, getDayName, formatTime, formatTimeFor24h } from '@/hooks/useLocationHours';
-import { cn } from '@/lib/utils';
+import { useLocationHours, getDayName } from '@/hooks/useLocationHours';
 
 interface POSHoursSettingsProps {
   locationId: string;
@@ -33,7 +29,7 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground mb-4">
+      <div className="text-sm mb-4" style={{ color: 'hsl(0, 0%, 45%)' }}>
         Set your operating hours for each day. Customers can only place orders during these hours.
       </div>
 
@@ -41,61 +37,71 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
         {hours.map((dayHours) => (
           <div 
             key={dayHours.id} 
-            className={cn(
-              "flex items-center gap-4 p-4 rounded-lg border transition-colors"
-            )}
-            style={
-              dayHours.is_open
-                ? { backgroundColor: 'hsl(0, 0%, 100%)', borderColor: 'hsla(240, 5%, 10%, 0.12)' }
-                : { backgroundColor: 'hsl(0, 0%, 98%)', borderColor: 'hsla(240, 5%, 10%, 0.08)' }
-            }
+            className="flex items-center gap-4 p-4 rounded-lg border transition-colors"
+            style={{
+              backgroundColor: dayHours.is_open ? 'hsl(0, 0%, 100%)' : 'hsl(0, 0%, 97%)',
+              borderColor: 'hsl(0, 0%, 85%)',
+              color: 'hsl(0, 0%, 15%)',
+            }}
           >
             {/* Day Name */}
-            <div className="w-28 font-medium">
+            <div className="w-28 font-medium" style={{ color: 'hsl(0, 0%, 15%)' }}>
               {getDayName(dayHours.day_of_week)}
             </div>
 
             {/* Open/Closed Toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-[100px]">
               <Switch
                 checked={dayHours.is_open}
                 onCheckedChange={(checked) => handleOpenToggle(dayHours.id, checked)}
               />
-              <span className={cn(
-                "text-sm",
-                dayHours.is_open ? "text-green-600" : "text-muted-foreground"
-              )}>
+              <span
+                className="text-sm font-medium"
+                style={{ color: dayHours.is_open ? 'hsl(142, 71%, 35%)' : 'hsl(0, 0%, 55%)' }}
+              >
                 {dayHours.is_open ? 'Open' : 'Closed'}
               </span>
             </div>
 
             {/* Time Inputs */}
             {dayHours.is_open && (
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-3 flex-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground">Open:</Label>
-                  <Input
+                  <label className="text-sm" style={{ color: 'hsl(0, 0%, 45%)' }}>Open:</label>
+                  <input
                     type="time"
                     value={dayHours.open_time.slice(0, 5)}
                     onChange={(e) => handleTimeChange(dayHours.id, 'open_time', e.target.value)}
-                    className="w-32"
+                    className="rounded-md border px-3 py-2 text-sm"
+                    style={{
+                      backgroundColor: 'hsl(0, 0%, 100%)',
+                      borderColor: 'hsl(0, 0%, 80%)',
+                      color: 'hsl(0, 0%, 15%)',
+                      width: '130px',
+                    }}
                   />
                 </div>
-                <span className="text-muted-foreground">—</span>
+                <span style={{ color: 'hsl(0, 0%, 60%)' }}>—</span>
                 <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground">Close:</Label>
-                  <Input
+                  <label className="text-sm" style={{ color: 'hsl(0, 0%, 45%)' }}>Close:</label>
+                  <input
                     type="time"
                     value={dayHours.close_time.slice(0, 5)}
                     onChange={(e) => handleTimeChange(dayHours.id, 'close_time', e.target.value)}
-                    className="w-32"
+                    className="rounded-md border px-3 py-2 text-sm"
+                    style={{
+                      backgroundColor: 'hsl(0, 0%, 100%)',
+                      borderColor: 'hsl(0, 0%, 80%)',
+                      color: 'hsl(0, 0%, 15%)',
+                      width: '130px',
+                    }}
                   />
                 </div>
               </div>
             )}
 
             {!dayHours.is_open && (
-              <div className="flex-1 text-sm text-muted-foreground italic">
+              <div className="flex-1 text-sm italic" style={{ color: 'hsl(0, 0%, 55%)' }}>
                 Not accepting orders
               </div>
             )}
@@ -104,10 +110,10 @@ export const POSHoursSettings = ({ locationId }: POSHoursSettingsProps) => {
       </div>
 
       <div
-        className="text-xs text-muted-foreground mt-4 p-3 rounded-lg"
-        style={{ backgroundColor: 'hsl(0, 0%, 98%)' }}
+        className="text-xs mt-4 p-3 rounded-lg"
+        style={{ backgroundColor: 'hsl(0, 0%, 96%)', color: 'hsl(0, 0%, 45%)' }}
       >
-        <strong>Note:</strong> All times are in Mountain Time (MST/MDT). Changes are saved automatically.
+        <strong style={{ color: 'hsl(0, 0%, 25%)' }}>Note:</strong> All times are in Mountain Time (MST/MDT). Changes are saved automatically.
       </div>
     </div>
   );
