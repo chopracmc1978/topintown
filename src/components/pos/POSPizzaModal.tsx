@@ -331,7 +331,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
   const labelBox = "h-6 lg:h-9 px-1.5 lg:px-2 text-[10px] lg:text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
-  // POS color constants - very light red for unselected state
+  // POS color constants – very light red for unselected state
   const redOff = "border-red-300 bg-red-300 text-white";
   const redOffBg = "border-red-300 bg-red-300";
   // Hardcoded inline styles for legacy Android WebView compatibility (prevents grey/transparent backgrounds)
