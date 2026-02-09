@@ -89,12 +89,43 @@ const POS = () => {
       return 'calgary';
     }
   });
-  const [activeStaff, setActiveStaff] = useState<POSStaffMember | null>(() => {
-    try {
-      const saved = localStorage.getItem('pos_active_staff');
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
+  const [activeStaff, setActiveStaff] = useState<POSStaffMember | null>(null);
+  // Track if this is a fresh login (user changed) so we skip localStorage restore
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
+
+  // Restore active staff from localStorage ONLY if same user session persists
+  useEffect(() => {
+    if (!user) {
+      setActiveStaff(null);
+      setLastUserId(null);
+      return;
+    }
+
+    if (lastUserId && lastUserId === user.id) {
+      // Same user, don't reset
+      return;
+    }
+
+    if (!lastUserId) {
+      // First load - check if we have a stored staff AND it's the same user
+      try {
+        const savedUserId = localStorage.getItem('pos_auth_user_id');
+        const savedStaff = localStorage.getItem('pos_active_staff');
+        if (savedUserId === user.id && savedStaff) {
+          setActiveStaff(JSON.parse(savedStaff));
+        } else {
+          // Different user or no saved data - force PIN screen
+          setActiveStaff(null);
+          localStorage.removeItem('pos_active_staff');
+        }
+      } catch {
+        setActiveStaff(null);
+      }
+      // Save current user id
+      localStorage.setItem('pos_auth_user_id', user.id);
+      setLastUserId(user.id);
+    }
+  }, [user, lastUserId]);
 
   // Sync location from localStorage on login
   useEffect(() => {
@@ -138,8 +169,10 @@ const POS = () => {
           setCurrentLocationId(savedLocation);
         }
       } catch {}
-      // Clear any previous staff session
+      // Clear any previous staff session so PIN screen shows
       setActiveStaff(null);
+      localStorage.removeItem('pos_active_staff');
+      localStorage.removeItem('pos_auth_user_id');
     }} />;
   }
 
@@ -174,6 +207,7 @@ const POS = () => {
         signOut={async () => {
           setActiveStaff(null);
           localStorage.removeItem('pos_active_staff');
+          localStorage.removeItem('pos_auth_user_id');
           await signOut();
         }}
         currentLocationId={currentLocationId}
