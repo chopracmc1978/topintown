@@ -70,6 +70,7 @@ export const useRewardsByPhone = (phone: string | undefined) => {
       return data?.rewards || null;
     },
     enabled: !!phone,
+    refetchInterval: 30_000, // Auto-refresh every 30s so points update after order completion
   });
 };
 
@@ -112,6 +113,7 @@ export const useRewardsHistory = (phone: string | undefined) => {
       return (data?.history || []) as RewardHistory[];
     },
     enabled: !!phone,
+    refetchInterval: 30_000, // Auto-refresh every 30s
   });
 };
 
