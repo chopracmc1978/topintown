@@ -104,9 +104,9 @@ export const useMenuItems = (category?: MenuCategory) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      const items = data as MenuItem[];
+      const items = (data || []) as MenuItem[];
       // Preload all item images as soon as data arrives
-      preloadImages(items.map(item => item.image_url));
+      try { preloadImages(items.map(item => item.image_url)); } catch {}
       return items;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - avoid refetching on category switch

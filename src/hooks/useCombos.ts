@@ -77,9 +77,9 @@ export const useActiveCombos = () => {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      const combos = (data as Combo[]).filter(isComboActiveToday);
+      const combos = ((data || []) as Combo[]).filter(isComboActiveToday);
       // Preload all combo images as soon as data arrives
-      preloadImages(combos.map(c => c.image_url));
+      try { preloadImages(combos.map(c => c.image_url)); } catch {}
       return combos;
     },
     staleTime: 5 * 60 * 1000,
