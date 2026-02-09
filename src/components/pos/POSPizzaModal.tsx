@@ -10,6 +10,7 @@ import type { CartItem } from '@/types/menu';
 import type { SelectedTopping, ToppingQuantity, PizzaSide } from '@/types/pizzaCustomization';
 import { cn } from '@/lib/utils';
 
+// Interfaces, constants, types, getExtraToppingPrice, FreeToppingSelection
 interface POSPizzaModalProps {
   item: MenuItem;
   isOpen: boolean;
@@ -151,10 +152,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // Reset sides when size changes (only large allows L/W/R)
   useEffect(() => {
     if (!isLargePizza) {
-      // Reset spicy to whole (both sides same)
       setLeftSpicy('none');
       setRightSpicy('none');
-      // Reset all topping sides to whole
       setDefaultToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
       setExtraToppings(prev => prev.map(t => ({ ...t, side: 'whole' as PizzaSide })));
       setFreeToppingSelections(prev => prev.map(t => ({ ...t, side: 'whole' as Side })));
@@ -239,28 +238,24 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const calculatePrice = () => {
     let price = selectedSize?.price || 0;
     
-    // Crust price (gluten free)
     if (selectedCrust?.name.toLowerCase().includes('gluten')) {
       price += GLUTEN_FREE_PRICE;
     }
     
-    // Cheese extra price
     if (selectedCheese === 'Dairy Free') {
       price += selectedSize?.name === 'Small 10"' ? 2 : 3;
     }
     
-    // Extra cheese price (Mozzarella Extra)
     if (selectedCheese === 'Mozzarella' && cheeseQuantity === 'extra') {
       if (selectedSize?.name?.includes('Small')) {
         price += 2;
       } else if (selectedSize?.name?.includes('Medium')) {
         price += 2.5;
       } else {
-        price += 3; // Large
+        price += 3;
       }
     }
     
-    // Extra default toppings (extra quantity costs extra)
     const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
     defaultToppings.forEach(t => {
       if (t.quantity === 'extra') {
@@ -268,10 +263,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       }
     });
     
-    // Extra toppings price
     price += extraToppings.length * toppingPrice;
-    
-    // Extra amount for special requests
     price += extraAmount;
     
     return price;
@@ -284,7 +276,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
     const sauceName = allSauces?.find(s => s.id === selectedSauceId)?.name || 'No Sauce';
 
-    // Build spicy level object from left/right state
     const spicyLevelObj = {
       left: leftSpicy,
       right: rightSpicy,
@@ -324,11 +315,15 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
-  // Ultra-compact button style for no-scroll layout - h-11 with width-safe shrink/wrap (prevents modal overflow)
+  // Ultra-compact button style for no-scroll layout
   const btnSmall = "h-11 px-4 text-xs rounded border font-medium transition-colors mx-0.5 my-0.5 text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
   const labelBox = "h-11 px-3 text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+
+  // POS color constants - very light red for unselected state
+  const redOff = "border-red-300 bg-red-300 text-white";
+  const redOffBg = "border-red-300 bg-red-300";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -351,7 +346,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     "px-2",
                     isSelected 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : "border-red-500 bg-red-500 text-white"
+                      : redOff
                   )}
                 >
                   <div className="text-[10px] font-medium">{size.name}</div>
@@ -368,7 +363,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <div className="flex flex-wrap gap-1 flex-1 min-w-0">
                 {availableCrusts.map(crust => {
                   const isSelected = selectedCrust?.id === crust.id;
-                  // If only one crust available (Small/Large), always show green
                   const alwaysGreen = availableCrusts.length === 1;
                   return (
                     <button
@@ -379,7 +373,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         "flex-1 px-2",
                         alwaysGreen || isSelected
                           ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-red-500 bg-red-500 text-white"
+                          : redOff
                       )}
                     >
                       {crust.name}
@@ -399,7 +393,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <span className={cn(
                 labelBox,
                 "px-3",
-                selectedCheese === 'No Cheese' ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
+                selectedCheese === 'No Cheese' ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
               )}>Cheese</span>
               {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
                 const isSelected = selectedCheese === cheese;
@@ -414,7 +408,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       btnSmall, 
                       isSelected 
                         ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : "border-red-500 bg-red-500 text-white"
+                        : redOff
                     )}
                   >
                     {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
@@ -440,7 +434,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       isDisabled ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500" :
                       isSelected 
                         ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : "border-red-500 bg-red-500 text-white"
+                        : redOff
                     )}
                   >
                     {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
@@ -457,7 +451,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 "px-3",
                 (leftSpicy === 'none' && rightSpicy === 'none') 
                   ? "bg-emerald-500 text-white" 
-                  : "bg-red-500 text-white"
+                  : "bg-red-300 text-white"
               )}>Spicy Level</span>
               {/* None button */}
               {(() => {
@@ -472,7 +466,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       btnSmall,
                       isNoneSelected 
                         ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : "border-red-500 bg-red-500 text-white"
+                        : redOff
                     )}
                   >
                     None
@@ -486,7 +480,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 return (
                   <span className={cn(
                     labelBox,
-                    hasMedium ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
+                    hasMedium ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Med Hot
                   </span>
@@ -531,7 +525,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
                               ? "border-emerald-500 bg-emerald-500 text-white" 
-                              : "border-red-500 bg-red-500 text-white"
+                              : redOff
                         )}
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
@@ -549,7 +543,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     btnSmall, 
                     leftSpicy === 'medium' 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : "border-red-500 bg-red-500 text-white"
+                      : redOff
                   )}
                 >
                   Whole
@@ -562,7 +556,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 return (
                   <span className={cn(
                     labelBox,
-                    hasHot ? "bg-red-500 text-white" : "bg-emerald-500 text-white"
+                    hasHot ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
                   )}>
                     Hot
                   </span>
@@ -607,7 +601,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                             ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
                             : isActive 
                               ? "border-emerald-500 bg-emerald-500 text-white" 
-                              : "border-red-500 bg-red-500 text-white"
+                              : redOff
                         )}
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
@@ -625,7 +619,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     btnSmall, 
                     leftSpicy === 'hot' 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : "border-red-500 bg-red-500 text-white"
+                      : redOff
                   )}
                 >
                   Whole
@@ -643,14 +637,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 const isSelected = !!selection;
                 return (
                   <div key={topping.id} className="flex flex-wrap items-center gap-0.5">
-                    {/* Name button - green if selected, red if not */}
+                    {/* Name button - green if selected, light red if not */}
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
                       className={cn(
                         btnSmall,
                         isSelected 
                           ? "border-emerald-500 bg-emerald-500 text-white" 
-                          : "border-red-500 bg-red-500 text-white"
+                          : redOff
                       )}
                     >
                       {topping.name}
@@ -670,7 +664,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 btnSmall,
                                 isSideSelected 
                                   ? "border-emerald-500 bg-emerald-500 text-white" 
-                                  : "border-red-500 bg-red-500 text-white"
+                                  : redOff
                               )}
                             >
                               {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
@@ -687,7 +681,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           btnSmall,
                           isSelected 
                             ? "border-emerald-500 bg-emerald-500 text-white" 
-                            : "border-red-500 bg-red-500 text-white"
+                            : redOff
                         )}
                       >
                         Whole
@@ -710,7 +704,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   btnSmall,
                   selectedSauceId === null 
                     ? "border-emerald-500 bg-emerald-500 text-white" 
-                    : "border-red-500 bg-red-500 text-white"
+                    : redOff
                 )}
               >
                 No Sauce
@@ -723,7 +717,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     btnSmall,
                     selectedSauceId === sauce.id 
                       ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : "border-red-500 bg-red-500 text-white"
+                      : redOff
                   )}
                 >
                   {sauce.name}
@@ -743,7 +737,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-200 text-slate-400"
                           : isSelected 
                             ? "border-emerald-500 bg-emerald-500 text-white" 
-                            : "border-red-500 bg-red-500 text-white"
+                            : redOff
                       )}
                     >
                       {qty === 'less' ? 'Less' : qty === 'normal' ? 'Reg' : 'Extra'}
@@ -763,7 +757,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   const isRemoved = topping.quantity === 'none';
                   return (
                     <div key={topping.id} className="rounded p-1.5 border border-slate-200 bg-white">
-                      {/* Name row - clickable to toggle, green if included, red if removed */}
+                      {/* Name row - clickable to toggle, green if included, light red if removed */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
@@ -772,7 +766,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         className={cn(
                           "flex items-center gap-1.5 mb-1 w-full px-2 py-1 rounded",
                           isRemoved 
-                            ? "bg-red-500 text-white" 
+                            ? "bg-red-300 text-white" 
                             : "bg-emerald-500 text-white"
                         )}
                       >
@@ -802,7 +796,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
                                   : isSelected 
                                     ? "border-emerald-500 bg-emerald-500 text-white" 
-                                    : "border-red-500 bg-red-500 text-white"
+                                    : "border-red-300 bg-red-300 text-white"
                               )}
                             >
                               {opt.label}
@@ -826,7 +820,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                     ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
                                     : isSelected 
                                       ? "border-emerald-500 bg-emerald-500 text-white" 
-                                      : "border-red-500 bg-red-500 text-white"
+                                      : "border-red-300 bg-red-300 text-white"
                                 )}
                               >
                                 {side.label}
@@ -859,7 +853,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         "flex items-center gap-1.5 px-2 py-1.5 rounded border transition-colors",
                         isSelected 
                           ? "border-emerald-500 bg-emerald-500" 
-                          : "border-red-500 bg-red-500"
+                          : redOffBg
                       )}
                     >
                       {/* Topping name with veg indicator */}
@@ -932,7 +926,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               value={note}
               onChange={(e) => {
                 const val = e.target.value;
-                // Keyboard shortcuts: 1 = Half Cheese, 2 = 3 Slice Cheese
                 if (val === '1') {
                   setNote('Half Cheese');
                 } else if (val === '2') {
