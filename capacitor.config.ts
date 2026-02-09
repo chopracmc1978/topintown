@@ -18,10 +18,9 @@ const config: CapacitorConfig = {
   appName: 'topintown',
   webDir: 'dist',
   android: {
-    // Force native WebView to render at device's native resolution (HD)
-    webContentsDebuggingEnabled: false,
+    // Enable debugging so Chrome DevTools can connect (chrome://inspect)
+    webContentsDebuggingEnabled: true,
     allowMixedContent: true,
-    // Use hardware acceleration for smoother HD rendering
     useLegacyBridge: false,
     // Match POS dark navy background to prevent white flash on load
     backgroundColor: '#1a2332',
