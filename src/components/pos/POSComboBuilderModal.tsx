@@ -294,7 +294,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
         {/* Fixed width/height so modal size never changes between categories */}
         <DialogContent className="w-[95vw] h-[90vh] max-w-none overflow-hidden flex flex-col p-0 gap-0">
           {/* Header - Compact */}
-          <div className="flex items-center justify-between px-3 py-2 border-b bg-secondary/30">
+          <div className="flex items-center justify-between px-3 py-2 border-b" style={{ background: 'hsla(220, 22%, 22%, 0.3)' }}>
             <div>
               <h2 className="text-base font-bold">{combo.name}</h2>
               <p className="text-xs text-muted-foreground">
@@ -304,7 +304,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
           </div>
 
           {/* Step Indicator - Ultra Compact */}
-          <div className="flex items-center justify-center gap-1 py-1.5 border-b bg-secondary/20">
+          <div className="flex items-center justify-center gap-1 py-1.5 border-b" style={{ background: 'hsla(220, 22%, 22%, 0.2)' }}>
             {steps.map((step, index) => {
               const stepSelections = selections.filter(s => s.comboItemId === step.id);
               const stepRequiredCount = getRequiredCountForStep(step);
@@ -319,7 +319,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                     "w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all text-xs",
                     isCurrent && "border-primary bg-primary text-primary-foreground",
                     isComplete && !isCurrent && "border-green-500 bg-green-500 text-white",
-                    !isCurrent && !isComplete && "border-muted-foreground/30"
+                    !isCurrent && !isComplete && "border-gray-500"
                   )}
                 >
                   {isComplete ? <Check className="h-3 w-3" /> : ITEM_ICONS[step.item_type]}
@@ -330,7 +330,7 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
 
           {/* Current Step Label - Compact */}
           {currentComboItem && (
-            <div className="text-center py-1.5 px-3 bg-secondary/10 border-b">
+            <div className="text-center py-1.5 px-3 border-b" style={{ background: 'hsla(220, 22%, 22%, 0.1)' }}>
               <div className="flex items-center justify-center gap-1.5 text-sm font-semibold">
                 {ITEM_ICONS[currentComboItem.item_type]}
                 <span>
@@ -385,10 +385,11 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
                         else handleSimpleSelect(item);
                       }}
                       className={cn(
-                        "p-1.5 rounded border text-left transition-all bg-secondary/30 h-[72px] flex flex-col justify-between",
-                        canSelect && "hover:border-primary/50 hover:bg-secondary",
+                        "p-1.5 rounded border text-left transition-all h-[72px] flex flex-col justify-between",
+                        canSelect && "hover:bg-secondary",
                         !canSelect && "opacity-50 cursor-not-allowed"
                       )}
+                      style={{ background: 'hsla(220, 22%, 22%, 0.3)' }}
                     >
                       <p className="font-semibold text-[11px] uppercase leading-tight line-clamp-3">
                         {item.name}
@@ -403,14 +404,15 @@ export const POSComboBuilderModal = ({ combo, isOpen, onClose, onComboAdded }: P
 
           {/* Current Step Selections - Compact inline */}
           {currentStepSelections.length > 0 && (
-            <div className="px-3 py-1.5 border-t bg-secondary/20 flex items-center gap-2 flex-wrap">
+            <div className="px-3 py-1.5 border-t flex items-center gap-2 flex-wrap" style={{ background: 'hsla(220, 22%, 22%, 0.2)' }}>
               <span className="text-[10px] font-medium text-muted-foreground">Selected:</span>
               {currentStepSelections.map((sel, idx) => {
                 const globalIdx = selections.findIndex(s => s === sel);
                 return (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded text-[10px]"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 text-primary rounded text-[10px]"
+                    style={{ background: 'hsla(217, 91%, 60%, 0.1)' }}
                   >
                     {sel.menuItem?.name || sel.cartItem?.name}
                     {sel.flavor && ` (${sel.flavor})`}
