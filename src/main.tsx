@@ -52,18 +52,35 @@ function applyNativeFixes() {
 
     if (!isNative) return;
 
-    // Prevent text zoom on Android
+    // Prevent text zoom on Android (system accessibility font scaling)
     document.documentElement.style.setProperty("-webkit-text-size-adjust", "100%");
     document.documentElement.style.setProperty("text-size-adjust", "100%");
 
-    // Force a fixed viewport width so the WebView scales content to fit the
-    // screen instead of using the tablet's native (very wide) device-width.
-    // This makes the POS UI match the proportions seen in the web preview.
+    // ── CRITICAL FIX: Android WebView viewport scaling ──
+    // Android WebView ignores viewport meta "width=1280" without native
+    // Java settings (setUseWideViewPort / setLoadWithOverviewMode).
+    // The WebView uses the tablet's native resolution (e.g. 1920px),
+    // making everything render too small compared to the web preview.
+    //
+    // Fix: Apply CSS zoom so content scales as if rendered at ~1280px width.
+    // This is a pure-JS workaround that doesn't need native code changes.
+    const DESIRED_WIDTH = 1280;
+    const applyZoom = () => {
+      const actualWidth = window.innerWidth;
+      if (actualWidth > DESIRED_WIDTH) {
+        const zoomLevel = actualWidth / DESIRED_WIDTH;
+        document.documentElement.style.zoom = String(zoomLevel);
+      }
+    };
+    applyZoom();
+    window.addEventListener('resize', applyZoom);
+
+    // Restore standard viewport (CSS zoom handles the scaling now)
     const viewportMeta = document.querySelector('meta[name="viewport"]');
     if (viewportMeta) {
       viewportMeta.setAttribute(
         'content',
-        'width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+        'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
       );
     }
 
