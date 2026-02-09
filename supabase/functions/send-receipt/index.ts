@@ -216,7 +216,7 @@ const buildEmailHtml = (data: SendReceiptRequest): string => {
       <div style="background-color: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #d32f2f; margin: 0; font-size: 24px;">${data.locationName}</h1>
-          <p style="color: #666; margin: 5px 0;">${data.locationAddress}</p>
+          <p style="color: #666; margin: 5px 0;">${data.locationAddress.replace(/,?\s*AB\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d/i, '').trim().replace(/,\s*$/, '')}</p>
           <p style="color: #666; margin: 5px 0;">${data.locationPhone}</p>
         </div>
         <div style="text-align: center; margin-bottom: 20px;">

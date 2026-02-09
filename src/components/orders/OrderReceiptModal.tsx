@@ -186,7 +186,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
           {/* Header */}
           <div className="text-center mb-3">
             <p className="text-lg font-bold">{locationName}</p>
-            {locationAddress && <p className="text-xs">{locationAddress}</p>}
+            {locationAddress && <p className="text-xs">{locationAddress.replace(/,?\s*AB\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d/i, '').trim().replace(/,\s*$/, '')}</p>}
             {locationPhone && <p className="text-xs">{locationPhone}</p>}
           </div>
           
@@ -426,12 +426,10 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                   <span>Last Balance:</span>
                   <span className="font-medium">{rewardPoints.lastBalance} pts</span>
                 </div>
-                {rewardPoints.earned > 0 && (
-                  <div className="flex justify-between text-green-700">
-                    <span>Add:</span>
-                    <span className="font-medium">+{rewardPoints.earned} pts</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-green-700">
+                  <span>Add:</span>
+                  <span className="font-medium">+{rewardPoints.earned} pts</span>
+                </div>
                 {rewardPoints.used > 0 && (
                   <div className="flex justify-between text-red-700">
                     <span>Used:</span>
