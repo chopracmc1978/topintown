@@ -360,7 +360,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           <h2 className="font-serif text-[10px] lg:text-sm font-bold bg-emerald-500 text-white px-1.5 lg:px-3 py-1 lg:py-1.5 rounded whitespace-nowrap uppercase">{item.name}</h2>
           
           {/* Size */}
-          <span className="text-[9px] lg:text-xs text-slate-500">Size</span>
+          <span className="text-[9px] lg:text-xs text-white">Size</span>
           <div className="flex flex-wrap gap-1 lg:gap-1.5">
             {item.sizes?.map(size => {
               const isSelected = selectedSize?.id === size.id;
@@ -692,7 +692,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
             <div className="flex flex-wrap items-center gap-3 lg:gap-4">
-              <span className="text-[9px] lg:text-xs font-medium text-slate-700">Free Add-ons</span>
+              <span className="text-[9px] lg:text-xs font-medium text-white">Free Add-ons</span>
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
@@ -765,7 +765,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Sauce Selection - inline with quantity */}
           <div>
-            <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-slate-700">Sauce</h3>
+            <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">Sauce</h3>
             <div className="flex flex-wrap gap-0.5 lg:gap-1 items-center">
               <button
                 onClick={() => setSelectedSauceId(null)}
@@ -820,7 +820,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Default Toppings - 5 column grid for compactness */}
           {pizzaDefaultToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-slate-700">Default Toppings</h3>
+              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">Default Toppings</h3>
               <div className="grid grid-cols-5 gap-1 lg:gap-2">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
@@ -905,8 +905,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Extra Toppings - 4 column grid */}
           {availableExtraToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-slate-700">
-                Extra <span className="text-slate-500 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
+              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">
+                Extra <span className="text-blue-100 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
               <div className={cn(
                 "grid gap-px lg:gap-1",
@@ -988,7 +988,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
           <div className="flex flex-wrap items-center justify-between gap-1.5 lg:gap-3 pt-0.5 lg:pt-2 border-t border-slate-200 mt-px lg:mt-1">
           <div className="flex items-center gap-1.5 lg:gap-2 flex-1 min-w-0">
-            <span className="text-[10px] lg:text-xs text-slate-500 whitespace-nowrap">Notes:</span>
+            <span className="text-[10px] lg:text-xs text-white whitespace-nowrap">Notes:</span>
             <input
               type="text"
               value={note}
@@ -1006,7 +1006,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             />
           </div>
           <div className="flex items-center gap-1 lg:gap-2">
-            <span className="text-[10px] lg:text-xs text-slate-500 whitespace-nowrap">Extra $</span>
+            <span className="text-[10px] lg:text-xs text-white whitespace-nowrap">Extra $</span>
             <input
               type="text"
               inputMode="decimal"
