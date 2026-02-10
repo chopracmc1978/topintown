@@ -691,22 +691,21 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 lg:gap-4">
+            <div className="flex flex-wrap items-center gap-1 lg:gap-2">
               <span className="text-[9px] lg:text-xs font-medium text-white">Free Add-ons</span>
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
                 return (
-                  <div key={topping.id} className="flex flex-wrap items-center gap-0.5">
-                    {/* Name button - green if selected, light red if not */}
+                  <div key={topping.id} className="flex flex-wrap items-center gap-0.5 mr-3 lg:mr-5">
+                    {/* Name button */}
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
-                      className={cn(
-                        btnSmall,
-                        isSelected 
-                          ? "border-emerald-500 bg-emerald-500 text-white" 
-                          : redOff
-                      )}
+                      className={cn(btnSmall)}
+                      style={isSelected 
+                        ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                        : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                      }
                     >
                       {topping.name}
                     </button>
@@ -719,22 +718,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               key={side}
                               onClick={() => {
                                 if (isSideSelected) {
-                                  // Deselect: remove this free topping
                                   toggleFreeTopping(topping.name);
                                 } else if (!isSelected) {
                                   toggleFreeTopping(topping.name);
-                                  // Need to set side after adding
                                   setTimeout(() => updateFreeToppingSide(topping.name, side), 0);
                                 } else {
                                   updateFreeToppingSide(topping.name, side);
                                 }
                               }}
-                              className={cn(
-                                btnSmall,
-                                isSideSelected 
-                                  ? "border-emerald-500 bg-emerald-500 text-white" 
-                                  : redOff
-                              )}
+                              className={cn(btnSmall)}
+                              style={isSideSelected 
+                                ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                                : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                              }
                             >
                               {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
                             </button>
@@ -743,15 +739,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       </div>
                     ) : (
                       <button
-                        onClick={() => {
-                          toggleFreeTopping(topping.name);
-                        }}
-                        className={cn(
-                          btnSmall,
-                          isSelected 
-                            ? "border-emerald-500 bg-emerald-500 text-white" 
-                            : redOff
-                        )}
+                        onClick={() => toggleFreeTopping(topping.name)}
+                        className={cn(btnSmall)}
+                        style={isSelected 
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                        }
                       >
                         Whole
                       </button>
