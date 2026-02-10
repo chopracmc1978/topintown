@@ -81,11 +81,11 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   <button
                     key={flavor.id}
                     onClick={() => setSelectedFlavor(flavor.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
-                      isSelected
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-red-300 text-white'
-                    }`}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left"
+                    style={isSelected
+                      ? { backgroundColor: '#3b82f6', color: '#ffffff' }
+                      : { backgroundColor: '#1e293b', color: '#ffffff' }
+                    }
                   >
                     {flavor.name}
                   </button>
