@@ -431,12 +431,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       setSelectedCheese(cheese);
                       if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
                     }}
-                    className={cn(
-                      btnSmall, 
-                      isSelected 
-                        ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : redOff
-                    )}
+                    className={cn(btnSmall)}
+                    style={isSelected 
+                      ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                      : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
                   >
                     {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
                     {cheese === 'Dairy Free' && (
@@ -456,13 +455,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     key={qty}
                     onClick={() => !isDisabled && setCheeseQuantity(qty)}
                     disabled={isDisabled}
-                    className={cn(
-                      btnSmall,
-                      isDisabled ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500" :
-                      isSelected 
-                        ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : redOff
-                    )}
+                    className={cn(btnSmall)}
+                    style={isDisabled 
+                      ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                      : isSelected 
+                        ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                        : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
                   >
                     {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
                     {qty === 'extra' && <span className="ml-0.5">+${extraPrice}</span>}
@@ -472,14 +471,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
             
             {/* Spicy Level section - on same row */}
-            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
-              <span className={cn(
-                labelBox,
-                "px-3",
-                (leftSpicy !== 'none' || rightSpicy !== 'none') 
-                  ? "bg-emerald-500 text-white" 
-                  : "bg-red-300 text-white"
-              )}>Spicy Level</span>
+            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0 ml-6 lg:ml-10">
+              <span className={cn(labelBox, "px-3")}
+                style={(leftSpicy !== 'none' || rightSpicy !== 'none') 
+                  ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                  : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                }
+              >Spicy Level</span>
               {/* None button */}
               {(() => {
                 const isNoneSelected = leftSpicy === 'none' && rightSpicy === 'none';
@@ -489,12 +487,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       setLeftSpicy('none');
                       setRightSpicy('none');
                     }}
-                    className={cn(
-                      btnSmall,
-                      isNoneSelected 
-                        ? "border-emerald-500 bg-emerald-500 text-white" 
-                        : redOff
-                    )}
+                    className={cn(btnSmall)}
+                    style={isNoneSelected 
+                      ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                      : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
                   >
                     None
                   </button>
@@ -505,10 +502,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {(() => {
                 const hasMedium = leftSpicy === 'medium' || rightSpicy === 'medium';
                 return (
-                  <span className={cn(
-                    labelBox,
-                    hasMedium ? "bg-emerald-500 text-white" : "bg-red-300 text-white"
-                  )}>
+                  <span className={cn(labelBox)}
+                    style={hasMedium 
+                      ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                      : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
+                  >
                     Med Hot
                   </span>
                 );
@@ -536,36 +535,22 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         disabled={isDisabled}
                         onClick={() => {
                           if (isActive) {
-                            // Deselect: reset medium sides to none
-                            if (side === 'whole') {
-                              setLeftSpicy('none');
-                              setRightSpicy('none');
-                            } else if (side === 'left') {
-                              setLeftSpicy('none');
-                            } else {
-                              setRightSpicy('none');
-                            }
+                            if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
+                            else if (side === 'left') { setLeftSpicy('none'); }
+                            else { setRightSpicy('none'); }
                           } else {
-                            if (side === 'whole') {
-                              setLeftSpicy('medium');
-                              setRightSpicy('medium');
-                            } else if (side === 'left') {
-                              setLeftSpicy('medium');
-                              if (rightSpicy !== 'hot') setRightSpicy('none');
-                            } else {
-                              setRightSpicy('medium');
-                              if (leftSpicy !== 'hot') setLeftSpicy('none');
-                            }
+                            if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
+                            else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
+                            else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
                           }
                         }}
-                        className={cn(
-                          btnSmall,
-                          isDisabled 
-                            ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
-                            : isActive 
-                              ? "border-emerald-500 bg-emerald-500 text-white" 
-                              : redOff
-                        )}
+                        className={cn(btnSmall)}
+                        style={isDisabled 
+                          ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                          : isActive 
+                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                        }
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
                       </button>
@@ -575,20 +560,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               ) : (
                 <button
                   onClick={() => {
-                    if (leftSpicy === 'medium') {
-                      setLeftSpicy('none');
-                      setRightSpicy('none');
-                    } else {
-                      setLeftSpicy('medium');
-                      setRightSpicy('medium');
-                    }
+                    if (leftSpicy === 'medium') { setLeftSpicy('none'); setRightSpicy('none'); }
+                    else { setLeftSpicy('medium'); setRightSpicy('medium'); }
                   }}
-                  className={cn(
-                    btnSmall, 
-                    leftSpicy === 'medium' 
-                      ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : redOff
-                  )}
+                  className={cn(btnSmall)}
+                  style={leftSpicy === 'medium' 
+                    ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                    : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                  }
                 >
                   Whole
                 </button>
@@ -598,10 +577,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {(() => {
                 const hasHot = leftSpicy === 'hot' || rightSpicy === 'hot';
                 return (
-                  <span className={cn(
-                    labelBox,
-                    hasHot ? "bg-emerald-500 text-white" : "bg-red-300 text-white"
-                  )}>
+                  <span className={cn(labelBox)}
+                    style={hasHot 
+                      ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                      : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
+                  >
                     Hot
                   </span>
                 );
@@ -629,36 +610,22 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         disabled={isDisabled}
                         onClick={() => {
                           if (isActive) {
-                            // Deselect: reset hot sides to none
-                            if (side === 'whole') {
-                              setLeftSpicy('none');
-                              setRightSpicy('none');
-                            } else if (side === 'left') {
-                              setLeftSpicy('none');
-                            } else {
-                              setRightSpicy('none');
-                            }
+                            if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
+                            else if (side === 'left') { setLeftSpicy('none'); }
+                            else { setRightSpicy('none'); }
                           } else {
-                            if (side === 'whole') {
-                              setLeftSpicy('hot');
-                              setRightSpicy('hot');
-                            } else if (side === 'left') {
-                              setLeftSpicy('hot');
-                              if (rightSpicy !== 'medium') setRightSpicy('none');
-                            } else {
-                              setRightSpicy('hot');
-                              if (leftSpicy !== 'medium') setLeftSpicy('none');
-                            }
+                            if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
+                            else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
+                            else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
                           }
                         }}
-                        className={cn(
-                          btnSmall,
-                          isDisabled 
-                            ? "opacity-40 cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
-                            : isActive 
-                              ? "border-emerald-500 bg-emerald-500 text-white" 
-                              : redOff
-                        )}
+                        className={cn(btnSmall)}
+                        style={isDisabled 
+                          ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                          : isActive 
+                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                        }
                       >
                         {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
                       </button>
@@ -668,20 +635,14 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               ) : (
                 <button
                   onClick={() => {
-                    if (leftSpicy === 'hot') {
-                      setLeftSpicy('none');
-                      setRightSpicy('none');
-                    } else {
-                      setLeftSpicy('hot');
-                      setRightSpicy('hot');
-                    }
+                    if (leftSpicy === 'hot') { setLeftSpicy('none'); setRightSpicy('none'); }
+                    else { setLeftSpicy('hot'); setRightSpicy('hot'); }
                   }}
-                  className={cn(
-                    btnSmall, 
-                    leftSpicy === 'hot' 
-                      ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : redOff
-                  )}
+                  className={cn(btnSmall)}
+                  style={leftSpicy === 'hot' 
+                    ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                    : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                  }
                 >
                   Whole
                 </button>
