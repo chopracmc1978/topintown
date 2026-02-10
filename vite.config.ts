@@ -23,10 +23,9 @@ export default defineConfig(({ mode }) => ({
       // Keep this quite broad for older embedded WebViews.
       targets: ["Android >= 5", "Chrome >= 49"],
 
-      // "module" (modern) bundle targets.
-      // IMPORTANT: even on Android 8.1, the System WebView can be old enough to
-      // choke on newer syntax like optional chaining, so we transpile down.
-      modernTargets: ["chrome >= 61", "chromeAndroid >= 61"],
+      // Don't override modernTargets – let Vite use its built-in modern
+      // targets. This avoids the "modernTargets overrode builtin" warning
+      // and ensures the modern bundle stays clean for Chrome 61+ WebViews.
 
       // Smaller output; polyfills included only when needed.
       modernPolyfills: true,

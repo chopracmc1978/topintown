@@ -288,32 +288,25 @@
   border-color: #d1d5db !important;
 }
 
-/* POS Sharp Rendering - GPU acceleration for native HD */
+/* POS Sharp Rendering – NO GPU layer promotion on the container!
+   translateZ(0) and backface-visibility:hidden force every element onto its
+   own compositor layer, which causes sub-pixel rendering → blurry text and
+   washed-out colors on Android WebViews.  The diagnostic page proves the
+   WebView renders sharply WITHOUT these properties.  Keep only touch and
+   text-rendering optimizations here. */
 .pos-no-focus-ring {
-  /* Selective GPU compositing for sharpness on Android WebView */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  /* Ensure POS fills the entire viewport on any device */
   -webkit-overflow-scrolling: touch;
 }
 
-/* Crisp text in POS - geometricPrecision for HD tablets */
+/* Crisp text in POS - antialiased for HD tablets */
 .pos-no-focus-ring *,
 .pos-hd-text,
 .pos-hd-text * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-}
-
-/* POS buttons: GPU-accelerated solid backgrounds */
-.pos-no-focus-ring button,
-.pos-no-focus-ring [role="button"] {
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 
 /* =====================================================
