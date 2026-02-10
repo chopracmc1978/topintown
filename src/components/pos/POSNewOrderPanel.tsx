@@ -915,14 +915,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 ) : (
                   <div className={cn(
                     "grid gap-1.5 lg:gap-2 auto-rows-min",
-                    activeCategory === 'baked_lasagna' ? "grid-cols-4 lg:grid-cols-5" : "grid-cols-5 lg:grid-cols-6"
+                    (activeCategory === 'baked_lasagna' || activeCategory === 'pizza') ? "grid-cols-4 lg:grid-cols-5" : "grid-cols-5 lg:grid-cols-6"
                   )}>
                     {filteredItems.map(item => {
                       // Remove trailing "PIZZA" from pizza names to save space
                       const displayName = item.category === 'pizza' 
                         ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
                         : item.name;
-                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[95px] lg:h-[110px]' : 'h-[66px] lg:h-[80px]';
+                      const cardHeight = (item.category === 'baked_lasagna' || item.category === 'pizza') ? 'h-[95px] lg:h-[110px]' : 'h-[66px] lg:h-[80px]';
                       return (
                         <button
                           key={item.id}
