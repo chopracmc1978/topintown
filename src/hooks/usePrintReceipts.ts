@@ -133,10 +133,11 @@ export const usePrintReceipts = (locationId: string) => {
     let rewardPoints: { lastBalance: number; earned: number; used: number; balance: number } | undefined;
     const cleanPhone = order.customerPhone?.replace(/\D/g, '');
     if (cleanPhone) {
+      const dbOrderId = (order as any).dbId || order.id;
       const [rewardsResult, earnedResult, redeemedResult] = await Promise.all([
         supabase.from('customer_rewards').select('points, lifetime_points').eq('phone', cleanPhone).maybeSingle(),
-        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', order.id).eq('transaction_type', 'earned').maybeSingle(),
-        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', order.id).eq('transaction_type', 'redeemed').maybeSingle(),
+        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', dbOrderId).eq('transaction_type', 'earned').maybeSingle(),
+        supabase.from('rewards_history').select('points_change').eq('phone', cleanPhone).eq('order_id', dbOrderId).eq('transaction_type', 'redeemed').maybeSingle(),
       ]);
       if (rewardsResult.data) {
         const currentBalance = rewardsResult.data.points;
