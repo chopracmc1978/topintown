@@ -729,76 +729,51 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Default Toppings - 5 column grid for compactness */}
+          {/* Default Toppings - flowing wrap layout matching reference */}
           {pizzaDefaultToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">Default Toppings</h3>
-              <div className="grid grid-cols-5 gap-1 lg:gap-2">
+              <div className="flex flex-wrap gap-1.5 lg:gap-2">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className="rounded p-0.5 border" style={{ borderColor: '#cbd5e1', backgroundColor: '#ffffff', ...antiBlur }}>
-                      {/* Name row - clickable to toggle, green if included, light red if removed */}
+                    <div key={topping.id} className="flex flex-col items-stretch">
+                      {/* Name bar */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className="flex items-center gap-0.5 lg:gap-1 mb-px w-full px-1 lg:px-2 py-px lg:py-1 rounded"
+                        className="px-3 lg:px-4 py-1 lg:py-1.5 rounded-t text-xs lg:text-sm font-medium text-center min-w-[100px] lg:min-w-[130px]"
                         style={isRemoved 
                           ? { backgroundColor: '#fca5a5', color: '#ffffff', ...antiBlur }
                           : { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                         }
                       >
-                        <span className={cn(
-                          "w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full flex-shrink-0",
-                          topping.isVeg ? "bg-green-200" : "bg-red-200"
-                        )} />
-                        <span className={cn(
-                          "text-xs lg:text-sm font-medium truncate text-white",
-                          isRemoved && "line-through"
-                        )}>
+                        <span className={isRemoved ? "line-through" : ""}>
                           {topping.name}
                         </span>
                       </button>
-                      {/* Quantity: Less/Reg/Extra */}
-                      <div className="flex gap-px mb-px">
-                        {QUANTITY_OPTIONS.map(opt => {
-                          const isSelected = topping.quantity === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
-                              disabled={isRemoved}
-                              className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
-                              style={isRemoved 
-                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                                : isSelected 
-                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
-                              }
-                            >
-                              {opt.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {/* Side: Left/Whole/Right (always shown, L/R disabled for non-large) */}
-                      <div className="flex gap-px">
+                      {/* L/W/R buttons */}
+                      <div className="flex">
                         {SIDE_OPTIONS.map(side => {
                           const isSideDisabled = !isLargePizza && side.value !== 'whole';
-                          const isSelected = topping.side === side.value || (!isLargePizza && side.value === 'whole');
+                          const isSideActive = !isRemoved && (topping.side === side.value || (!isLargePizza && side.value === 'whole'));
                           return (
                             <button
                               key={side.value}
-                              onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                              onClick={() => {
+                                if (isRemoved) {
+                                  updateDefaultToppingQuantity(topping.id, 'regular');
+                                }
+                                updateDefaultToppingSide(topping.id, side.value as PizzaSide);
+                              }}
                               disabled={isRemoved || isSideDisabled}
-                              className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
+                              className="flex-1 px-2 lg:px-3 py-0.5 lg:py-1 text-[10px] lg:text-xs font-medium border-t"
                               style={(isRemoved || isSideDisabled)
                                 ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                                : isSelected 
-                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                                : isSideActive 
+                                  ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                               }
                             >
                               {side.label}
