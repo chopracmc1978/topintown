@@ -61,12 +61,12 @@ const DialogContent = React.forwardRef<
       )}
       {...props}
     >
-      {/* Inner wrapper with solid background for legacy WebView */}
+      {/* Inner wrapper – inherits parent bg so POS modal can override */}
       <div style={{ 
         position: 'absolute', 
         inset: 0, 
-        backgroundColor: '#ffffff', 
-        background: '#ffffff',
+        backgroundColor: 'inherit', 
+        background: 'inherit',
         zIndex: -1,
         borderRadius: 'inherit'
       }} />
