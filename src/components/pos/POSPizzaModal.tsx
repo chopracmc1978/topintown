@@ -874,8 +874,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         onClick={() => toggleExtraTopping(topping)}
                         className="flex items-center gap-1 text-left overflow-hidden px-2 lg:px-3 py-1 lg:py-1.5 rounded border font-medium flex-shrink-0"
                         style={isSelected
-                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', minWidth: '120px', ...antiBlur }
-                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', minWidth: '120px', ...antiBlur }
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', minWidth: '160px', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', minWidth: '160px', ...antiBlur }
                         }
                       >
                         <span className="text-xs lg:text-sm whitespace-nowrap">{topping.name}</span>
