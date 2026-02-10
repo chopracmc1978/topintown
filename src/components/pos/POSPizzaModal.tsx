@@ -872,18 +872,18 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       {/* Topping name button */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className="flex items-center gap-1 flex-1 text-left min-w-0 overflow-hidden px-2 lg:px-3 py-1 lg:py-1.5 rounded border font-medium"
+                        className="flex items-center gap-1 text-left overflow-hidden px-2 lg:px-3 py-1 lg:py-1.5 rounded border font-medium flex-shrink-0"
                         style={isSelected
                           ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                           : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                         }
                       >
-                        <span className="text-xs lg:text-sm truncate">{topping.name}</span>
+                        <span className="text-xs lg:text-sm whitespace-nowrap">{topping.name}</span>
                       </button>
 
                       {/* Side selection buttons */}
                       {isLargePizza ? (
-                        <div className="flex gap-0.5 flex-shrink-0">
+                        <div className="flex gap-0.5 flex-1">
                           {SIDE_OPTIONS.map(side => {
                             const isThisSideActive = isSelected && (selected?.side || 'whole') === side.value;
                             return (
@@ -900,7 +900,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                     updateExtraToppingSide(topping.id, side.value as PizzaSide);
                                   }
                                 }}
-                                className="px-1.5 lg:px-2.5 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
+                                className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
                                 style={isThisSideActive 
                                   ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                                   : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
@@ -914,7 +914,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       ) : (
                         <button
                           onClick={() => toggleExtraTopping(topping)}
-                          className="px-1.5 lg:px-2.5 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors flex-shrink-0"
+                          className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
                           style={isSelected 
                             ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                             : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
