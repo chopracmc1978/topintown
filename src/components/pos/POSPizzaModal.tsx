@@ -346,6 +346,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   };
   const redOffInline: React.CSSProperties = { backgroundColor: '#fca5a5', borderColor: '#fca5a5', ...antiBlur };
   const greenOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981', ...antiBlur };
+  // Extra toppings: black bg (unselected) → green bg (selected), white text always
+  const extraOffInline: React.CSSProperties = { backgroundColor: '#1e293b', borderColor: '#1e293b', ...antiBlur };
+  const extraOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981', ...antiBlur };
   // Row-level containment to reduce compositor memory & prevent blur on dense grids
   const rowStyle: React.CSSProperties = { contain: 'layout style paint', transform: 'translateZ(0)', willChange: 'transform' };
 
@@ -919,7 +922,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     <div 
                       key={topping.id} 
                       className="flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors overflow-hidden"
-                      style={{ ...(isSelected ? greenOnInline : redOffInline), ...rowStyle }}
+                      style={{ ...(isSelected ? extraOnInline : extraOffInline), ...rowStyle }}
                     >
                       {/* Topping name with veg indicator */}
                       <button
@@ -955,11 +958,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 }}
                                 className={cn(
                                   "px-1 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors",
-                                  isThisSideActive 
-                                    ? "border-slate-800 bg-slate-800 text-white" 
-                                    : "border-slate-300 bg-white text-slate-700"
                                 )}
-                                style={antiBlur}
+                                style={isThisSideActive 
+                                  ? { backgroundColor: '#10b981', borderColor: '#10b981', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                                }
                               >
                                 {side.label}
                               </button>
@@ -969,12 +972,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       ) : (
                         <button
                           onClick={() => toggleExtraTopping(topping)}
-                          className={cn(
-                            "px-1.5 lg:px-2 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors flex-shrink-0",
-                            isSelected 
-                              ? "border-slate-800 bg-slate-800 text-white" 
-                              : "border-slate-300 bg-white text-slate-700"
-                          )}
+                          className="px-1.5 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors flex-shrink-0"
+                          style={isSelected 
+                            ? { backgroundColor: '#10b981', borderColor: '#10b981', color: '#ffffff', ...antiBlur }
+                            : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                          }
                         >
                           Whole
                         </button>
