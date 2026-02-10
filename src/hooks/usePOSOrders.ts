@@ -461,6 +461,7 @@ export const usePOSOrders = (locationId?: string) => {
       const createdOrder: Order = {
         ...orderData,
         id: orderNumber,
+        dbId: newOrder.id, // Actual database UUID – needed for rewards_history linking
         customerId: linkedCustomerId || undefined,
         createdAt: new Date(newOrder.created_at),
       };
