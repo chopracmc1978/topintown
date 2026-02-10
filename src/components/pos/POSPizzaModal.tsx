@@ -326,21 +326,24 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   const extraToppingPrice = getExtraToppingPrice(selectedSize?.name || '');
 
   // Responsive button styles: compact on small tablets, normal on large screens (≥1024px)
-  const btnSmall = "h-6 lg:h-9 px-2 lg:px-3 text-[10px] lg:text-xs rounded border font-medium transition-colors mx-px my-px text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  // Anti-blur: force GPU layer promotion on each button to prevent Android WebView DPI scaling artifacts
+  const btnSmall = "h-7 lg:h-9 px-2 lg:px-3 text-[11px] lg:text-xs rounded border font-medium transition-colors mx-px my-px text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
-  const labelBox = "h-6 lg:h-9 px-1.5 lg:px-2 text-[10px] lg:text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  const labelBox = "h-7 lg:h-9 px-1.5 lg:px-2 text-[11px] lg:text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
   // POS color constants – very light red for unselected state
   const redOff = "border-red-300 bg-red-300 text-white";
   const redOffBg = "border-red-300 bg-red-300";
   // Hardcoded inline styles for legacy Android WebView compatibility (prevents grey/transparent backgrounds)
-  const redOffInline: React.CSSProperties = { backgroundColor: '#fca5a5', borderColor: '#fca5a5' };
-  const greenOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981' };
+  // Also includes GPU layer promotion to prevent DPI-related blur
+  const antiBlur: React.CSSProperties = { transform: 'translateZ(0)', backfaceVisibility: 'hidden', WebkitFontSmoothing: 'antialiased' as any };
+  const redOffInline: React.CSSProperties = { backgroundColor: '#fca5a5', borderColor: '#fca5a5', ...antiBlur };
+  const greenOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981', ...antiBlur };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[98vw] w-[98vw] p-2 lg:p-4 pt-1.5 lg:pt-3 gap-0.5 lg:gap-1.5 overflow-hidden max-h-[98vh] bg-white text-slate-900" style={{ backgroundColor: 'white' }}>
+      <DialogContent className="max-w-[98vw] w-[98vw] p-2 lg:p-4 pt-1.5 lg:pt-3 gap-0.5 lg:gap-1.5 overflow-hidden max-h-[98vh] bg-white text-slate-900" style={{ backgroundColor: 'white', textRendering: 'geometricPrecision', WebkitFontSmoothing: 'antialiased' as any }}>
         {/* Header Row: Pizza Name + Size + Crust inline */}
         <div className="flex flex-wrap items-center gap-1 lg:gap-2 pb-0.5 lg:pb-1 border-b border-slate-200 pr-10 lg:pr-12">
           <h2 className="font-serif text-[10px] lg:text-sm font-bold bg-emerald-500 text-white px-1.5 lg:px-3 py-1 lg:py-1.5 rounded whitespace-nowrap uppercase">{item.name}</h2>
