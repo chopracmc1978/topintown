@@ -866,22 +866,22 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   return (
                     <div 
                       key={topping.id} 
-                      className="flex items-center gap-0.5 lg:gap-1 px-1 lg:px-2 py-px lg:py-1 rounded border transition-colors overflow-hidden"
-                      style={{ ...(isSelected ? extraOnInline : extraOffInline), ...rowStyle }}
+                      className="flex items-center gap-1 lg:gap-1.5 py-px overflow-hidden"
+                      style={{ ...rowStyle }}
                     >
-                      {/* Topping name with veg indicator */}
+                      {/* Topping name button */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className="flex items-center gap-1 flex-1 text-left min-w-0 overflow-hidden"
+                        className="flex items-center gap-1 flex-1 text-left min-w-0 overflow-hidden px-2 lg:px-3 py-1 lg:py-1.5 rounded border font-medium"
+                        style={isSelected
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                        }
                       >
-                        <span className={cn(
-                          "w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full flex-shrink-0",
-                          topping.is_veg ? "bg-green-200" : "bg-red-200"
-                        )} />
-                        <span className="text-xs lg:text-sm truncate text-white font-medium">{topping.name}</span>
+                        <span className="text-xs lg:text-sm truncate">{topping.name}</span>
                       </button>
 
-                      {/* Side selection - Large pizza shows Left/Whole/Right, others show just Whole */}
+                      {/* Side selection buttons */}
                       {isLargePizza ? (
                         <div className="flex gap-0.5 flex-shrink-0">
                           {SIDE_OPTIONS.map(side => {
@@ -892,7 +892,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 type="button"
                                 onClick={() => {
                                   if (isThisSideActive) {
-                                    // Deselect: remove this extra topping
                                     toggleExtraTopping(topping);
                                   } else if (!isSelected) {
                                     toggleExtraTopping(topping);
@@ -901,12 +900,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                     updateExtraToppingSide(topping.id, side.value as PizzaSide);
                                   }
                                 }}
-                                className={cn(
-                                  "px-1 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors",
-                                )}
+                                className="px-1.5 lg:px-2.5 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
                                 style={isThisSideActive 
-                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                                  ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                                 }
                               >
                                 {side.label}
@@ -917,10 +914,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       ) : (
                         <button
                           onClick={() => toggleExtraTopping(topping)}
-                          className="px-1.5 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors flex-shrink-0"
+                          className="px-1.5 lg:px-2.5 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors flex-shrink-0"
                           style={isSelected 
-                            ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                            : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                           }
                         >
                           Whole
