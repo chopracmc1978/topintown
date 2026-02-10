@@ -834,8 +834,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         )}
                         className="flex items-center gap-0.5 lg:gap-1 mb-px w-full px-1 lg:px-2 py-px lg:py-1 rounded"
                         style={isRemoved 
-                          ? { backgroundColor: '#fca5a5', ...antiBlur }
-                          : { backgroundColor: '#10b981', ...antiBlur }
+                          ? { backgroundColor: '#fca5a5', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                         }
                       >
                         <span className={cn(
