@@ -960,7 +960,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                   "px-1 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors",
                                 )}
                                 style={isThisSideActive 
-                                  ? { backgroundColor: '#10b981', borderColor: '#10b981', color: '#ffffff', ...antiBlur }
+                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                                   : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
                                 }
                               >
@@ -974,7 +974,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           onClick={() => toggleExtraTopping(topping)}
                           className="px-1.5 lg:px-2 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors flex-shrink-0"
                           style={isSelected 
-                            ? { backgroundColor: '#10b981', borderColor: '#10b981', color: '#ffffff', ...antiBlur }
+                            ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                             : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
                           }
                         >
