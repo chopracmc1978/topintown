@@ -507,66 +507,53 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   </span>
                 );
               })()}
-              {isLargePizza ? (
-                <div className="flex gap-0.5">
-                  {(['left', 'whole', 'right'] as Side[]).map(side => {
-                    const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
-                    const isActive = side === 'whole' 
-                      ? isWholeSelected
-                      : side === 'left' 
-                        ? leftSpicy === 'medium' && !isWholeSelected
-                        : rightSpicy === 'medium' && !isWholeSelected;
-                    
-                    const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
-                    let isDisabled = false;
+              <div className="flex gap-0.5">
+                {(['left', 'whole', 'right'] as Side[]).map(side => {
+                  const isSideDisabled = !isLargePizza && side !== 'whole';
+                  const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
+                  const isActive = side === 'whole' 
+                    ? isWholeSelected || (!isLargePizza && leftSpicy === 'medium')
+                    : side === 'left' 
+                      ? leftSpicy === 'medium' && !isWholeSelected
+                      : rightSpicy === 'medium' && !isWholeSelected;
+                  
+                  const hotWhole = leftSpicy === 'hot' && rightSpicy === 'hot';
+                  let isDisabled = isSideDisabled;
+                  if (!isSideDisabled) {
                     if (hotWhole) isDisabled = true;
                     if (side === 'left' && leftSpicy === 'hot') isDisabled = true;
                     if (side === 'right' && rightSpicy === 'hot') isDisabled = true;
                     if (side === 'whole' && (leftSpicy === 'hot' || rightSpicy === 'hot')) isDisabled = true;
-                    
-                    return (
-                      <button
-                        key={side}
-                        disabled={isDisabled}
-                        onClick={() => {
-                          if (isActive) {
-                            if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
-                            else if (side === 'left') { setLeftSpicy('none'); }
-                            else { setRightSpicy('none'); }
-                          } else {
-                            if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
-                            else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
-                            else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
-                          }
-                        }}
-                        className={cn(btnSmall)}
-                        style={isDisabled 
-                          ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                          : isActive 
-                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                        }
-                      >
-                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    if (leftSpicy === 'medium') { setLeftSpicy('none'); setRightSpicy('none'); }
-                    else { setLeftSpicy('medium'); setRightSpicy('medium'); }
-                  }}
-                  className={cn(btnSmall)}
-                  style={leftSpicy === 'medium' 
-                    ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                    : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                   }
-                >
-                  Whole
-                </button>
-              )}
+                  
+                  return (
+                    <button
+                      key={side}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (isActive) {
+                          if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
+                          else if (side === 'left') { setLeftSpicy('none'); }
+                          else { setRightSpicy('none'); }
+                        } else {
+                          if (side === 'whole') { setLeftSpicy('medium'); setRightSpicy('medium'); }
+                          else if (side === 'left') { setLeftSpicy('medium'); if (rightSpicy !== 'hot') setRightSpicy('none'); }
+                          else { setRightSpicy('medium'); if (leftSpicy !== 'hot') setLeftSpicy('none'); }
+                        }
+                      }}
+                      className={cn(btnSmall)}
+                      style={isDisabled 
+                        ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                        : isActive 
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                      }
+                    >
+                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                    </button>
+                  );
+                })}
+              </div>
 
               {/* Hot section */}
               {(() => {
@@ -582,66 +569,53 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   </span>
                 );
               })()}
-              {isLargePizza ? (
-                <div className="flex gap-0.5">
-                  {(['left', 'whole', 'right'] as Side[]).map(side => {
-                    const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
-                    const isActive = side === 'whole' 
-                      ? isWholeSelected
-                      : side === 'left' 
-                        ? leftSpicy === 'hot' && !isWholeSelected
-                        : rightSpicy === 'hot' && !isWholeSelected;
-                    
-                    const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
-                    let isDisabled = false;
+              <div className="flex gap-0.5">
+                {(['left', 'whole', 'right'] as Side[]).map(side => {
+                  const isSideDisabled = !isLargePizza && side !== 'whole';
+                  const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
+                  const isActive = side === 'whole' 
+                    ? isWholeSelected || (!isLargePizza && leftSpicy === 'hot')
+                    : side === 'left' 
+                      ? leftSpicy === 'hot' && !isWholeSelected
+                      : rightSpicy === 'hot' && !isWholeSelected;
+                  
+                  const medWhole = leftSpicy === 'medium' && rightSpicy === 'medium';
+                  let isDisabled = isSideDisabled;
+                  if (!isSideDisabled) {
                     if (medWhole) isDisabled = true;
                     if (side === 'left' && leftSpicy === 'medium') isDisabled = true;
                     if (side === 'right' && rightSpicy === 'medium') isDisabled = true;
                     if (side === 'whole' && (leftSpicy === 'medium' || rightSpicy === 'medium')) isDisabled = true;
-                    
-                    return (
-                      <button
-                        key={side}
-                        disabled={isDisabled}
-                        onClick={() => {
-                          if (isActive) {
-                            if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
-                            else if (side === 'left') { setLeftSpicy('none'); }
-                            else { setRightSpicy('none'); }
-                          } else {
-                            if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
-                            else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
-                            else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
-                          }
-                        }}
-                        className={cn(btnSmall)}
-                        style={isDisabled 
-                          ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                          : isActive 
-                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                        }
-                      >
-                        {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    if (leftSpicy === 'hot') { setLeftSpicy('none'); setRightSpicy('none'); }
-                    else { setLeftSpicy('hot'); setRightSpicy('hot'); }
-                  }}
-                  className={cn(btnSmall)}
-                  style={leftSpicy === 'hot' 
-                    ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                    : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                   }
-                >
-                  Whole
-                </button>
-              )}
+                  
+                  return (
+                    <button
+                      key={side}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (isActive) {
+                          if (side === 'whole') { setLeftSpicy('none'); setRightSpicy('none'); }
+                          else if (side === 'left') { setLeftSpicy('none'); }
+                          else { setRightSpicy('none'); }
+                        } else {
+                          if (side === 'whole') { setLeftSpicy('hot'); setRightSpicy('hot'); }
+                          else if (side === 'left') { setLeftSpicy('hot'); if (rightSpicy !== 'medium') setRightSpicy('none'); }
+                          else { setRightSpicy('hot'); if (leftSpicy !== 'medium') setLeftSpicy('none'); }
+                        }
+                      }}
+                      className={cn(btnSmall)}
+                      style={isDisabled 
+                        ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                        : isActive 
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                      }
+                    >
+                      {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -665,46 +639,38 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     >
                       {topping.name}
                     </button>
-                    {isLargePizza ? (
-                      <div className="flex gap-0.5">
-                        {(['left', 'whole', 'right'] as const).map(side => {
-                          const isSideSelected = isSelected && selection?.side === side;
-                          return (
-                            <button
-                              key={side}
-                              onClick={() => {
-                                if (isSideSelected) {
-                                  toggleFreeTopping(topping.name);
-                                } else if (!isSelected) {
-                                  toggleFreeTopping(topping.name);
-                                  setTimeout(() => updateFreeToppingSide(topping.name, side), 0);
-                                } else {
-                                  updateFreeToppingSide(topping.name, side);
-                                }
-                              }}
-                              className={cn(btnSmall)}
-                              style={isSideSelected 
+                    <div className="flex gap-0.5">
+                      {(['left', 'whole', 'right'] as const).map(side => {
+                        const isSideDisabled = !isLargePizza && side !== 'whole';
+                        const isSideSelected = isSelected && selection?.side === side;
+                        const isWholeActive = !isLargePizza && isSelected && side === 'whole';
+                        return (
+                          <button
+                            key={side}
+                            disabled={isSideDisabled}
+                            onClick={() => {
+                              if (isSideSelected || isWholeActive) {
+                                toggleFreeTopping(topping.name);
+                              } else if (!isSelected) {
+                                toggleFreeTopping(topping.name);
+                                setTimeout(() => updateFreeToppingSide(topping.name, side), 0);
+                              } else {
+                                updateFreeToppingSide(topping.name, side);
+                              }
+                            }}
+                            className={cn(btnSmall)}
+                            style={isSideDisabled
+                              ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                              : (isSideSelected || isWholeActive)
                                 ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                                 : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                              }
-                            >
-                              {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => toggleFreeTopping(topping.name)}
-                        className={cn(btnSmall)}
-                        style={isSelected 
-                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                        }
-                      >
-                        Whole
-                      </button>
-                    )}
+                            }
+                          >
+                            {side === 'left' ? 'Left' : side === 'whole' ? 'Whole' : 'Right'}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
@@ -817,30 +783,29 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                           );
                         })}
                       </div>
-                      {/* Side: Left/Whole/Right (Large only) */}
-                      {isLargePizza && (
-                        <div className="flex gap-px">
-                          {SIDE_OPTIONS.map(side => {
-                            const isSelected = topping.side === side.value;
-                            return (
-                              <button
-                                key={side.value}
-                                onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
-                                disabled={isRemoved}
-                                className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
-                                style={isRemoved 
-                                  ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                                  : isSelected 
-                                    ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                                    : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
-                                }
-                              >
-                                {side.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {/* Side: Left/Whole/Right (always shown, L/R disabled for non-large) */}
+                      <div className="flex gap-px">
+                        {SIDE_OPTIONS.map(side => {
+                          const isSideDisabled = !isLargePizza && side.value !== 'whole';
+                          const isSelected = topping.side === side.value || (!isLargePizza && side.value === 'whole');
+                          return (
+                            <button
+                              key={side.value}
+                              onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
+                              disabled={isRemoved || isSideDisabled}
+                              className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
+                              style={(isRemoved || isSideDisabled)
+                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                : isSelected 
+                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                              }
+                            >
+                              {side.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}
@@ -854,10 +819,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">
                 Extra <span className="text-blue-100 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
               </h3>
-              <div className={cn(
-                "grid gap-px lg:gap-1",
-                isLargePizza ? "grid-cols-3" : "grid-cols-3 lg:grid-cols-4"
-              )}>
+              <div className="grid gap-px lg:gap-1 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -879,48 +841,39 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <span className="text-xs lg:text-sm whitespace-nowrap">{topping.name}</span>
                       </button>
 
-                      {/* Side selection buttons */}
-                      {isLargePizza ? (
-                        <div className="flex gap-0.5 flex-1">
-                          {SIDE_OPTIONS.map(side => {
-                            const isThisSideActive = isSelected && (selected?.side || 'whole') === side.value;
-                            return (
-                              <button
-                                key={side.value}
-                                type="button"
-                                onClick={() => {
-                                  if (isThisSideActive) {
-                                    toggleExtraTopping(topping);
-                                  } else if (!isSelected) {
-                                    toggleExtraTopping(topping);
-                                    setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
-                                  } else {
-                                    updateExtraToppingSide(topping.id, side.value as PizzaSide);
-                                  }
-                                }}
-                                className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
-                                style={isThisSideActive 
+                      {/* Side selection buttons - always show L/W/R, disable L/R for non-large */}
+                      <div className="flex gap-0.5 flex-1">
+                        {SIDE_OPTIONS.map(side => {
+                          const isSideDisabled = !isLargePizza && side.value !== 'whole';
+                          const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value || (!isLargePizza && side.value === 'whole'));
+                          return (
+                            <button
+                              key={side.value}
+                              type="button"
+                              disabled={isSideDisabled}
+                              onClick={() => {
+                                if (isThisSideActive) {
+                                  toggleExtraTopping(topping);
+                                } else if (!isSelected) {
+                                  toggleExtraTopping(topping);
+                                  setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
+                                } else {
+                                  updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                                }
+                              }}
+                              className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
+                              style={isSideDisabled
+                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                : isThisSideActive 
                                   ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                                   : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                                }
-                              >
-                                {side.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => toggleExtraTopping(topping)}
-                          className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
-                          style={isSelected 
-                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                          }
-                        >
-                          Whole
-                        </button>
-                      )}
+                              }
+                            >
+                              {side.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
                 })}
