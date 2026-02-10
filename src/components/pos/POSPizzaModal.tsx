@@ -736,25 +736,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className="flex flex-col items-center gap-0.5">
-                      {/* Name bar */}
+                    <div key={topping.id} className="flex flex-col items-stretch" style={{ minWidth: '120px' }}>
+                      {/* Name bar - flush with L/W/R below */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className={cn(btnSmall, "px-3 lg:px-4 min-w-[100px] lg:min-w-[140px]")}
+                        className="px-3 lg:px-4 py-1 lg:py-1.5 rounded-t text-xs lg:text-sm font-medium text-center"
                         style={isRemoved 
-                          ? { backgroundColor: '#fca5a5', borderColor: '#fca5a5', color: '#ffffff', ...antiBlur }
-                          : { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          ? { backgroundColor: '#fca5a5', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                         }
                       >
                         <span className={isRemoved ? "line-through" : ""}>
                           {topping.name}
                         </span>
                       </button>
-                      {/* L/W/R buttons - separate rounded buttons with gaps */}
-                      <div className="flex gap-0.5">
+                      {/* L/W/R buttons - flush connected row below name */}
+                      <div className="flex">
                         {SIDE_OPTIONS.map(side => {
                           const isSideDisabled = !isLargePizza && side.value !== 'whole';
                           const isSideActive = !isRemoved && (topping.side === side.value || (!isLargePizza && side.value === 'whole'));
@@ -768,12 +768,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 updateDefaultToppingSide(topping.id, side.value as PizzaSide);
                               }}
                               disabled={isRemoved || isSideDisabled}
-                              className={cn(btnSmall)}
+                              className="flex-1 px-2 lg:px-3 py-0.5 lg:py-1 text-[10px] lg:text-xs font-medium text-center"
                               style={(isRemoved || isSideDisabled)
-                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
                                 : isSideActive 
-                                  ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                                  : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                                  ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
                               }
                             >
                               {side.label}
