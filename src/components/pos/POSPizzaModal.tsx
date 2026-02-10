@@ -933,7 +933,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 type="button"
                                 onClick={() => {
                                   if (isThisSideActive) {
-                                    // Deselect: remove this extra topping
                                     toggleExtraTopping(topping);
                                   } else if (!isSelected) {
                                     toggleExtraTopping(topping);
@@ -942,12 +941,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                     updateExtraToppingSide(topping.id, side.value as PizzaSide);
                                   }
                                 }}
-                                className={cn(
-                                  "px-1 lg:px-2 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors",
-                                  isThisSideActive 
-                                    ? "border-slate-800 bg-slate-800 text-white" 
-                                    : "border-slate-300 bg-white text-slate-700"
-                                )}
+                                className="px-1 lg:px-2 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors"
+                                style={isThisSideActive
+                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff' }
+                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155' }
+                                }
                               >
                                 {side.label}
                               </button>
@@ -957,12 +955,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       ) : (
                         <button
                           onClick={() => toggleExtraTopping(topping)}
-                          className={cn(
-                            "px-1.5 lg:px-2 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors flex-shrink-0",
-                            isSelected 
-                              ? "border-slate-800 bg-slate-800 text-white" 
-                              : "border-slate-300 bg-white text-slate-700"
-                          )}
+                          className="px-1.5 lg:px-2 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors flex-shrink-0"
+                          style={isSelected
+                            ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff' }
+                            : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155' }
+                          }
                         >
                           Whole
                         </button>
