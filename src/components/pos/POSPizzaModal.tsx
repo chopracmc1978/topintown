@@ -417,11 +417,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           <div className="flex flex-wrap items-start gap-1 lg:gap-2">
             {/* Cheese section */}
             <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
-              <span className={cn(
-                labelBox,
-                "px-3",
-                selectedCheese === 'No Cheese' ? "bg-red-300 text-white" : "bg-emerald-500 text-white"
-              )}>Cheese</span>
+              <span className={cn(labelBox, "px-3")}
+                style={selectedCheese !== 'No Cheese'
+                  ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                  : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                }
+              >Cheese</span>
               {['No Cheese', 'Mozzarella', 'Dairy Free'].map(cheese => {
                 const isSelected = selectedCheese === cheese;
                 return (
