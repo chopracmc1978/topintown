@@ -336,12 +336,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // POS color constants – very light red for unselected state
   const redOff = "border-red-300 bg-red-300 text-white";
   const redOffBg = "border-red-300 bg-red-300";
-  // Hardcoded inline styles for legacy Android WebView compatibility (prevents grey/transparent backgrounds)
-  // GPU layer promotion + will-change to prevent DPI-related blur on each element
+  // Inline styles for legacy Android WebView compatibility (prevents grey/transparent backgrounds)
+  // NOTE: GPU layer promotion (translateZ, will-change) REMOVED – it causes
+  // sub-pixel rendering → blurry text on Android WebViews.
   const antiBlur: React.CSSProperties = {
-    transform: 'translateZ(0)',
-    backfaceVisibility: 'hidden',
-    willChange: 'transform',
     WebkitFontSmoothing: 'antialiased' as any,
   };
   const redOffInline: React.CSSProperties = { backgroundColor: '#fca5a5', borderColor: '#fca5a5', ...antiBlur };
@@ -349,8 +347,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // Extra toppings: black bg (unselected) → green bg (selected), white text always
   const extraOffInline: React.CSSProperties = { backgroundColor: '#1e293b', borderColor: '#1e293b', ...antiBlur };
   const extraOnInline: React.CSSProperties = { backgroundColor: '#10b981', borderColor: '#10b981', ...antiBlur };
-  // Row-level containment to reduce compositor memory & prevent blur on dense grids
-  const rowStyle: React.CSSProperties = { contain: 'layout style paint', transform: 'translateZ(0)', willChange: 'transform' };
+  // Row-level containment only (no GPU promotion)
+  const rowStyle: React.CSSProperties = { contain: 'layout style paint' };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
