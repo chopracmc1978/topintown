@@ -769,12 +769,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             <div className="flex flex-wrap gap-0.5 lg:gap-1 items-center">
               <button
                 onClick={() => setSelectedSauceId(null)}
-                className={cn(
-                  btnSmall,
-                  selectedSauceId === null 
-                    ? "border-emerald-500 bg-emerald-500 text-white" 
-                    : redOff
-                )}
+                className={cn(btnSmall)}
+                style={selectedSauceId === null 
+                  ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                  : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                }
               >
                 No Sauce
               </button>
@@ -782,12 +781,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 <button
                   key={sauce.id}
                   onClick={() => setSelectedSauceId(sauce.id)}
-                  className={cn(
-                    btnSmall,
-                    selectedSauceId === sauce.id 
-                      ? "border-emerald-500 bg-emerald-500 text-white" 
-                      : redOff
-                  )}
+                  className={cn(btnSmall)}
+                  style={selectedSauceId === sauce.id 
+                    ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                    : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                  }
                 >
                   {sauce.name}
                 </button>
@@ -800,14 +798,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       key={qty}
                       onClick={() => selectedSauceId && setSauceQuantity(qty)}
                       disabled={!selectedSauceId}
-                      className={cn(
-                        btnSmall,
-                        !selectedSauceId
-                          ? "opacity-50 cursor-not-allowed border-slate-200 bg-slate-200 text-slate-400"
-                          : isSelected 
-                            ? "border-emerald-500 bg-emerald-500 text-white" 
-                            : redOff
-                      )}
+                      className={cn(btnSmall)}
+                      style={!selectedSauceId
+                        ? { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                        : isSelected 
+                          ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                      }
                     >
                       {qty === 'less' ? 'Less' : qty === 'normal' ? 'Reg' : 'Extra'}
                     </button>
