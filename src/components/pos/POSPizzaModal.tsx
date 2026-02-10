@@ -825,26 +825,25 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className="rounded p-0.5 border border-slate-200 bg-white">
+                    <div key={topping.id} className="rounded p-0.5 border" style={{ borderColor: '#334155', backgroundColor: '#1e293b', ...antiBlur }}>
                       {/* Name row - clickable to toggle, green if included, light red if removed */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className={cn(
-                          "flex items-center gap-0.5 lg:gap-1 mb-px w-full px-1 lg:px-2 py-px lg:py-1 rounded",
-                          isRemoved 
-                            ? "bg-red-300 text-white" 
-                            : "bg-emerald-500 text-white"
-                        )}
+                        className="flex items-center gap-0.5 lg:gap-1 mb-px w-full px-1 lg:px-2 py-px lg:py-1 rounded"
+                        style={isRemoved 
+                          ? { backgroundColor: '#fca5a5', ...antiBlur }
+                          : { backgroundColor: '#10b981', ...antiBlur }
+                        }
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full flex-shrink-0",
                           topping.isVeg ? "bg-green-200" : "bg-red-200"
                         )} />
                         <span className={cn(
-                          "text-[10px] lg:text-xs font-medium truncate",
+                          "text-xs lg:text-sm font-medium truncate text-white",
                           isRemoved && "line-through"
                         )}>
                           {topping.name}
@@ -859,14 +858,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               key={opt.value}
                               onClick={() => updateDefaultToppingQuantity(topping.id, opt.value)}
                               disabled={isRemoved}
-                              className={cn(
-                              "flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors",
-                                isRemoved 
-                                  ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                                  : isSelected 
-                                    ? "border-emerald-500 bg-emerald-500 text-white" 
-                                    : "border-red-300 bg-red-300 text-white"
-                              )}
+                              className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
+                              style={isRemoved 
+                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                : isSelected 
+                                  ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                                  : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                              }
                             >
                               {opt.label}
                             </button>
@@ -883,14 +881,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                                 key={side.value}
                                 onClick={() => updateDefaultToppingSide(topping.id, side.value as PizzaSide)}
                                 disabled={isRemoved}
-                                className={cn(
-                                  "flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[9px] lg:text-[11px] rounded border font-medium transition-colors",
-                                  isRemoved 
-                                    ? "opacity-40 cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-                                    : isSelected 
-                                      ? "border-emerald-500 bg-emerald-500 text-white" 
-                                      : "border-red-300 bg-red-300 text-white"
-                                )}
+                                className="flex-1 px-0.5 lg:px-1 py-px lg:py-0.5 text-[10px] lg:text-xs rounded border font-medium transition-colors"
+                                style={isRemoved 
+                                  ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                  : isSelected 
+                                    ? { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                                    : { backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#334155', ...antiBlur }
+                                }
                               >
                                 {side.label}
                               </button>
