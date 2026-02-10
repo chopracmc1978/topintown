@@ -919,7 +919,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const displayName = item.category === 'pizza' 
                         ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
                         : item.name;
-                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[77px] lg:h-[90px]' : 'h-[66px] lg:h-[80px]';
+                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[90px] lg:h-[105px]' : 'h-[66px] lg:h-[80px]';
                       return (
                         <button
                           key={item.id}
