@@ -825,7 +825,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className="rounded p-0.5 border" style={{ borderColor: '#334155', backgroundColor: '#1e293b', ...antiBlur }}>
+                    <div key={topping.id} className="rounded p-0.5 border" style={{ borderColor: '#cbd5e1', backgroundColor: '#ffffff', ...antiBlur }}>
                       {/* Name row - clickable to toggle, green if included, light red if removed */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
