@@ -855,8 +855,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               />
             </div>
             {/* Right: Extra $ + Price + Buttons */}
-            <div className="flex-1 flex flex-col gap-1 items-end">
-              <div className="flex items-center gap-1.5 lg:gap-2 w-full">
+            <div className="flex flex-col gap-1" style={{ width: '220px', minWidth: '200px' }}>
+              <div className="flex items-center gap-1.5 lg:gap-2">
                 <input
                   type="text"
                   inputMode="decimal"
@@ -866,13 +866,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setExtraAmount(parseFloat(val) || 0);
                   }}
                   placeholder="0"
-                  className="flex-1 px-1.5 lg:px-2 py-1.5 lg:py-2 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
+                  className="flex-1 min-w-0 px-1.5 lg:px-2 py-1.5 lg:py-2 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
                 />
                 <span className="text-base lg:text-xl font-bold text-slate-900 whitespace-nowrap">
                   ${totalPrice.toFixed(2)}
                 </span>
               </div>
-              <div className="flex gap-1.5 lg:gap-2 w-full">
+              <div className="flex gap-1.5 lg:gap-2">
                 <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-sm px-3 lg:px-5 py-1.5 lg:py-2 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
                 <Button 
                   variant="default" 
