@@ -466,8 +466,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           </div>
             
           {/* Row 2: Spicy Level */}
-          <div className="flex flex-wrap items-center gap-1 lg:gap-2">
-            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
+          <div className="flex items-center gap-10">
+            <div className="flex items-center gap-1 lg:gap-1.5 min-w-0">
               <span className={cn(labelBox, "px-3")}
                 style={(leftSpicy !== 'none' || rightSpicy !== 'none') 
                   ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
@@ -622,12 +622,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1 lg:gap-2">
+            <div className="flex items-center gap-10">
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
                 return (
-                  <div key={topping.id} className="flex items-center gap-1 lg:gap-1.5 mr-2 lg:mr-4">
+                  <div key={topping.id} className="flex items-center gap-1 lg:gap-1.5">
                     {/* Name button */}
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
