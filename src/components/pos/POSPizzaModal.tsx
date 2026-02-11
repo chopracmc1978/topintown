@@ -770,22 +770,22 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Extra Toppings - 4 column grid */}
+          {/* Extra Toppings - 3 column grid matching reference */}
           {availableExtraToppings.length > 0 && (
             <div>
-              <div className="grid gap-px lg:gap-1 grid-cols-3">
+              <div className="grid gap-1 lg:gap-1.5 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
                   return (
                     <div 
                       key={topping.id} 
-                      className="flex items-center gap-0.5 lg:gap-1 py-px"
+                      className="flex items-center gap-1 lg:gap-1.5"
                     >
-                      {/* Topping name button */}
+                      {/* Topping name button - wide */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
-                        className="flex items-center justify-start px-2 lg:px-3 py-1 lg:py-1.5 rounded border font-medium truncate"
+                        className="flex items-center justify-start px-2 lg:px-3 py-1.5 lg:py-2 rounded border font-medium truncate"
                         style={{
                           ...(isSelected
                             ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff' }
@@ -798,37 +798,47 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         <span className="text-xs lg:text-sm truncate">{topping.name}</span>
                       </button>
 
-                      {/* L/W/R buttons */}
-                      {SIDE_OPTIONS.map(side => {
-                        const isSideDisabled = !isLargePizza && side.value !== 'whole';
-                        const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value || (!isLargePizza && side.value === 'whole'));
-                        return (
-                          <button
-                            key={side.value}
-                            type="button"
-                            disabled={isSideDisabled}
-                            onClick={() => {
-                              if (isThisSideActive) {
-                                toggleExtraTopping(topping);
-                              } else if (!isSelected) {
-                                toggleExtraTopping(topping);
-                                setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
-                              } else {
-                                updateExtraToppingSide(topping.id, side.value as PizzaSide);
-                              }
-                            }}
-                            className="py-1 lg:py-1.5 px-1.5 lg:px-3 text-[10px] lg:text-xs rounded border font-medium text-center whitespace-nowrap"
-                            style={isSideDisabled
-                              ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#94a3b8', ...antiBlur }
-                              : isThisSideActive 
+                      {/* Show L/W/R for large pizza, single Whole for others */}
+                      {isLargePizza ? (
+                        SIDE_OPTIONS.map(side => {
+                          const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value);
+                          return (
+                            <button
+                              key={side.value}
+                              type="button"
+                              onClick={() => {
+                                if (isThisSideActive) {
+                                  toggleExtraTopping(topping);
+                                } else if (!isSelected) {
+                                  toggleExtraTopping(topping);
+                                  setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0);
+                                } else {
+                                  updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                                }
+                              }}
+                              className="py-1.5 lg:py-2 px-1.5 lg:px-3 text-[10px] lg:text-xs rounded border font-medium text-center whitespace-nowrap"
+                              style={isThisSideActive 
                                 ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                                 : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                            }
-                          >
-                            {side.label}
-                          </button>
-                        );
-                      })}
+                              }
+                            >
+                              {side.label}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggleExtraTopping(topping)}
+                          className="py-1.5 lg:py-2 px-2 lg:px-4 text-[10px] lg:text-xs rounded border font-medium text-center whitespace-nowrap"
+                          style={isSelected 
+                            ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                            : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                          }
+                        >
+                          Whole
+                        </button>
+                      )}
                     </div>
                   );
                 })}
@@ -836,8 +846,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Bottom: 3-col grid matching extra toppings */}
-          <div className="grid grid-cols-3 gap-px lg:gap-1">
+          {/* Bottom footer: Notes spans col 1+2, controls in col 3 */}
+          <div className="grid grid-cols-3 gap-1 lg:gap-1.5">
             {/* Notes input spanning col 1+2, 2 rows tall */}
             <div className="col-span-2 row-span-2">
               <input
