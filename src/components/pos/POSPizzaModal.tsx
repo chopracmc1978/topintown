@@ -729,58 +729,57 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          {/* Default Toppings - flowing wrap layout matching reference */}
+          {/* Default Toppings - horizontal rows matching extra toppings style */}
           {pizzaDefaultToppings.length > 0 && (
             <div>
               <div className="flex flex-wrap gap-2 lg:gap-3">
                 {defaultToppings.map(topping => {
                   const isRemoved = topping.quantity === 'none';
                   return (
-                    <div key={topping.id} className="flex flex-col items-stretch" style={{ minWidth: '120px' }}>
-                      {/* Name bar - flush with L/W/R below */}
+                    <div key={topping.id} className="flex items-center gap-px">
+                      {/* Name button */}
                       <button
                         onClick={() => updateDefaultToppingQuantity(
                           topping.id, 
                           isRemoved ? 'regular' : 'none'
                         )}
-                        className="px-3 lg:px-4 py-1 lg:py-1.5 rounded-t text-xs lg:text-sm font-medium text-center"
+                        className={cn(btnSmall, "min-w-[100px] lg:min-w-[140px] rounded-r-none")}
                         style={isRemoved 
-                          ? { backgroundColor: '#fca5a5', color: '#ffffff', ...antiBlur }
-                          : { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                          ? { backgroundColor: '#fca5a5', borderColor: '#fca5a5', color: '#ffffff', ...antiBlur }
+                          : { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                         }
                       >
                         <span className={isRemoved ? "line-through" : ""}>
                           {topping.name}
                         </span>
                       </button>
-                      {/* L/W/R buttons - flush connected row below name */}
-                      <div className="flex">
-                        {SIDE_OPTIONS.map(side => {
-                          const isSideDisabled = !isLargePizza && side.value !== 'whole';
-                          const isSideActive = !isRemoved && (topping.side === side.value || (!isLargePizza && side.value === 'whole'));
-                          return (
-                            <button
-                              key={side.value}
-                              onClick={() => {
-                                if (isRemoved) {
-                                  updateDefaultToppingQuantity(topping.id, 'regular');
-                                }
-                                updateDefaultToppingSide(topping.id, side.value as PizzaSide);
-                              }}
-                              disabled={isRemoved || isSideDisabled}
-                              className="flex-1 px-2 lg:px-3 py-0.5 lg:py-1 text-[10px] lg:text-xs font-medium text-center"
-                              style={(isRemoved || isSideDisabled)
-                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
-                                : isSideActive 
-                                  ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                                  : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                      {/* L/W/R buttons inline */}
+                      {SIDE_OPTIONS.map((side, idx) => {
+                        const isSideDisabled = !isLargePizza && side.value !== 'whole';
+                        const isSideActive = !isRemoved && (topping.side === side.value || (!isLargePizza && side.value === 'whole'));
+                        const isLast = idx === SIDE_OPTIONS.length - 1;
+                        return (
+                          <button
+                            key={side.value}
+                            onClick={() => {
+                              if (isRemoved) {
+                                updateDefaultToppingQuantity(topping.id, 'regular');
                               }
-                            >
-                              {side.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                              updateDefaultToppingSide(topping.id, side.value as PizzaSide);
+                            }}
+                            disabled={isRemoved || isSideDisabled}
+                            className={cn(btnSmall, "rounded-none", isLast && "rounded-r")}
+                            style={(isRemoved || isSideDisabled)
+                              ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                              : isSideActive 
+                                ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                                : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                            }
+                          >
+                            {side.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   );
                 })}
