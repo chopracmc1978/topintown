@@ -839,9 +839,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     </div>
                   );
                 })}
-              </div>
-              {/* Footer immediately after grid - same wrapper, no space-y gap */}
-              <div className="grid grid-cols-3 gap-1 lg:gap-1.5 mt-1 lg:mt-1.5">
+                {/* Notes - spans col 1+2, 2 rows */}
                 <div className="col-span-2 row-span-2">
                   <input
                     type="text"
@@ -858,6 +856,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     className="w-full h-full px-2 lg:px-3 py-2 lg:py-3 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400"
                   />
                 </div>
+                {/* Extra amount + price */}
                 <div className="flex items-center gap-1 lg:gap-1.5">
                   <input
                     type="text"
@@ -874,6 +873,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     ${totalPrice.toFixed(2)}
                   </span>
                 </div>
+                {/* Cancel + ADD */}
                 <div className="flex gap-1 lg:gap-1.5">
                   <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-semibold" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
                   <Button 
