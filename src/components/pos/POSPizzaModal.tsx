@@ -866,19 +866,20 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setExtraAmount(parseFloat(val) || 0);
                   }}
                   placeholder="0"
-                  className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
+                  className="min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
+                  style={{ width: '55%' }}
                 />
-                <span className="text-base lg:text-xl font-bold text-slate-900 whitespace-nowrap">
+                <span className="text-sm lg:text-lg font-bold text-slate-900 whitespace-nowrap">
                   ${totalPrice.toFixed(2)}
                 </span>
               </div>
               <div className="flex gap-1 lg:gap-1.5">
-                <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-1.5 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
+                <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-sm px-2 lg:px-4 py-1.5 lg:py-2 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
                 <Button 
                   variant="default" 
                   onClick={handleAddToOrder}
                   disabled={!selectedSize || !selectedCrust}
-                  className="flex-[1.5] text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-1.5 h-auto bg-slate-800 text-white hover:bg-slate-700"
+                  className="flex-[1.5] text-xs lg:text-sm px-2 lg:px-4 py-1.5 lg:py-2 h-auto bg-slate-800 text-white hover:bg-slate-700"
                 >
                   {editingItem ? 'Update' : 'ADD'}
                 </Button>
