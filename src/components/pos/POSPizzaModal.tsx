@@ -401,7 +401,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-px lg:space-y-1.5">
+        <div className="space-y-px lg:space-y-1.5" style={{ alignSelf: 'start' }}>
           {/* Row 1: Cheese */}
           <div className="flex items-center gap-1 lg:gap-2">
             {/* Cheese section */}
