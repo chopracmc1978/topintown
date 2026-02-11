@@ -780,8 +780,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   return (
                     <div 
                       key={topping.id} 
-                      className="flex items-center gap-1 lg:gap-1.5 py-px overflow-hidden"
-                      style={{ ...rowStyle }}
+                      className="flex items-center gap-1 lg:gap-1.5 py-px"
                     >
                       {/* Topping name button */}
                       <button
