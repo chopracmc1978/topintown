@@ -846,8 +846,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Bottom footer: Notes spans col 1+2, controls in col 3 */}
-          <div className="grid grid-cols-3 gap-1 lg:gap-1.5">
+          {/* Bottom footer: Notes spans col 1+2, controls in col 3 – no top gap */}
+          <div className="grid grid-cols-3 gap-1 lg:gap-1.5 -mt-0.5">
             {/* Notes input spanning col 1+2, 2 rows tall */}
             <div className="col-span-2 row-span-2">
               <input
