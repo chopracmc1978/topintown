@@ -773,9 +773,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Extra Toppings - 4 column grid */}
           {availableExtraToppings.length > 0 && (
             <div>
-              <h3 className="font-medium text-[9px] lg:text-xs mb-px lg:mb-1 text-white">
-                Extra <span className="text-blue-100 font-normal">(+${extraToppingPrice.toFixed(2)})</span>
-              </h3>
               <div className="grid gap-px lg:gap-1 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
@@ -838,54 +835,53 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Notes + Extra Amount + Price + Buttons - Bottom row */}
-          <div className="flex flex-wrap items-center justify-between gap-1.5 lg:gap-3 pt-0.5 lg:pt-2 border-t border-slate-200 mt-px lg:mt-1">
-          <div className="flex items-center gap-1.5 lg:gap-2 flex-1 min-w-0">
-            <span className="text-[10px] lg:text-xs text-white whitespace-nowrap">Notes:</span>
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => {
-                const val = e.target.value;
-                // Check dynamic shortcuts
-                if (shortcutMap[val]) {
-                  setNote(shortcutMap[val]);
-                } else {
-                  setNote(val);
-                }
-              }}
-              placeholder={shortcutPlaceholder}
-              className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
-            />
+          {/* Notes + Extra Amount row */}
+          <div className="flex items-center gap-1.5 lg:gap-3 pt-0.5 lg:pt-2 border-t border-slate-200 mt-px lg:mt-1">
+            <div className="flex items-center gap-1.5 lg:gap-2 flex-1 min-w-0">
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (shortcutMap[val]) {
+                    setNote(shortcutMap[val]);
+                  } else {
+                    setNote(val);
+                  }
+                }}
+                placeholder={shortcutPlaceholder}
+                className="flex-1 min-w-0 px-1.5 lg:px-2 py-1.5 lg:py-2 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-slate-800 placeholder:text-slate-400"
+              />
+            </div>
+            <div className="flex items-center gap-1 lg:gap-2">
+              <span className="text-[10px] lg:text-xs text-white whitespace-nowrap">Extra $</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={extraAmount || ''}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  setExtraAmount(parseFloat(val) || 0);
+                }}
+                placeholder="0"
+                className="w-12 lg:w-16 px-1.5 lg:px-2 py-1.5 lg:py-2 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-1 lg:gap-2">
-            <span className="text-[10px] lg:text-xs text-white whitespace-nowrap">Extra $</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={extraAmount || ''}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9.]/g, '');
-                setExtraAmount(parseFloat(val) || 0);
-              }}
-              placeholder="0"
-              className="w-12 lg:w-16 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
-            />
-          </div>
-          <span className="text-base lg:text-xl font-bold text-slate-900">
-            ${totalPrice.toFixed(2)}
-          </span>
-          <div className="flex gap-1.5 lg:gap-2 flex-shrink-0">
-            <Button variant="outline" onClick={onClose} className="text-xs lg:text-sm px-3 lg:px-5 py-1 lg:py-2 h-auto border-slate-300 text-slate-700 hover:bg-slate-50">Cancel</Button>
+          {/* Price + Cancel + Add row */}
+          <div className="flex items-center justify-end gap-2 lg:gap-3">
+            <span className="text-base lg:text-xl font-bold text-slate-900">
+              ${totalPrice.toFixed(2)}
+            </span>
+            <Button variant="outline" onClick={onClose} className="text-xs lg:text-sm px-4 lg:px-6 py-1.5 lg:py-2 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
             <Button 
               variant="default" 
               onClick={handleAddToOrder}
               disabled={!selectedSize || !selectedCrust}
-              className="text-xs lg:text-sm px-3 lg:px-5 py-1 lg:py-2 h-auto bg-slate-800 text-white hover:bg-slate-700"
+              className="text-xs lg:text-sm px-4 lg:px-6 py-1.5 lg:py-2 h-auto bg-slate-800 text-white hover:bg-slate-700"
             >
-              {editingItem ? 'Update' : 'Add'}
+              {editingItem ? 'Update' : 'ADD'}
             </Button>
-          </div>
           </div>
         </div>
       </DialogContent>
