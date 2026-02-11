@@ -687,7 +687,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                 }
               >
-                {sauce.name}
+                {sauce.name.replace(/ Sauce$/i, '')}
               </button>
             ))}
             {(['less', 'normal', 'extra'] as const).map(qty => {
