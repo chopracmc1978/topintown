@@ -403,10 +403,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
         <div className="space-y-px lg:space-y-1.5">
           {/* Row 1: Cheese */}
-          <div className="flex flex-wrap items-center gap-1 lg:gap-2">
+          <div className="flex items-center gap-1 lg:gap-2">
             {/* Cheese section */}
-            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
-              <span className={cn(labelBox, "px-3")}
+            <div className="flex items-center gap-1 lg:gap-1.5 min-w-0">
+              <span className={cn(labelBox, "px-3 whitespace-nowrap")}
                 style={selectedCheese !== 'No Cheese'
                   ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                   : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
@@ -429,14 +429,16 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   >
                     {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozzarella' : 'Dairy Free'}
                     {cheese === 'Dairy Free' && (
-                      <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
+                      <span className="ml-1">+{selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
                     )}
                   </button>
                 );
               })}
-              {/* Gap between cheese types and quantity */}
-              <span className="w-4 lg:w-8" />
-              {/* Quantity options inline */}
+            </div>
+            {/* Gap between cheese types and quantity */}
+            <span className="w-10 lg:w-16" />
+            {/* Quantity options inline */}
+            <div className="flex items-center gap-1 lg:gap-1.5">
               {(['less', 'normal', 'extra'] as const).map(qty => {
                 const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
                                    selectedSize?.name?.includes('Medium') ? 2.5 : 3;
@@ -456,7 +458,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     }
                   >
                     {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
-                    {qty === 'extra' && <span className="ml-0.5">+${extraPrice}</span>}
+                    {qty === 'extra' && <span className="ml-0.5">+{extraPrice}</span>}
                   </button>
                 );
               })}
