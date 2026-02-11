@@ -836,10 +836,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Bottom: Notes left (2/3), controls right (1/3) */}
-          <div className="flex gap-2 lg:gap-3">
-            {/* Left: Notes input - takes 2/3 width, matches extra toppings col 1+2 */}
-            <div style={{ width: '66.66%' }}>
+          {/* Bottom: 3-col grid matching extra toppings */}
+          <div className="grid grid-cols-3 gap-px lg:gap-1">
+            {/* Notes input spanning col 1+2, 2 rows tall */}
+            <div className="col-span-2 row-span-2">
               <input
                 type="text"
                 value={note}
@@ -852,39 +852,37 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   }
                 }}
                 placeholder={shortcutPlaceholder}
-                className="w-full px-2 lg:px-3 py-3 lg:py-4 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400"
-                style={{ height: '100%' }}
+                className="w-full h-full px-2 lg:px-3 py-2 lg:py-3 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400"
               />
             </div>
-            {/* Right: Extra $ + price, then Cancel + ADD */}
-            <div style={{ width: '33.33%' }} className="flex flex-col gap-1 lg:gap-1.5">
-              <div className="flex items-center gap-1.5 lg:gap-2">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={extraAmount || ''}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9.]/g, '');
-                    setExtraAmount(parseFloat(val) || 0);
-                  }}
-                  placeholder="0"
-                  className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-center text-slate-800"
-                />
-                <span className="text-sm lg:text-xl font-bold text-slate-900 whitespace-nowrap">
-                  ${totalPrice.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex gap-1.5 lg:gap-2">
-                <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-base px-2 lg:px-4 py-2 lg:py-3 h-auto font-semibold" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
-                <Button 
-                  variant="default" 
-                  onClick={handleAddToOrder}
-                  disabled={!selectedSize || !selectedCrust}
-                  className="flex-[1.5] text-xs lg:text-base px-2 lg:px-4 py-2 lg:py-3 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800"
-                >
-                  {editingItem ? 'Update' : 'ADD'}
-                </Button>
-              </div>
+            {/* Col 3 row 1: Extra amount + price */}
+            <div className="flex items-center gap-1 lg:gap-1.5">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={extraAmount || ''}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  setExtraAmount(parseFloat(val) || 0);
+                }}
+                placeholder="0"
+                className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-center text-slate-800"
+              />
+              <span className="text-sm lg:text-xl font-bold text-slate-900 whitespace-nowrap">
+                ${totalPrice.toFixed(2)}
+              </span>
+            </div>
+            {/* Col 3 row 2: Cancel + ADD */}
+            <div className="flex gap-1 lg:gap-1.5">
+              <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-semibold" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
+              <Button 
+                variant="default" 
+                onClick={handleAddToOrder}
+                disabled={!selectedSize || !selectedCrust}
+                className="flex-[1.5] text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800"
+              >
+                {editingItem ? 'Update' : 'ADD'}
+              </Button>
             </div>
           </div>
         </div>
