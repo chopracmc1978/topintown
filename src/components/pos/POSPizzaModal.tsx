@@ -357,8 +357,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         <div className="flex flex-wrap items-center gap-1 lg:gap-2 pb-0.5 lg:pb-1 border-b border-slate-200 pr-10 lg:pr-12">
           <h2 className="font-serif text-[10px] lg:text-sm font-bold px-1.5 lg:px-3 py-1 lg:py-1.5 rounded whitespace-nowrap uppercase" style={{ backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }}>{item.name}</h2>
           
-          {/* Size */}
-          <span className="text-[9px] lg:text-xs" style={{ color: '#ffffff', ...antiBlur }}>Size</span>
+          {/* Sizes - single line "Name Price" */}
           <div className="flex flex-wrap gap-1 lg:gap-1.5">
             {item.sizes?.map(size => {
               const isSelected = selectedSize?.id === size.id;
@@ -372,37 +371,33 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                   }
                 >
-                  <div className="text-[9px] lg:text-xs font-medium">{size.name}</div>
-                  <div className="text-[9px] lg:text-xs">${size.price.toFixed(2)}</div>
+                  <span className="text-[9px] lg:text-xs font-medium whitespace-nowrap">{size.name} {size.price.toFixed(2)}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Crust - inline on same row */}
+          {/* Crust - inline, no label */}
           {availableCrusts.length > 0 && (
-            <>
-              <span className={cn(labelBox, "px-2")} style={{ backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }}>Crust</span>
-              <div className="flex flex-wrap gap-1 lg:gap-1.5 flex-1 min-w-0">
-                {availableCrusts.map(crust => {
-                  const isSelected = selectedCrust?.id === crust.id;
-                  const alwaysGreen = availableCrusts.length === 1;
-                  return (
-                    <button
-                      key={crust.id}
-                      onClick={() => setSelectedCrust(crust)}
-                      className={cn(btnSmall, "flex-1 px-2")}
-                      style={(alwaysGreen || isSelected)
-                        ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
-                        : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
-                      }
-                    >
-                      {crust.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
+            <div className="flex flex-wrap gap-1 lg:gap-1.5">
+              {availableCrusts.map(crust => {
+                const isSelected = selectedCrust?.id === crust.id;
+                const alwaysGreen = availableCrusts.length === 1;
+                return (
+                  <button
+                    key={crust.id}
+                    onClick={() => setSelectedCrust(crust)}
+                    className={cn(btnSmall, "px-2")}
+                    style={(alwaysGreen || isSelected)
+                      ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
+                      : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
+                    }
+                  >
+                    {crust.name}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
