@@ -831,7 +831,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               }}
                               className="flex-1 py-1 lg:py-1.5 text-[10px] lg:text-xs rounded border font-medium transition-colors text-center"
                               style={isSideDisabled
-                                ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
+                                ? { opacity: 0.7, cursor: 'not-allowed', backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#94a3b8', ...antiBlur }
                                 : isThisSideActive 
                                   ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                                   : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
