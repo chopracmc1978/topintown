@@ -421,7 +421,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       setSelectedCheese(cheese);
                       if (cheese !== 'Mozzarella') setCheeseQuantity('normal');
                     }}
-                    className={cn(btnSmall)}
+                    className={cn(btnSmall, "whitespace-nowrap")}
                     style={isSelected 
                       ? { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur }
                       : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
@@ -447,7 +447,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     key={qty}
                     onClick={() => !isDisabled && setCheeseQuantity(qty)}
                     disabled={isDisabled}
-                    className={cn(btnSmall)}
+                    className={cn(btnSmall, "whitespace-nowrap")}
                     style={isDisabled 
                       ? { opacity: 0.4, cursor: 'not-allowed', backgroundColor: '#94a3b8', borderColor: '#94a3b8', color: '#cbd5e1', ...antiBlur }
                       : isSelected 
