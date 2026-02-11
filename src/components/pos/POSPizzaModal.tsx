@@ -434,6 +434,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   </button>
                 );
               })}
+              {/* Gap between cheese types and quantity */}
+              <span className="w-4 lg:w-8" />
               {/* Quantity options inline */}
               {(['less', 'normal', 'extra'] as const).map(qty => {
                 const extraPrice = selectedSize?.name?.includes('Small') ? 2 : 
@@ -504,7 +506,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   </span>
                 );
               })()}
-              <div className="flex gap-0.5">
+              <div className="flex gap-1 lg:gap-1.5">
                 {(['left', 'whole', 'right'] as Side[]).map(side => {
                   const isSideDisabled = !isLargePizza && side !== 'whole';
                   const isWholeSelected = leftSpicy === 'medium' && rightSpicy === 'medium';
@@ -566,7 +568,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   </span>
                 );
               })()}
-              <div className="flex gap-0.5">
+              <div className="flex gap-1 lg:gap-1.5">
                 {(['left', 'whole', 'right'] as Side[]).map(side => {
                   const isSideDisabled = !isLargePizza && side !== 'whole';
                   const isWholeSelected = leftSpicy === 'hot' && rightSpicy === 'hot';
@@ -619,12 +621,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* Row 2: Free Add-ons */}
           {freeToppings.length > 0 && (
             <div className="flex flex-wrap items-center gap-1 lg:gap-2">
-              <span className="text-[9px] lg:text-xs font-medium text-white">Free Add-ons</span>
               {freeToppings.map(topping => {
                 const selection = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!selection;
                 return (
-                  <div key={topping.id} className="flex flex-wrap items-center gap-0.5 mr-3 lg:mr-5">
+                  <div key={topping.id} className="flex items-center gap-1 lg:gap-1.5 mr-2 lg:mr-4">
                     {/* Name button */}
                     <button
                       onClick={() => toggleFreeTopping(topping.name)}
@@ -636,7 +637,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     >
                       {topping.name}
                     </button>
-                    <div className="flex gap-0.5">
+                    <div className="flex gap-1 lg:gap-1.5">
                       {(['left', 'whole', 'right'] as const).map(side => {
                         const isSideDisabled = !isLargePizza && side !== 'whole';
                         const isSideSelected = isSelected && selection?.side === side;
