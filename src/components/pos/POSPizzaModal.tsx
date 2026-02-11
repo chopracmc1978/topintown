@@ -836,7 +836,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Bottom: grid matching extra toppings 3-col layout */}
-          <div className="grid grid-cols-3 gap-px lg:gap-1 pt-0.5 lg:pt-2 border-t border-slate-200 mt-px lg:mt-1">
+          <div className="grid grid-cols-3 gap-px lg:gap-1 mt-px lg:mt-1">
             {/* Notes input spanning first 2 columns */}
             <div className="col-span-2 flex items-start">
               <input
@@ -855,8 +855,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               />
             </div>
             {/* Right column: Extra $ input + price, then Cancel + ADD */}
-            <div className="col-span-1 flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 lg:gap-2">
+            <div className="col-span-1 flex flex-col gap-0.5">
+              <div className="flex items-center gap-1 lg:gap-1.5">
                 <input
                   type="text"
                   inputMode="decimal"
@@ -866,19 +866,19 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     setExtraAmount(parseFloat(val) || 0);
                   }}
                   placeholder="0"
-                  className="flex-1 min-w-0 px-1.5 lg:px-2 py-1.5 lg:py-2 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
+                  className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-300 rounded bg-white text-center text-slate-800"
                 />
                 <span className="text-base lg:text-xl font-bold text-slate-900 whitespace-nowrap">
                   ${totalPrice.toFixed(2)}
                 </span>
               </div>
-              <div className="flex gap-1.5 lg:gap-2">
-                <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-sm px-2 lg:px-4 py-1.5 lg:py-2 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
+              <div className="flex gap-1 lg:gap-1.5">
+                <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-1.5 h-auto" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
                 <Button 
                   variant="default" 
                   onClick={handleAddToOrder}
                   disabled={!selectedSize || !selectedCrust}
-                  className="flex-[1.5] text-xs lg:text-sm px-2 lg:px-4 py-1.5 lg:py-2 h-auto bg-slate-800 text-white hover:bg-slate-700"
+                  className="flex-[1.5] text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-1.5 h-auto bg-slate-800 text-white hover:bg-slate-700"
                 >
                   {editingItem ? 'Update' : 'ADD'}
                 </Button>
