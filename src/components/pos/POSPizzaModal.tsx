@@ -352,7 +352,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[98vw] w-[98vw] p-2 lg:p-4 pt-1.5 lg:pt-3 gap-0.5 lg:gap-1.5 overflow-hidden max-h-[98vh] text-slate-900" style={{ backgroundColor: '#dbeafe', background: '#dbeafe', textRendering: 'geometricPrecision', WebkitFontSmoothing: 'antialiased' as any, contain: 'layout style', display: 'flex', flexDirection: 'column' as any, alignItems: 'stretch' }}>
+      <DialogContent className="max-w-[98vw] w-[98vw] p-2 lg:p-4 pt-1.5 lg:pt-3 overflow-hidden max-h-[98vh] text-slate-900" style={{ backgroundColor: '#dbeafe', background: '#dbeafe', textRendering: 'geometricPrecision', WebkitFontSmoothing: 'antialiased' as any, contain: 'layout style', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {/* Header Row: Pizza Name + Size + Crust inline */}
         <div className="flex flex-wrap items-center gap-10 pb-0.5 lg:pb-1 border-b border-slate-200 pr-10 lg:pr-12">
           <h2 className="font-serif text-[10px] lg:text-sm font-bold px-1.5 lg:px-3 py-1 lg:py-1.5 rounded whitespace-nowrap uppercase" style={{ backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }}>{item.name}</h2>
@@ -401,7 +401,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
 
-        <div className="space-y-px lg:space-y-1.5">
+        <div className="space-y-px lg:space-y-1.5" style={{ flex: '0 0 auto' }}>
           {/* Row 1: Cheese */}
           <div className="flex items-center gap-1 lg:gap-2">
             {/* Cheese section */}
@@ -844,7 +844,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
         </div>
         {/* Footer pinned outside space-y, directly in DialogContent grid */}
-        <div className="flex gap-1 lg:gap-1.5" style={{ marginTop: '-2px' }}>
+        <div className="flex gap-1 lg:gap-1.5" style={{ flex: '0 0 auto', marginTop: 0 }}>
           {/* Notes input - takes 2/3 */}
           <div style={{ width: '66.66%' }}>
             <input
