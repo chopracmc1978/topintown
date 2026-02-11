@@ -402,8 +402,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         </div>
 
         <div className="space-y-px lg:space-y-1.5">
-          {/* Row 1: Cheese + Spicy Level on same row */}
-          <div className="flex flex-wrap items-start gap-1 lg:gap-2">
+          {/* Row 1: Cheese */}
+          <div className="flex flex-wrap items-center gap-1 lg:gap-2">
             {/* Cheese section */}
             <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
               <span className={cn(labelBox, "px-3")}
@@ -427,7 +427,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                     }
                   >
-                    {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozz' : 'Dairy Free'}
+                    {cheese === 'No Cheese' ? 'None' : cheese === 'Mozzarella' ? 'Mozzarella' : 'Dairy Free'}
                     {cheese === 'Dairy Free' && (
                       <span className="ml-1">+${selectedSize?.name === 'Small 10"' ? 2 : 3}</span>
                     )}
@@ -453,15 +453,17 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                         : { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur }
                     }
                   >
-                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Norm' : 'Extra'}
+                    {qty === 'less' ? 'Less' : qty === 'normal' ? 'Normal' : 'Extra'}
                     {qty === 'extra' && <span className="ml-0.5">+${extraPrice}</span>}
                   </button>
                 );
               })}
             </div>
+          </div>
             
-            {/* Spicy Level section - on same row */}
-            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0 ml-6 lg:ml-10">
+          {/* Row 2: Spicy Level */}
+          <div className="flex flex-wrap items-center gap-1 lg:gap-2">
+            <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 min-w-0">
               <span className={cn(labelBox, "px-3")}
                 style={(leftSpicy !== 'none' || rightSpicy !== 'none') 
                   ? { backgroundColor: '#3b82f6', color: '#ffffff', ...antiBlur }
@@ -498,7 +500,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       : { backgroundColor: '#1e293b', color: '#ffffff', ...antiBlur }
                     }
                   >
-                    Med Hot
+                    Medium Hot
                   </span>
                 );
               })()}
