@@ -328,7 +328,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
   // Responsive button styles: compact on small tablets, normal on large screens (≥1024px)
   // Anti-blur: 12px minimum font (Android WebView blurs sub-12px text at high DPI),
   // GPU layer promotion, and contain:content to isolate compositor layers
-  const btnSmall = "h-7 lg:h-9 px-2 lg:px-3 text-xs lg:text-sm rounded border font-medium transition-colors mx-px my-px text-foreground grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  const btnSmall = "h-7 lg:h-9 px-2 lg:px-3 text-xs lg:text-sm rounded border font-medium transition-colors mx-px my-px text-foreground inline-flex items-center justify-center text-center leading-tight whitespace-nowrap min-w-0";
   const btnActive = "border-slate-800 bg-slate-800 text-white";
   const btnInactive = "border-slate-300 bg-white hover:bg-slate-50 text-slate-700";
   const labelBox = "h-7 lg:h-9 px-1.5 lg:px-2 text-xs lg:text-sm font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
