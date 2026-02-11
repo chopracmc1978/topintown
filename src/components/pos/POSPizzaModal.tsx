@@ -770,9 +770,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* Extra Toppings - 3 column grid matching reference */}
+          {/* Extra Toppings + Footer wrapped together to eliminate gap */}
           {availableExtraToppings.length > 0 && (
-            <div>
+            <div className="!mt-0" style={{ marginTop: 0 }}>
               <div className="grid gap-1 lg:gap-1.5 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
@@ -782,7 +782,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       key={topping.id} 
                       className="flex items-center gap-1 lg:gap-1.5"
                     >
-                      {/* Topping name button - wide */}
                       <button
                         onClick={() => toggleExtraTopping(topping)}
                         className="flex items-center justify-start px-2 lg:px-3 py-1.5 lg:py-2 rounded border font-medium truncate"
@@ -797,8 +796,6 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                       >
                         <span className="text-xs lg:text-sm truncate">{topping.name}</span>
                       </button>
-
-                      {/* Show L/W/R for large pizza, single Whole for others */}
                       {isLargePizza ? (
                         SIDE_OPTIONS.map(side => {
                           const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value);
@@ -842,51 +839,51 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                     </div>
                   );
                 })}
-                {/* Footer row integrated into toppings grid - no gap */}
-                <div className="col-span-3 grid grid-cols-3 gap-1 lg:gap-1.5 mt-1 lg:mt-1.5">
-                  <div className="col-span-2 row-span-2">
-                    <input
-                      type="text"
-                      value={note}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (shortcutMap[val]) {
-                          setNote(shortcutMap[val]);
-                        } else {
-                          setNote(val);
-                        }
-                      }}
-                      placeholder={shortcutPlaceholder}
-                      className="w-full h-full px-2 lg:px-3 py-2 lg:py-3 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1 lg:gap-1.5">
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={extraAmount || ''}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9.]/g, '');
-                        setExtraAmount(parseFloat(val) || 0);
-                      }}
-                      placeholder="0"
-                      className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-center text-slate-800"
-                    />
-                    <span className="text-sm lg:text-xl font-bold text-slate-900 whitespace-nowrap">
-                      ${totalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex gap-1 lg:gap-1.5">
-                    <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-semibold" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
-                    <Button 
-                      variant="default" 
-                      onClick={handleAddToOrder}
-                      disabled={!selectedSize || !selectedCrust}
-                      className="flex-[1.5] text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800"
-                    >
-                      {editingItem ? 'Update' : 'ADD'}
-                    </Button>
-                  </div>
+              </div>
+              {/* Footer immediately after grid - same wrapper, no space-y gap */}
+              <div className="grid grid-cols-3 gap-1 lg:gap-1.5 mt-1 lg:mt-1.5">
+                <div className="col-span-2 row-span-2">
+                  <input
+                    type="text"
+                    value={note}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (shortcutMap[val]) {
+                        setNote(shortcutMap[val]);
+                      } else {
+                        setNote(val);
+                      }
+                    }}
+                    placeholder={shortcutPlaceholder}
+                    className="w-full h-full px-2 lg:px-3 py-2 lg:py-3 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="flex items-center gap-1 lg:gap-1.5">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={extraAmount || ''}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      setExtraAmount(parseFloat(val) || 0);
+                    }}
+                    placeholder="0"
+                    className="flex-1 min-w-0 px-1.5 lg:px-2 py-1 lg:py-1.5 text-[10px] lg:text-sm border border-slate-800 rounded bg-white text-center text-slate-800"
+                  />
+                  <span className="text-sm lg:text-xl font-bold text-slate-900 whitespace-nowrap">
+                    ${totalPrice.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex gap-1 lg:gap-1.5">
+                  <Button variant="outline" onClick={onClose} className="flex-1 text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-semibold" style={{ backgroundColor: '#fdba74', borderColor: '#fdba74', color: '#1e293b' }}>Cancel</Button>
+                  <Button 
+                    variant="default" 
+                    onClick={handleAddToOrder}
+                    disabled={!selectedSize || !selectedCrust}
+                    className="flex-[1.5] text-xs lg:text-base px-2 lg:px-4 py-1.5 lg:py-2.5 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800"
+                  >
+                    {editingItem ? 'Update' : 'ADD'}
+                  </Button>
                 </div>
               </div>
             </div>
