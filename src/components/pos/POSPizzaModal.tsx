@@ -666,7 +666,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
 
           {/* Sauce Selection - all inline on one row */}
-          <div className="flex flex-wrap gap-1 lg:gap-1.5 items-center">
+          <div className="flex gap-1 lg:gap-1.5 items-center">
             <button
               onClick={() => setSelectedSauceId(null)}
               className={cn(btnSmall)}
