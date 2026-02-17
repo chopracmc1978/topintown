@@ -24,6 +24,8 @@ const config: CapacitorConfig = {
     useLegacyBridge: false,
     // Match POS dark navy background to prevent white flash on load
     backgroundColor: '#1a2332',
+    // Custom user agent to help disable force dark at config level
+    overrideUserAgent: 'TopInTownPOS',
   },
   // Ensure proper viewport handling
   plugins: {
