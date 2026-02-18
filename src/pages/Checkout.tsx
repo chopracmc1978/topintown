@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useCart } from '@/contexts/CartContext';
-import { useLocation as useLocationContext, LOCATIONS } from '@/contexts/LocationContext';
+import { useLocation as useLocationContext } from '@/contexts/LocationContext';
 import { useCustomer } from '@/contexts/CustomerContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -304,7 +304,7 @@ const OrderItemCard = ({
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, total } = useCart();
-  const { selectedLocation, setSelectedLocation } = useLocationContext();
+  const { selectedLocation, setSelectedLocation, locations } = useLocationContext();
   const { customer } = useCustomer();
   const { data: menuItems } = useMenuItems();
   const { checkIfOpen } = useIsLocationOpen(selectedLocation?.id || 'calgary');
@@ -910,7 +910,7 @@ const Checkout = () => {
             <AlertDialogTitle className="text-center">Select Your Location</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="space-y-3 py-2">
-            {LOCATIONS.map((location) => (
+            {locations.map((location) => (
               <button
                 key={location.id}
                 onClick={() => {
