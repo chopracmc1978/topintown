@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon, MessageSquare, MapPin } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon, MessageSquare, MapPin, Gift } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
@@ -15,6 +15,7 @@ import PopupPostersManager from '@/components/admin/PopupPostersManager';
 import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
 import MessagesManager from '@/components/admin/MessagesManager';
 import LocationsManager from '@/components/admin/LocationsManager';
+import RewardsManager from '@/components/admin/RewardsManager';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -107,7 +108,15 @@ const Admin = () => {
             </TabsList>
             
             {/* Row 2: Settings & Management */}
-            <TabsList className="grid grid-cols-10 w-full max-w-5xl">
+            <TabsList className="grid grid-cols-11 w-full max-w-5xl">
+              <TabsTrigger value="locations" className="gap-2">
+                <MapPin className="w-4 h-4" />
+                <span className="hidden sm:inline">Locations</span>
+              </TabsTrigger>
+              <TabsTrigger value="rewards" className="gap-2">
+                <Gift className="w-4 h-4" />
+                <span className="hidden sm:inline">Rewards</span>
+              </TabsTrigger>
               <TabsTrigger value="messages" className="gap-2">
                 <MessageSquare className="w-4 h-4" />
                 <span className="hidden sm:inline">Messages</span>
@@ -143,10 +152,6 @@ const Admin = () => {
               <TabsTrigger value="users" className="gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Users</span>
-              </TabsTrigger>
-              <TabsTrigger value="locations" className="gap-2">
-                <MapPin className="w-4 h-4" />
-                <span className="hidden sm:inline">Locations</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -211,6 +216,10 @@ const Admin = () => {
 
             <TabsContent value="locations" className="mt-0">
               <LocationsManager />
+            </TabsContent>
+
+            <TabsContent value="rewards" className="mt-0">
+              <RewardsManager />
             </TabsContent>
           </>
         )}

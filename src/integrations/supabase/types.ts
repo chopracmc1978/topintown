@@ -1468,6 +1468,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_settings: {
+        Row: {
+          created_at: string
+          dollars_per_point: number
+          id: string
+          is_enabled: boolean
+          max_points_per_order: number
+          min_points_to_redeem: number
+          points_per_dollar: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dollars_per_point?: number
+          id?: string
+          is_enabled?: boolean
+          max_points_per_order?: number
+          min_points_to_redeem?: number
+          points_per_dollar?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dollars_per_point?: number
+          id?: string
+          is_enabled?: boolean
+          max_points_per_order?: number
+          min_points_to_redeem?: number
+          points_per_dollar?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rewards_history: {
         Row: {
           created_at: string
