@@ -609,6 +609,8 @@ const POSDashboard = ({
     } else {
       // Card payment - mark as paid directly
       updatePaymentStatus(updatedOrder.id, 'paid', method);
+      // Auto-print kitchen ticket
+      printKitchenTicket(updatedOrder);
       setShowPaymentChoice(false);
       setNewOrderPending(null);
       setSelectedOrderId(null);
@@ -639,6 +641,8 @@ const POSDashboard = ({
     if (remainingBalance <= 0.01) {
       // Fully paid with points
       updatePaymentStatus(targetOrder.id, 'paid', 'points');
+      // Auto-print kitchen ticket
+      printKitchenTicket(targetOrder);
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
       setExistingPointsOrder(null);
@@ -656,7 +660,8 @@ const POSDashboard = ({
     if (!targetOrder) return;
 
     if (method === 'skip') {
-      // Leave unpaid
+      // Leave unpaid - still print kitchen ticket
+      if (targetOrder) printKitchenTicket(targetOrder);
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
       setExistingPointsOrder(null);
@@ -667,6 +672,8 @@ const POSDashboard = ({
     } else {
       // Card — mark as paid
       updatePaymentStatus(targetOrder.id, 'paid', 'card');
+      // Auto-print kitchen ticket
+      if (targetOrder) printKitchenTicket(targetOrder);
       setPointsDiscountApplied(null);
       setNewOrderPending(null);
       setExistingPointsOrder(null);
@@ -696,6 +703,11 @@ const POSDashboard = ({
   const handlePaymentComplete = (method: 'cash' | 'card' = 'cash') => {
     if (pendingPaymentOrderId) {
       updatePaymentStatus(pendingPaymentOrderId, 'paid', method);
+      // Auto-print kitchen ticket
+      const orderToPrint = newOrderPending || existingPointsOrder || orders.find(o => o.id === pendingPaymentOrderId);
+      if (orderToPrint) {
+        printKitchenTicket(orderToPrint);
+      }
     }
     setCashModalOpen(false);
     setPendingPaymentOrderId(null);
@@ -1051,6 +1063,8 @@ const POSDashboard = ({
         onSkip={() => {
           if (newOrderPending) {
             updateOrderStatus(newOrderPending.id, 'preparing', pendingPrepTime, currentLocationId);
+            // Auto-print kitchen ticket
+            printKitchenTicket(newOrderPending);
             setNewOrderPending(null);
             setSelectedOrderId(null);
           }
