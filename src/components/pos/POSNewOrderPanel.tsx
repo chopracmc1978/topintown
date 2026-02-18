@@ -137,6 +137,8 @@ interface POSNewOrderPanelProps {
   onCancel: () => void;
   editingOrder?: Order | null;
   onUpdateOrder?: (orderData: { items: CartItem[]; notes?: string }) => void;
+  initialPhone?: string;
+  initialName?: string;
 }
 
 const categories = [
@@ -159,7 +161,7 @@ const pizzaSubcategories = [
 // Items that require customization
 const CUSTOMIZABLE_CATEGORIES = ['pizza', 'chicken_wings'];
 
-export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpdateOrder }: POSNewOrderPanelProps) => {
+export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpdateOrder, initialPhone, initialName }: POSNewOrderPanelProps) => {
   const isEditMode = !!editingOrder;
   const { data: menuItems = [], isLoading } = useMenuItems();
   const { data: activeCombos = [], isLoading: isCombosLoading } = useActiveCombos();
@@ -176,9 +178,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
   const [editingCartItem, setEditingCartItem] = useState<CartItem | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
   
-  // Customer info - initialize from editing order if available
-  const [customerName, setCustomerName] = useState(editingOrder?.customerName || '');
-  const [customerPhone, setCustomerPhone] = useState(editingOrder?.customerPhone || '');
+  // Customer info - initialize from editing order, incoming call, or empty
+  const [customerName, setCustomerName] = useState(editingOrder?.customerName || initialName || '');
+  const [customerPhone, setCustomerPhone] = useState(editingOrder?.customerPhone || initialPhone || '');
   const [customerAddress, setCustomerAddress] = useState(editingOrder?.customerAddress || '');
   const [orderType, setOrderType] = useState<OrderType>(editingOrder?.orderType || 'pickup');
   const [tableNumber, setTableNumber] = useState(editingOrder?.tableNumber || '');
@@ -262,6 +264,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showOrderHistory]);
+
+  // Auto-trigger search when initialPhone is provided (incoming call)
+  useEffect(() => {
+    if (initialPhone && initialPhone.length >= 3) {
+      searchByPhone(initialPhone);
+      setShowOrderHistory(true);
+    }
+  }, [initialPhone]);
 
   // Auto-fill customer name only when order history is explicitly shown (OK/Enter/Tab)
   useEffect(() => {
