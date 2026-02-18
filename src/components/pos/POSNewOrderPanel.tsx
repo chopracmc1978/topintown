@@ -884,24 +884,35 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 ) : activeCombos.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-lg">No active combos</div>
                 ) : (
-                  <div className="grid grid-cols-4 lg:grid-cols-5 gap-2 lg:gap-3 auto-rows-min">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 auto-rows-min">
                     {activeCombos.map(combo => (
                       <button
                         key={combo.id}
                         onClick={() => setSelectedCombo(combo)}
-                        className="p-3 lg:p-4 rounded-lg text-left transition-colors border-l-4 border-blue-500"
+                        className="p-4 lg:p-5 rounded-lg text-left transition-colors border-l-4 border-blue-500 min-h-[140px] lg:min-h-[160px] flex flex-col"
                         style={{ background: 'hsl(220, 25%, 20%)' }}
                       >
-                        <div className="flex items-start gap-2">
-                          <Gift className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-sm lg:text-base line-clamp-2 leading-tight text-white">{combo.name}</p>
-                            {combo.description && (
-                              <p className="text-[10px] text-gray-400 line-clamp-2 mt-0.5">{combo.description}</p>
-                            )}
-                          </div>
+                        <div className="flex items-start gap-2 mb-2">
+                          <Gift className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                          <p className="font-bold text-base lg:text-lg leading-tight text-white">{combo.name}</p>
                         </div>
-                        <p className="text-sm lg:text-base text-blue-400 font-bold mt-1.5">${combo.price.toFixed(2)}</p>
+                        {combo.description && (
+                          <p className="text-xs lg:text-sm text-gray-400 mb-2">{combo.description}</p>
+                        )}
+                        {combo.combo_items && combo.combo_items.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {combo.combo_items.map((item, i) => (
+                              <span
+                                key={i}
+                                className="text-[10px] lg:text-xs bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded"
+                              >
+                                {item.quantity}x {item.item_type.replace('_', ' ')}
+                                {item.size_restriction && ` (${item.size_restriction})`}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-lg lg:text-xl text-blue-400 font-bold mt-auto">${combo.price.toFixed(2)}</p>
                       </button>
                     ))}
                   </div>
