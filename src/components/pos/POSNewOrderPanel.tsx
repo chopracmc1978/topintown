@@ -953,9 +953,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           {item.category === 'chicken_wings' ? (
                             <>
                               <p className="font-bold text-base lg:text-lg leading-tight">{displayName}</p>
-                              {item.description && (
-                                <p className="text-xs lg:text-sm text-gray-400 mt-1">{item.description}</p>
-                              )}
                               <p className="text-lg lg:text-xl text-blue-400 font-bold mt-auto pt-2">
                                 ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                                 <span className="text-xs text-gray-400 font-normal ml-1">+</span>
