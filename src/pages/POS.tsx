@@ -557,9 +557,14 @@ const POSDashboard = ({
       return;
     }
     
-    // Normal flow for existing orders
+    // Normal flow for existing orders (e.g. web orders → Start Preparing)
     if (pendingPrepOrderId) {
       updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime, currentLocationId);
+      // Auto-print kitchen ticket for web/app orders
+      const orderToPrint = orders.find(o => o.id === pendingPrepOrderId);
+      if (orderToPrint) {
+        printKitchenTicket(orderToPrint);
+      }
       setSelectedOrderId(null);
     }
     setPrepTimeModalOpen(false);
