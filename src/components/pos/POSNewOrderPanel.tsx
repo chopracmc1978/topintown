@@ -922,6 +922,10 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const displayName = item.category === 'pizza' 
                         ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
                         : item.name;
+                      // Split on comma or & to put each part on its own line
+                      const nameParts = item.category === 'pizza'
+                        ? displayName.split(/\s*[,&]\s*/).filter(Boolean)
+                        : [displayName];
                       const cardHeight = item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[76px] lg:h-[90px]' : 'h-[56px] lg:h-[66px]';
                       return (
                         <button
@@ -933,7 +937,11 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           )}
                           style={{ background: 'hsl(220, 25%, 20%)' }}
                         >
-                          <p className="font-medium text-[10px] lg:text-xs uppercase line-clamp-3 leading-tight">{displayName}</p>
+                          <p className="font-medium text-[10px] lg:text-xs uppercase leading-tight">
+                            {nameParts.map((part, i) => (
+                              <span key={i}>{i > 0 && <br />}{i > 0 ? '& ' : ''}{part}</span>
+                            ))}
+                          </p>
                           <p className="text-xs lg:text-sm text-blue-400 font-bold mt-0.5">
                             ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
                             {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
