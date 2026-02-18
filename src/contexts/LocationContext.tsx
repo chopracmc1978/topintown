@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { useActiveLocations, LocationRow } from '@/hooks/useLocations';
 
 export interface Location {
@@ -86,9 +86,12 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const { data: dbLocations } = useActiveLocations();
   const [isDetecting, setIsDetecting] = useState(false);
 
-  const locations: Location[] = dbLocations && dbLocations.length > 0
-    ? dbLocations.map(mapRowToLocation)
-    : FALLBACK_LOCATIONS;
+  const locations: Location[] = useMemo(() => 
+    dbLocations && dbLocations.length > 0
+      ? dbLocations.map(mapRowToLocation)
+      : FALLBACK_LOCATIONS,
+    [dbLocations]
+  );
 
   const [selectedLocation, setSelectedLocationState] = useState<Location>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY);

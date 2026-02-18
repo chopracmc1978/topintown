@@ -480,10 +480,10 @@ const CustomerLogin = () => {
             {viewMode === 'forgot-newpassword' && renderNewPasswordForm()}
 
             {viewMode === 'login' && (
-              <div className="mt-6 text-center text-sm text-muted-foreground">
+              <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
                 <p>
                   Don't have an account?{' '}
-                  <Link to="/checkout" className="text-primary hover:underline">
+                  <Link to={`/checkout?action=create-account`} className="text-primary hover:underline font-medium">
                     Create one during checkout
                   </Link>
                 </p>
