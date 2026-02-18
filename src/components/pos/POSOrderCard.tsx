@@ -51,6 +51,11 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Show "New!" badge for web/app orders that arrived within last 3 minutes
+  const isNewRemoteOrder = (order.source === 'web' || order.source === 'app' || order.source === 'online') 
+    && order.status === 'pending'
+    && (Date.now() - new Date(order.createdAt).getTime()) < 3 * 60 * 1000;
+
   const lifetimePoints = rewardInfo?.lifetime_points ?? 0;
   const balancePoints = rewardInfo?.points ?? 0;
   const usedPoints = lifetimePoints - balancePoints;
@@ -70,6 +75,11 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
       {/* Badges Row */}
       <div className="flex items-center gap-1 mb-1 flex-wrap">
+        {isNewRemoteOrder && (
+          <span className="pos-badge animate-pulse font-bold" style={{ background: 'hsl(30,90%,45%)', borderColor: 'hsl(30,95%,55%)', color: '#fff', fontSize: '10px' }}>
+            🆕 New!
+          </span>
+        )}
         <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
           <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
           {source.label}
