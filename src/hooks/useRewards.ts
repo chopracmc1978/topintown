@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useRewardSettings } from '@/hooks/useRewardSettings';
 
 export interface CustomerReward {
   id: string;
@@ -22,13 +23,44 @@ export interface RewardHistory {
   created_at: string;
 }
 
-// Constants for the rewards system
+// Fallback constants (used when settings haven't loaded yet)
 export const POINTS_PER_DOLLAR = 0.5; // 1 point per $2 = 0.5 points per $1
-export const MIN_POINTS_TO_REDEEM = 200; // 200 points = $20
-export const MAX_POINTS_TO_REDEEM = 350; // 350 points = $35
+export const MIN_POINTS_TO_REDEEM = 200;
+export const MAX_POINTS_TO_REDEEM = 350;
 export const POINTS_TO_DOLLAR_RATIO = 10; // 10 points = $1
-export const MIN_REDEEM_DOLLAR = 20; // minimum $20 redemption
-export const MAX_REDEEM_DOLLAR = 35; // maximum $35 per redemption
+export const MIN_REDEEM_DOLLAR = 20;
+export const MAX_REDEEM_DOLLAR = 35;
+
+/**
+ * Hook that returns dynamic reward config from DB settings
+ */
+export const useRewardConfig = () => {
+  const { data: settings } = useRewardSettings();
+
+  const dollarsPerPoint = settings?.dollars_per_point ?? 2;
+  const pointsPerDollar = settings?.points_per_dollar ?? 10;
+  const minPointsToRedeem = settings?.min_points_to_redeem ?? 200;
+  const maxPointsPerOrder = settings?.max_points_per_order ?? 350;
+  const isEnabled = settings?.is_enabled ?? true;
+
+  const pointsPerDollarSpent = 1 / dollarsPerPoint; // e.g. 1/2 = 0.5
+  const minRedeemDollar = minPointsToRedeem / pointsPerDollar;
+  const maxRedeemDollar = maxPointsPerOrder / pointsPerDollar;
+
+  return {
+    isEnabled,
+    dollarsPerPoint,
+    pointsPerDollar,
+    minPointsToRedeem,
+    maxPointsPerOrder,
+    pointsPerDollarSpent,
+    minRedeemDollar,
+    maxRedeemDollar,
+    calculatePointsFromPurchase: (total: number) => Math.floor(total / dollarsPerPoint),
+    calculateRewardDollarValue: (points: number) => points / pointsPerDollar,
+    canRedeemRewards: (points: number) => isEnabled && points >= minPointsToRedeem,
+  };
+};
 
 /**
  * Calculate how many points will be earned from a purchase
@@ -42,7 +74,7 @@ export const calculatePointsFromPurchase = (totalAmount: number): number => {
  */
 export const calculateRewardDollarValue = (points: number): number => {
   const redeemableSets = Math.floor(points / MIN_POINTS_TO_REDEEM);
-  return redeemableSets * 20; // Each 200 points = $20
+  return redeemableSets * 20;
 };
 
 /**
