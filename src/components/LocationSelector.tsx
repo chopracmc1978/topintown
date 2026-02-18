@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useLocation, LOCATIONS } from '@/contexts/LocationContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { cn } from '@/lib/utils';
 
 interface LocationSelectorProps {
@@ -15,7 +15,7 @@ interface LocationSelectorProps {
 }
 
 const LocationSelector = ({ className, compact = false }: LocationSelectorProps) => {
-  const { selectedLocation, setSelectedLocation } = useLocation();
+  const { selectedLocation, setSelectedLocation, locations } = useLocation();
 
   return (
     <DropdownMenu>
@@ -39,7 +39,7 @@ const LocationSelector = ({ className, compact = false }: LocationSelectorProps)
         <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
           Select Restaurant
         </div>
-        {LOCATIONS.map((location) => (
+        {locations.map((location) => (
           <DropdownMenuItem
             key={location.id}
             onClick={() => setSelectedLocation(location)}
