@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { useSubmitContactMessage } from '@/hooks/useContactMessages';
 import CaptchaWidget from '@/components/contact/CaptchaWidget';
+import { useLocation } from '@/contexts/LocationContext';
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -18,6 +19,7 @@ const contactSchema = z.object({
 });
 
 const Contact = () => {
+  const { locations } = useLocation();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
@@ -108,12 +110,13 @@ const Contact = () => {
               {/* Address */}
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-[hsl(var(--brand-blue))]" style={{ color: 'hsl(203, 85%, 45%)' }} />
+                  <MapPin className="w-6 h-6" style={{ color: 'hsl(203, 85%, 45%)' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-1">Address</h3>
-                  <p className="text-muted-foreground text-sm">3250 60 ST NE, Calgary, AB T1Y 3T5</p>
-                  <p className="text-muted-foreground text-sm mt-1">272 Kinniburgh Blvd Unit 103, Chestermere, AB T1X 0V8</p>
+                  {locations.map((loc) => (
+                    <p key={loc.id} className="text-muted-foreground text-sm mt-1">{loc.address}</p>
+                  ))}
                 </div>
               </div>
 
@@ -140,12 +143,11 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-1">Call Us</h3>
-                  <a href="tel:+14032807373" className="text-muted-foreground text-sm hover:text-foreground transition-colors block">
-                    +1 (403) 280-7373
-                  </a>
-                  <a href="tel:+14032807374" className="text-muted-foreground text-sm hover:text-foreground transition-colors block">
-                    +1 (403) 280-7374
-                  </a>
+                  {locations.map((loc) => (
+                    <p key={loc.id} className="text-muted-foreground text-sm">
+                      {loc.shortName}: {loc.phone}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Clock, Instagram, Facebook, Twitter } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import { useLocation } from '@/contexts/LocationContext';
 
 const Footer = () => {
+  const { locations } = useLocation();
   return (
     <footer className="bg-foreground text-background">
       <div className="container mx-auto px-4 py-12">
@@ -56,22 +58,18 @@ const Footer = () => {
           <div>
             <h4 className="font-serif text-lg font-semibold mb-4">Contact Us</h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-background/70">
-                <MapPin className="w-4 h-4 mt-0.5 text-primary" />
-                <span>3250 60 ST NE<br />Calgary, AB T1Y 3T5</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-background/70">
-                <MapPin className="w-4 h-4 mt-0.5 text-primary" />
-                <span>272 Kinniburgh Blvd unit 103<br />Chestermere, AB T1X 0V8</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-background/70">
-                <Phone className="w-4 h-4 text-primary" />
-                <span>Calgary: (403) 280-7373 ext 1</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-background/70">
-                <Phone className="w-4 h-4 text-primary" />
-                <span>Chestermere: (403) 280-7373 ext 2</span>
-              </li>
+              {locations.map((loc) => (
+                <li key={loc.id} className="flex items-start gap-2 text-sm text-background/70">
+                  <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  <span>{loc.address}</span>
+                </li>
+              ))}
+              {locations.map((loc) => (
+                <li key={`phone-${loc.id}`} className="flex items-center gap-2 text-sm text-background/70">
+                  <Phone className="w-4 h-4 text-primary shrink-0" />
+                  <span>{loc.shortName}: {loc.phone}</span>
+                </li>
+              ))}
             </ul>
           </div>
 
