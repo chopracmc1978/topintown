@@ -926,6 +926,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 ) : (
                   <div className={cn(
                     "grid gap-1.5 lg:gap-2 auto-rows-min",
+                    activeCategory === 'chicken_wings' ? "grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4" :
                     (activeCategory === 'baked_lasagna') ? "grid-cols-4 lg:grid-cols-5" : activeCategory === 'pizza' ? "grid-cols-5 lg:grid-cols-6" : "grid-cols-5 lg:grid-cols-6"
                   )}>
                     {filteredItems.map(item => {
@@ -937,28 +938,44 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const nameParts = item.category === 'pizza'
                         ? displayName.split(/\s*[,&]\s*/).filter(Boolean)
                         : [displayName];
-                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[76px] lg:h-[90px]' : 'h-[56px] lg:h-[66px]';
+                      const cardHeight = item.category === 'chicken_wings' ? 'min-h-[120px] lg:min-h-[140px]' : item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[76px] lg:h-[90px]' : 'h-[56px] lg:h-[66px]';
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleItemClick(item)}
                           className={cn(
                             "p-1.5 lg:p-2.5 rounded-md text-left transition-colors border-l-2 border-blue-500/50 flex flex-col justify-between text-white",
+                            item.category === 'chicken_wings' && "p-4 lg:p-5 border-l-4",
                             cardHeight
                           )}
                           style={{ background: 'hsl(220, 25%, 20%)' }}
                         >
-                          <p className="font-medium text-[10px] lg:text-xs uppercase leading-tight">
-                            {nameParts.map((part, i) => (
-                              <span key={i}>{i > 0 && <br />}{i > 0 ? '& ' : ''}{part}</span>
-                            ))}
-                          </p>
-                          <p className="text-xs lg:text-sm text-blue-400 font-bold mt-0.5">
-                            ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
-                            {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
-                              <span className="text-[10px] text-gray-400 font-normal ml-0.5">+</span>
-                            )}
-                          </p>
+                          {item.category === 'chicken_wings' ? (
+                            <>
+                              <p className="font-bold text-base lg:text-lg leading-tight">{displayName}</p>
+                              {item.description && (
+                                <p className="text-xs lg:text-sm text-gray-400 mt-1">{item.description}</p>
+                              )}
+                              <p className="text-lg lg:text-xl text-blue-400 font-bold mt-auto pt-2">
+                                ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
+                                <span className="text-xs text-gray-400 font-normal ml-1">+</span>
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-medium text-[10px] lg:text-xs uppercase leading-tight">
+                                {nameParts.map((part, i) => (
+                                  <span key={i}>{i > 0 && <br />}{i > 0 ? '& ' : ''}{part}</span>
+                                ))}
+                              </p>
+                              <p className="text-xs lg:text-sm text-blue-400 font-bold mt-0.5">
+                                ${(item.sizes?.[0]?.price ?? item.base_price).toFixed(2)}
+                                {CUSTOMIZABLE_CATEGORIES.includes(item.category) && (
+                                  <span className="text-[10px] text-gray-400 font-normal ml-0.5">+</span>
+                                )}
+                              </p>
+                            </>
+                          )}
                         </button>
                       );
                     })}
