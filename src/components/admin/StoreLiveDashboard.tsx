@@ -18,6 +18,7 @@ interface Props {
 const StoreLiveDashboard = ({ location }: Props) => {
   const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [orderListView, setOrderListView] = useState<'active' | 'today' | null>(null);
 
   const todayStart = useMemo(() => {
     const d = new Date();
@@ -44,14 +45,35 @@ const StoreLiveDashboard = ({ location }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, total, status, created_at, order_type, payment_status')
+        .select('id, total, status, created_at, order_type, payment_status, order_number, customer_name, customer_phone, payment_method, notes, source, subtotal, tax, discount, rewards_discount, coupon_code')
         .eq('location_id', location.id)
         .gte('created_at', todayStart)
-        .neq('status', 'cancelled');
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
     refetchInterval: 15000,
+  });
+
+  // Fetch items for all today's orders (for the detail dialogs)
+  const todayOrderIds = todayOrders?.map(o => o.id) || [];
+  const { data: todayOrderItems } = useQuery({
+    queryKey: ['store-dashboard', location.id, 'today-items', todayOrderIds],
+    queryFn: async () => {
+      if (!todayOrderIds.length) return {};
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('*')
+        .in('order_id', todayOrderIds);
+      if (error) throw error;
+      const map: Record<string, any[]> = {};
+      data?.forEach(item => {
+        if (!map[item.order_id]) map[item.order_id] = [];
+        map[item.order_id].push(item);
+      });
+      return map;
+    },
+    enabled: todayOrderIds.length > 0,
   });
 
   const { data: yesterdayOrders } = useQuery({
@@ -227,8 +249,9 @@ const StoreLiveDashboard = ({ location }: Props) => {
     return () => { supabase.removeChannel(channel); };
   }, [location.id, queryClient]);
 
-  const totalSales = todayOrders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
-  const ordersCount = todayOrders?.length || 0;
+  const nonCancelledToday = todayOrders?.filter(o => o.status !== 'cancelled') || [];
+  const totalSales = nonCancelledToday.reduce((sum, o) => sum + Number(o.total), 0);
+  const ordersCount = nonCancelledToday.length;
   const activeOrders = liveOrders?.length || 0;
   const avgValue = ordersCount > 0 ? totalSales / ordersCount : 0;
 
@@ -259,8 +282,8 @@ const StoreLiveDashboard = ({ location }: Props) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard title="Total Sales Today" value={`$${totalSales.toLocaleString('en-US', { minimumFractionDigits: 0 })}`} icon={<DollarSign className="w-5 h-5 text-green-400" />} change={salesChange} />
-        <StatCard title="Active Orders" value={String(activeOrders)} icon={<ShoppingCart className="w-5 h-5 text-orange-400" />} subtitle="Right now" />
-        <StatCard title="Orders Today" value={String(ordersCount)} icon={<Receipt className="w-5 h-5 text-blue-400" />} change={ordersChange} />
+        <StatCard title="Active Orders" value={String(activeOrders)} icon={<ShoppingCart className="w-5 h-5 text-orange-400" />} subtitle="Right now" onClick={() => setOrderListView('active')} />
+        <StatCard title="Orders Today" value={String(ordersCount)} icon={<Receipt className="w-5 h-5 text-blue-400" />} change={ordersChange} onClick={() => setOrderListView('today')} />
         <StatCard title="Avg Order Value" value={`$${avgValue.toFixed(2)}`} icon={<TrendingUp className="w-5 h-5 text-purple-400" />} />
       </div>
 
@@ -446,6 +469,94 @@ const StoreLiveDashboard = ({ location }: Props) => {
         <POSReportsPanel locationId={location.id} onClose={() => {}} embedded />
       </div>
 
+      {/* Orders List Dialog (Active / Today) */}
+      <Dialog open={!!orderListView} onOpenChange={(open) => { if (!open) setOrderListView(null); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{orderListView === 'active' ? `Active Orders (${activeOrders})` : `All Orders Today (${todayOrders?.length || 0})`}</DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const listOrders = orderListView === 'active' ? (liveOrders || []) : (todayOrders || []);
+            const itemsMap = orderListView === 'active' ? (liveOrderItems || {}) : (todayOrderItems || {});
+            if (!listOrders.length) return <p className="text-muted-foreground text-sm py-4">No orders found</p>;
+            return (
+              <div className="space-y-3">
+                {listOrders.map((order: any) => {
+                  const items = (itemsMap as Record<string, any[]>)[order.id] || [];
+                  return (
+                    <div key={order.id} className="border rounded-lg overflow-hidden">
+                      <button onClick={() => toggleExpand(order.id)} className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-all text-left">
+                        <div>
+                          <p className="font-medium text-foreground">{order.order_number}</p>
+                          <p className="text-xs text-muted-foreground">{order.customer_name || 'Walk-in'} • {order.order_type} • {format(new Date(order.created_at), 'h:mm a')}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold">${Number(order.total).toFixed(2)}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${statusColors[order.status] || 'bg-muted text-muted-foreground'}`}>{order.status}</span>
+                          {expandedOrders.has(order.id) ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                        </div>
+                      </button>
+                      {expandedOrders.has(order.id) && (
+                        <div className="p-4 border-t bg-background space-y-3">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                            <div><span className="text-muted-foreground">Customer:</span> <span className="font-medium">{order.customer_name || 'Walk-in'}</span></div>
+                            <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{order.customer_phone || '-'}</span></div>
+                            <div><span className="text-muted-foreground">Type:</span> <span className="font-medium capitalize">{order.order_type}</span></div>
+                            <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium capitalize">{order.payment_method || 'Unpaid'} ({order.payment_status})</span></div>
+                            <div><span className="text-muted-foreground">Source:</span> <span className="font-medium capitalize">{order.source}</span></div>
+                            {order.coupon_code && <div><span className="text-muted-foreground">Coupon:</span> <span className="font-medium">{order.coupon_code}</span></div>}
+                          </div>
+                          {order.notes && <div className="bg-muted/50 rounded-lg p-2 text-sm"><span className="text-muted-foreground">Notes: </span>{order.notes}</div>}
+                          <Separator />
+                          <div>
+                            <h4 className="font-semibold text-sm mb-2">Items ({items.length})</h4>
+                            <div className="space-y-2">
+                              {items.map((item: any) => {
+                                const c = item.customizations as any;
+                                return (
+                                  <div key={item.id} className="flex justify-between items-start p-2 bg-muted/30 rounded-lg text-sm">
+                                    <div className="flex-1">
+                                      <p className="font-medium">{item.quantity}x {item.name}</p>
+                                      {c?.size && <p className="text-xs text-muted-foreground">{typeof c.size === 'object' ? c.size.name : c.size}{c.crust && ` • ${typeof c.crust === 'object' ? c.crust.name : c.crust}`}</p>}
+                                      {c?.extraToppings?.length > 0 && <p className="text-xs text-green-600">+ {c.extraToppings.map((t: any) => typeof t === 'string' ? t : t.name).join(', ')}</p>}
+                                      {c?.defaultToppings?.some((t: any) => t.quantity === 'none') && <p className="text-xs text-red-500">Removed: {c.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>}
+                                      {c?.flavor && <p className="text-xs text-muted-foreground">Flavor: {typeof c.flavor === 'object' ? c.flavor.name : c.flavor}</p>}
+                                      {c?.note && <p className="text-xs text-orange-500 italic">Note: {c.note}</p>}
+                                    </div>
+                                    <p className="font-semibold">${Number(item.total_price).toFixed(2)}</p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <Separator />
+                          <div className="flex justify-between items-center text-sm">
+                            <div className="space-y-0.5">
+                              <p><span className="text-muted-foreground">Subtotal:</span> ${Number(order.subtotal).toFixed(2)}</p>
+                              {Number(order.discount) > 0 && <p className="text-green-600">Discount: -${Number(order.discount).toFixed(2)}</p>}
+                              {Number(order.rewards_discount) > 0 && <p className="text-green-600">Rewards: -${Number(order.rewards_discount).toFixed(2)}</p>}
+                              <p><span className="text-muted-foreground">Tax:</span> ${Number(order.tax).toFixed(2)}</p>
+                              <p className="font-bold">Total: ${Number(order.total).toFixed(2)}</p>
+                            </div>
+                            {['pending', 'preparing', 'ready'].includes(order.status) && (
+                              <div className="flex gap-2 flex-wrap justify-end">
+                                {order.status === 'pending' && <Button size="sm" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'preparing' }); }} className="bg-green-600 hover:bg-green-700 text-white"><Check className="w-4 h-4 mr-1" /> Accept</Button>}
+                                {order.status === 'preparing' && <Button size="sm" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'ready' }); }} className="bg-blue-600 hover:bg-blue-700 text-white"><Check className="w-4 h-4 mr-1" /> Mark Ready</Button>}
+                                <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'cancelled' }); }}><Ban className="w-4 h-4 mr-1" /> Cancel</Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* Order Detail Dialog */}
       <Dialog open={!!selectedOrderId} onOpenChange={(open) => !open && setSelectedOrderId(null)}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
@@ -566,8 +677,8 @@ const StoreLiveDashboard = ({ location }: Props) => {
   );
 };
 
-const StatCard = ({ title, value, icon, change, subtitle }: { title: string; value: string; icon: React.ReactNode; change?: number; subtitle?: string }) => (
-  <div className="bg-card border rounded-xl p-4">
+const StatCard = ({ title, value, icon, change, subtitle, onClick }: { title: string; value: string; icon: React.ReactNode; change?: number; subtitle?: string; onClick?: () => void }) => (
+  <div className={`bg-card border rounded-xl p-4 ${onClick ? 'cursor-pointer hover:border-primary/50 hover:shadow-md transition-all' : ''}`} onClick={onClick}>
     <div className="flex items-center justify-between mb-2">
       <p className="text-sm text-muted-foreground">{title}</p>
       {icon}
