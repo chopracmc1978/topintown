@@ -5,7 +5,7 @@ export const usePOSNotificationSound = (orders: Order[]) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const advanceAlertIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false); // Start false until user enables
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true); // Start enabled by default
   const [volume, setVolume] = useState(0.8); // Volume 0-2 (0-200%)
   const gainNodeRef = useRef<GainNode | null>(null);
   const [isAudioReady, setIsAudioReady] = useState(false); // Whether AudioContext is initialized
