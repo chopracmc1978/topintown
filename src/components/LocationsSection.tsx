@@ -1,29 +1,14 @@
 import { MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLocation, LOCATIONS } from '@/contexts/LocationContext';
+import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
 
-const locationCards = [
-  {
-    locationId: 'calgary',
-    name: 'CALGARY LOCATION',
-    address: '3250 60 ST NE, CALGARY, AB T1Y 3T5',
-    phone: '(403) 280-7373 ext 1',
-  },
-  {
-    locationId: 'chestermere',
-    name: 'CHESTERMERE LOCATION',
-    address: '272 Kinniburgh Blvd unit 103, Chestermere, AB T1X 0V8',
-    phone: '(403) 280-7373 ext 2',
-  },
-];
-
 const LocationsSection = () => {
-  const { setSelectedLocation } = useLocation();
+  const { locations, setSelectedLocation } = useLocation();
   const navigate = useNavigate();
 
   const handleOrderNow = (locationId: string) => {
-    const location = LOCATIONS.find(l => l.id === locationId);
+    const location = locations.find(l => l.id === locationId);
     if (location) {
       setSelectedLocation(location);
     }
@@ -42,16 +27,22 @@ const LocationsSection = () => {
           Our Locations
         </h2>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {locationCards.map((loc) => (
+        <div className={`grid gap-8 max-w-5xl mx-auto ${locations.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+          {locations.map((loc) => (
             <div 
-              key={loc.locationId}
+              key={loc.id}
               className="text-center text-white"
             >
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-primary-foreground" />
-              </div>
-              <h3 className="font-serif text-xl font-bold mb-3">{loc.name}</h3>
+              {loc.image_url ? (
+                <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden border-4 border-primary">
+                  <img src={loc.image_url} alt={loc.name} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-8 h-8 text-primary-foreground" />
+                </div>
+              )}
+              <h3 className="font-serif text-xl font-bold mb-3">{loc.shortName}</h3>
               <p className="text-white/80 mb-2">{loc.address}</p>
               <p className="text-white/80 mb-6 flex items-center justify-center gap-2">
                 <Phone className="w-4 h-4" />
@@ -60,7 +51,7 @@ const LocationsSection = () => {
               <Button 
                 variant="default"
                 className="bg-primary hover:bg-primary/90"
-                onClick={() => handleOrderNow(loc.locationId)}
+                onClick={() => handleOrderNow(loc.id)}
               >
                 Order Now
               </Button>

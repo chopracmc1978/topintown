@@ -636,6 +636,54 @@ export type Database = {
         }
         Relationships: []
       }
+      locations: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          lat: number
+          lng: number
+          name: string
+          phone: string
+          short_name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city?: string
+          created_at?: string
+          id: string
+          image_url?: string | null
+          is_active?: boolean
+          lat?: number
+          lng?: number
+          name: string
+          phone?: string
+          short_name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          lat?: number
+          lng?: number
+          name?: string
+          phone?: string
+          short_name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           base_price: number

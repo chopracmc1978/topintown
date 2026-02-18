@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useActiveLocations, LocationRow } from '@/hooks/useLocations';
 
 export interface Location {
   id: string;
@@ -8,9 +9,11 @@ export interface Location {
   phone: string;
   lat: number;
   lng: number;
+  image_url?: string | null;
 }
 
-export const LOCATIONS: Location[] = [
+// Keep hardcoded fallback for when DB hasn't loaded yet
+const FALLBACK_LOCATIONS: Location[] = [
   {
     id: 'calgary',
     name: 'Top In Town Pizza - Calgary',
@@ -31,10 +34,14 @@ export const LOCATIONS: Location[] = [
   },
 ];
 
+// Export for backward compatibility
+export const LOCATIONS = FALLBACK_LOCATIONS;
+
 interface LocationContextType {
   selectedLocation: Location;
   setSelectedLocation: (location: Location) => void;
   isDetecting: boolean;
+  locations: Location[];
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -42,12 +49,11 @@ const LocationContext = createContext<LocationContextType | undefined>(undefined
 const STORAGE_KEY = 'selectedLocationId';
 const IP_DETECTION_KEY = 'ipLocationDetected';
 
-// Calculate distance between two coordinates using Haversine formula
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Earth's radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = 
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
@@ -55,62 +61,74 @@ const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 };
 
-// Find closest location based on coordinates
-const findClosestLocation = (lat: number, lng: number): Location => {
-  let closestLocation = LOCATIONS[0];
-  let minDistance = Infinity;
-
-  for (const location of LOCATIONS) {
-    const distance = calculateDistance(lat, lng, location.lat, location.lng);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestLocation = location;
-    }
+const findClosestLocation = (lat: number, lng: number, locs: Location[]): Location => {
+  let closest = locs[0];
+  let minDist = Infinity;
+  for (const loc of locs) {
+    const d = calculateDistance(lat, lng, loc.lat, loc.lng);
+    if (d < minDist) { minDist = d; closest = loc; }
   }
-
-  return closestLocation;
+  return closest;
 };
 
+const mapRowToLocation = (row: LocationRow): Location => ({
+  id: row.id,
+  name: row.name,
+  shortName: row.short_name,
+  address: `${row.address}${row.city ? ', ' + row.city : ''}`,
+  phone: row.phone,
+  lat: Number(row.lat),
+  lng: Number(row.lng),
+  image_url: row.image_url,
+});
+
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
+  const { data: dbLocations } = useActiveLocations();
   const [isDetecting, setIsDetecting] = useState(false);
+
+  const locations: Location[] = dbLocations && dbLocations.length > 0
+    ? dbLocations.map(mapRowToLocation)
+    : FALLBACK_LOCATIONS;
+
   const [selectedLocation, setSelectedLocationState] = useState<Location>(() => {
     const savedId = localStorage.getItem(STORAGE_KEY);
-    const found = LOCATIONS.find(l => l.id === savedId);
-    return found || LOCATIONS[0];
+    const found = FALLBACK_LOCATIONS.find(l => l.id === savedId);
+    return found || FALLBACK_LOCATIONS[0];
   });
 
-  // IP-based location detection on first visit
+  // Sync selected location when DB locations load
+  useEffect(() => {
+    if (locations.length > 0) {
+      const savedId = localStorage.getItem(STORAGE_KEY);
+      const found = locations.find(l => l.id === savedId);
+      if (found) {
+        setSelectedLocationState(found);
+      } else if (!locations.find(l => l.id === selectedLocation.id)) {
+        setSelectedLocationState(locations[0]);
+      }
+    }
+  }, [locations]);
+
   useEffect(() => {
     const detectLocation = async () => {
-      // Only detect if user hasn't manually selected and we haven't detected before
       const hasManualSelection = localStorage.getItem(STORAGE_KEY);
       const hasDetected = localStorage.getItem(IP_DETECTION_KEY);
-      
       if (hasManualSelection || hasDetected) return;
-
-      // Skip IP detection for POS app (runs on local network)
       if (window.location.pathname.startsWith('/pos')) {
         localStorage.setItem(IP_DETECTION_KEY, 'true');
         return;
       }
-
       setIsDetecting(true);
       try {
-        // Using ipapi.co (free HTTPS endpoint) with timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        const response = await fetch('https://ipapi.co/json/', {
-          signal: controller.signal
-        });
+        const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
         clearTimeout(timeoutId);
-        
         const data = await response.json();
-        
         if (data.latitude && data.longitude) {
-          const closestLocation = findClosestLocation(data.latitude, data.longitude);
-          setSelectedLocationState(closestLocation);
-          localStorage.setItem(STORAGE_KEY, closestLocation.id);
+          const closest = findClosestLocation(data.latitude, data.longitude, locations);
+          setSelectedLocationState(closest);
+          localStorage.setItem(STORAGE_KEY, closest.id);
         }
       } catch (error) {
         console.log('IP detection skipped:', error instanceof Error ? error.message : 'Network error');
@@ -119,7 +137,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         setIsDetecting(false);
       }
     };
-
     detectLocation();
   }, []);
 
@@ -129,7 +146,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LocationContext.Provider value={{ selectedLocation, setSelectedLocation, isDetecting }}>
+    <LocationContext.Provider value={{ selectedLocation, setSelectedLocation, isDetecting, locations }}>
       {children}
     </LocationContext.Provider>
   );
