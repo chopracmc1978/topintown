@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon, MessageSquare, MapPin, Gift } from 'lucide-react';
+import { LogOut, Pizza, Drumstick, GlassWater, Droplet, Layers, Users, Soup, UtensilsCrossed, UserCheck, Tag, Megaphone, Package, ImageIcon, MessageSquare, MapPin, Gift, LayoutDashboard } from 'lucide-react';
 import MenuItemsManager from '@/components/admin/MenuItemsManager';
 import ToppingsManager from '@/components/admin/ToppingsManager';
 import UsersManager from '@/components/admin/UsersManager';
@@ -16,6 +16,7 @@ import { GlobalSauceManager } from '@/components/admin/GlobalSauceManager';
 import MessagesManager from '@/components/admin/MessagesManager';
 import LocationsManager from '@/components/admin/LocationsManager';
 import RewardsManager from '@/components/admin/RewardsManager';
+import StoresDashboard from '@/components/admin/StoresDashboard';
 import type { MenuCategory } from '@/hooks/useMenuItems';
 
 const categoryIcons: Record<MenuCategory, React.ReactNode> = {
@@ -108,7 +109,11 @@ const Admin = () => {
             </TabsList>
             
             {/* Row 2: Settings & Management */}
-            <TabsList className="grid grid-cols-11 w-full max-w-5xl">
+            <TabsList className="grid grid-cols-12 w-full max-w-5xl">
+              <TabsTrigger value="stores" className="gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">Stores</span>
+              </TabsTrigger>
               <TabsTrigger value="locations" className="gap-2">
                 <MapPin className="w-4 h-4" />
                 <span className="hidden sm:inline">Locations</span>
@@ -212,6 +217,10 @@ const Admin = () => {
 
             <TabsContent value="users" className="mt-0">
               <UsersManager />
+            </TabsContent>
+
+            <TabsContent value="stores" className="mt-0">
+              <StoresDashboard />
             </TabsContent>
 
             <TabsContent value="locations" className="mt-0">
