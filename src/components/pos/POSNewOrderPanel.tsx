@@ -922,7 +922,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const displayName = item.category === 'pizza' 
                         ? item.name.replace(/\s+PIZZA$/i, '').replace(/\s+Pizza$/i, '')
                         : item.name;
-                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[66px] lg:h-[78px]' : 'h-[56px] lg:h-[66px]';
+                      const cardHeight = item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[72px] lg:h-[85px]' : 'h-[56px] lg:h-[66px]';
                       return (
                         <button
                           key={item.id}
