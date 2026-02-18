@@ -14,20 +14,15 @@ import { useToast } from '@/hooks/use-toast';
 import { OtpInput } from '@/components/checkout/OtpInput';
 import { 
   useRewardsByPhone, 
-  useRewardsHistory, 
-  MIN_POINTS_TO_REDEEM, 
-  MAX_REDEEM_DOLLAR,
-  MIN_REDEEM_DOLLAR,
-  POINTS_TO_DOLLAR_RATIO,
-  canRedeemRewards,
-  calculateRewardDollarValue,
-  POINTS_PER_DOLLAR
+  useRewardsHistory,
+  useRewardConfig,
 } from '@/hooks/useRewards';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { customer, loading: customerLoading, refreshCustomer, logout } = useCustomer();
   const { toast } = useToast();
+  const rewardConfig = useRewardConfig();
 
   // Rewards data
   const { data: rewards, isLoading: rewardsLoading } = useRewardsByPhone(customer?.phone);
@@ -165,10 +160,10 @@ const Profile = () => {
 
   const currentPoints = rewards?.points || 0;
   const lifetimePoints = rewards?.lifetime_points || 0;
-  const progressToReward = Math.min((currentPoints / MIN_POINTS_TO_REDEEM) * 100, 100);
-  const pointsNeeded = Math.max(0, MIN_POINTS_TO_REDEEM - currentPoints);
-  const canRedeem = canRedeemRewards(currentPoints);
-  const redeemableValue = calculateRewardDollarValue(currentPoints);
+  const progressToReward = Math.min((currentPoints / rewardConfig.minPointsToRedeem) * 100, 100);
+  const pointsNeeded = Math.max(0, rewardConfig.minPointsToRedeem - currentPoints);
+  const canRedeem = rewardConfig.canRedeemRewards(currentPoints);
+  const redeemableValue = rewardConfig.calculateRewardDollarValue(currentPoints);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -195,7 +190,7 @@ const Profile = () => {
                   My Rewards
                 </CardTitle>
                 <CardDescription>
-                  Earn 1 point for every $2 spent. Redeem 200–350 points for $20–$35 off!
+                  Earn 1 point for every ${rewardConfig.dollarsPerPoint} spent. Redeem {rewardConfig.minPointsToRedeem}–{rewardConfig.maxPointsPerOrder} points for ${rewardConfig.minRedeemDollar.toFixed(0)}–${rewardConfig.maxRedeemDollar.toFixed(0)} off!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -226,7 +221,7 @@ const Profile = () => {
                       <Progress value={progressToReward} className="h-3" />
                       {!canRedeem ? (
                         <p className="text-sm text-muted-foreground">
-                          {pointsNeeded} more points until your next $20 reward
+                          {pointsNeeded} more points until your next ${rewardConfig.minRedeemDollar.toFixed(0)} reward
                         </p>
                       ) : (
                         <p className="text-sm text-green-600 dark:text-green-400 font-medium">
@@ -244,10 +239,10 @@ const Profile = () => {
                     {/* How it works */}
                     <div className="bg-background/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
                       <p className="font-medium text-foreground">How it works:</p>
-                      <p>• Earn 1 point for every $2 you spend</p>
+                      <p>• Earn 1 point for every ${rewardConfig.dollarsPerPoint} you spend</p>
                       <p>• Points are added when your order is completed</p>
-                      <p>• Redeem 200 points for $20 off at checkout</p>
-                      <p>• Maximum redemption: 350 points for $35 off per order</p>
+                      <p>• Redeem {rewardConfig.minPointsToRedeem} points for ${rewardConfig.minRedeemDollar.toFixed(0)} off at checkout</p>
+                      <p>• Maximum redemption: {rewardConfig.maxPointsPerOrder} points for ${rewardConfig.maxRedeemDollar.toFixed(0)} off per order</p>
                     </div>
                   </>
                 )}
