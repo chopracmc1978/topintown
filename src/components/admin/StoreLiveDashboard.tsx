@@ -1,9 +1,14 @@
-import { useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LocationRow } from '@/hooks/useLocations';
-import { DollarSign, ShoppingCart, Receipt, TrendingUp, MapPin } from 'lucide-react';
+import { DollarSign, ShoppingCart, Receipt, TrendingUp, MapPin, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 interface Props {
   location: LocationRow;
@@ -11,8 +16,8 @@ interface Props {
 
 const StoreLiveDashboard = ({ location }: Props) => {
   const queryClient = useQueryClient();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  // Fetch today's orders for this location
   const todayStart = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -63,7 +68,6 @@ const StoreLiveDashboard = ({ location }: Props) => {
     },
   });
 
-  // Best sellers - top 5 items today
   const { data: bestSellers } = useQuery({
     queryKey: ['store-dashboard', location.id, 'best-sellers'],
     queryFn: async () => {
@@ -95,7 +99,6 @@ const StoreLiveDashboard = ({ location }: Props) => {
     refetchInterval: 30000,
   });
 
-  // Last 7 days for chart
   const { data: weekData } = useQuery({
     queryKey: ['store-dashboard', location.id, 'week'],
     queryFn: async () => {
@@ -126,13 +129,12 @@ const StoreLiveDashboard = ({ location }: Props) => {
     },
   });
 
-  // Live orders (active)
   const { data: liveOrders } = useQuery({
     queryKey: ['store-dashboard', location.id, 'live'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, status, total, order_type, customer_name, created_at')
+        .select('id, order_number, status, total, order_type, customer_name, customer_phone, created_at, payment_status, payment_method, notes, source')
         .eq('location_id', location.id)
         .in('status', ['pending', 'preparing', 'ready'])
         .order('created_at', { ascending: false });
@@ -142,7 +144,29 @@ const StoreLiveDashboard = ({ location }: Props) => {
     refetchInterval: 10000,
   });
 
-  // Realtime subscription
+  // Order detail data
+  const { data: orderDetail } = useQuery({
+    queryKey: ['store-order-detail', selectedOrderId],
+    queryFn: async () => {
+      if (!selectedOrderId) return null;
+      const { data: order, error: oErr } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', selectedOrderId)
+        .single();
+      if (oErr) throw oErr;
+
+      const { data: items, error: iErr } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', selectedOrderId);
+      if (iErr) throw iErr;
+
+      return { order, items: items || [] };
+    },
+    enabled: !!selectedOrderId,
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel(`store-live-${location.id}`)
@@ -153,7 +177,6 @@ const StoreLiveDashboard = ({ location }: Props) => {
     return () => { supabase.removeChannel(channel); };
   }, [location.id, queryClient]);
 
-  // Stats
   const totalSales = todayOrders?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
   const ordersCount = todayOrders?.length || 0;
   const activeOrders = liveOrders?.length || 0;
@@ -233,30 +256,157 @@ const StoreLiveDashboard = ({ location }: Props) => {
         </div>
       </div>
 
-      {/* Live Orders */}
+      {/* Live Orders - clickable */}
       <div className="bg-card border rounded-xl p-5 mt-6">
         <h3 className="font-semibold text-lg mb-4">Live Orders ({activeOrders})</h3>
         {liveOrders?.length ? (
           <div className="space-y-2">
             {liveOrders.map(order => (
-              <div key={order.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+              <button
+                key={order.id}
+                onClick={() => setSelectedOrderId(order.id)}
+                className="w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg border hover:border-primary/50 hover:bg-muted/50 transition-all text-left"
+              >
                 <div>
                   <p className="font-medium text-foreground">{order.order_number}</p>
-                  <p className="text-xs text-muted-foreground">{order.customer_name || 'Walk-in'} • {order.order_type}</p>
+                  <p className="text-xs text-muted-foreground">{order.customer_name || 'Walk-in'} • {order.order_type} • {order.source}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold">${Number(order.total).toFixed(2)}</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${statusColors[order.status] || 'bg-muted text-muted-foreground'}`}>
                     {order.status}
                   </span>
+                  <Eye className="w-4 h-4 text-muted-foreground" />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         ) : (
           <p className="text-muted-foreground text-sm">No active orders right now</p>
         )}
       </div>
+
+      {/* Full Reports Section */}
+      <div className="bg-card border rounded-xl p-5 mt-6">
+        <POSReportsPanel locationId={location.id} onClose={() => {}} embedded />
+      </div>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!selectedOrderId} onOpenChange={(open) => !open && setSelectedOrderId(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          {orderDetail ? (
+            <div className="space-y-4">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Order #</p>
+                  <p className="font-semibold">{orderDetail.order.order_number}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${statusColors[orderDetail.order.status] || 'bg-muted text-muted-foreground'}`}>
+                    {orderDetail.order.status}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Customer</p>
+                  <p className="font-medium">{orderDetail.order.customer_name || 'Walk-in'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Phone</p>
+                  <p className="font-medium">{orderDetail.order.customer_phone || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Type</p>
+                  <p className="font-medium capitalize">{orderDetail.order.order_type}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Source</p>
+                  <p className="font-medium capitalize">{orderDetail.order.source}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Payment</p>
+                  <p className="font-medium capitalize">{orderDetail.order.payment_method || 'Unpaid'} ({orderDetail.order.payment_status})</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Date</p>
+                  <p className="font-medium">{format(new Date(orderDetail.order.created_at), 'MMM dd, yyyy h:mm a')}</p>
+                </div>
+              </div>
+
+              {orderDetail.order.notes && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Notes</p>
+                  <p className="text-sm">{orderDetail.order.notes}</p>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Items */}
+              <div>
+                <h4 className="font-semibold mb-2">Items</h4>
+                <div className="space-y-2">
+                  {orderDetail.items.map((item: any) => {
+                    const customizations = item.customizations as any;
+                    return (
+                      <div key={item.id} className="flex justify-between items-start p-2 bg-muted/30 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{item.quantity}x {item.name}</p>
+                          {customizations?.size && (
+                            <p className="text-xs text-muted-foreground">
+                              {typeof customizations.size === 'object' ? customizations.size.name : customizations.size}
+                              {customizations.crust && ` • ${typeof customizations.crust === 'object' ? customizations.crust.name : customizations.crust}`}
+                            </p>
+                          )}
+                          {customizations?.extraToppings?.length > 0 && (
+                            <p className="text-xs text-green-600">+ {customizations.extraToppings.map((t: any) => typeof t === 'string' ? t : t.name).join(', ')}</p>
+                          )}
+                          {customizations?.note && (
+                            <p className="text-xs text-orange-500 italic">Note: {customizations.note}</p>
+                          )}
+                        </div>
+                        <p className="font-semibold">${Number(item.total_price).toFixed(2)}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Totals */}
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>${Number(orderDetail.order.subtotal).toFixed(2)}</span>
+                </div>
+                {Number(orderDetail.order.discount) > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-${Number(orderDetail.order.discount).toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tax</span>
+                  <span>${Number(orderDetail.order.tax).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-base pt-1 border-t">
+                  <span>Total</span>
+                  <span>${Number(orderDetail.order.total).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-32">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
