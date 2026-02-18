@@ -1,7 +1,52 @@
-import { MapPin, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { MapPin, Star } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
+import { useLocationHours } from '@/hooks/useLocationHours';
+
+const LocationCard = ({ loc, onOrder }: { loc: any; onOrder: () => void }) => {
+  const { hours } = useLocationHours(loc.id);
+  
+  // Check if currently open
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const todayHours = hours?.find((h: any) => h.day_of_week === dayOfWeek);
+  const isOpen = todayHours?.is_open ?? true;
+
+  return (
+    <div 
+      className="bg-card rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-border"
+      onClick={onOrder}
+    >
+      {/* Image area */}
+      <div className="relative h-48 bg-muted">
+        {loc.image_url ? (
+          <img src={loc.image_url} alt={loc.shortName} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+            <MapPin className="w-12 h-12 text-primary/40" />
+          </div>
+        )}
+        {/* Open Now badge */}
+        <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold text-white ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}>
+          {isOpen ? 'Open Now' : 'Closed'}
+        </span>
+      </div>
+
+      {/* Info area */}
+      <div className="p-4">
+        <h3 className="font-serif text-lg font-bold text-foreground mb-2">{loc.shortName}</h3>
+        <div className="flex items-start gap-1.5 text-muted-foreground text-sm mb-2">
+          <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+          <span>{loc.address}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <span className="font-semibold text-foreground text-sm">4.7</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const LocationsSection = () => {
   const { locations, setSelectedLocation } = useLocation();
@@ -16,46 +61,20 @@ const LocationsSection = () => {
   };
 
   return (
-    <section 
-      className="py-20 bg-cover bg-center bg-fixed relative"
-      style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1920&q=80')`
-      }}
-    >
-      <div className="container mx-auto px-4 relative z-10">
-        <h2 className="font-serif text-4xl md:text-5xl font-bold text-white text-center mb-12">
+    <section className="py-16 bg-background">
+      <div className="container mx-auto px-4">
+        <p className="text-center text-muted-foreground text-sm tracking-widest uppercase mb-2">Visit Us</p>
+        <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground text-center mb-10">
           Our Locations
         </h2>
         
-        <div className={`grid gap-8 max-w-5xl mx-auto ${locations.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+        <div className={`grid gap-6 max-w-5xl mx-auto ${locations.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
           {locations.map((loc) => (
-            <div 
-              key={loc.id}
-              className="text-center text-white"
-            >
-              {loc.image_url ? (
-                <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden border-4 border-primary">
-                  <img src={loc.image_url} alt={loc.name} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-8 h-8 text-primary-foreground" />
-                </div>
-              )}
-              <h3 className="font-serif text-xl font-bold mb-3">{loc.shortName}</h3>
-              <p className="text-white/80 mb-2">{loc.address}</p>
-              <p className="text-white/80 mb-6 flex items-center justify-center gap-2">
-                <Phone className="w-4 h-4" />
-                {loc.phone}
-              </p>
-              <Button 
-                variant="default"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => handleOrderNow(loc.id)}
-              >
-                Order Now
-              </Button>
-            </div>
+            <LocationCard 
+              key={loc.id} 
+              loc={loc} 
+              onOrder={() => handleOrderNow(loc.id)} 
+            />
           ))}
         </div>
       </div>
