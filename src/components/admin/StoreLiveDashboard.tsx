@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LocationRow } from '@/hooks/useLocations';
-import { DollarSign, ShoppingCart, Receipt, TrendingUp, MapPin, Eye } from 'lucide-react';
+import { DollarSign, ShoppingCart, Receipt, TrendingUp, MapPin, Eye, ChevronDown, ChevronUp, Check, X, Ban } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Props {
   location: LocationRow;
@@ -134,7 +135,7 @@ const StoreLiveDashboard = ({ location }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, status, total, order_type, customer_name, customer_phone, created_at, payment_status, payment_method, notes, source')
+        .select('id, order_number, status, total, order_type, customer_name, customer_phone, created_at, payment_status, payment_method, notes, source, subtotal, tax, discount, rewards_discount, coupon_code')
         .eq('location_id', location.id)
         .in('status', ['pending', 'preparing', 'ready'])
         .order('created_at', { ascending: false });
@@ -142,6 +143,52 @@ const StoreLiveDashboard = ({ location }: Props) => {
       return data;
     },
     refetchInterval: 10000,
+  });
+
+  // Fetch items for all live orders
+  const liveOrderIds = liveOrders?.map(o => o.id) || [];
+  const { data: liveOrderItems } = useQuery({
+    queryKey: ['store-dashboard', location.id, 'live-items', liveOrderIds],
+    queryFn: async () => {
+      if (!liveOrderIds.length) return {};
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('*')
+        .in('order_id', liveOrderIds);
+      if (error) throw error;
+      const map: Record<string, any[]> = {};
+      data?.forEach(item => {
+        if (!map[item.order_id]) map[item.order_id] = [];
+        map[item.order_id].push(item);
+      });
+      return map;
+    },
+    enabled: liveOrderIds.length > 0,
+  });
+
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedOrders(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status })
+        .eq('id', orderId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['store-dashboard', location.id] });
+      toast.success(`Order ${status === 'cancelled' ? 'cancelled' : 'accepted'}`);
+    },
+    onError: () => toast.error('Failed to update order'),
   });
 
   // Order detail data
@@ -172,6 +219,9 @@ const StoreLiveDashboard = ({ location }: Props) => {
       .channel(`store-live-${location.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `location_id=eq.${location.id}` }, () => {
         queryClient.invalidateQueries({ queryKey: ['store-dashboard', location.id] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['store-dashboard', location.id, 'live-items'] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -256,30 +306,135 @@ const StoreLiveDashboard = ({ location }: Props) => {
         </div>
       </div>
 
-      {/* Live Orders - clickable */}
+      {/* Live Orders - expandable with full details */}
       <div className="bg-card border rounded-xl p-5 mt-6">
         <h3 className="font-semibold text-lg mb-4">Live Orders ({activeOrders})</h3>
         {liveOrders?.length ? (
-          <div className="space-y-2">
-            {liveOrders.map(order => (
-              <button
-                key={order.id}
-                onClick={() => setSelectedOrderId(order.id)}
-                className="w-full flex items-center justify-between p-3 bg-muted/30 rounded-lg border hover:border-primary/50 hover:bg-muted/50 transition-all text-left"
-              >
-                <div>
-                  <p className="font-medium text-foreground">{order.order_number}</p>
-                  <p className="text-xs text-muted-foreground">{order.customer_name || 'Walk-in'} • {order.order_type} • {order.source}</p>
+          <div className="space-y-3">
+            {liveOrders.map(order => {
+              const isExpanded = expandedOrders.has(order.id);
+              const items = liveOrderItems?.[order.id] || [];
+              return (
+                <div key={order.id} className="border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => toggleExpand(order.id)}
+                    className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-all text-left"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">{order.order_number}</p>
+                      <p className="text-xs text-muted-foreground">{order.customer_name || 'Walk-in'} • {order.order_type} • {order.source}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold">${Number(order.total).toFixed(2)}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${statusColors[order.status] || 'bg-muted text-muted-foreground'}`}>
+                        {order.status}
+                      </span>
+                      {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="p-4 border-t bg-background space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        <div><span className="text-muted-foreground">Customer:</span> <span className="font-medium">{order.customer_name || 'Walk-in'}</span></div>
+                        <div><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{order.customer_phone || '-'}</span></div>
+                        <div><span className="text-muted-foreground">Type:</span> <span className="font-medium capitalize">{order.order_type}</span></div>
+                        <div><span className="text-muted-foreground">Payment:</span> <span className="font-medium capitalize">{order.payment_method || 'Unpaid'} ({order.payment_status})</span></div>
+                        <div><span className="text-muted-foreground">Time:</span> <span className="font-medium">{format(new Date(order.created_at), 'h:mm a')}</span></div>
+                        <div><span className="text-muted-foreground">Source:</span> <span className="font-medium capitalize">{order.source}</span></div>
+                        {order.coupon_code && <div><span className="text-muted-foreground">Coupon:</span> <span className="font-medium">{order.coupon_code}</span></div>}
+                      </div>
+
+                      {order.notes && (
+                        <div className="bg-muted/50 rounded-lg p-2 text-sm">
+                          <span className="text-muted-foreground">Notes: </span>{order.notes}
+                        </div>
+                      )}
+
+                      <Separator />
+
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2">Items ({items.length})</h4>
+                        <div className="space-y-2">
+                          {items.map((item: any) => {
+                            const c = item.customizations as any;
+                            return (
+                              <div key={item.id} className="flex justify-between items-start p-2 bg-muted/30 rounded-lg text-sm">
+                                <div className="flex-1">
+                                  <p className="font-medium">{item.quantity}x {item.name}</p>
+                                  {c?.size && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {typeof c.size === 'object' ? c.size.name : c.size}
+                                      {c.crust && ` • ${typeof c.crust === 'object' ? c.crust.name : c.crust}`}
+                                    </p>
+                                  )}
+                                  {c?.sauces?.length > 0 && (
+                                    <p className="text-xs text-muted-foreground">Sauce: {c.sauces.map((s: any) => typeof s === 'string' ? s : `${s.name}${s.quantity === 'extra' ? ' (extra)' : ''}`).join(', ')}</p>
+                                  )}
+                                  {c?.cheese && (
+                                    <p className="text-xs text-muted-foreground">Cheese: {typeof c.cheese === 'string' ? c.cheese : `${c.cheese.name}${c.cheese.quantity === 'extra' ? ' (extra)' : ''}`}</p>
+                                  )}
+                                  {c?.defaultToppings?.some((t: any) => t.quantity === 'none') && (
+                                    <p className="text-xs text-red-500">Removed: {c.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => typeof t === 'string' ? t : t.name).join(', ')}</p>
+                                  )}
+                                  {c?.extraToppings?.length > 0 && (
+                                    <p className="text-xs text-green-600">+ {c.extraToppings.map((t: any) => {
+                                      const name = typeof t === 'string' ? t : t.name;
+                                      const side = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+                                      const qty = t.quantity && t.quantity !== 'regular' ? ` ${t.quantity}` : '';
+                                      return `${name}${qty}${side}`;
+                                    }).join(', ')}</p>
+                                  )}
+                                  {c?.spicyLevel && (c.spicyLevel.left !== 'none' || c.spicyLevel.right !== 'none') && (
+                                    <p className="text-xs text-orange-500">🌶 Spicy: L:{c.spicyLevel.left} R:{c.spicyLevel.right}</p>
+                                  )}
+                                  {c?.freeToppings?.length > 0 && (
+                                    <p className="text-xs text-muted-foreground">Free: {c.freeToppings.map((t: any) => typeof t === 'string' ? t : t.name).join(', ')}</p>
+                                  )}
+                                  {c?.flavor && <p className="text-xs text-muted-foreground">Flavor: {typeof c.flavor === 'object' ? c.flavor.name : c.flavor}</p>}
+                                  {c?.note && <p className="text-xs text-orange-500 italic">Note: {c.note}</p>}
+                                </div>
+                                <p className="font-semibold">${Number(item.total_price).toFixed(2)}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="space-y-0.5">
+                          <p><span className="text-muted-foreground">Subtotal:</span> ${Number(order.subtotal).toFixed(2)}</p>
+                          {Number(order.discount) > 0 && <p className="text-green-600">Discount: -${Number(order.discount).toFixed(2)}</p>}
+                          {Number(order.rewards_discount) > 0 && <p className="text-green-600">Rewards: -${Number(order.rewards_discount).toFixed(2)}</p>}
+                          <p><span className="text-muted-foreground">Tax:</span> ${Number(order.tax).toFixed(2)}</p>
+                          <p className="font-bold">Total: ${Number(order.total).toFixed(2)}</p>
+                        </div>
+                        <div className="flex gap-2 flex-wrap justify-end">
+                          {order.status === 'pending' && (
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'preparing' }); }} className="bg-green-600 hover:bg-green-700 text-white">
+                              <Check className="w-4 h-4 mr-1" /> Accept
+                            </Button>
+                          )}
+                          {order.status === 'preparing' && (
+                            <Button size="sm" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'ready' }); }} className="bg-blue-600 hover:bg-blue-700 text-white">
+                              <Check className="w-4 h-4 mr-1" /> Mark Ready
+                            </Button>
+                          )}
+                          <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ orderId: order.id, status: 'cancelled' }); }}>
+                            <Ban className="w-4 h-4 mr-1" /> Cancel
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setSelectedOrderId(order.id); }}>
+                            <Eye className="w-4 h-4 mr-1" /> Full View
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold">${Number(order.total).toFixed(2)}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${statusColors[order.status] || 'bg-muted text-muted-foreground'}`}>
-                    {order.status}
-                  </span>
-                  <Eye className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-muted-foreground text-sm">No active orders right now</p>
