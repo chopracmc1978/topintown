@@ -51,10 +51,9 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Show "New!" badge for web/app orders that arrived within last 3 minutes
+  // Show "New!" badge for web/app orders until accepted (no longer pending)
   const isNewRemoteOrder = (order.source === 'web' || order.source === 'app' || order.source === 'online') 
-    && order.status === 'pending'
-    && (Date.now() - new Date(order.createdAt).getTime()) < 3 * 60 * 1000;
+    && order.status === 'pending';
 
   const lifetimePoints = rewardInfo?.lifetime_points ?? 0;
   const balancePoints = rewardInfo?.points ?? 0;
