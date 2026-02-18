@@ -60,7 +60,7 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm p-4">
+      <DialogContent className="max-w-md p-5">
         <DialogHeader className="pb-1">
           <DialogTitle className="font-serif text-base">
             {editingItem ? `Edit ${item.name}` : item.name}
