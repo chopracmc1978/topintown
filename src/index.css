@@ -368,6 +368,7 @@
 .pos-badge-preparing { background: hsl(210, 60%, 25%); border-color: hsl(210, 70%, 50%); color: hsl(210, 80%, 75%); }
 .pos-badge-ready { background: hsl(145, 50%, 25%); border-color: hsl(145, 55%, 45%); color: hsl(145, 70%, 70%); }
 .pos-badge-pending { background: hsl(45, 60%, 25%); border-color: hsl(40, 70%, 50%); color: hsl(35, 80%, 70%); }
+.pos-badge-delivered { background: hsl(180, 40%, 25%); border-color: hsl(180, 50%, 45%); color: hsl(180, 60%, 75%); }
 .pos-badge-paid { background: hsl(145, 65%, 35%); border-color: hsl(145, 65%, 35%); color: hsl(0, 0%, 100%); }
 .pos-badge-unpaid { background: hsl(25, 60%, 25%); border-color: hsl(25, 70%, 50%); color: hsl(20, 80%, 70%); }
 

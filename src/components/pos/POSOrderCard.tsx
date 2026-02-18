@@ -18,7 +18,7 @@ const statusBadgeClass: Record<string, string> = {
   pending: 'pos-badge pos-badge-pending',
   preparing: 'pos-badge pos-badge-preparing',
   ready: 'pos-badge pos-badge-ready',
-  delivered: 'pos-badge',
+  delivered: 'pos-badge pos-badge-delivered',
   cancelled: 'pos-badge',
 };
 
