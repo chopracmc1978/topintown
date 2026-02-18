@@ -32,7 +32,15 @@ export const usePOSNotificationSound = (orders: Order[]) => {
 
   // Initialize AudioContext (doesn't mean audio is enabled)
   const initAudioContext = useCallback(() => {
-    if (audioContextRef.current) return true;
+    if (audioContextRef.current) {
+      // Always try to resume on each call (critical for tablets)
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().then(() => {
+          console.log('✅ AudioContext resumed from suspended');
+        }).catch(() => {});
+      }
+      return true;
+    }
     
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -43,9 +51,10 @@ export const usePOSNotificationSound = (orders: Order[]) => {
       gainNodeRef.current.connect(audioContextRef.current.destination);
       gainNodeRef.current.gain.value = volume;
       
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
+      // Always resume — critical for mobile/tablet browsers
+      audioContextRef.current.resume().then(() => {
+        console.log('✅ AudioContext created and resumed');
+      }).catch(() => {});
       
       setIsAudioReady(true);
       console.log('✅ AudioContext initialized');
@@ -136,10 +145,26 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     console.log('🔔 Started notification loop');
   }, [playNotificationTone]);
 
-  // Enable audio (user toggled on)
+  // Enable audio (user toggled on) — MUST unlock audio in user gesture context for tablets
   const enableAudio = useCallback(() => {
     userToggledOffRef.current = false;
     initAudioContext();
+    
+    // Play a silent "unlock" tone immediately in the user gesture to satisfy mobile browser policy
+    if (audioContextRef.current) {
+      const ctx = audioContextRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0; // Silent
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.01);
+    }
+    
     setIsAudioEnabled(true);
     console.log('✅ Audio enabled by user');
     
@@ -177,10 +202,15 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     console.log('🔊 Volume set to:', Math.round(clamped * 100) + '%');
   }, []);
 
-  // Play test sound
+  // Play test sound — unlock and play in user gesture context
   const playTestSound = useCallback(() => {
     initAudioContext();
-    playNotificationTone();
+    // Ensure resumed for tablets
+    if (audioContextRef.current?.state === 'suspended') {
+      audioContextRef.current.resume().then(() => playNotificationTone());
+    } else {
+      playNotificationTone();
+    }
   }, [initAudioContext, playNotificationTone]);
 
   // Initialize AudioContext on first user interaction (for browser policy)
