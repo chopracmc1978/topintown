@@ -25,6 +25,7 @@ import { POSStaffReportCard } from '@/components/pos/POSStaffReportCard';
 import { POSReportsPanel } from '@/components/pos/POSReportsPanel';
 import { POSSettingsPinModal } from '@/components/pos/POSSettingsPinModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useIncomingCalls } from '@/hooks/useIncomingCalls';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/logo.png';
 import tillIcon from '@/assets/till-icon.png';
@@ -268,6 +269,8 @@ const POSDashboard = ({
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [incomingCallPhone, setIncomingCallPhone] = useState<string>('');
+  const [incomingCallName, setIncomingCallName] = useState<string>('');
   const [cashModalOpen, setCashModalOpen] = useState(false);
   const [pendingPaymentOrderId, setPendingPaymentOrderId] = useState<string | null>(null);
   const [prepTimeModalOpen, setPrepTimeModalOpen] = useState(false);
@@ -293,6 +296,20 @@ const POSDashboard = ({
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, hasAdvanceAlerts, advanceAlertCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
   
+  // Incoming phone call detection
+  const { incomingCall, handleCall, dismissCall } = useIncomingCalls(currentLocationId);
+
+  // Auto-open new order when incoming call detected
+  useEffect(() => {
+    if (incomingCall && !showNewOrder && !editingOrder) {
+      setIncomingCallPhone(incomingCall.caller_phone);
+      setIncomingCallName(incomingCall.caller_name || '');
+      setShowNewOrder(true);
+      setSelectedOrderId(null);
+      handleCall(incomingCall.id);
+    }
+  }, [incomingCall, showNewOrder, editingOrder]);
+
   // Print receipts hook
   const { printKitchenTicket, printCustomerReceipt, openTill, hasPrinters } = usePrintReceipts(currentLocationId);
   
@@ -957,7 +974,13 @@ const POSDashboard = ({
           ) : showNewOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
-              onCancel={() => setShowNewOrder(false)}
+              onCancel={() => {
+                setShowNewOrder(false);
+                setIncomingCallPhone('');
+                setIncomingCallName('');
+              }}
+              initialPhone={incomingCallPhone || undefined}
+              initialName={incomingCallName || undefined}
             />
           ) : selectedOrder ? (
             <POSOrderDetail

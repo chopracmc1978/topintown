@@ -457,6 +457,33 @@ export type Database = {
         }
         Relationships: []
       }
+      incoming_calls: {
+        Row: {
+          caller_name: string | null
+          caller_phone: string
+          created_at: string
+          handled: boolean
+          id: string
+          location_id: string
+        }
+        Insert: {
+          caller_name?: string | null
+          caller_phone: string
+          created_at?: string
+          handled?: boolean
+          id?: string
+          location_id: string
+        }
+        Update: {
+          caller_name?: string | null
+          caller_phone?: string
+          created_at?: string
+          handled?: boolean
+          id?: string
+          location_id?: string
+        }
+        Relationships: []
+      }
       item_default_global_sauces: {
         Row: {
           created_at: string
