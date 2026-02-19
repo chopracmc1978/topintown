@@ -234,7 +234,7 @@ export const POSReportsPanel = ({ locationId, onClose, embedded = false }: POSRe
               <tbody>
                 {dailySales.map((day) => (
                   <tr key={day.date} className="border-b">
-                    <td className="py-2">{format(new Date(day.date), 'MMM dd, yyyy')}</td>
+                    <td className="py-2">{(() => { const [y,m,d] = day.date.split('-').map(Number); return format(new Date(y, m-1, d), 'MMM dd, yyyy'); })()}</td>
                     <td className="text-right py-2">{day.orderCount}</td>
                     <td className="text-right py-2 text-green-600">${day.cashSales.toFixed(2)}</td>
                     <td className="text-right py-2 text-blue-600">${day.cardSales.toFixed(2)}</td>

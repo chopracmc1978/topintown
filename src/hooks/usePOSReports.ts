@@ -2,6 +2,38 @@ import { useState, useEffect } from 'react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, subDays, subMonths } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
+// Convert a local Date to Mountain Time boundaries for DB queries
+const toMountainDayStart = (date: Date): string => {
+  const mt = new Date(date.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
+  const y = mt.getFullYear();
+  const m = String(mt.getMonth() + 1).padStart(2, '0');
+  const d = String(mt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}T00:00:00-07:00`;
+};
+
+const toMountainDayEnd = (date: Date): string => {
+  const mt = new Date(date.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
+  const y = mt.getFullYear();
+  const m = String(mt.getMonth() + 1).padStart(2, '0');
+  const d = String(mt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}T23:59:59-07:00`;
+};
+
+// Format a UTC timestamp to Mountain Time date string
+const toMountainDateKey = (isoString: string): string => {
+  const d = new Date(isoString);
+  const mt = new Date(d.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
+  const y = mt.getFullYear();
+  const m = String(mt.getMonth() + 1).padStart(2, '0');
+  const day = String(mt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const toMountainHour = (isoString: string): number => {
+  const d = new Date(isoString);
+  const mt = new Date(d.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
+  return mt.getHours();
+};
 interface DailySalesData {
   date: string;
   totalSales: number;
@@ -72,8 +104,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('created_at, total, payment_method, status')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (error) throw error;
@@ -82,7 +114,7 @@ export const usePOSReports = (locationId: string) => {
       const salesByDate: Record<string, DailySalesData> = {};
       
       (data || []).forEach(order => {
-        const dateKey = format(new Date(order.created_at), 'yyyy-MM-dd');
+        const dateKey = toMountainDateKey(order.created_at);
         
         if (!salesByDate[dateKey]) {
           salesByDate[dateKey] = {
@@ -127,8 +159,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('id')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (ordersError) throw ordersError;
@@ -204,8 +236,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('id')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (ordersError) throw ordersError;
@@ -270,8 +302,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('created_at, total')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (error) throw error;
@@ -285,7 +317,7 @@ export const usePOSReports = (locationId: string) => {
       }
 
       (data || []).forEach(order => {
-        const hour = new Date(order.created_at).getHours();
+        const hour = toMountainHour(order.created_at);
         salesByHour[hour].totalSales += order.total || 0;
         salesByHour[hour].orderCount += 1;
       });
@@ -307,8 +339,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('total, payment_method')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .eq('payment_status', 'paid')
         .neq('status', 'cancelled');
 
@@ -356,8 +388,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('total, source')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (error) throw error;
@@ -404,8 +436,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('order_number, total, created_at, customer_name, source')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .eq('status', 'cancelled');
 
       if (error) throw error;
@@ -444,8 +476,8 @@ export const usePOSReports = (locationId: string) => {
         .from('orders')
         .select('id, total, payment_method, pos_staff_id, status')
         .eq('location_id', locationId)
-        .gte('created_at', startOfDay(start).toISOString())
-        .lte('created_at', endOfDay(end).toISOString())
+        .gte('created_at', toMountainDayStart(start))
+        .lte('created_at', toMountainDayEnd(end))
         .neq('status', 'cancelled');
 
       if (ordersError) throw ordersError;
@@ -455,8 +487,8 @@ export const usePOSReports = (locationId: string) => {
         .from('pos_sessions')
         .select('pos_staff_id, start_time, end_time')
         .eq('location_id', locationId)
-        .gte('start_time', startOfDay(start).toISOString())
-        .lte('start_time', endOfDay(end).toISOString());
+        .gte('start_time', toMountainDayStart(start))
+        .lte('start_time', toMountainDayEnd(end));
 
       if (sessionsError) throw sessionsError;
 
