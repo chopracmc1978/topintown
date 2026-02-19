@@ -13,6 +13,8 @@ interface POSEndDayModalProps {
   onEndDay: (enteredCash: number) => void;
   activeSession: POSSession | null;
   todayCashSales: number;
+  todayCardSales: number;
+  todayWebAppSales: number;
 }
 
 export const POSEndDayModal = ({
@@ -21,6 +23,8 @@ export const POSEndDayModal = ({
   onEndDay,
   activeSession,
   todayCashSales,
+  todayCardSales,
+  todayWebAppSales,
 }: POSEndDayModalProps) => {
   const [enteredAmount, setEnteredAmount] = useState('');
 
@@ -83,6 +87,14 @@ export const POSEndDayModal = ({
             <div className="flex justify-between text-sm">
               <span>Cash Sales Total:</span>
               <span className="font-semibold text-green-600">$ {todayCashSales.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Card Sales Total:</span>
+              <span className="font-semibold text-blue-600">$ {todayCardSales.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Web/App Sales Total:</span>
+              <span className="font-semibold text-purple-600">$ {todayWebAppSales.toFixed(2)}</span>
             </div>
           </div>
 
