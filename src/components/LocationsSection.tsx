@@ -1,16 +1,11 @@
 import { MapPin, Star } from 'lucide-react';
 import { useLocation } from '@/contexts/LocationContext';
 import { useNavigate } from 'react-router-dom';
-import { useLocationHours } from '@/hooks/useLocationHours';
+import { useIsLocationOpen } from '@/hooks/useLocationHours';
 
 const LocationCard = ({ loc, onOrder }: { loc: any; onOrder: () => void }) => {
-  const { hours } = useLocationHours(loc.id);
-  
-  // Check if currently open
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const todayHours = hours?.find((h: any) => h.day_of_week === dayOfWeek);
-  const isOpen = todayHours?.is_open ?? true;
+  const { checkIfOpen } = useIsLocationOpen(loc.id);
+  const { isOpen } = checkIfOpen();
 
   return (
     <div 
