@@ -316,7 +316,9 @@ const POSDashboard = ({
   // POS Session management
   const { 
     activeSession, 
-    todayCashSales, 
+    todayCashSales,
+    todayCardSales,
+    todayWebAppSales,
     startSession, 
     endSession, 
     getLastSessionEndCash,
@@ -1226,6 +1228,8 @@ const POSDashboard = ({
         }}
         activeSession={activeSession}
         todayCashSales={todayCashSales}
+        todayCardSales={todayCardSales}
+        todayWebAppSales={todayWebAppSales}
       />
 
       {/* Reports Panel */}

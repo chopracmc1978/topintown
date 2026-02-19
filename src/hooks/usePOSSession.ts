@@ -26,6 +26,8 @@ export interface POSSession {
 export const usePOSSession = (locationId: string, userId: string | undefined) => {
   const [activeSession, setActiveSession] = useState<POSSession | null>(null);
   const [todayCashSales, setTodayCashSales] = useState<number>(0);
+  const [todayCardSales, setTodayCardSales] = useState<number>(0);
+  const [todayWebAppSales, setTodayWebAppSales] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const autoLogoutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -61,36 +63,37 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
     }
   }, [locationId, userId]);
 
-  // Calculate today's cash sales
+  // Calculate today's sales by payment method
   const fetchTodayCashSales = useCallback(async () => {
     if (!locationId) return;
 
     try {
-      // Get today's date range in Mountain Time
       const now = new Date();
-      // Convert to Mountain Time start of day
       const today = new Date(now.toLocaleString('en-US', { timeZone: 'America/Edmonton' }));
       today.setHours(0, 0, 0, 0);
       
       const { data, error } = await supabase
         .from('orders')
-        .select('total')
+        .select('total, payment_method, source')
         .eq('location_id', locationId)
-        .eq('payment_method', 'cash')
         .eq('payment_status', 'paid')
         .gte('created_at', today.toISOString());
 
       if (error) {
-        console.error('Error fetching cash sales:', error);
-        // Don't throw - continue with current value
+        console.error('Error fetching sales:', error);
         return;
       }
 
-      const total = (data || []).reduce((sum, order) => sum + (order.total || 0), 0);
-      setTodayCashSales(total);
+      const orders = data || [];
+      const cashTotal = orders.filter(o => o.payment_method === 'cash').reduce((sum, o) => sum + (o.total || 0), 0);
+      const cardTotal = orders.filter(o => o.payment_method === 'card').reduce((sum, o) => sum + (o.total || 0), 0);
+      const webAppTotal = orders.filter(o => o.source === 'web' || o.source === 'app').reduce((sum, o) => sum + (o.total || 0), 0);
+      
+      setTodayCashSales(cashTotal);
+      setTodayCardSales(cardTotal);
+      setTodayWebAppSales(webAppTotal);
     } catch (err: any) {
-      console.error('Error fetching cash sales:', err);
-      // Don't rethrow - prevent crash in native environment
+      console.error('Error fetching sales:', err);
     }
   }, [locationId]);
 
@@ -243,6 +246,8 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
   return {
     activeSession,
     todayCashSales,
+    todayCardSales,
+    todayWebAppSales,
     loading,
     startSession,
     endSession,
