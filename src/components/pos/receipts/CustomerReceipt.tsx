@@ -86,6 +86,12 @@ export const CustomerReceipt = ({
             </span>
           </div>
         )}
+        {order.customerPhone && (
+          <div className="flex justify-between">
+            <span>Phone:</span>
+            <span>{order.customerPhone}</span>
+          </div>
+        )}
         {order.customerName && (
           <div className="flex justify-between">
             <span>Customer:</span>
