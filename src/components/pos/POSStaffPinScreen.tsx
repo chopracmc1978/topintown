@@ -112,8 +112,8 @@ export const POSStaffPinScreen = ({ locationName, onPinVerified, onBack, verifyP
         {/* Back / Logout */}
         <button
           onClick={onBack}
-          className="text-sm underline"
-          style={{ color: '#64748b' }}
+          className="text-sm px-5 py-2 rounded-md"
+          style={{ backgroundColor: 'hsl(220, 22%, 28%)', color: '#94a3b8', border: '1px solid hsl(220, 20%, 35%)' }}
         >
           Back to Login
         </button>
