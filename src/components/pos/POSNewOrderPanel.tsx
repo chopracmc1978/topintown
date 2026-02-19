@@ -909,19 +909,6 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                         {combo.description && (
                           <p className="text-xs lg:text-sm text-gray-400 mb-2">{combo.description}</p>
                         )}
-                        {combo.combo_items && combo.combo_items.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {combo.combo_items.map((item, i) => (
-                              <span
-                                key={i}
-                                className="text-[10px] lg:text-xs bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded"
-                              >
-                                {item.quantity}x {item.item_type.replace('_', ' ')}
-                                {item.size_restriction && ` (${item.size_restriction})`}
-                              </span>
-                            ))}
-                          </div>
-                        )}
                         <p className="text-lg lg:text-xl text-blue-400 font-bold mt-auto">${combo.price.toFixed(2)}</p>
                       </button>
                     ))}
