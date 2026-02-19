@@ -69,11 +69,11 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
         <div className="space-y-2">
           {item.description && (
-            <p className="text-xs text-muted-foreground">{item.description}</p>
+            <p className="text-xs" style={{ color: '#94a3b8' }}>{item.description}</p>
           )}
 
           <div className="space-y-1.5">
-            <h3 className="font-medium text-sm text-foreground">Choose Your Flavor</h3>
+            <h3 className="font-medium text-sm" style={{ color: '#ffffff' }}>Choose Your Flavor</h3>
             <div className="flex flex-col gap-1">
               {FLAVOR_OPTIONS.map((flavor) => {
                 const isSelected = selectedFlavor === flavor.id;
@@ -94,12 +94,12 @@ export const POSWingsModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t">
-            <span className="text-lg font-bold text-primary">
+          <div className="flex items-center justify-between pt-2" style={{ borderTopColor: '#334155', borderTopWidth: '1px' }}>
+            <span className="text-lg font-bold" style={{ color: '#60a5fa' }}>
               ${item.base_price.toFixed(2)}
             </span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>
+              <Button variant="outline" size="sm" onClick={onClose} style={{ backgroundColor: '#f4a27a', color: '#000000', borderColor: '#f4a27a' }}>
                 Cancel
               </Button>
               <Button variant="pizza" size="sm" onClick={handleAddToOrder}>
