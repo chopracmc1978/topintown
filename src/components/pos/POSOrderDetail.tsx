@@ -253,6 +253,41 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
 
   const OrderTypeIcon = order.orderType === 'delivery' ? Truck : order.orderType === 'dine-in' ? Utensils : Package;
 
+  // Auto-save discount before payment
+  const saveDiscountAndPay = async (method: 'cash' | 'card') => {
+    const existingDiscount = order.discount || 0;
+    const totalDiscount = existingDiscount + newDiscounts;
+    const sub = order.subtotal || order.total * 0.952;
+    const discountedSub = Math.max(0, sub - totalDiscount);
+    const newTax = discountedSub * 0.05;
+    const newTotal = discountedSub + newTax;
+
+    const { error } = await supabase.from('orders').update({
+      discount: totalDiscount,
+      coupon_code: appliedCoupon?.code || order.couponCode || null,
+      tax: newTax,
+      total: newTotal,
+    }).eq('order_number', order.id);
+
+    if (error) {
+      toast.error('Failed to save discount');
+      return;
+    }
+
+    // Update local order object so payment modal gets the correct total
+    order.discount = totalDiscount;
+    order.tax = newTax;
+    order.total = newTotal;
+
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setManualDiscount('');
+    setDiscountInput('');
+
+    toast.success(`Discount saved — new total $${newTotal.toFixed(2)}`);
+    onPayment(method);
+  };
+
   return (
     <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 25%, 18%)', border: '1px solid hsl(220, 20%, 28%)' }}>
       {/* Header */}
@@ -569,7 +604,10 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <Button 
               variant="outline" 
               className="flex-1 text-green-400 border-green-600 hover:bg-green-900/30"
-              onClick={() => onPayment('cash')}
+              onClick={async () => {
+                if (hasNewDiscount) await saveDiscountAndPay('cash');
+                else onPayment('cash');
+              }}
             >
               <DollarSign className="w-4 h-4 mr-2" />
                {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
@@ -580,7 +618,10 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <Button 
               variant="outline" 
               className="flex-1 text-blue-400 border-blue-600 hover:bg-blue-900/30"
-              onClick={() => onPayment('card')}
+              onClick={async () => {
+                if (hasNewDiscount) await saveDiscountAndPay('card');
+                else onPayment('card');
+              }}
             >
               <CreditCard className="w-4 h-4 mr-2" />
                {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 
