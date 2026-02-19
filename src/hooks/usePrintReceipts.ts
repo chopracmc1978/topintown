@@ -73,6 +73,7 @@ export const usePrintReceipts = (locationId: string) => {
       tableNumber: order.tableNumber,
       pickupTime: (order as any).pickupTime,
       customerName: order.customerName,
+      customerPhone: order.customerPhone,
       notes: order.notes,
       items: order.items,
       subtotal: order.subtotal,

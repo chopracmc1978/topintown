@@ -50,6 +50,7 @@ export const buildKitchenTicket = (order: {
   tableNumber?: string;
   pickupTime?: string;
   customerName?: string;
+  customerPhone?: string;
   notes?: string;
   items: Array<{
     quantity: number;
@@ -118,6 +119,16 @@ export const buildKitchenTicket = (order: {
   // Order type
   const typeStr = order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1);
   receipt += formatOrderInfo('Type :', typeStr) + LF;
+  
+  // Customer name
+  if (order.customerName) {
+    receipt += formatOrderInfo('Customer :', order.customerName) + LF;
+  }
+  
+  // Customer phone
+  if (order.customerPhone) {
+    receipt += formatOrderInfo('Phone :', order.customerPhone) + LF;
+  }
   
   // Table number if present
   if (order.tableNumber) {
@@ -208,11 +219,16 @@ export const buildKitchenTicket = (order: {
     receipt += BOLD_ON + paymentStatus + BOLD_OFF + LF;
   }
   
-  // Customer name at end
-  if (order.customerName) {
+  // Customer info at end
+  if (order.customerName || order.customerPhone) {
     receipt += LF;
-    receipt += ALIGN_CENTER;
-    receipt += 'Customer: ' + order.customerName + LF;
+    receipt += ALIGN_LEFT;
+    if (order.customerName) {
+      receipt += formatOrderInfo('Customer :', order.customerName) + LF;
+    }
+    if (order.customerPhone) {
+      receipt += formatOrderInfo('Phone :', order.customerPhone) + LF;
+    }
   }
   
   receipt += LF + LF + LF;
@@ -452,6 +468,20 @@ export const buildCustomerReceipt = (order: {
   
   // Time
   receipt += formatOrderInfo('Time :', formatTime(order.createdAt)) + LF;
+  
+  // Order type
+  const typeStr = order.orderType.charAt(0).toUpperCase() + order.orderType.slice(1);
+  receipt += formatOrderInfo('Type :', typeStr) + LF;
+  
+  // Customer phone
+  if (order.customerPhone) {
+    receipt += formatOrderInfo('Phone :', order.customerPhone) + LF;
+  }
+  
+  // Customer name
+  if (order.customerName) {
+    receipt += formatOrderInfo('Customer :', order.customerName) + LF;
+  }
   
   receipt += LINE_STR + LF;
   
