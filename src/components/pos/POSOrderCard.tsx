@@ -68,7 +68,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       )}
     >
       {/* Order ID */}
-      <div className="font-mono font-bold text-xs mb-1 truncate" style={{ color: 'hsl(210,20%,95%)' }}>
+      <div className="font-mono font-bold text-sm mb-1 truncate" style={{ color: '#ffffff' }}>
         {order.id}
       </div>
 
@@ -102,11 +102,11 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       <div className="flex items-start justify-between gap-1 mb-0.5">
         <div className="min-w-0">
           {order.customerPhone && (
-            <p className="text-[11px] truncate" style={{ color: 'hsl(215,15%,60%)' }}>
+            <p className="text-sm font-medium truncate" style={{ color: '#ffffff' }}>
               {order.customerPhone}
             </p>
           )}
-          <p className="font-semibold text-xs truncate" style={{ color: 'hsl(210,20%,95%)' }}>
+          <p className="font-semibold text-xs truncate" style={{ color: '#ffffff' }}>
             {order.customerName || 'Walk-in Customer'}
           </p>
         </div>
@@ -121,7 +121,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Order Info */}
-      <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: 'hsl(215,15%,60%)' }}>
+      <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: '#ffffff' }}>
         <span className="flex items-center gap-0.5">
           <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
@@ -141,7 +141,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       )}
 
       {/* Items Preview */}
-      <div className="text-[11px] mb-1" style={{ color: 'hsl(215,15%,55%)' }}>
+      <div className="text-[11px] mb-1" style={{ color: '#ffffff' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
       </div>
 
