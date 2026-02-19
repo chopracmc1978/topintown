@@ -899,7 +899,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       <button
                         key={combo.id}
                         onClick={() => setSelectedCombo(combo)}
-                        className="p-4 lg:p-5 rounded-lg text-left transition-colors border-l-4 border-blue-500 min-h-[140px] lg:min-h-[160px] flex flex-col"
+                        className="p-4 lg:p-5 rounded-lg text-left transition-colors border-l-4 border-b-4 border-blue-500 min-h-[140px] lg:min-h-[160px] flex flex-col"
                         style={{ background: 'hsl(220, 25%, 20%)' }}
                       >
                         <div className="flex items-start gap-2 mb-2">
@@ -935,7 +935,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
                 ) : (
                   <div className={cn(
-                    "grid gap-1.5 lg:gap-2 auto-rows-min",
+                    "grid gap-2.5 lg:gap-3 auto-rows-min",
                     activeCategory === 'chicken_wings' ? "grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4" :
                     (activeCategory === 'baked_lasagna') ? "grid-cols-4 lg:grid-cols-5" : activeCategory === 'pizza' ? "grid-cols-5 lg:grid-cols-6" : "grid-cols-5 lg:grid-cols-6"
                   )}>
@@ -954,8 +954,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                           key={item.id}
                           onClick={() => handleItemClick(item)}
                           className={cn(
-                            "p-1.5 lg:p-2.5 rounded-md text-left transition-colors border-l-2 border-blue-500/50 flex flex-col justify-between text-white",
-                            item.category === 'chicken_wings' && "p-4 lg:p-5 border-l-4",
+                            "p-1.5 lg:p-2.5 rounded-md text-left transition-colors border-l-2 border-b-2 border-blue-500/50 flex flex-col justify-between text-white",
+                            item.category === 'chicken_wings' && "p-4 lg:p-5 border-l-4 border-b-4",
                             cardHeight
                           )}
                           style={{ background: 'hsl(220, 25%, 20%)' }}
