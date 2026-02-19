@@ -490,7 +490,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               {defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
-                  <div key={topping.id} className="flex flex-col items-stretch">
+                  <div key={topping.id} className="flex flex-col items-stretch" style={{ marginRight: 4, paddingRight: 4, borderRight: '1px solid hsla(220,22%,40%,0.4)' }}>
                     <button onClick={() => toggleDefaultTopping(topping.id)} className={cn(btnSmall, "rounded-b-none text-center justify-center")} style={isRemoved ? { backgroundColor: '#fca5a5', borderColor: '#fca5a5', color: '#ffffff', ...antiBlur } : blueStyle}>
                       <span className={isRemoved ? "line-through" : ""}>{topping.name}</span>
                     </button>
