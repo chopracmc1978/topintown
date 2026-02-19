@@ -486,7 +486,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: '56px', rowGap: '8px' }}>
+            <div className="flex flex-wrap gap-3 lg:gap-4">
               {defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
