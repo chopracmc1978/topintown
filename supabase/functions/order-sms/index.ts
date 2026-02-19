@@ -164,10 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
       return json(200, { success: true, message: "Customer not found, SMS skipped" });
     }
 
-    if (!customer.phone_verified) {
-      console.log("Customer phone not verified, skipping SMS");
-      return json(200, { success: true, message: "Phone not verified, SMS skipped" });
-    }
+    // Phone verified check removed - paid Twilio account can send to any number
 
     if (!customer.phone) {
       console.log("Customer has no phone, skipping SMS");
