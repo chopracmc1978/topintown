@@ -844,7 +844,7 @@ const POSDashboard = ({
             ))}
           </div>
 
-          <div className="flex items-center gap-0.5 lg:gap-1 flex-shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
             <Button 
               onClick={() => {
                 setShowNewOrder(true);
@@ -859,7 +859,7 @@ const POSDashboard = ({
             <button
               onClick={() => openTill()}
               className={cn(
-                "h-8 w-8 lg:h-10 lg:w-10 shrink-0 flex items-center justify-center rounded-md",
+                "h-9 w-9 lg:h-11 lg:w-11 shrink-0 flex items-center justify-center rounded-md",
                 "bg-transparent border-none",
                 "outline-none focus:outline-none focus-visible:outline-none",
                 "ring-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -870,7 +870,7 @@ const POSDashboard = ({
               title="Till"
               aria-label="Till"
             >
-              <img src={tillIcon} alt="Till" className="w-6 h-6 lg:w-7 lg:h-7 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
+              <img src={tillIcon} alt="Till" className="w-7 h-7 lg:w-8 lg:h-8 object-contain" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(456%) hue-rotate(87deg) brightness(95%) contrast(87%)' }} />
             </button>
 
             <button
