@@ -346,7 +346,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               </div>
             )}
           </div>
-          <div className="text-right shrink-0">
+          <div className="text-right shrink-0 min-w-[140px] lg:min-w-[180px]">
             <h3 className="font-semibold text-xs text-gray-400 uppercase">Customer</h3>
             <div className="flex items-center gap-1.5 justify-end">
               <User className="w-3.5 h-3.5 text-gray-400" />
