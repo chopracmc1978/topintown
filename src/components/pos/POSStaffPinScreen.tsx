@@ -46,12 +46,10 @@ export const POSStaffPinScreen = ({ locationName, onPinVerified, onBack, verifyP
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'hsl(220, 26%, 14%)' }}>
+    <div className="fixed inset-0 flex items-start justify-center p-4 pt-8" style={{ background: 'hsl(220, 26%, 14%)' }}>
       <div className="w-full max-w-xs space-y-4 text-center">
-        {/* Logo & Location */}
+        {/* Location */}
         <div className="space-y-2">
-          <img src={logo} alt="Logo" className="w-16 h-16 mx-auto object-contain" />
-          <h2 className="text-lg font-serif font-bold" style={{ color: '#e2e8f0' }}>{locationName}</h2>
           <p className="text-sm" style={{ color: '#94a3b8' }}>Enter your PIN to clock in</p>
         </div>
 
