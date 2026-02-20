@@ -94,7 +94,7 @@ export const POSLoginScreen = ({ onLoginSuccess }: POSLoginScreenProps) => {
   const KEYPAD_KEYS = ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '.'];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 pos-no-focus-ring" style={{ backgroundColor: '#0891b2' }}>
+    <div className="fixed inset-0 flex items-start justify-center p-4 pt-8 pos-no-focus-ring overflow-auto" style={{ backgroundColor: '#0891b2' }}>
       <Card className="w-full max-w-md relative overflow-hidden" style={{ backgroundColor: '#e8f4fc' }}>
         {/* Shield layer for legacy Android WebView opacity */}
         <div style={{ position: 'absolute', inset: 0, backgroundColor: '#e8f4fc', zIndex: 0 }} />
