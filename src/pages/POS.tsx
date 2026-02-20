@@ -849,10 +849,22 @@ const POSDashboard = ({
               {LOCATION_NAMES[currentLocationId] || currentLocationId}
             </span>
             {hasPendingRemoteOrders && (
-              <div className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full animate-bounce text-xs">
+              <button
+                type="button"
+                className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full animate-bounce text-xs cursor-pointer hover:bg-orange-600 transition-colors"
+                onClick={() => {
+                  const firstPending = orders.find(o => 
+                    (o.source === 'web' || o.source === 'app' || o.source === 'online') && o.status === 'pending'
+                  );
+                  if (firstPending) {
+                    setSelectedOrderId(firstPending.id);
+                    setShowNewOrder(false);
+                  }
+                }}
+              >
                 <Bell className="w-3.5 h-3.5" />
                 <span className="font-semibold">{pendingCount} New!</span>
-              </div>
+              </button>
             )}
             {hasAdvanceAlerts && !hasPendingRemoteOrders && (
               <div className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full animate-bounce text-xs">
