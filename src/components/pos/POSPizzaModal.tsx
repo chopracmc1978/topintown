@@ -353,8 +353,8 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   // Styles
   const antiBlur: React.CSSProperties = { WebkitFontSmoothing: 'antialiased' as any };
-  const btnSmall = "h-6 lg:h-7 px-2 lg:px-2.5 text-[10px] lg:text-xs rounded border font-medium transition-colors mx-px my-px text-foreground inline-flex items-center justify-center text-center leading-tight whitespace-nowrap min-w-0";
-  const labelBox = "h-6 lg:h-7 px-1.5 lg:px-2 text-[10px] lg:text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+  const btnSmall = "h-5 lg:h-7 px-1.5 lg:px-2.5 text-[9px] lg:text-xs rounded border font-medium transition-colors mx-px my-px text-foreground inline-flex items-center justify-center text-center leading-tight whitespace-nowrap min-w-0";
+  const labelBox = "h-5 lg:h-7 px-1 lg:px-2 text-[9px] lg:text-xs font-medium rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
   const blueStyle: React.CSSProperties = { backgroundColor: '#3b82f6', borderColor: '#3b82f6', color: '#ffffff', ...antiBlur };
   const darkStyle: React.CSSProperties = { backgroundColor: '#1e293b', borderColor: '#1e293b', color: '#ffffff', ...antiBlur };
@@ -363,11 +363,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[1020px] w-[95vw] p-1.5 lg:p-2.5 pt-1 lg:pt-2 overflow-y-auto max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'block', height: 'auto', maxHeight: '96vh' }}>
+      <DialogContent className="max-w-[1020px] w-[95vw] p-1 lg:p-2.5 pt-1 lg:pt-2 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}>
 
         {/* ROW 1: Pizza Name | Sizes | Crust */}
-        <div className="flex flex-wrap items-center gap-1 lg:gap-1.5 pb-0.5 lg:pb-1 border-b border-slate-200 pr-10 lg:pr-12" style={{ marginBottom: 5 }}>
-          <span className="font-serif text-[10px] lg:text-xs font-bold px-3 lg:px-4 py-1 lg:py-1.5 rounded whitespace-nowrap uppercase" style={{ ...blueStyle, minWidth: 160 }}>{item.name}</span>
+        <div className="flex flex-wrap items-center gap-0.5 lg:gap-1.5 pb-0.5 lg:pb-1 border-b border-slate-200 pr-8 lg:pr-12 flex-shrink-0" style={{ marginBottom: 3 }}>
+          <span className="font-serif text-[9px] lg:text-xs font-bold px-2 lg:px-4 py-0.5 lg:py-1.5 rounded whitespace-nowrap uppercase" style={{ ...blueStyle, minWidth: 120 }}>{item.name}</span>
           {item.sizes?.map(size => (
             <button key={size.id} onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })} className={cn(btnSmall, "px-2")} style={selectedSize?.id === size.id ? blueStyle : darkStyle}>
               <span className="text-[9px] lg:text-[11px] font-medium whitespace-nowrap">{size.name} {size.price.toFixed(2)}</span>
@@ -384,7 +384,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           })}
         </div>
 
-        <div className="space-y-px lg:space-y-0.5" style={{ flex: '0 0 auto' }}>
+        <div className="space-y-px lg:space-y-0.5 flex-1 min-h-0 overflow-y-auto" style={{ flex: '1 1 0%' }}>
 
           {/* ROW 2: Cheese */}
           <div className="flex items-center gap-1 lg:gap-1.5">
@@ -486,7 +486,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 lg:gap-2">
+            <div className="flex flex-wrap gap-1 lg:gap-2">
               {defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
@@ -514,7 +514,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* EXTRA TOPPINGS - 3 column grid */}
           {availableExtraToppings.length > 0 && (
             <div className="!mt-0" style={{ marginTop: 0 }}>
-              <div className="grid gap-1 lg:gap-1.5 grid-cols-3">
+              <div className="grid gap-0.5 lg:gap-1.5 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -549,12 +549,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* FOOTER - single row */}
-          <div className="flex items-center gap-1 lg:gap-1.5" style={{ marginTop: '2px', borderTop: '1px solid #9ab8c8', paddingTop: 6 }}>
-            <input type="text" value={note} onChange={(e) => { const val = e.target.value; if (shortcutMap[val]) { setNote(shortcutMap[val]); } else { setNote(val); } }} placeholder={shortcutPlaceholder} className="flex-[2] px-2 lg:px-2.5 py-1.5 lg:py-2 text-[10px] lg:text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
-            <input type="text" inputMode="decimal" value={extraAmount || ''} onChange={(e) => { const val = e.target.value.replace(/[^0-9.]/g, ''); setExtraAmount(parseFloat(val) || 0); }} placeholder="0.00" className="w-[90px] px-2 py-1.5 lg:py-2 text-[10px] lg:text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
-            <span className="text-sm lg:text-lg font-bold text-slate-900 whitespace-nowrap min-w-[70px] text-center">${totalPrice.toFixed(2)}</span>
-            <Button variant="outline" onClick={onClose} className="text-[10px] lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
-            <Button variant="default" onClick={handleAddToOrder} disabled={!selectedSize || !selectedCrust} className="text-[10px] lg:text-sm px-4 lg:px-6 py-1.5 lg:py-2 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
+          <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0" style={{ marginTop: '2px', borderTop: '1px solid #9ab8c8', paddingTop: 4 }}>
+            <input type="text" value={note} onChange={(e) => { const val = e.target.value; if (shortcutMap[val]) { setNote(shortcutMap[val]); } else { setNote(val); } }} placeholder={shortcutPlaceholder} className="flex-[2] px-2 lg:px-2.5 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
+            <input type="text" inputMode="decimal" value={extraAmount || ''} onChange={(e) => { const val = e.target.value.replace(/[^0-9.]/g, ''); setExtraAmount(parseFloat(val) || 0); }} placeholder="0.00" className="w-[70px] lg:w-[90px] px-1.5 lg:px-2 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
+            <span className="text-xs lg:text-lg font-bold text-slate-900 whitespace-nowrap min-w-[55px] lg:min-w-[70px] text-center">${totalPrice.toFixed(2)}</span>
+            <Button variant="outline" onClick={onClose} className="text-[9px] lg:text-sm px-2 lg:px-4 py-1 lg:py-2 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
+            <Button variant="default" onClick={handleAddToOrder} disabled={!selectedSize || !selectedCrust} className="text-[9px] lg:text-sm px-3 lg:px-6 py-1 lg:py-2 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
               {editingItem ? 'Update' : 'ADD'}
             </Button>
           </div>
