@@ -47,7 +47,8 @@ interface LocationContextType {
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'selectedLocationId';
-const IP_DETECTION_KEY = 'ipLocationDetected';
+const MANUAL_SELECTION_KEY = 'manualLocationSelected';
+const IP_DETECTION_KEY = 'ipLocationDetected'; // sessionStorage — re-detect each session
 
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
   const R = 6371;
@@ -112,13 +113,18 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [locations]);
 
+  // IP-based geolocation: runs once per browser session unless user manually picked a location
   useEffect(() => {
     const detectLocation = async () => {
-      const hasManualSelection = localStorage.getItem(STORAGE_KEY);
-      const hasDetected = localStorage.getItem(IP_DETECTION_KEY);
-      if (hasManualSelection || hasDetected) return;
+      // Skip if user has manually selected a location
+      const hasManualSelection = localStorage.getItem(MANUAL_SELECTION_KEY);
+      if (hasManualSelection) return;
+      // Skip if already detected this session
+      const hasDetectedThisSession = sessionStorage.getItem(IP_DETECTION_KEY);
+      if (hasDetectedThisSession) return;
+      // Skip on POS page
       if (window.location.pathname.startsWith('/pos')) {
-        localStorage.setItem(IP_DETECTION_KEY, 'true');
+        sessionStorage.setItem(IP_DETECTION_KEY, 'true');
         return;
       }
       setIsDetecting(true);
@@ -136,16 +142,19 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.log('IP detection skipped:', error instanceof Error ? error.message : 'Network error');
       } finally {
-        localStorage.setItem(IP_DETECTION_KEY, 'true');
+        sessionStorage.setItem(IP_DETECTION_KEY, 'true');
         setIsDetecting(false);
       }
     };
-    detectLocation();
-  }, []);
+    if (locations.length > 0) {
+      detectLocation();
+    }
+  }, [locations]);
 
   const setSelectedLocation = (location: Location) => {
     setSelectedLocationState(location);
     localStorage.setItem(STORAGE_KEY, location.id);
+    localStorage.setItem(MANUAL_SELECTION_KEY, 'true'); // Mark as manual pick
   };
 
   return (
