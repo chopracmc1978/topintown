@@ -121,10 +121,17 @@ const WingsCustomizationModal = ({ item, isOpen, onClose, editingCartItem }: Win
   return (
     <>
     <Dialog open={isOpen && !showUpsell} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md [&>button]:right-3 [&>button]:top-3">
         <DialogHeader>
-          <DialogTitle className="font-serif text-xl">
-            {isEditing ? `Edit ${item.name}` : item.name}
+          <DialogTitle className="font-serif text-xl pr-8">
+            {isEditing ? `Edit ${item.name}` : (() => {
+              // Put size/piece info on a new line (e.g. "3 pieces", "6 pieces")
+              const match = item.name.match(/^(.+?)\s+(\d+\s*(?:pieces?|pcs?|pc))$/i);
+              if (match) {
+                return <>{match[1]}<br />{match[2]}</>;
+              }
+              return item.name;
+            })()}
           </DialogTitle>
         </DialogHeader>
 
