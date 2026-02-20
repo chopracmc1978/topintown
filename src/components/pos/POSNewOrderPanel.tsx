@@ -675,7 +675,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
     <>
       <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 26%, 14%)', border: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Header - Compact single row with search */}
-        <div className="px-4 py-2.5 lg:py-3 flex items-center gap-3 lg:gap-4" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+        <div className="px-2 py-1.5 lg:px-4 lg:py-3 flex items-center gap-1.5 lg:gap-4" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
           {/* Phone & Customer Name - horizontal (phone first) */}
           <div className="relative z-10 flex items-center gap-1" data-phone-input>
             {/* Phone Input with Inline Numeric Keypad Popover */}
@@ -690,7 +690,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     inputMode="none"
                     onKeyDown={handlePhoneKeyDown}
                     className={cn(
-                      "h-10 lg:h-12 text-base lg:text-lg w-36 lg:w-44 pr-7 cursor-pointer",
+                      "h-8 lg:h-12 text-sm lg:text-lg w-28 lg:w-44 pr-7 cursor-pointer",
                       "outline-none focus:outline-none focus-visible:outline-none",
                       orderHistory.length > 0 && "border-primary"
                     )}
@@ -801,17 +801,17 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             placeholder="Customer name"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
-            className="h-10 lg:h-12 text-base lg:text-lg w-40 lg:w-48"
+            className="h-8 lg:h-12 text-sm lg:text-lg w-28 lg:w-48"
           />
           
           {/* Search bar in header */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 lg:w-5 h-4 lg:h-5 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 lg:w-5 h-3.5 lg:h-5 text-muted-foreground" />
             <Input
               placeholder="Search menu..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 lg:h-12 text-base lg:text-lg"
+              className="pl-8 lg:pl-9 h-8 lg:h-12 text-sm lg:text-lg"
             />
           </div>
           
@@ -825,7 +825,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           
           {/* Title - right aligned */}
           <div className="flex-1 text-right pr-2">
-            <h2 className="text-xl lg:text-2xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
+            <h2 className="text-base lg:text-2xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
             {isEditMode && editingOrder && (
               <p className="text-sm text-gray-400">{editingOrder.customerName}</p>
             )}
@@ -834,7 +834,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           <button
             type="button"
             onClick={onCancel}
-            className="h-10 w-10 lg:h-12 lg:w-12 flex items-center justify-center rounded-md"
+            className="h-8 w-8 lg:h-12 lg:w-12 flex items-center justify-center rounded-md"
             style={{ background: 'hsl(220, 22%, 28%)', color: '#e2e8f0', border: '1px solid hsl(220, 20%, 35%)' }}
           >
             <X className="w-5 h-5" />
@@ -845,14 +845,14 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           {/* Menu Selection */}
           <div className="flex-1 flex flex-col" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
-            {/* Category Tabs - Larger for tablet */}
-            <div className="flex gap-2 lg:gap-3 p-3 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+            {/* Category Tabs - Compact for small tablets, larger for big screens */}
+            <div className="flex gap-1.5 lg:gap-3 p-2 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
               {categories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
-                    "px-5 py-3 lg:px-7 lg:py-4 rounded-lg text-base lg:text-lg font-medium whitespace-nowrap transition-colors",
+                    "px-3 py-2 lg:px-7 lg:py-4 rounded-lg text-sm lg:text-lg font-medium whitespace-nowrap transition-colors",
                     activeCategory === cat.id
                       ? "bg-blue-600 text-white"
                       : "text-gray-300 hover:bg-gray-700"
@@ -866,13 +866,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
             {/* Pizza Subcategory Tabs */}
             {activeCategory === 'pizza' && (
-              <div className="flex gap-2 lg:gap-3 p-3 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
+              <div className="flex gap-1.5 lg:gap-3 p-2 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
                 {pizzaSubcategories.map(sub => (
                   <button
                     key={sub.id}
                     onClick={() => setActiveSubcategory(sub.id)}
                     className={cn(
-                      "px-4 py-2 lg:px-6 lg:py-3 rounded-full text-base lg:text-lg font-medium whitespace-nowrap transition-colors",
+                      "px-3 py-1.5 lg:px-6 lg:py-3 rounded-full text-xs lg:text-lg font-medium whitespace-nowrap transition-colors",
                       activeSubcategory === sub.id
                         ? "bg-blue-500 text-white"
                         : "text-gray-300 border hover:bg-gray-700"
@@ -885,8 +885,8 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
               </div>
             )}
 
-            {/* Menu Items Grid - 5 columns, ultra-compact cards to fit all without scroll */}
-            <div className="flex-1 p-2 lg:p-3 overflow-hidden">
+            {/* Menu Items Grid - responsive columns for tablet sizes */}
+            <div className="flex-1 p-1.5 lg:p-3 overflow-auto">
               {activeCategory === 'combos' ? (
                 // Combos Grid
                 isCombosLoading ? (
@@ -894,7 +894,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                 ) : activeCombos.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground text-lg">No active combos</div>
                 ) : (
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 auto-rows-min">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 auto-rows-min">
                     {activeCombos.map(combo => (
                       <button
                         key={combo.id}
@@ -922,9 +922,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   <div className="text-center py-8 text-muted-foreground text-lg">No items found</div>
                 ) : (
                   <div className={cn(
-                    "grid gap-2.5 lg:gap-3 auto-rows-min",
-                    activeCategory === 'chicken_wings' ? "grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4" :
-                    (activeCategory === 'baked_lasagna') ? "grid-cols-4 lg:grid-cols-5" : activeCategory === 'pizza' ? "grid-cols-5 lg:grid-cols-6" : "grid-cols-5 lg:grid-cols-6"
+                    "grid gap-1.5 lg:gap-3 auto-rows-min",
+                    activeCategory === 'chicken_wings' ? "grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4" :
+                    (activeCategory === 'baked_lasagna') ? "grid-cols-3 lg:grid-cols-5" : activeCategory === 'pizza' ? "grid-cols-4 lg:grid-cols-6" : "grid-cols-4 lg:grid-cols-6"
                   )}>
                     {filteredItems.map(item => {
                       // Remove trailing "PIZZA" from pizza names to save space
@@ -935,7 +935,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       const nameParts = item.category === 'pizza'
                         ? displayName.split(/\s*[,&]\s*/).filter(Boolean)
                         : [displayName];
-                      const cardHeight = item.category === 'chicken_wings' ? 'min-h-[120px] lg:min-h-[140px]' : item.category === 'baked_lasagna' ? 'h-[80px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[76px] lg:h-[90px]' : 'h-[56px] lg:h-[66px]';
+                      const cardHeight = item.category === 'chicken_wings' ? 'min-h-[100px] lg:min-h-[140px]' : item.category === 'baked_lasagna' ? 'h-[65px] lg:h-[95px]' : item.category === 'pizza' ? 'h-[64px] lg:h-[90px]' : 'h-[48px] lg:h-[66px]';
                       return (
                         <button
                           key={item.id}
@@ -980,7 +980,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Responsive width for tablets */}
-          <div className="w-[260px] min-w-[240px] max-w-[280px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          <div className="w-[200px] min-w-[180px] max-w-[240px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
