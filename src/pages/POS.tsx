@@ -954,11 +954,14 @@ const POSDashboard = ({
               <Settings className="w-4 lg:w-5 h-4 lg:h-5" />
             </button>
 
-            {/* Active staff name */}
+            {/* Active staff name - initials on small tablets, full name on larger */}
             {activeStaff && (
               <div className="flex items-center gap-1 px-1.5 lg:px-2" style={{ color: '#94a3b8' }}>
                 <User className="w-3.5 lg:w-4 h-3.5 lg:h-4" />
-                <span className="text-xs lg:text-sm font-medium truncate max-w-[80px] lg:max-w-[120px]">{activeStaff.name}</span>
+                <span className="text-xs lg:text-sm font-medium truncate max-w-[80px] lg:max-w-[120px]">
+                  <span className="lg:hidden">{activeStaff.name.split(' ').map(w => w[0]).join('').toUpperCase()}</span>
+                  <span className="hidden lg:inline">{activeStaff.name}</span>
+                </span>
               </div>
             )}
 
@@ -985,7 +988,7 @@ const POSDashboard = ({
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[30%] min-w-[200px] max-w-[280px] md:w-[20%] md:max-w-[240px] lg:w-[15%] lg:min-w-[200px] lg:max-w-[280px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
+        <div className="w-[33%] min-w-[220px] max-w-[300px] md:w-[22%] md:max-w-[260px] lg:w-[15%] lg:min-w-[200px] lg:max-w-[280px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
           <ScrollArea className="flex-1 p-2 lg:p-3">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
