@@ -71,7 +71,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       )}
     >
       {/* Order ID */}
-      <div className="font-mono font-bold text-sm mb-1 truncate" style={{ color: '#ffffff' }}>
+      <div className="font-mono font-bold text-base mb-1 truncate" style={{ color: '#ffffff' }}>
         {order.id}
       </div>
 
@@ -105,7 +105,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       <div className="flex items-start justify-between gap-1 mb-0.5">
         <div className="min-w-0">
           {order.customerPhone && (
-            <p className="text-sm font-medium truncate" style={{ color: '#ffffff' }}>
+            <p className="text-base font-semibold truncate" style={{ color: '#ffffff' }}>
               {order.customerPhone}
             </p>
           )}
