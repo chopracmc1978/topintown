@@ -243,7 +243,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-center gap-1 mt-auto pt-1">
+                    <div className="flex items-center justify-center gap-1 mt-auto pt-1 h-7">
                       {isSelected ? (
                         <>
                           <button
