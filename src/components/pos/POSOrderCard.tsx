@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 export interface OrderRewardInfo {
   lifetime_points: number;
   points: number; // current balance
+  orderEarned: number; // points earned from this specific order
+  orderUsed: number; // points redeemed on this specific order
 }
 
 interface POSOrderCardProps {
@@ -55,9 +57,10 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   const isNewRemoteOrder = (order.source === 'web' || order.source === 'app' || order.source === 'online') 
     && order.status === 'pending';
 
-  const lifetimePoints = rewardInfo?.lifetime_points ?? 0;
   const balancePoints = rewardInfo?.points ?? 0;
-  const usedPoints = lifetimePoints - balancePoints;
+  const orderEarned = rewardInfo?.orderEarned ?? 0;
+  const orderUsed = rewardInfo?.orderUsed ?? 0;
+  const lastBalance = balancePoints - orderEarned + orderUsed;
 
   return (
     <div
@@ -111,10 +114,11 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
           </p>
         </div>
         {/* Reward Points - compact column */}
-        {rewardInfo && lifetimePoints > 0 && (
+        {rewardInfo && (orderEarned > 0 || orderUsed > 0 || balancePoints > 0) && (
           <div className="text-[9px] leading-tight text-right shrink-0" style={{ color: '#d97706' }}>
-            <div>{lifetimePoints} life time</div>
-            <div>{usedPoints} pts used</div>
+            <div>{lastBalance} last bal</div>
+            {orderEarned > 0 && <div style={{ color: '#2e7d32' }}>+{orderEarned} earned</div>}
+            {orderUsed > 0 && <div style={{ color: '#d32f2f' }}>-{orderUsed} used</div>}
             <div className="font-bold">{balancePoints} pts bal</div>
           </div>
         )}
