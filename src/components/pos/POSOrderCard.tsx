@@ -125,11 +125,13 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Order Info */}
-      <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: '#ffffff' }}>
+      <div className="text-xs font-semibold mb-0.5" style={{ color: '#ffffff' }}>
         <span className="flex items-center gap-0.5">
           <TypeIcon className="w-3 h-3" />
           <span className="capitalize">{order.orderType}</span>
         </span>
+      </div>
+      <div className="text-xs font-semibold mb-1" style={{ color: '#ffffff' }}>
         <span className="flex items-center gap-0.5">
           <Clock className="w-3 h-3" />
           {getTimeSince(order.createdAt)}
@@ -138,9 +140,12 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
       {/* Scheduled pickup time for advance orders */}
       {order.pickupTime && new Date(order.pickupTime) > new Date() && (
-        <div className="text-[11px] font-medium mb-1 flex items-center gap-1" style={{ color: 'hsl(260,70%,75%)' }}>
-          <CalendarClock className="w-3 h-3" />
-          Pickup: {new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+        <div className="text-xs font-semibold mb-1" style={{ color: 'hsl(260,70%,75%)' }}>
+          <div className="flex items-center gap-1">
+            <CalendarClock className="w-3 h-3" />
+            Pickup
+          </div>
+          <div>{new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
         </div>
       )}
 
