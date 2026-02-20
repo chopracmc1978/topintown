@@ -244,7 +244,7 @@ export const buildKitchenTicket = (order: {
     }
   }
   
-  receipt += LF + LF + LF;
+  receipt += LF + LF + LF + LF + LF + LF + LF + LF;
   receipt += CUT;
   
   return receipt;
