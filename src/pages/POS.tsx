@@ -383,7 +383,7 @@ const POSDashboard = ({
     }
   }, [activeSession, todayCashSales]);
   
-  // Fetch reward points for all orders' phone numbers
+  // Fetch reward points for all orders' phone numbers + per-order earned/used
   const [rewardsMap, setRewardsMap] = useState<Record<string, OrderRewardInfo>>({});
   
   useEffect(() => {
@@ -394,18 +394,61 @@ const POSDashboard = ({
         return;
       }
       
-      const { data } = await supabase
+      // Fetch current balances
+      const { data: rewardsData } = await supabase
         .from('customer_rewards')
         .select('phone, points, lifetime_points')
         .in('phone', phones);
+
+      // Fetch per-order reward history for all visible orders
+      const orderDbIds = orders.map(o => o.dbId).filter(Boolean) as string[];
+      let historyByOrder: Record<string, { earned: number; used: number }> = {};
       
-      if (data) {
-        const map: Record<string, OrderRewardInfo> = {};
-        data.forEach(r => {
-          map[r.phone] = { lifetime_points: r.lifetime_points, points: r.points };
-        });
-        setRewardsMap(map);
+      if (orderDbIds.length > 0) {
+        const { data: historyData } = await supabase
+          .from('rewards_history')
+          .select('order_id, points_change, transaction_type')
+          .in('order_id', orderDbIds);
+        
+        if (historyData) {
+          historyData.forEach(h => {
+            if (!h.order_id) return;
+            if (!historyByOrder[h.order_id]) {
+              historyByOrder[h.order_id] = { earned: 0, used: 0 };
+            }
+            if (h.transaction_type === 'earned') {
+              historyByOrder[h.order_id].earned += h.points_change;
+            } else if (h.transaction_type === 'redeemed') {
+              historyByOrder[h.order_id].used += Math.abs(h.points_change);
+            }
+          });
+        }
       }
+
+      // Build per-order reward map keyed by order dbId
+      const map: Record<string, OrderRewardInfo> = {};
+      const rewardsByPhone: Record<string, { lifetime_points: number; points: number }> = {};
+      
+      if (rewardsData) {
+        rewardsData.forEach(r => {
+          rewardsByPhone[r.phone] = { lifetime_points: r.lifetime_points, points: r.points };
+        });
+      }
+
+      orders.forEach(o => {
+        if (!o.customerPhone || !o.dbId) return;
+        const reward = rewardsByPhone[o.customerPhone];
+        if (!reward) return;
+        const history = historyByOrder[o.dbId] || { earned: 0, used: 0 };
+        map[o.dbId] = {
+          lifetime_points: reward.lifetime_points,
+          points: reward.points,
+          orderEarned: history.earned,
+          orderUsed: history.used,
+        };
+      });
+      
+      setRewardsMap(map);
     };
     fetchRewards();
   }, [orders]);
@@ -949,7 +992,7 @@ const POSDashboard = ({
                     key={order.id}
                     order={order}
                     isSelected={selectedOrderId === order.id}
-                    rewardInfo={order.customerPhone ? rewardsMap[order.customerPhone] : null}
+                    rewardInfo={order.dbId ? rewardsMap[order.dbId] : null}
                     onClick={() => {
                       setSelectedOrderId(order.id);
                       setShowNewOrder(false);
