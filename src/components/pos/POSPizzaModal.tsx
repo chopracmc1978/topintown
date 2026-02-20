@@ -363,7 +363,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[1020px] w-[95vw] p-1 lg:p-2.5 pt-0 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}>
+      <DialogContent className="max-w-[1020px] w-[95vw] p-1 lg:p-2.5 pt-0 gap-0 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}>
 
         {/* ROW 1: Pizza Name | Sizes | Crust */}
         <div className="flex flex-wrap items-center gap-0.5 lg:gap-1.5 border-b border-slate-200 pr-8 lg:pr-12 flex-shrink-0">
