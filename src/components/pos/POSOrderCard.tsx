@@ -117,8 +117,8 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         {rewardInfo && (orderEarned > 0 || orderUsed > 0 || balancePoints > 0) && (
           <div className="text-[9px] leading-tight text-right shrink-0" style={{ color: '#d97706' }}>
             <div>{lastBalance} last bal</div>
-            {orderEarned > 0 && <div style={{ color: '#2e7d32' }}>+{orderEarned} earned</div>}
-            {orderUsed > 0 && <div style={{ color: '#d32f2f' }}>-{orderUsed} used</div>}
+            <div style={{ color: '#2e7d32' }}>+{orderEarned} earned</div>
+            <div style={{ color: '#d32f2f' }}>-{orderUsed} used</div>
             <div className="font-bold">{balancePoints} pts bal</div>
           </div>
         )}
