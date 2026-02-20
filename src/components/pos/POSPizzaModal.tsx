@@ -445,7 +445,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   <div key={topping.id} className="flex items-center gap-0.5 lg:gap-1">
                     {/* Separator gap between groups */}
                     {idx > 0 && (
-                      <div style={{ width: 18 }} />
+                      <div style={{ width: 30 }} />
                     )}
                     <button onClick={() => toggleFreeTopping(topping.name)} className={cn(btnSmall)} style={isSelected ? blueStyle : darkStyle}>{topping.name}</button>
                     <div className="flex gap-0.5">
