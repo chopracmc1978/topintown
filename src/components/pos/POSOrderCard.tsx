@@ -109,7 +109,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
               {order.customerPhone}
             </p>
           )}
-          <p className="font-semibold text-xs truncate" style={{ color: '#ffffff' }}>
+          <p className="font-semibold text-sm truncate" style={{ color: '#ffffff' }}>
             {order.customerName || 'Walk-in Customer'}
           </p>
         </div>
@@ -125,24 +125,24 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Order Info */}
-      <div className="text-xs font-semibold mb-0.5" style={{ color: '#ffffff' }}>
-        <span className="flex items-center gap-0.5">
-          <TypeIcon className="w-3 h-3" />
+      <div className="text-sm font-semibold mb-0.5" style={{ color: '#ffffff' }}>
+        <span className="flex items-center gap-1">
+          <TypeIcon className="w-3.5 h-3.5" />
           <span className="capitalize">{order.orderType}</span>
         </span>
       </div>
-      <div className="text-xs font-semibold mb-1" style={{ color: '#ffffff' }}>
-        <span className="flex items-center gap-0.5">
-          <Clock className="w-3 h-3" />
+      <div className="text-sm font-semibold mb-1" style={{ color: '#ffffff' }}>
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
           {getTimeSince(order.createdAt)}
         </span>
       </div>
 
       {/* Scheduled pickup time for advance orders */}
       {order.pickupTime && new Date(order.pickupTime) > new Date() && (
-        <div className="text-xs font-semibold mb-1" style={{ color: 'hsl(260,70%,75%)' }}>
+        <div className="text-sm font-semibold mb-1" style={{ color: 'hsl(260,70%,75%)' }}>
           <div className="flex items-center gap-1">
-            <CalendarClock className="w-3 h-3" />
+            <CalendarClock className="w-3.5 h-3.5" />
             Pickup
           </div>
           <div>{new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
@@ -150,7 +150,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       )}
 
       {/* Items Preview */}
-      <div className="text-[11px] mb-1" style={{ color: '#ffffff' }}>
+      <div className="text-sm mb-1" style={{ color: '#ffffff' }}>
         {itemCount} item{itemCount !== 1 ? 's' : ''}
       </div>
 
