@@ -490,7 +490,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
-            <div className="flex flex-wrap gap-1 lg:gap-2">
+            <div className="flex flex-wrap gap-1 lg:gap-2 mt-1.5">
               {defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
@@ -517,7 +517,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
           {/* EXTRA TOPPINGS - 3 column grid */}
           {availableExtraToppings.length > 0 && (
-            <div className="!mt-0" style={{ marginTop: 0 }}>
+            <div className="mt-1.5">
               <div className="grid gap-0.5 lg:gap-1.5 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
