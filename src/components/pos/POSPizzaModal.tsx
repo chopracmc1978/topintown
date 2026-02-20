@@ -363,10 +363,10 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[1020px] w-[95vw] p-1 lg:p-2.5 pt-0 gap-0 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}>
+      <DialogContent className="max-w-[1020px] w-[95vw] p-1 lg:p-2.5 pt-1 lg:pt-2 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100" style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}>
 
         {/* ROW 1: Pizza Name | Sizes | Crust */}
-        <div className="flex flex-wrap items-center gap-0.5 lg:gap-1.5 border-b border-slate-200 pr-8 lg:pr-12 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-0.5 lg:gap-1.5 pb-0.5 lg:pb-1 border-b border-slate-200 pr-8 lg:pr-12 flex-shrink-0" style={{ marginBottom: 3 }}>
           <span className="font-serif text-[9px] lg:text-xs font-bold px-2 lg:px-4 py-0.5 lg:py-1.5 rounded whitespace-nowrap uppercase" style={{ ...blueStyle, minWidth: 120 }}>{item.name}</span>
           {item.sizes?.map(size => (
             <button key={size.id} onClick={() => setSelectedSize({ id: size.id, name: size.name, price: size.price })} className={cn(btnSmall, "px-2")} style={selectedSize?.id === size.id ? blueStyle : darkStyle}>
@@ -438,11 +438,15 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           {/* ROW 4: Free Toppings */}
           {freeToppings.length > 0 && (
             <div className="flex items-center gap-1 lg:gap-1.5 flex-wrap">
-              {freeToppings.map((topping) => {
+              {freeToppings.map((topping, idx) => {
                 const sel = freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!sel;
                 return (
                   <div key={topping.id} className="flex items-center gap-0.5 lg:gap-1">
+                    {/* Separator gap between groups */}
+                    {idx > 0 && (
+                      <div style={{ width: 30 }} />
+                    )}
                     <button onClick={() => toggleFreeTopping(topping.name)} className={cn(btnSmall)} style={isSelected ? blueStyle : darkStyle}>{topping.name}</button>
                     <div className="flex gap-0.5">
                       {(['left', 'whole', 'right'] as const).map(side => {
