@@ -988,7 +988,7 @@ const POSDashboard = ({
       {/* Main Content - Full remaining height */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Order List - Percentage based width */}
-        <div className="w-[33%] min-w-[180px] max-w-[300px] md:w-[20%] md:min-w-[180px] md:max-w-[240px] lg:w-[15%] lg:min-w-[200px] lg:max-w-[280px] landscape:md:w-[15%] landscape:md:min-w-[160px] landscape:md:max-w-[220px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
+        <div className="w-[30%] min-w-[140px] max-w-[200px] md:w-[18%] md:min-w-[140px] md:max-w-[200px] lg:w-[15%] lg:min-w-[200px] lg:max-w-[280px] border-r flex flex-col flex-shrink-0" style={{ background: 'hsl(220, 25%, 16%)', borderColor: 'hsl(220, 20%, 28%)' }}>
           <ScrollArea className="flex-1 p-2 lg:p-3">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">
