@@ -72,8 +72,8 @@ export const buildKitchenTicket = (order: {
   
   let receipt = INIT;
   
-  // Extra space on top (5 blank lines)
-  receipt += LF + LF + LF + LF + LF;
+  // Extra space on top (1 blank line)
+  receipt += LF;
   
   // Header - centered
   receipt += ALIGN_CENTER;
