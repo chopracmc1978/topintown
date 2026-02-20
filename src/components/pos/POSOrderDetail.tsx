@@ -291,7 +291,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
   return (
     <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 25%, 18%)', border: '1px solid hsl(220, 20%, 28%)' }}>
       {/* Header */}
-      <div className="p-4" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+      <div className="px-4 py-2" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xl font-bold text-white">{order.id}</span>
@@ -345,8 +345,8 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
       </div>
 
       {/* Customer Info */}
-      <div className="p-4" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
-        <h3 className="font-semibold text-sm text-gray-400 mb-2">CUSTOMER</h3>
+      <div className="px-4 py-2" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+        <h3 className="font-semibold text-sm text-gray-400 mb-1">CUSTOMER</h3>
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-400" />
@@ -368,8 +368,8 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
       </div>
 
       {/* Order Items */}
-      <div className="flex-1 overflow-auto p-4">
-        <h3 className="font-semibold text-sm text-gray-400 mb-3">ORDER ITEMS</h3>
+      <div className="flex-1 overflow-auto px-4 py-2">
+        <h3 className="font-semibold text-sm text-gray-400 mb-2">ORDER ITEMS</h3>
         <div className="space-y-3">
           {order.items.map((item, index) => (
             <div key={`${item.id}-${index}`} className="flex justify-between items-start">
