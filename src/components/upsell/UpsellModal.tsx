@@ -294,12 +294,14 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
 
         {/* Footer */}
         <div className="border-t px-4 py-3 bg-muted/30">
-          {totalUpsellPrice > 0 && (
-            <div className="text-center mb-2 text-sm">
-              <span className="text-muted-foreground">Upsell Total: </span>
-              <span className="font-bold text-primary">${totalUpsellPrice.toFixed(2)}</span>
-            </div>
-          )}
+          <div className="text-center mb-2 text-sm h-5">
+            {totalUpsellPrice > 0 && (
+              <>
+                <span className="text-muted-foreground">Upsell Total: </span>
+                <span className="font-bold text-primary">${totalUpsellPrice.toFixed(2)}</span>
+              </>
+            )}
+          </div>
           
           <div className="flex gap-3">
             <Button
