@@ -150,13 +150,26 @@ export const buildKitchenTicket = (order: {
   
   // Items
   for (const item of order.items) {
-    // Item name with quantity - double height + bold for emphasis (like reference receipt)
+    // Item name with quantity - bold, normal size, price right-aligned on first line
     const itemName = `${item.quantity} x ${item.name}`;
     const priceStr = item.totalPrice ? `$${item.totalPrice.toFixed(2)}` : '';
     if (priceStr) {
-      receipt += DOUBLE_HEIGHT_ON + BOLD_ON + formatLine(itemName, priceStr) + BOLD_OFF + NORMAL_SIZE + LF;
+      // If name + price fits on one line, print on one line
+      const totalLen = itemName.length + priceStr.length + 1;
+      if (totalLen <= WIDTH) {
+        receipt += BOLD_ON + formatLine(itemName, priceStr) + BOLD_OFF + LF;
+      } else {
+        // Name is too long — put price right-aligned on first line, name wraps to 2 lines
+        const availableForName = WIDTH - priceStr.length - 1;
+        const firstPart = itemName.substring(0, availableForName);
+        const secondPart = itemName.substring(availableForName).trim();
+        receipt += BOLD_ON + formatLine(firstPart, priceStr) + BOLD_OFF + LF;
+        if (secondPart) {
+          receipt += BOLD_ON + '  ' + secondPart + BOLD_OFF + LF;
+        }
+      }
     } else {
-      receipt += DOUBLE_HEIGHT_ON + BOLD_ON + itemName + BOLD_OFF + NORMAL_SIZE + LF;
+      receipt += BOLD_ON + itemName + BOLD_OFF + LF;
     }
     
     // Pizza customization details
