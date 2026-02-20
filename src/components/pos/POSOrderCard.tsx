@@ -76,7 +76,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Badges Row */}
-      <div className="flex items-center gap-1 mb-1 flex-wrap">
+      <div className="flex flex-col gap-1 mb-1">
         {isNewRemoteOrder && (
           <span className="pos-badge animate-pulse font-bold" style={{ background: 'hsl(30,90%,45%)', borderColor: 'hsl(30,95%,55%)', color: '#fff', fontSize: '10px' }}>
             🆕 New!
