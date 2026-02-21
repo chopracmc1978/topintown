@@ -853,7 +853,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
-                    "px-2 py-1.5 lg:px-7 lg:py-4 rounded-md lg:rounded-lg text-xs lg:text-lg font-medium whitespace-nowrap transition-colors",
+                    "flex-1 lg:flex-none px-1 py-1.5 lg:px-7 lg:py-4 rounded-md lg:rounded-lg text-xs lg:text-lg font-medium whitespace-nowrap transition-colors min-w-0",
                     activeCategory === cat.id
                       ? "bg-blue-600 text-white"
                       : "text-gray-300 hover:bg-gray-700"
