@@ -25,7 +25,7 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     } else if (ct === 'dairy free') {
       details.push('Cheese: Dairy Free');
     } else {
-      const cheeseQty = (customization as any).cheeseQuantity;
+      const cheeseQty = customization.cheeseSides?.[0]?.quantity || (customization as any).cheeseQuantity;
       if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
         details.push(`Cheese: ${cheeseQty} ${customization.cheeseType}`);
       }
@@ -35,7 +35,7 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
   // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal'))) {
+  } else if (customization.sauceName && ((customization as any).isDefaultSauce === false || (customization.sauceQuantity && customization.sauceQuantity !== 'normal'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal'
       ? `${customization.sauceQuantity} ` : '';
     details.push(`Sauce: ${qtyPrefix}${customization.sauceName}`);

@@ -123,17 +123,17 @@ export const CustomerReceipt = ({
                   <p>{typeof item.pizzaCustomization.size === 'object' ? item.pizzaCustomization.size?.name : item.pizzaCustomization.size}, {typeof item.pizzaCustomization.crust === 'object' ? item.pizzaCustomization.crust?.name : item.pizzaCustomization.crust}</p>
                   {/* Cheese changes */}
                   {(item.pizzaCustomization as any).cheeseType && (() => {
-                    const ct = (item.pizzaCustomization as any).cheeseType.toLowerCase();
-                    const cq = (item.pizzaCustomization as any).cheeseQuantity;
+                     const ct = (item.pizzaCustomization as any).cheeseType.toLowerCase();
+                    const cq = item.pizzaCustomization.cheeseSides?.[0]?.quantity || (item.pizzaCustomization as any).cheeseQuantity;
                     if (ct === 'no cheese' || ct === 'none') return <p>Cheese: None</p>;
                     if (ct === 'dairy free') return <p>Cheese: Dairy Free</p>;
                     if (cq && cq !== 'regular' && cq !== 'normal') return <p>Cheese: {cq} {(item.pizzaCustomization as any).cheeseType}</p>;
                     return null;
                   })()}
-                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && !(item.pizzaCustomization as any).isDefaultSauce && (
+                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && (item.pizzaCustomization as any).isDefaultSauce === false && (
                     <p>Sauce: {item.pizzaCustomization.sauceQuantity && item.pizzaCustomization.sauceQuantity !== 'normal' ? `${item.pizzaCustomization.sauceQuantity} ` : ''}{item.pizzaCustomization.sauceName}</p>
                   )}
-                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceQuantity === 'extra' && (item.pizzaCustomization as any).isDefaultSauce && (
+                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceQuantity === 'extra' && (item.pizzaCustomization as any).isDefaultSauce !== false && (
                     <p>Sauce: extra {item.pizzaCustomization.sauceName}</p>
                   )}
                   {item.pizzaCustomization.sauceName?.toLowerCase() === 'no sauce' && (

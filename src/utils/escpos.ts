@@ -270,7 +270,7 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
       lines.push('Cheese : Dairy Free');
     } else {
       // Show quantity changes (less/extra)
-      const cheeseQty = customization.cheeseQuantity;
+      const cheeseQty = customization.cheeseSides?.[0]?.quantity || customization.cheeseQuantity;
       if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
         lines.push(`Cheese : ${cheeseQty} ${customization.cheeseType}`);
       }
@@ -280,7 +280,7 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
   // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
+  } else if (customization.sauceName && (customization.isDefaultSauce === false || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
       ? `${customization.sauceQuantity} ` : '';
     lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
@@ -627,7 +627,7 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
     } else if (ct === 'dairy free') {
       lines.push('Cheese : Dairy Free');
     } else {
-      const cheeseQty = customization.cheeseQuantity;
+      const cheeseQty = customization.cheeseSides?.[0]?.quantity || customization.cheeseQuantity;
       if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
         lines.push(`Cheese : ${cheeseQty} ${customization.cheeseType}`);
       }
@@ -637,7 +637,7 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
   // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
+  } else if (customization.sauceName && (customization.isDefaultSauce === false || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
       ? `${customization.sauceQuantity} ` : '';
     lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
