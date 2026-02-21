@@ -212,7 +212,7 @@ export const usePOSOrders = (locationId?: string) => {
     phone: string | undefined, 
     customerId: string | undefined,
     type: 'accepted' | 'preparing' | 'ready' | 'complete' | 'cancelled', 
-    options?: { prepTime?: number; pickupTime?: Date }
+    options?: { prepTime?: number; pickupTime?: Date; locationId?: string }
   ) => {
     try {
       if (!phone && !customerId) {
@@ -229,7 +229,8 @@ export const usePOSOrders = (locationId?: string) => {
           customerId, 
           type, 
           prepTime: options?.prepTime,
-          pickupTime: options?.pickupTime?.toISOString()
+          pickupTime: options?.pickupTime?.toISOString(),
+          locationId: options?.locationId
         }
       });
       
@@ -616,15 +617,15 @@ export const usePOSOrders = (locationId?: string) => {
           // Check if it's an advance order (has pickupTime)
           if (order.pickupTime) {
             // For advance orders, send "accepted" SMS with pickup time
-            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'accepted', { pickupTime: order.pickupTime });
+            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'accepted', { pickupTime: order.pickupTime, locationId });
           } else if (prepTime) {
             // For ASAP orders, send "preparing" SMS with prep time
-            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime });
+            await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime, locationId });
           }
         } else if (status === 'ready') {
-          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready');
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'ready', { locationId });
         } else if (status === 'delivered') {
-          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete');
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'complete', { locationId });
           // Deduct any scheduled reward points FIRST
           await redeemScheduledPoints(order);
           // Award new reward points
@@ -634,7 +635,7 @@ export const usePOSOrders = (locationId?: string) => {
             await sendEmailReceipt(order, locationId);
           }
         } else if (status === 'cancelled') {
-          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'cancelled');
+          await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'cancelled', { locationId });
         }
       }
 
