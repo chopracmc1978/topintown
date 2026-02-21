@@ -265,15 +265,14 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     previousPendingIdsRef.current = currentIds;
   }, [pendingRemoteOrders, isAudioEnabled, startSound]);
 
-  // Start/stop looping sound based on pending remote orders OR advance alerts approaching pickup
+  // Start/stop looping sound based on pending remote orders ONLY (not advance alerts — those use card-level beeps)
   useEffect(() => {
-    const shouldLoop = (pendingRemoteOrders.length > 0 || advanceAlertOrderIds.length > 0) && isAudioEnabled;
-    if (shouldLoop) {
+    if (pendingRemoteOrders.length > 0 && isAudioEnabled) {
       startSound();
-    } else {
+    } else if (pendingRemoteOrders.length === 0) {
       stopSound();
     }
-  }, [pendingRemoteOrders.length, advanceAlertOrderIds.length, isAudioEnabled, startSound, stopSound]);
+  }, [pendingRemoteOrders.length, isAudioEnabled, startSound, stopSound]);
 
   // Check advance orders every 30 seconds for 30-min alert
   useEffect(() => {
