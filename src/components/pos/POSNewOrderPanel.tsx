@@ -981,7 +981,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Responsive width for tablets */}
-          <div className="w-[160px] min-w-[140px] max-w-[240px] md:w-[200px] md:min-w-[180px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          <div className="w-[160px] min-w-[140px] max-w-[240px] md:w-[200px] md:min-w-[180px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
@@ -1143,7 +1143,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             {/* Coupon, Discount & Redeem Row */}
             <div className="px-2 py-1 space-y-1" style={{ borderTop: '1px solid hsl(220, 20%, 28%)' }}>
               {/* Row 1: Coupon code + Apply + Discount - always visible */}
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-1 items-center min-w-0">
                 {appliedCoupon ? (
                   <div className="flex items-center gap-2 flex-1 pos-bg-green-900-30 border border-green-700 rounded px-3 py-1.5">
                     <Check className="w-4 h-4 text-green-400" />
@@ -1164,7 +1164,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                       placeholder="Coupon"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="h-8 text-xs flex-1"
+                      className="h-8 text-xs flex-1 min-w-0"
                       disabled={!!rewardsApplied}
                       onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                     />
@@ -1186,7 +1186,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
                     <Button
                       variant="outline"
                       className={cn(
-                        "h-8 w-20 justify-start text-xs font-normal text-gray-300",
+                        "h-8 w-14 shrink-0 justify-start text-xs font-normal text-gray-300",
                         appliedCoupon && "opacity-50 cursor-not-allowed"
                       )}
                       disabled={!!appliedCoupon}
@@ -1330,7 +1330,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             )}
 
             {/* Totals & Submit */}
-            <div className="px-2 py-1.5 space-y-0.5" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
+            <div className="px-2 py-1.5 space-y-0.5 min-w-0" style={{ borderTop: '1px solid hsl(220, 20%, 28%)', background: 'hsl(220, 22%, 18%)' }}>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Subtotal</span>
                 <span className="text-white">${subtotal.toFixed(2)}</span>
