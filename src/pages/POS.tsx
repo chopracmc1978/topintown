@@ -460,8 +460,16 @@ const POSDashboard = ({
     fetchRewards();
   }, [orders, rewardsVersion]);
 
-  const isAdvanceOrder = (o: Order) => 
-    o.status === 'preparing' && o.pickupTime && new Date(o.pickupTime) > new Date();
+  const isAdvanceOrder = (o: Order) => {
+    if (o.status !== 'preparing' || !o.pickupTime) return false;
+    const pickupMs = new Date(o.pickupTime).getTime();
+    const now = Date.now();
+    if (pickupMs <= now) return false; // pickup time has passed
+    const createdMs = new Date(o.createdAt).getTime();
+    const originalLeadMinutes = (pickupMs - createdMs) / (1000 * 60);
+    // Only treat as advance if the original lead time was > 65 minutes
+    return originalLeadMinutes > 65;
+  };
 
   // Filter orders
   const filteredOrders = activeTab === 'all'
