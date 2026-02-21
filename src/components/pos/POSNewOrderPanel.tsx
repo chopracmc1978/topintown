@@ -674,9 +674,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
   return (
     <>
-      <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 26%, 14%)', border: '1px solid hsl(220, 20%, 28%)' }}>
+      <div className="h-full w-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 26%, 14%)', border: '1px solid hsl(220, 20%, 28%)' }}>
         {/* Header - Compact single row with search */}
-        <div className="px-2 py-1.5 lg:px-4 lg:py-3 flex items-center gap-1.5 lg:gap-4" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+        <div className="px-2 py-1.5 lg:px-4 lg:py-3 flex items-center gap-1.5 lg:gap-4 min-w-0 overflow-hidden" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
           {/* Phone & Customer Name - horizontal (phone first) */}
           <div className="relative z-10 flex items-center gap-1" data-phone-input>
             {/* Phone Input with Inline Numeric Keypad Popover */}
@@ -806,7 +806,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           />
           
           {/* Search bar in header */}
-          <div className="relative flex-1 max-w-xs">
+          <div className="relative flex-1 min-w-0 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 lg:w-5 h-3.5 lg:h-5 text-muted-foreground" />
             <Input
               placeholder="Search menu..."
@@ -824,9 +824,9 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
             </div>
           )}
           
-          {/* Title - right aligned */}
-          <div className="flex-1 text-right pr-2">
-            <h2 className="text-base lg:text-2xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
+          {/* Title - right aligned, hidden on small tablets to save space */}
+          <div className="hidden lg:block flex-1 text-right pr-2">
+            <h2 className="text-2xl font-bold text-white">{isEditMode ? `Edit Order ${editingOrder?.id}` : 'Create New Order'}</h2>
             {isEditMode && editingOrder && (
               <p className="text-sm text-gray-400">{editingOrder.customerName}</p>
             )}
@@ -842,7 +842,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </button>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-w-0">
           {/* Menu Selection */}
           <div className="flex-1 flex flex-col" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
@@ -981,7 +981,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Responsive width for tablets */}
-          <div className="w-[200px] min-w-[180px] max-w-[240px] md:w-[220px] md:min-w-[200px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          <div className="w-[160px] min-w-[140px] max-w-[240px] md:w-[200px] md:min-w-[180px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
