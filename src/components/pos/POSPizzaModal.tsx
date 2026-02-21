@@ -494,6 +494,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             })}
           </div>
 
+          {/* Gap after sauce section */}
+          <div style={{ height: '12px' }} />
+
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
             <div className="flex flex-wrap gap-1 lg:gap-2">
@@ -520,6 +523,9 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
               })}
             </div>
           )}
+
+          {/* Gap before extra toppings */}
+          <div style={{ height: '12px' }} />
 
           {/* EXTRA TOPPINGS - 3 column grid */}
           {availableExtraToppings.length > 0 && (
