@@ -290,12 +290,12 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
 
   return (
     <div className="h-full flex flex-col rounded-xl overflow-hidden" style={{ background: 'hsl(220, 25%, 18%)', border: '1px solid hsl(220, 20%, 28%)' }}>
-      {/* Header + Customer combined */}
+      {/* Header - single row */}
       <div className="px-4 py-2" style={{ background: 'hsl(220, 25%, 16%)', borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
-        {/* Row 1: Order ID + badges + status */}
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xl font-bold text-white">{order.id}</span>
+        {/* Row 1: Order ID + badges + status + customer all in one line */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-lg font-bold text-white">{order.id}</span>
             <Badge variant="outline" className="capitalize text-gray-300 border-gray-600">
               {order.source || 'online'}
             </Badge>
@@ -308,63 +308,59 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               <Printer className="w-3.5 h-3.5 mr-1" />
               Receipt
             </button>
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "text-sm px-3 py-1",
+                order.status === 'pending' && "pos-bg-yellow-900-40 text-yellow-300 border-yellow-600",
+                order.status === 'preparing' && isAdvanceOrder && "pos-bg-purple-900-40 text-purple-300 border-purple-600",
+                order.status === 'preparing' && !isAdvanceOrder && "pos-bg-blue-900-40 text-blue-300 border-blue-600",
+                order.status === 'ready' && "pos-bg-green-900-40 text-green-300 border-green-600",
+                order.status === 'delivered' && "bg-gray-800 text-gray-300 border-gray-600",
+                order.status === 'cancelled' && "pos-bg-red-900-40 text-red-300 border-red-600",
+              )}
+            >
+              {isAdvanceOrder ? 'Scheduled' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            </Badge>
           </div>
-          <Badge 
-            variant="outline" 
-            className={cn(
-              "text-sm px-3 py-1",
-              order.status === 'pending' && "pos-bg-yellow-900-40 text-yellow-300 border-yellow-600",
-              order.status === 'preparing' && isAdvanceOrder && "pos-bg-purple-900-40 text-purple-300 border-purple-600",
-              order.status === 'preparing' && !isAdvanceOrder && "pos-bg-blue-900-40 text-blue-300 border-blue-600",
-              order.status === 'ready' && "pos-bg-green-900-40 text-green-300 border-green-600",
-              order.status === 'delivered' && "bg-gray-800 text-gray-300 border-gray-600",
-              order.status === 'cancelled' && "pos-bg-red-900-40 text-red-300 border-red-600",
-            )}
-          >
-            {isAdvanceOrder ? 'Scheduled' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </Badge>
-        </div>
-
-        {/* Row 2: Time + Type left, Customer right */}
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>{formatTime(order.createdAt)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <OrderTypeIcon className="w-4 h-4" />
-                <span className="capitalize">{order.orderType}</span>
-                {order.tableNumber && <span>(Table {order.tableNumber})</span>}
-              </div>
-            </div>
-            {order.pickupTime && (
-              <div className="mt-1 flex items-center gap-2 text-sm font-medium text-blue-300">
-                <CalendarDays className="w-4 h-4" />
-                <span>Scheduled Pickup: {formatPickupDateTime(order.pickupTime)}</span>
-              </div>
-            )}
-          </div>
-          <div className="text-right shrink-0 min-w-[140px] lg:min-w-[180px]">
-            <h3 className="font-semibold text-xs text-gray-400 uppercase">Customer</h3>
-            <div className="flex items-center gap-1.5 justify-end">
-              <User className="w-3.5 h-3.5 text-gray-400" />
+          <div className="text-right shrink-0">
+            <h3 className="font-semibold text-[10px] text-gray-400 uppercase leading-none mb-0.5">Customer</h3>
+            <div className="flex items-center gap-1 justify-end">
+              <User className="w-3 h-3 text-gray-400" />
               <span className="font-medium text-white text-sm">{order.customerName || 'Walk-in Customer'}</span>
             </div>
             {order.customerPhone && (
-              <div className="flex items-center gap-1.5 justify-end">
-                <Phone className="w-3.5 h-3.5 text-gray-400" />
+              <div className="flex items-center gap-1 justify-end">
+                <Phone className="w-3 h-3 text-gray-400" />
                 <span className="text-gray-300 text-sm">{order.customerPhone}</span>
               </div>
             )}
-            {order.orderType === 'delivery' && order.customerAddress && (
-              <div className="flex items-center gap-1.5 justify-end">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-gray-300 text-sm">{order.customerAddress}</span>
-              </div>
-            )}
           </div>
+        </div>
+
+        {/* Row 2: Time + Type + address/pickup - compact */}
+        <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{formatTime(order.createdAt)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <OrderTypeIcon className="w-3.5 h-3.5" />
+            <span className="capitalize">{order.orderType}</span>
+            {order.tableNumber && <span>(Table {order.tableNumber})</span>}
+          </div>
+          {order.orderType === 'delivery' && order.customerAddress && (
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" />
+              <span>{order.customerAddress}</span>
+            </div>
+          )}
+          {order.pickupTime && (
+            <div className="flex items-center gap-1 text-blue-300 font-medium">
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>Pickup: {formatPickupDateTime(order.pickupTime)}</span>
+            </div>
+          )}
         </div>
       </div>
 
