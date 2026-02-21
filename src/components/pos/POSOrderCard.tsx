@@ -155,13 +155,15 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         'pos-order-card p-2.5 cursor-pointer max-w-[240px] 2xl:max-w-[300px]',
         isSelected && 'selected'
       )}
-      style={
-        order.status === 'ready'
-          ? { background: 'hsl(120, 20%, 15%)', borderColor: 'hsl(120, 40%, 30%)' }
-          : order.status === 'preparing'
-            ? { background: 'hsl(35, 20%, 15%)', borderColor: 'hsl(35, 40%, 30%)' }
-            : undefined
-      }
+      style={{
+        ...(isAdvanceOrder && order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+          ? { background: 'hsl(260, 18%, 16%)', borderColor: 'hsl(260, 35%, 35%)' }
+          : order.status === 'pending' ? { background: 'hsl(210, 25%, 16%)', borderColor: 'hsl(210, 45%, 35%)' }
+          : order.status === 'preparing' ? { background: 'hsl(35, 20%, 15%)', borderColor: 'hsl(35, 40%, 30%)' }
+          : order.status === 'ready' ? { background: 'hsl(120, 20%, 15%)', borderColor: 'hsl(120, 40%, 30%)' }
+          : order.status === 'delivered' ? { background: 'hsl(260, 15%, 16%)', borderColor: 'hsl(260, 30%, 30%)' }
+          : {})
+      }}
     >
       {/* Order ID */}
       <div className="font-mono font-bold text-base 2xl:text-lg mb-1 truncate" style={{ color: '#ffffff' }}>
