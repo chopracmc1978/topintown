@@ -900,8 +900,7 @@ const POSDashboard = ({
       {/* Header - Compact for small tablets, normal for large screens */}
       <header className={cn(
         "border-b py-1.5 lg:py-2.5 px-2 lg:px-4 flex-shrink-0 shadow-sm transition-colors pos-header",
-        hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : "",
-        hasAdvanceAlerts && !hasPendingRemoteOrders ? "pos-bg-amber-900-50 animate-pulse" : ""
+        hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : ""
       )}>
         <div className="flex items-center gap-1 lg:gap-2 w-full min-w-0 overflow-hidden">
           <div className="flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
