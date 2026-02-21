@@ -51,7 +51,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   const beeped2MinRef = useRef(false);
 
   useEffect(() => {
-    if (!order.pickupTime || order.status === 'delivered' || order.status === 'cancelled') {
+    if (!order.pickupTime || order.status === 'ready' || order.status === 'delivered' || order.status === 'cancelled') {
       setCountdown('');
       beeped2MinRef.current = false;
       return;
