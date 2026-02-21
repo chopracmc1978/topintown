@@ -837,8 +837,14 @@ export const usePOSOrders = (locationId?: string) => {
   };
 
   // Set up realtime subscription for new orders - filtered by location
+  // Also poll every 15s as a fallback in case Realtime events are delayed
   useEffect(() => {
     fetchOrders();
+
+    // Polling fallback – ensures web orders appear even if Realtime is slow
+    const pollInterval = setInterval(() => {
+      fetchOrders();
+    }, 15_000);
 
     // Subscribe to new orders and updates for this location
     const channelName = currentLocationId ? `pos-orders-${currentLocationId}` : 'pos-orders-all';
@@ -920,6 +926,7 @@ export const usePOSOrders = (locationId?: string) => {
       .subscribe();
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
   }, [currentLocationId]);
