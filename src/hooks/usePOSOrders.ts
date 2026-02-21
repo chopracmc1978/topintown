@@ -839,9 +839,9 @@ export const usePOSOrders = (locationId?: string) => {
 
           const order = convertDBOrder(newOrder, (items || []) as DBOrderItem[]);
           
-          // Add to orders if not already present
+          // Add to orders if not already present (check both order_number and dbId to prevent duplicates from local + realtime race)
           setOrders(prev => {
-            if (prev.some(o => o.id === order.id)) return prev;
+            if (prev.some(o => o.id === order.id || (o.dbId && o.dbId === order.dbId))) return prev;
             return [order, ...prev];
           });
         }
