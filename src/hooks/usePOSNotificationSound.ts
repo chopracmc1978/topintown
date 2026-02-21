@@ -31,17 +31,20 @@ export const usePOSNotificationSound = (orders: Order[]) => {
       if (!o.pickupTime) return false;
       // Only trigger for pending or preparing (scheduled/advance) orders
       if (o.status !== 'pending' && o.status !== 'preparing') return false;
-      // Only for remote/advance orders that have a future pickup time
-      const pickupMs = new Date(o.pickupTime).getTime();
-      const minutesUntil = (pickupMs - now) / (1000 * 60);
 
-      // Determine the alert window based on how much lead time existed when order was created
+      const pickupMs = new Date(o.pickupTime).getTime();
       const createdMs = o.createdAt ? new Date(o.createdAt).getTime() : now;
       const originalLeadMinutes = (pickupMs - createdMs) / (1000 * 60);
 
-      // Short-notice order (placed with <45 min lead): alert at 20 min before pickup
-      // Normal advance order (placed with ≥45 min lead): alert at 45 min before pickup
-      const alertWindow = originalLeadMinutes < 45 ? 20 : 45;
+      // Skip prep-time orders (≤65 min lead) — those are NOT advance orders
+      // They have their own per-card 1-min beep handled in POSOrderCard
+      if (originalLeadMinutes <= 65) return false;
+
+      const minutesUntil = (pickupMs - now) / (1000 * 60);
+
+      // Normal advance order (≥45 min lead): alert at 45 min before pickup
+      // Short-notice advance order (<45 min but >65 min original lead): alert at 20 min before
+      const alertWindow = originalLeadMinutes >= 45 ? 45 : 20;
 
       return minutesUntil <= alertWindow && minutesUntil > -5;
     });
