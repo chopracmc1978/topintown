@@ -1026,7 +1026,7 @@ const POSDashboard = ({
         </div>
 
         {/* Right Panel - Detail, Edit, or New Order - Fill remaining space */}
-        <div className="flex-1 p-2 lg:p-4 overflow-auto min-h-0 min-w-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
+        <div className="flex-1 p-2 lg:p-4 overflow-hidden min-h-0 min-w-0" style={{ background: 'hsl(220, 26%, 14%)' }}>
           {editingOrder ? (
             <POSNewOrderPanel
               onCreateOrder={handleCreateOrder}
