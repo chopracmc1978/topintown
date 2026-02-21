@@ -385,6 +385,7 @@ const POSDashboard = ({
   
   // Fetch reward points for all orders' phone numbers + per-order earned/used
   const [rewardsMap, setRewardsMap] = useState<Record<string, OrderRewardInfo>>({});
+  const [rewardsVersion, setRewardsVersion] = useState(0);
   
   useEffect(() => {
     const fetchRewards = async () => {
@@ -451,7 +452,7 @@ const POSDashboard = ({
       setRewardsMap(map);
     };
     fetchRewards();
-  }, [orders]);
+  }, [orders, rewardsVersion]);
 
   const isAdvanceOrder = (o: Order) => 
     o.status === 'preparing' && o.pickupTime && new Date(o.pickupTime) > new Date();
@@ -604,6 +605,11 @@ const POSDashboard = ({
     }
     
     updateOrderStatus(selectedOrderId, status, prepTime, currentLocationId);
+    
+    // After delivering, wait for reward points to be written then re-fetch
+    if (status === 'delivered') {
+      setTimeout(() => setRewardsVersion(v => v + 1), 2000);
+    }
     
     // Clear selection and go back to empty state after status change
     setSelectedOrderId(null);
