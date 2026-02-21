@@ -422,6 +422,41 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
             <span className="text-white">Total</span>
             <span className="text-blue-400">${order.total.toFixed(2)}</span>
           </div>
+          {/* Payment method breakdown for paid orders */}
+          {order.paymentStatus === 'paid' && getBalanceDue(order) <= 0 && (
+            <div className="mt-1 space-y-0.5">
+              {(order.cashAmount != null && order.cashAmount > 0) && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-400 font-medium">Cash</span>
+                  <span className="text-green-400 font-medium">${order.cashAmount.toFixed(2)}</span>
+                </div>
+              )}
+              {(order.cardAmount != null && order.cardAmount > 0) && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-blue-400 font-medium">Card</span>
+                  <span className="text-blue-400 font-medium">${order.cardAmount.toFixed(2)}</span>
+                </div>
+              )}
+              {order.cashAmount == null && order.cardAmount == null && order.paymentMethod === 'cash' && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-400 font-medium">Cash</span>
+                  <span className="text-green-400 font-medium">${order.total.toFixed(2)}</span>
+                </div>
+              )}
+              {order.cashAmount == null && order.cardAmount == null && order.paymentMethod === 'card' && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-blue-400 font-medium">Card</span>
+                  <span className="text-blue-400 font-medium">${order.total.toFixed(2)}</span>
+                </div>
+              )}
+              {order.paymentMethod === 'points' && (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium" style={{ color: '#f59e0b' }}>Points</span>
+                  <span className="font-medium" style={{ color: '#f59e0b' }}>${order.total.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
            {/* Show balance due if partially paid or paid but order was edited */}
            {order.paymentStatus === 'paid' && getBalanceDue(order) > 0 && (
              <>
@@ -632,15 +667,19 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
 
         {/* Status & Print Actions */}
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onPrintTicket} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
-            <Printer className="w-4 h-4 mr-2" />
-            Kitchen
-          </Button>
+          {order.status !== 'delivered' && (
+            <Button variant="outline" onClick={onPrintTicket} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
+              <Printer className="w-4 h-4 mr-2" />
+              Kitchen
+            </Button>
+          )}
           
-          <Button variant="outline" onClick={onEditOrder} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
-            <Pencil className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
+          {order.status !== 'delivered' && (
+            <Button variant="outline" onClick={onEditOrder} className="text-gray-300 border-gray-600 hover:bg-gray-700/50">
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          )}
           
           {order.status !== 'cancelled' && order.status !== 'delivered' && (
             <Button
