@@ -158,6 +158,20 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
               </Button>
             )}
 
+            {/* Accept as Full (forgive small difference) */}
+            {isPartial && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRawDigits('');
+                  onConfirm();
+                }}
+                className="w-full h-10 text-sm font-semibold border-green-300 text-green-600 hover:bg-green-50"
+              >
+                Accept ${received.toFixed(2)} as Full (−${cardRemainder.toFixed(2)})
+              </Button>
+            )}
+
             {/* Actions */}
             <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={handleClose} className="flex-1 h-10">
