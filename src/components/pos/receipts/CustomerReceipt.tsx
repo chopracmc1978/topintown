@@ -119,9 +119,21 @@ export const CustomerReceipt = ({
               
               {/* Standalone Pizza details */}
               {item.pizzaCustomization && !hasCombo && (
-                <p className="text-xs text-gray-600 ml-3">
-                  {item.pizzaCustomization.size.name}, {item.pizzaCustomization.crust.name}
-                </p>
+                <div className="text-xs text-gray-600 ml-3">
+                  <p>{typeof item.pizzaCustomization.size === 'object' ? item.pizzaCustomization.size?.name : item.pizzaCustomization.size}, {typeof item.pizzaCustomization.crust === 'object' ? item.pizzaCustomization.crust?.name : item.pizzaCustomization.crust}</p>
+                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && (
+                    <p>Sauce: {item.pizzaCustomization.sauceQuantity && item.pizzaCustomization.sauceQuantity !== 'normal' ? `${item.pizzaCustomization.sauceQuantity} ` : ''}{item.pizzaCustomization.sauceName}</p>
+                  )}
+                  {item.pizzaCustomization.sauceName?.toLowerCase() === 'no sauce' && (
+                    <p>No Sauce</p>
+                  )}
+                  {item.pizzaCustomization.extraToppings?.length > 0 && (
+                    <p>+{item.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                  )}
+                  {item.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
+                    <p>NO: {item.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                  )}
+                </div>
               )}
               
               {/* Standalone Wings details */}
