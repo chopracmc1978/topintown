@@ -605,9 +605,21 @@ export const usePOSOrders = (locationId?: string) => {
   // Update order status with optional SMS and email receipt
   const updateOrderStatus = async (orderNumber: string, status: OrderStatus, prepTime?: number, locationId?: string) => {
     try {
+      const updateData: any = { status, updated_at: new Date().toISOString() };
+      
+      // When moving to preparing with a prep time, set pickup_time so countdown timer works
+      if (status === 'preparing' && prepTime && prepTime > 0) {
+        const order = orders.find(o => o.id === orderNumber);
+        // Only set pickup_time for ASAP orders (not advance orders that already have one)
+        if (!order?.pickupTime) {
+          const pickupAt = new Date(Date.now() + prepTime * 60000);
+          updateData.pickup_time = pickupAt.toISOString();
+        }
+      }
+      
       const { error } = await supabase
         .from('orders')
-        .update({ status, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq('order_number', orderNumber);
 
       if (error) throw error;
@@ -644,9 +656,14 @@ export const usePOSOrders = (locationId?: string) => {
       }
 
       // Update local state
-      setOrders(prev => prev.map(o => 
-        o.id === orderNumber ? { ...o, status } : o
-      ));
+      setOrders(prev => prev.map(o => {
+        if (o.id !== orderNumber) return o;
+        const updated = { ...o, status };
+        if (updateData.pickup_time) {
+          updated.pickupTime = new Date(updateData.pickup_time);
+        }
+        return updated;
+      }));
     } catch (err: any) {
       console.error('Error updating order status:', err);
       setError(err.message);
