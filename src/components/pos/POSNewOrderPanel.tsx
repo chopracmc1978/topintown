@@ -847,7 +847,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
             {/* Category Tabs - Compact for small tablets, larger for big screens */}
-            <div className="flex gap-1 lg:gap-3 p-1.5 lg:p-4 flex-wrap" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="flex gap-1 lg:gap-3 p-1.5 lg:p-4" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
               {categories.map(cat => (
                 <button
                   key={cat.id}
