@@ -885,7 +885,7 @@ const POSDashboard = ({
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => { setActiveTab(tab.id); setSelectedOrderId(null); }}
                 className={cn(
                   "pos-tab-button-compact flex items-center gap-1 lg:gap-1.5",
                   "outline-none focus:outline-none focus-visible:outline-none",
