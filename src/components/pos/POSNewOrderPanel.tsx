@@ -981,7 +981,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           </div>
 
           {/* Order Summary - Responsive width for tablets */}
-          <div className="w-[160px] min-w-[140px] max-w-[240px] md:w-[200px] md:min-w-[180px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
+          <div className="w-[200px] min-w-[180px] max-w-[240px] md:w-[220px] md:min-w-[200px] lg:w-[320px] lg:min-w-[300px] lg:max-w-[360px] shrink-0 flex flex-col" style={{ background: 'hsl(220, 25%, 16%)' }}>
             {/* Cart Items */}
             <ScrollArea className="flex-1 p-2">
               {cartItems.length === 0 ? (
