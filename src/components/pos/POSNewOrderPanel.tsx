@@ -47,11 +47,12 @@ const formatPizzaCustomization = (customization: CartPizzaCustomization): string
     }
   }
   
-  // Sauce - only if no sauce or extra quantity
+  // Sauce - show if no sauce, non-default sauce, or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal') {
-    details.push(`${customization.sauceQuantity} ${customization.sauceName}`);
+  } else if (customization.sauceName) {
+    const qtyLabel = customization.sauceQuantity && customization.sauceQuantity !== 'normal' ? `${customization.sauceQuantity} ` : '';
+    details.push(`Sauce: ${qtyLabel}${customization.sauceName}`);
   }
   
   // Spicy - only show if at least one side is not 'none'
