@@ -159,18 +159,10 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
             🆕 New!
           </span>
         )}
-        <div className="flex items-center justify-between gap-1">
-          <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
-            <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
-            {source.label}
-          </span>
-          {countdown && (
-            <span className="text-sm font-bold flex items-center gap-1 shrink-0" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
-              <Timer className="w-3.5 h-3.5" />
-              {countdown}
-            </span>
-          )}
-        </div>
+        <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
+          <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
+          {source.label}
+        </span>
         <span className={
           order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? 'pos-badge'
@@ -244,6 +236,12 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         <span className="text-sm font-bold" style={{ color: 'hsl(217,91%,60%)' }}>
           ${order.total.toFixed(2)}
         </span>
+        {countdown && (
+          <span className="text-xs font-bold flex items-center gap-0.5 shrink-0" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
+            <Timer className="w-3 h-3" />
+            {countdown}
+          </span>
+        )}
          {(() => {
            // Calculate balance due
            const amountPaid = order.amountPaid ?? (order.paymentStatus === 'paid' ? order.total : 0);
