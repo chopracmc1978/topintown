@@ -391,7 +391,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           })}
         </div>
 
-        <div className="space-y-px lg:space-y-0.5 flex-1 min-h-0 overflow-hidden" style={{ flex: '1 1 0%' }}>
+        <div className="space-y-0 lg:space-y-0.5 flex-1 min-h-0 overflow-y-auto" style={{ flex: '1 1 0%' }}>
 
           {/* ROW 2: Cheese */}
           <div className="flex items-center gap-1 lg:gap-1.5">
