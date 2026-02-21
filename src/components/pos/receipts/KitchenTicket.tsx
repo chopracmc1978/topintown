@@ -17,27 +17,18 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     details.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
-  // Cheese - only show if NOT regular/normal
+  // Cheese - show if not default
   if (customization.cheeseType) {
-    const cheeseChanges: string[] = [];
-    if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      cheeseChanges.push('No Cheese');
-    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      cheeseChanges.push('Dairy Free Cheese');
+    const ct = customization.cheeseType.toLowerCase();
+    if (ct === 'no cheese' || ct === 'none') {
+      details.push('Cheese: None');
+    } else if (ct === 'dairy free') {
+      details.push('Cheese: Dairy Free');
     } else {
-      const hasQuantityChange = customization.cheeseSides?.some(
-        cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal'
-      );
-      if (hasQuantityChange) {
-        const quantities = customization.cheeseSides
-          ?.filter(cs => cs.quantity && cs.quantity !== 'regular' && cs.quantity !== 'normal')
-          .map(cs => `${cs.side}: ${cs.quantity} cheese`)
-          .join(', ');
-        if (quantities) cheeseChanges.push(quantities);
+      const cheeseQty = (customization as any).cheeseQuantity;
+      if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
+        details.push(`Cheese: ${cheeseQty} ${customization.cheeseType}`);
       }
-    }
-    if (cheeseChanges.length > 0) {
-      details.push(cheeseChanges.join(', '));
     }
   }
   

@@ -261,12 +261,19 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
     lines.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
-  // Cheese - only show if NOT regular/normal
+  // Cheese - show if not default (regular Mozzarella)
   if (customization.cheeseType) {
-    if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      lines.push('No Cheese');
-    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      lines.push('Dairy Free Cheese');
+    const ct = customization.cheeseType.toLowerCase();
+    if (ct === 'no cheese' || ct === 'none') {
+      lines.push('Cheese : None');
+    } else if (ct === 'dairy free') {
+      lines.push('Cheese : Dairy Free');
+    } else {
+      // Show quantity changes (less/extra)
+      const cheeseQty = customization.cheeseQuantity;
+      if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
+        lines.push(`Cheese : ${cheeseQty} ${customization.cheeseType}`);
+      }
     }
   }
   
@@ -612,12 +619,18 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
     lines.push(`${sizeName || 'Standard'}, ${crustName || 'Regular'}`);
   }
   
-  // Cheese - only show if NOT regular/normal
+  // Cheese - show if not default (regular Mozzarella)
   if (customization.cheeseType) {
-    if (customization.cheeseType.toLowerCase() === 'no cheese') {
-      lines.push('No Cheese');
-    } else if (customization.cheeseType.toLowerCase() === 'dairy free') {
-      lines.push('Dairy Free Cheese');
+    const ct = customization.cheeseType.toLowerCase();
+    if (ct === 'no cheese' || ct === 'none') {
+      lines.push('Cheese : None');
+    } else if (ct === 'dairy free') {
+      lines.push('Cheese : Dairy Free');
+    } else {
+      const cheeseQty = customization.cheeseQuantity;
+      if (cheeseQty && cheeseQty !== 'regular' && cheeseQty !== 'normal') {
+        lines.push(`Cheese : ${cheeseQty} ${customization.cheeseType}`);
+      }
     }
   }
   
