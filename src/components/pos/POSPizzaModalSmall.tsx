@@ -173,7 +173,7 @@ export const POSPizzaModalSmall = (props: POSPizzaModalProps) => {
           {/* EXTRA TOPPINGS - 3 column grid */}
           {m.availableExtraToppings.length > 0 && (
             <div className="!mt-0" style={{ marginTop: 0 }}>
-              <div className="grid gap-1.5 grid-cols-3">
+              <div className="grid gap-1 grid-cols-3">
                 {m.availableExtraToppings.map(topping => {
                   const selected = m.extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
