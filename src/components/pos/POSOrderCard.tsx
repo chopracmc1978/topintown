@@ -1,4 +1,5 @@
-import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift, CalendarClock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift, CalendarClock, Timer } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,40 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   const source = sourceConfig[order.source || 'web'] || sourceConfig.web;
   const SourceIcon = source.icon;
   const TypeIcon = orderTypeIcons[order.orderType] || Package;
+
+  // Countdown timer for orders with pickup time
+  const [countdown, setCountdown] = useState('');
+  const [isOverdue, setIsOverdue] = useState(false);
+
+  useEffect(() => {
+    if (!order.pickupTime || order.status === 'delivered' || order.status === 'cancelled') {
+      setCountdown('');
+      return;
+    }
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const target = new Date(order.pickupTime!).getTime();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        const overMs = Math.abs(diff);
+        const overMin = Math.floor(overMs / 60000);
+        const overSec = Math.floor((overMs % 60000) / 1000);
+        setCountdown(`-${overMin}:${String(overSec).padStart(2, '0')}`);
+        setIsOverdue(true);
+      } else {
+        const min = Math.floor(diff / 60000);
+        const sec = Math.floor((diff % 60000) / 1000);
+        setCountdown(`${min}:${String(sec).padStart(2, '0')}`);
+        setIsOverdue(diff < 5 * 60000); // red when < 5 min
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [order.pickupTime, order.status]);
 
   const getTimeSince = (date: Date) => {
     const now = new Date();
@@ -146,6 +181,14 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
             Pickup
           </div>
           <div>{new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+        </div>
+      )}
+
+      {/* Countdown timer for pickup orders */}
+      {countdown && (
+        <div className="text-sm font-bold mb-1 flex items-center gap-1" style={{ color: isOverdue ? '#ef4444' : '#22c55e' }}>
+          <Timer className="w-3.5 h-3.5" />
+          <span>{countdown}</span>
         </div>
       )}
 
