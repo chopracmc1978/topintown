@@ -130,8 +130,11 @@ export const CustomerReceipt = ({
                     if (cq && cq !== 'regular' && cq !== 'normal') return <p>Cheese: {cq} {(item.pizzaCustomization as any).cheeseType}</p>;
                     return null;
                   })()}
-                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && (
+                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && !(item.pizzaCustomization as any).isDefaultSauce && (
                     <p>Sauce: {item.pizzaCustomization.sauceQuantity && item.pizzaCustomization.sauceQuantity !== 'normal' ? `${item.pizzaCustomization.sauceQuantity} ` : ''}{item.pizzaCustomization.sauceName}</p>
+                  )}
+                  {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceQuantity === 'extra' && (item.pizzaCustomization as any).isDefaultSauce && (
+                    <p>Sauce: extra {item.pizzaCustomization.sauceName}</p>
                   )}
                   {item.pizzaCustomization.sauceName?.toLowerCase() === 'no sauce' && (
                     <p>No Sauce</p>

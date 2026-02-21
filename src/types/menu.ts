@@ -20,6 +20,7 @@ export interface CartPizzaCustomization {
   sauceId: string | null;
   sauceName: string;
   sauceQuantity: 'normal' | 'extra';
+  isDefaultSauce?: boolean;
   freeToppings: string[];
   spicyLevel: SideSpicyLevel;
   defaultToppings: SelectedTopping[];

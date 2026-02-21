@@ -277,10 +277,10 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
     }
   }
   
-  // Sauce - always show sauce name (so kitchen knows which sauce)
+  // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceName) {
+  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
       ? `${customization.sauceQuantity} ` : '';
     lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
@@ -634,10 +634,10 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
     }
   }
   
-  // Sauce - always show sauce name
+  // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceName) {
+  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
       ? `${customization.sauceQuantity} ` : '';
     lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
@@ -786,8 +786,10 @@ const formatPizzaDetailsForPrint = (customization: any): string[] => {
   // Sauce - only show if changed from default or quantity is not normal
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
-    details.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'))) {
+    const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
+      ? `${customization.sauceQuantity} ` : '';
+    details.push(`Sauce: ${qtyPrefix}${customization.sauceName}`);
   }
   
   // Spicy Level - only show if not 'none'

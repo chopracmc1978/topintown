@@ -246,8 +246,10 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
               const customizationLines: string[] = [];
               
               if (hasPizzaCustomization && !hasComboCustomization) {
-                // Sauce - always show
-                if (customizations?.sauceName) {
+                // Sauce - only show if changed from default or extra quantity
+                if (customizations?.sauceName?.toLowerCase() === 'no sauce') {
+                  customizationLines.push('No Sauce');
+                } else if (customizations?.sauceName && (!(customizations as any).isDefaultSauce || customizations.sauceQuantity === 'extra')) {
                   const sauceText = customizations.sauceQuantity === 'extra' 
                     ? `${customizations.sauceName} (Extra)` 
                     : customizations.sauceName;

@@ -344,6 +344,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
         sauceId: selectedSauceId,
         sauceName,
         sauceQuantity: sauceQuantity === 'extra' ? 'extra' : 'normal',
+        isDefaultSauce: !!(selectedSauceId && defaultSauceIds.includes(selectedSauceId)),
         freeToppings: freeToppingSelections.map(f => `${f.name}${isLargePizza && f.side !== 'whole' ? ` (${f.side})` : ''}`),
         spicyLevel: effectiveSpicy,
         defaultToppings,

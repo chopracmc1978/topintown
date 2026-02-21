@@ -47,10 +47,10 @@ const formatPizzaCustomization = (customization: CartPizzaCustomization): string
     }
   }
   
-  // Sauce - show if no sauce, non-default sauce, or extra quantity
+  // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceName) {
+  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal'))) {
     const qtyLabel = customization.sauceQuantity && customization.sauceQuantity !== 'normal' ? `${customization.sauceQuantity} ` : '';
     details.push(`Sauce: ${qtyLabel}${customization.sauceName}`);
   }
