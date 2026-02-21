@@ -215,7 +215,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
       {/* Countdown timer for pickup orders */}
       {countdown && (
-        <div className="text-sm font-bold mb-1 flex items-center gap-1" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
+        <div className="text-sm font-bold mb-1 flex items-center justify-end gap-1" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
           <Timer className="w-3.5 h-3.5" />
           <span>{countdown}</span>
         </div>
