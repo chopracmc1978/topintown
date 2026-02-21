@@ -206,9 +206,9 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
           </div>
 
           {/* Right Side - Numeric Keypad */}
-          <div className="w-48 flex flex-col gap-2">
-            <p className="text-xs text-muted-foreground text-center">Keypad</p>
-            <div className="grid grid-cols-3 gap-0.5 flex-1">
+          <div className="w-48 flex flex-col gap-0">
+            <p className="text-xs text-muted-foreground text-center mb-1">Keypad</p>
+            <div className="grid grid-cols-3 gap-0 flex-1">
               {keypadButtons.map((key) => (
                 <Button
                   key={key}
