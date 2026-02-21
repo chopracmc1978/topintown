@@ -47,7 +47,6 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   // Countdown timer for orders with pickup time
   const [countdown, setCountdown] = useState('');
   const [isOverdue, setIsOverdue] = useState(false);
-  const [, setTick] = useState(0); // force re-render for elapsed time
 
   useEffect(() => {
     if (!order.pickupTime || order.status === 'delivered' || order.status === 'cancelled') {
@@ -78,12 +77,6 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [order.pickupTime, order.status]);
-
-  // Tick every 30s to update elapsed time display
-  useEffect(() => {
-    const t = setInterval(() => setTick(v => v + 1), 30000);
-    return () => clearInterval(t);
-  }, []);
 
   const getTimeSince = (date: Date) => {
     const now = new Date();
@@ -124,16 +117,10 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
             🆕 New!
           </span>
         )}
-        <div className="flex items-center justify-between gap-1">
-          <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
-            <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
-            {source.label}
-          </span>
-          <span className="text-xs font-mono font-semibold flex items-center gap-0.5" style={{ color: 'hsl(210,15%,75%)' }}>
-            <Clock className="w-3 h-3" />
-            {getTimeSince(order.createdAt)}
-          </span>
-        </div>
+        <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
+          <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
+          {source.label}
+        </span>
         <span className={
           order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? 'pos-badge'
@@ -177,6 +164,12 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         <span className="flex items-center gap-1">
           <TypeIcon className="w-3.5 h-3.5" />
           <span className="capitalize">{order.orderType}</span>
+        </span>
+      </div>
+      <div className="text-sm font-semibold mb-1" style={{ color: '#ffffff' }}>
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
+          {getTimeSince(order.createdAt)}
         </span>
       </div>
 
