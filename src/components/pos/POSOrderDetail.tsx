@@ -71,13 +71,13 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     }
   }
   
-  // Sauce - show if changed from default or quantity is not regular
-  if (customization.sauceName && customization.sauceName.toLowerCase() !== 'no sauce') {
-    if (customization.sauceQuantity && customization.sauceQuantity !== 'normal') {
-      details.push(`${customization.sauceQuantity} ${customization.sauceName}`);
-    }
-  } else if (customization.sauceName?.toLowerCase() === 'no sauce') {
+  // Sauce - always show sauce name
+  if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
+  } else if (customization.sauceName) {
+    const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal'
+      ? `${customization.sauceQuantity} ` : '';
+    details.push(`Sauce: ${qtyPrefix}${customization.sauceName}`);
   }
   
   // Spicy Level - only show if at least one side is not 'none'

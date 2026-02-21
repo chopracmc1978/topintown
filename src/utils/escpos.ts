@@ -270,11 +270,13 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
     }
   }
   
-  // Sauce - only show if changed from default
+  // Sauce - always show sauce name (so kitchen knows which sauce)
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
-    lines.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+  } else if (customization.sauceName) {
+    const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
+      ? `${customization.sauceQuantity} ` : '';
+    lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
   }
   
   // Spicy Level - only show if not 'none'
@@ -619,11 +621,13 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
     }
   }
   
-  // Sauce - only show if changed from default
+  // Sauce - always show sauce name
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     lines.push('No Sauce');
-  } else if (customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular') {
-    lines.push(`${customization.sauceQuantity} ${customization.sauceName || 'Sauce'}`);
+  } else if (customization.sauceName) {
+    const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal' && customization.sauceQuantity !== 'regular'
+      ? `${customization.sauceQuantity} ` : '';
+    lines.push(`Sauce : ${qtyPrefix}${customization.sauceName}`);
   }
   
   // Spicy Level - only show if not 'none'

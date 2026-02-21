@@ -306,6 +306,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
       else if (selectedSize?.name?.includes('Medium')) price += 2.5;
       else price += 3;
     }
+    // Sauce: charge price if non-default sauce selected
+    if (selectedSauceId && allSauces) {
+      const sauce = allSauces.find(s => s.id === selectedSauceId);
+      if (sauce && !defaultSauceIds.includes(sauce.id)) price += sauce.price;
+      if (sauceQuantity === 'extra' && sauce) price += sauce.price;
+    }
     const tp = getExtraToppingPrice(selectedSize?.name || '');
     defaultToppings.forEach(t => { if (t.quantity === 'extra') price += tp; });
     price += extraToppings.length * tp;
