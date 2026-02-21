@@ -110,8 +110,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orderNumber, phone, customerId, type, prepTime, pickupTime }: OrderSmsRequest = await req.json();
-    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime, pickupTime, staffUserId: staffUser.userId });
+    const { orderNumber, phone, customerId, type, prepTime, pickupTime, locationId }: OrderSmsRequest & { locationId?: string } = await req.json();
+    console.log("Order SMS request:", { orderNumber, phone, customerId, type, prepTime, pickupTime, locationId, staffUserId: staffUser.userId });
 
     // Input validation
     if (!orderNumber || typeof orderNumber !== "string") {
@@ -173,6 +173,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     let message = "";
 
+    // Resolve location details for accepted/ready messages
+    let locationName = "";
+    let locationAddress = "";
+    if (locationId && (type === "accepted" || type === "ready")) {
+      if (locationId === "calgary" || locationId.toLowerCase().includes("calgary")) {
+        locationName = "Calgary";
+        locationAddress = "3250 - 60 Street North East, Calgary";
+      } else if (locationId === "chestermere" || locationId.toLowerCase().includes("kinni")) {
+        locationName = "Kinniburgh";
+        locationAddress = "272 Kinniburgh Blvd, Chestermere";
+      } else {
+        // Try DB lookup
+        const { data: locData } = await supabase
+          .from("locations")
+          .select("short_name, address, city")
+          .eq("id", locationId)
+          .maybeSingle();
+        if (locData) {
+          locationName = locData.short_name || "";
+          locationAddress = `${locData.address}${locData.city ? ', ' + locData.city : ''}`;
+        }
+      }
+    }
+
     const formatPickupTime = (isoString: string): string => {
       const date = new Date(isoString);
       return date.toLocaleDateString('en-US', {
@@ -182,19 +206,21 @@ const handler = async (req: Request): Promise<Response> => {
       });
     };
 
+    const locationSuffix = locationName ? ` ${locationName} Location - ${locationAddress}` : "";
+
     switch (type) {
       case "accepted":
         if (pickupTime) {
-          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted! Scheduled pickup: ${formatPickupTime(pickupTime)}. Thank you!`;
+          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted at${locationSuffix}! Scheduled pickup: ${formatPickupTime(pickupTime)}. Thank you!`;
         } else {
-          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted and is being prepared. Thank you!`;
+          message = `Top In Town Pizza: Your order ${orderNumber} has been accepted at${locationSuffix} and is being prepared. Thank you!`;
         }
         break;
       case "preparing":
         message = `Top In Town Pizza: Your order ${orderNumber} is being prepared. Estimated time: ${prepTime || 20} minutes. Thank you for your order!`;
         break;
       case "ready":
-        message = `Top In Town Pizza: Great news! Your order ${orderNumber} is READY for pickup. See you soon!`;
+        message = `Top In Town Pizza: Great news! Your order ${orderNumber} is READY for pickup at${locationSuffix}. See you soon!`;
         break;
       case "complete":
         message = `Top In Town Pizza: Thank you for choosing us! We hope you enjoyed your order ${orderNumber}. See you again soon! 🍕`;
