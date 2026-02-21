@@ -253,7 +253,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         <span className="text-sm font-bold" style={{ color: 'hsl(217,91%,60%)' }}>
           ${order.total.toFixed(2)}
         </span>
-        {isOverdue && (
+        {isOverdue && order.status !== 'ready' && order.status !== 'delivered' && order.status !== 'cancelled' && (
           <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold animate-bounce" style={{ background: 'hsl(36,90%,45%)', color: '#fff' }}>
             <CalendarClock className="w-3 h-3" />
             Due!
