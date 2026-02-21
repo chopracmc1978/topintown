@@ -648,7 +648,7 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
               className="text-red-400 border-red-600 hover:bg-red-900/30"
               onClick={() => onUpdateStatus('cancelled')}
             >
-              Cancel
+              {order.paymentStatus === 'paid' ? 'Cancel & Refund' : 'Cancel'}
             </Button>
           )}
           
