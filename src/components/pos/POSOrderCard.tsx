@@ -155,7 +155,13 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         'pos-order-card p-2.5 cursor-pointer max-w-[240px] 2xl:max-w-[300px]',
         isSelected && 'selected'
       )}
-      style={order.status === 'ready' ? { background: 'hsl(120, 20%, 15%)', borderColor: 'hsl(120, 40%, 30%)' } : undefined}
+      style={
+        order.status === 'ready'
+          ? { background: 'hsl(120, 20%, 15%)', borderColor: 'hsl(120, 40%, 30%)' }
+          : order.status === 'preparing'
+            ? { background: 'hsl(35, 20%, 15%)', borderColor: 'hsl(35, 40%, 30%)' }
+            : undefined
+      }
     >
       {/* Order ID */}
       <div className="font-mono font-bold text-base 2xl:text-lg mb-1 truncate" style={{ color: '#ffffff' }}>
