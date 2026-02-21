@@ -249,7 +249,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                 // Sauce - only show if changed from default or extra quantity
                 if (customizations?.sauceName?.toLowerCase() === 'no sauce') {
                   customizationLines.push('No Sauce');
-                } else if (customizations?.sauceName && (!(customizations as any).isDefaultSauce || customizations.sauceQuantity === 'extra')) {
+                } else if (customizations?.sauceName && ((customizations as any).isDefaultSauce === false || customizations.sauceQuantity === 'extra')) {
                   const sauceText = customizations.sauceQuantity === 'extra' 
                     ? `${customizations.sauceName} (Extra)` 
                     : customizations.sauceName;
@@ -267,7 +267,7 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                     customizationLines.push(`Cheese: ${customizations.cheeseType}`);
                   } else {
                     // Mozzarella but check quantity
-                    const cq = (customizations as any).cheeseQuantity;
+                    const cq = customizations.cheeseSides?.[0]?.quantity || (customizations as any).cheeseQuantity;
                     if (cq && cq !== 'regular' && cq !== 'normal') {
                       customizationLines.push(`Cheese: ${cq} ${customizations.cheeseType}`);
                     }
