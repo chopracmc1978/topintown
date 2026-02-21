@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock, Phone, Globe, User, Utensils, Package, Truck, Smartphone, Gift, CalendarClock, Timer } from 'lucide-react';
 import { Order } from '@/types/menu';
 import { cn } from '@/lib/utils';
@@ -47,12 +47,33 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   // Countdown timer for orders with pickup time
   const [countdown, setCountdown] = useState('');
   const [isOverdue, setIsOverdue] = useState(false);
+  const [isUrgent, setIsUrgent] = useState(false); // < 5 min
+  const beeped2MinRef = useRef(false);
 
   useEffect(() => {
     if (!order.pickupTime || order.status === 'delivered' || order.status === 'cancelled') {
       setCountdown('');
+      beeped2MinRef.current = false;
       return;
     }
+
+    const playBeep = () => {
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.6, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+        setTimeout(() => ctx.close(), 500);
+      } catch (e) { /* silent fail */ }
+    };
 
     const updateCountdown = () => {
       const now = Date.now();
@@ -65,11 +86,19 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         const overSec = Math.floor((overMs % 60000) / 1000);
         setCountdown(`-${overMin}:${String(overSec).padStart(2, '0')}`);
         setIsOverdue(true);
+        setIsUrgent(true);
       } else {
         const min = Math.floor(diff / 60000);
         const sec = Math.floor((diff % 60000) / 1000);
         setCountdown(`${min}:${String(sec).padStart(2, '0')}`);
-        setIsOverdue(diff < 5 * 60000); // red when < 5 min
+        setIsOverdue(false);
+        setIsUrgent(diff < 5 * 60000); // red when < 5 min
+
+        // Single beep at 2 minutes remaining
+        if (diff <= 2 * 60000 && !beeped2MinRef.current) {
+          beeped2MinRef.current = true;
+          playBeep();
+        }
       }
     };
 
@@ -186,7 +215,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
       {/* Countdown timer for pickup orders */}
       {countdown && (
-        <div className="text-sm font-bold mb-1 flex items-center gap-1" style={{ color: isOverdue ? '#ef4444' : '#22c55e' }}>
+        <div className="text-sm font-bold mb-1 flex items-center gap-1" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
           <Timer className="w-3.5 h-3.5" />
           <span>{countdown}</span>
         </div>
