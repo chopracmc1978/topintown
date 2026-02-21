@@ -28,6 +28,8 @@ interface DBOrder {
   created_at: string;
   updated_at: string;
   pickup_time: string | null;
+  cash_amount: number | null;
+  card_amount: number | null;
 }
 
 interface DBOrderItem {
@@ -106,6 +108,8 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
     tableNumber: dbOrder.table_number || undefined,
     pickupTime: dbOrder.pickup_time ? new Date(dbOrder.pickup_time) : undefined,
      amountPaid: dbOrder.amount_paid || undefined,
+     cashAmount: dbOrder.cash_amount || undefined,
+     cardAmount: dbOrder.card_amount || undefined,
   };
 };
 
@@ -650,20 +654,30 @@ export const usePOSOrders = (locationId?: string) => {
   };
 
   // Update payment status
-  const updatePaymentStatus = async (orderNumber: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod) => {
+  const updatePaymentStatus = async (orderNumber: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod, splitAmounts?: { cashAmount?: number; cardAmount?: number }) => {
     try {
        // Get current order to know the total for amount_paid
        const currentOrder = orders.find(o => o.id === orderNumber);
        const newAmountPaid = paymentStatus === 'paid' ? (currentOrder?.total || 0) : 0;
        
+      const updateData: any = { 
+        payment_status: paymentStatus, 
+        payment_method: paymentMethod || null,
+        amount_paid: newAmountPaid,
+        updated_at: new Date().toISOString() 
+      };
+
+      // Add split payment amounts if provided
+      if (splitAmounts?.cashAmount !== undefined) {
+        updateData.cash_amount = splitAmounts.cashAmount;
+      }
+      if (splitAmounts?.cardAmount !== undefined) {
+        updateData.card_amount = splitAmounts.cardAmount;
+      }
+
       const { error } = await supabase
         .from('orders')
-        .update({ 
-          payment_status: paymentStatus, 
-          payment_method: paymentMethod || null,
-           amount_paid: newAmountPaid,
-          updated_at: new Date().toISOString() 
-        })
+        .update(updateData)
         .eq('order_number', orderNumber);
 
       if (error) throw error;
@@ -675,8 +689,9 @@ export const usePOSOrders = (locationId?: string) => {
                ...order, 
                paymentStatus, 
                paymentMethod,
-               // When marking as paid, update amountPaid to match current total
-                amountPaid: newAmountPaid
+               amountPaid: newAmountPaid,
+               cashAmount: splitAmounts?.cashAmount ?? order.cashAmount,
+               cardAmount: splitAmounts?.cardAmount ?? order.cardAmount,
              } 
            : order
       ));
@@ -876,6 +891,8 @@ export const usePOSOrders = (locationId?: string) => {
                 tax: updatedOrder.tax,
                 total: updatedOrder.total,
                  amountPaid: updatedOrder.amount_paid || undefined,
+                 cashAmount: updatedOrder.cash_amount || undefined,
+                 cardAmount: updatedOrder.card_amount || undefined,
                 pickupTime: updatedOrder.pickup_time ? new Date(updatedOrder.pickup_time) : undefined,
               };
             }

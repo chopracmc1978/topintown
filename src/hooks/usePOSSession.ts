@@ -74,7 +74,7 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
       
       const { data, error } = await supabase
         .from('orders')
-        .select('total, payment_method, source')
+        .select('total, payment_method, source, cash_amount, card_amount')
         .eq('location_id', locationId)
         .eq('payment_status', 'paid')
         .gte('created_at', today.toISOString());
@@ -85,8 +85,20 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
       }
 
       const orders = data || [];
-      const cashTotal = orders.filter(o => o.payment_method === 'cash').reduce((sum, o) => sum + (o.total || 0), 0);
-      const cardTotal = orders.filter(o => o.payment_method === 'card').reduce((sum, o) => sum + (o.total || 0), 0);
+      // Use cash_amount/card_amount for accurate split payment tracking
+      let cashTotal = 0;
+      let cardTotal = 0;
+      orders.forEach(o => {
+        if (o.cash_amount != null || o.card_amount != null) {
+          // Split payment or tracked amounts
+          cashTotal += o.cash_amount || 0;
+          cardTotal += o.card_amount || 0;
+        } else {
+          // Legacy: fall back to payment_method
+          if (o.payment_method === 'cash') cashTotal += o.total || 0;
+          else if (o.payment_method === 'card') cardTotal += o.total || 0;
+        }
+      });
       const webAppTotal = orders.filter(o => o.source === 'web' || o.source === 'app').reduce((sum, o) => sum + (o.total || 0), 0);
       
       setTodayCashSales(cashTotal);

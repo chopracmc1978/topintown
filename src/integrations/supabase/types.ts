@@ -840,6 +840,8 @@ export type Database = {
       orders: {
         Row: {
           amount_paid: number | null
+          card_amount: number | null
+          cash_amount: number | null
           coupon_code: string | null
           created_at: string
           customer_address: string | null
@@ -869,6 +871,8 @@ export type Database = {
         }
         Insert: {
           amount_paid?: number | null
+          card_amount?: number | null
+          cash_amount?: number | null
           coupon_code?: string | null
           created_at?: string
           customer_address?: string | null
@@ -898,6 +902,8 @@ export type Database = {
         }
         Update: {
           amount_paid?: number | null
+          card_amount?: number | null
+          cash_amount?: number | null
           coupon_code?: string | null
           created_at?: string
           customer_address?: string | null
