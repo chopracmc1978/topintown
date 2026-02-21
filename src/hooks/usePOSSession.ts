@@ -74,9 +74,9 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
       
       const { data, error } = await supabase
         .from('orders')
-        .select('total, payment_method, source, cash_amount, card_amount')
+        .select('total, payment_method, source, cash_amount, card_amount, payment_status')
         .eq('location_id', locationId)
-        .eq('payment_status', 'paid')
+        .in('payment_status', ['paid', 'refunded'])
         .gte('created_at', today.toISOString());
 
       if (error) {
@@ -99,7 +99,7 @@ export const usePOSSession = (locationId: string, userId: string | undefined) =>
           else if (o.payment_method === 'card') cardTotal += o.total || 0;
         }
       });
-      const webAppTotal = orders.filter(o => o.source === 'web' || o.source === 'app').reduce((sum, o) => sum + (o.total || 0), 0);
+      const webAppTotal = orders.filter(o => (o.source === 'web' || o.source === 'app') && o.payment_status !== 'refunded').reduce((sum, o) => sum + (o.total || 0), 0);
       
       setTodayCashSales(cashTotal);
       setTodayCardSales(cardTotal);

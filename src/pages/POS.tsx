@@ -17,6 +17,7 @@ import { POSNewOrderPanel } from '@/components/pos/POSNewOrderPanel';
 import { POSCashPaymentModal } from '@/components/pos/POSCashPaymentModal';
 import { POSPointsPaymentModal } from '@/components/pos/POSPointsPaymentModal';
 import { POSPaymentChoiceModal } from '@/components/pos/POSPaymentChoiceModal';
+import { POSRefundChoiceModal } from '@/components/pos/POSRefundChoiceModal';
 import { POSPrepTimeModal } from '@/components/pos/POSPrepTimeModal';
 import { POSLoginScreen } from '@/components/pos/POSLoginScreen';
 import { POSStaffPinScreen } from '@/components/pos/POSStaffPinScreen';
@@ -293,6 +294,10 @@ const POSDashboard = ({
   const [balanceRemaining, setBalanceRemaining] = useState<number>(0);
   const [pointsDiscountApplied, setPointsDiscountApplied] = useState<{ pointsUsed: number; dollarValue: number } | null>(null);
   const [existingPointsOrder, setExistingPointsOrder] = useState<Order | null>(null);
+  
+  // Refund flow state
+  const [showRefundChoice, setShowRefundChoice] = useState(false);
+  const [refundOrderId, setRefundOrderId] = useState<string | null>(null);
   
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, hasAdvanceAlerts, advanceAlertCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
@@ -588,6 +593,16 @@ const POSDashboard = ({
   const handleUpdateStatus = (status: OrderStatus, prepTime?: number) => {
     if (!selectedOrderId) return;
     
+    // If cancelling a paid order, show refund choice instead
+    if (status === 'cancelled') {
+      const order = orders.find(o => o.id === selectedOrderId);
+      if (order && order.paymentStatus === 'paid') {
+        setRefundOrderId(selectedOrderId);
+        setShowRefundChoice(true);
+        return;
+      }
+    }
+    
     // If changing to "preparing", check if it's an advance order
     if (status === 'preparing' && !prepTime) {
       const order = orders.find(o => o.id === selectedOrderId);
@@ -613,6 +628,58 @@ const POSDashboard = ({
     }
     
     // Clear selection and go back to empty state after status change
+    setSelectedOrderId(null);
+  };
+
+  const handleRefund = async (refundMethod: 'cash' | 'card') => {
+    if (!refundOrderId) return;
+    const order = orders.find(o => o.id === refundOrderId);
+    if (!order) return;
+
+    try {
+      // Update payment status to refunded and clear amounts
+      const updateData: any = {
+        payment_status: 'refunded',
+        payment_method: order.paymentMethod,
+        amount_paid: 0,
+        cash_amount: null,
+        card_amount: null,
+        status: 'cancelled',
+        updated_at: new Date().toISOString(),
+      };
+
+      // Record what was refunded for reports: negative amounts
+      if (refundMethod === 'cash') {
+        updateData.cash_amount = -(order.total);
+        updateData.card_amount = null;
+      } else {
+        updateData.card_amount = -(order.total);
+        updateData.cash_amount = null;
+      }
+
+      const { error } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('order_number', refundOrderId);
+
+      if (error) throw error;
+
+      // Send cancellation SMS
+      if (order.customerPhone || order.customerId) {
+        await supabase.functions.invoke('order-sms', {
+          body: { orderNumber: refundOrderId, phone: order.customerPhone, customerId: order.customerId, type: 'cancelled', locationId: currentLocationId }
+        }).catch(() => {});
+      }
+
+      toast.success(`Order ${refundOrderId} cancelled & refunded via ${refundMethod}`);
+      refetch();
+    } catch (err: any) {
+      console.error('Error processing refund:', err);
+      toast.error('Failed to process refund');
+    }
+
+    setShowRefundChoice(false);
+    setRefundOrderId(null);
     setSelectedOrderId(null);
   };
 
@@ -1193,6 +1260,19 @@ const POSDashboard = ({
             setSelectedOrderId(null);
           }
           setShowPaymentChoice(false);
+        }}
+      />
+
+      {/* Refund Choice Modal */}
+      <POSRefundChoiceModal
+        open={showRefundChoice}
+        orderNumber={refundOrderId ?? ''}
+        orderTotal={orders.find(o => o.id === refundOrderId)?.total ?? 0}
+        paymentMethod={orders.find(o => o.id === refundOrderId)?.paymentMethod}
+        onRefund={handleRefund}
+        onCancel={() => {
+          setShowRefundChoice(false);
+          setRefundOrderId(null);
         }}
       />
 

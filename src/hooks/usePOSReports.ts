@@ -102,11 +102,12 @@ export const usePOSReports = (locationId: string) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('created_at, total, payment_method, status, cash_amount, card_amount')
+        .select('created_at, total, payment_method, status, cash_amount, card_amount, payment_status')
         .eq('location_id', locationId)
         .gte('created_at', toMountainDayStart(start))
         .lte('created_at', toMountainDayEnd(end))
-        .neq('status', 'cancelled');
+        .not('status', 'in', '("cancelled")')
+        .or('status.neq.cancelled,payment_status.eq.refunded');
 
       if (error) throw error;
 
@@ -125,6 +126,15 @@ export const usePOSReports = (locationId: string) => {
             cashSales: 0,
             cardSales: 0,
           };
+        }
+        
+        // Refunded orders: don't add to total sales or order count, but DO subtract from cash/card
+        if (order.payment_status === 'refunded') {
+          // Negative cash/card amounts reduce the totals
+          salesByDate[dateKey].cashSales += order.cash_amount || 0;
+          salesByDate[dateKey].cardSales += order.card_amount || 0;
+          salesByDate[dateKey].totalSales += (order.cash_amount || 0) + (order.card_amount || 0);
+          return;
         }
         
         salesByDate[dateKey].totalSales += order.total || 0;
@@ -343,12 +353,11 @@ export const usePOSReports = (locationId: string) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('total, payment_method, cash_amount, card_amount')
+        .select('total, payment_method, cash_amount, card_amount, payment_status')
         .eq('location_id', locationId)
         .gte('created_at', toMountainDayStart(start))
         .lte('created_at', toMountainDayEnd(end))
-        .eq('payment_status', 'paid')
-        .neq('status', 'cancelled');
+        .in('payment_status', ['paid', 'refunded']);
 
       if (error) throw error;
 
