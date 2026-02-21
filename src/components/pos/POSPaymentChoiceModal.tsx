@@ -17,12 +17,13 @@ interface POSPaymentChoiceModalProps {
   orderNumber: string;
   orderTotal: number;
   orderSubtotal: number;
+  customerPhone?: string;
   onPaymentChoice: (method: 'cash' | 'card' | 'points', discountInfo?: { discount: number; couponCode?: string }) => void;
   onSkip: () => void;
 }
 
 export const POSPaymentChoiceModal = ({
-  open, orderNumber, orderTotal, orderSubtotal, onPaymentChoice, onSkip,
+  open, orderNumber, orderTotal, orderSubtotal, customerPhone, onPaymentChoice, onSkip,
 }: POSPaymentChoiceModalProps) => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -39,6 +40,7 @@ export const POSPaymentChoiceModal = ({
   const totalDiscounts = couponDiscount + manualDiscountVal;
   const effectiveTotal = Math.max(0, orderTotal - totalDiscounts);
   const hasDiscount = totalDiscounts > 0;
+  const hasPhone = !!customerPhone?.trim();
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -215,10 +217,12 @@ export const POSPaymentChoiceModal = ({
             </button>
             <button
               className="h-20 text-lg font-semibold rounded-lg border-2 transition-all flex flex-col items-center justify-center gap-1"
-              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: border, color: text }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = amber; }}
+              style={{ backgroundColor: 'hsl(220, 26%, 22%)', borderColor: border, color: text, opacity: hasPhone ? 1 : 0.4, cursor: hasPhone ? 'pointer' : 'not-allowed' }}
+              onMouseEnter={(e) => { if (hasPhone) e.currentTarget.style.borderColor = amber; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = border; }}
-              onClick={() => handleChoice('points')}
+              onClick={() => hasPhone && handleChoice('points')}
+              disabled={!hasPhone}
+              title={!hasPhone ? 'Add customer phone number to use points' : ''}
             >
               <svg className="w-7 h-7" style={{ color: amber }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
