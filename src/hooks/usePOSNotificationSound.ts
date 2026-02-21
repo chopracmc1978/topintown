@@ -20,13 +20,30 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     [orders]
   );
 
-  // Track advance orders that are within 30 minutes of pickup time — memoised
+  // Track advance orders approaching pickup time — memoised
+  // Rules:
+  // - If the order was placed with ≥45 min until pickup: alert at 45 min before
+  // - If the order was placed with <45 min until pickup: alert at 20 min before
+  // - Applies to both 'pending' (needs accepting) and 'preparing' (needs start preparing)
   const advanceOrdersDueSoon = useMemo(() => {
     const now = Date.now();
     return orders.filter(o => {
-      if (o.status !== 'preparing' || !o.pickupTime) return false;
-      const minutesUntil = (new Date(o.pickupTime).getTime() - now) / (1000 * 60);
-      return minutesUntil <= 30 && minutesUntil > -5;
+      if (!o.pickupTime) return false;
+      // Only trigger for pending or preparing (scheduled/advance) orders
+      if (o.status !== 'pending' && o.status !== 'preparing') return false;
+      // Only for remote/advance orders that have a future pickup time
+      const pickupMs = new Date(o.pickupTime).getTime();
+      const minutesUntil = (pickupMs - now) / (1000 * 60);
+
+      // Determine the alert window based on how much lead time existed when order was created
+      const createdMs = o.createdAt ? new Date(o.createdAt).getTime() : now;
+      const originalLeadMinutes = (pickupMs - createdMs) / (1000 * 60);
+
+      // Short-notice order (placed with <45 min lead): alert at 20 min before pickup
+      // Normal advance order (placed with ≥45 min lead): alert at 45 min before pickup
+      const alertWindow = originalLeadMinutes < 45 ? 20 : 45;
+
+      return minutesUntil <= alertWindow && minutesUntil > -5;
     });
   }, [orders]);
 
