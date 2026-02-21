@@ -61,7 +61,7 @@ export const POSStaffReportCard = ({
       // Fetch all orders created during this session
       const { data: orders, error } = await supabase
         .from('orders')
-        .select('total, payment_method, payment_status, status')
+        .select('total, payment_method, payment_status, status, cash_amount, card_amount')
         .eq('location_id', locationId)
         .gte('created_at', activeSession.start_time)
         .neq('status', 'cancelled');
@@ -73,20 +73,32 @@ export const POSStaffReportCard = ({
       }
 
       const paidOrders = (orders || []).filter(o => o.payment_status === 'paid');
-      const cashOrders = paidOrders.filter(o => o.payment_method === 'cash');
-      const cardOrders = paidOrders.filter(o => o.payment_method === 'card');
+      
+      // Use cash_amount/card_amount for accurate split payment tracking
+      let cashSales = 0;
+      let cardSales = 0;
+      let cashOrderCount = 0;
+      let cardOrderCount = 0;
+      
+      paidOrders.forEach(o => {
+        if (o.cash_amount != null || o.card_amount != null) {
+          if ((o.cash_amount || 0) > 0) { cashSales += o.cash_amount || 0; cashOrderCount++; }
+          if ((o.card_amount || 0) > 0) { cardSales += o.card_amount || 0; cardOrderCount++; }
+        } else {
+          if (o.payment_method === 'cash') { cashSales += o.total || 0; cashOrderCount++; }
+          else if (o.payment_method === 'card') { cardSales += o.total || 0; cardOrderCount++; }
+        }
+      });
+      
       const pointsOrders = paidOrders.filter(o => o.payment_method === 'points');
-
-      const cashSales = cashOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-      const cardSales = cardOrders.reduce((sum, o) => sum + (o.total || 0), 0);
       const pointsSales = pointsOrders.reduce((sum, o) => sum + (o.total || 0), 0);
       const totalSales = cashSales + cardSales + pointsSales;
       const totalOrderCount = orders?.length || 0;
 
       setStats({
         totalOrders: totalOrderCount,
-        cashOrders: cashOrders.length,
-        cardOrders: cardOrders.length,
+        cashOrders: cashOrderCount,
+        cardOrders: cardOrderCount,
         cashSales,
         cardSales,
         totalSales,

@@ -63,7 +63,7 @@ export interface CartItem extends MenuItem {
 export type OrderType = 'pickup' | 'delivery' | 'dine-in';
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'paid' | 'refunded';
-export type PaymentMethod = 'cash' | 'card' | 'online' | 'points';
+export type PaymentMethod = 'cash' | 'card' | 'online' | 'points' | 'split';
 export type OrderSource = 'web' | 'app' | 'online' | 'phone' | 'walk-in';
 
 export interface Order {
@@ -91,4 +91,6 @@ export interface Order {
   estimatedReadyTime?: Date;
   pickupTime?: Date; // Scheduled pickup time for advance orders
    amountPaid?: number; // Track how much has been paid for partial payments
+   cashAmount?: number; // Cash portion of split payment
+   cardAmount?: number; // Card portion of split payment
 }

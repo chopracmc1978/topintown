@@ -102,7 +102,7 @@ export const usePOSReports = (locationId: string) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('created_at, total, payment_method, status')
+        .select('created_at, total, payment_method, status, cash_amount, card_amount')
         .eq('location_id', locationId)
         .gte('created_at', toMountainDayStart(start))
         .lte('created_at', toMountainDayEnd(end))
@@ -130,10 +130,16 @@ export const usePOSReports = (locationId: string) => {
         salesByDate[dateKey].totalSales += order.total || 0;
         salesByDate[dateKey].orderCount += 1;
         
-        if (order.payment_method === 'cash') {
-          salesByDate[dateKey].cashSales += order.total || 0;
-        } else if (order.payment_method === 'card') {
-          salesByDate[dateKey].cardSales += order.total || 0;
+        // Use cash_amount/card_amount for accurate split payment tracking
+        if (order.cash_amount != null || order.card_amount != null) {
+          salesByDate[dateKey].cashSales += order.cash_amount || 0;
+          salesByDate[dateKey].cardSales += order.card_amount || 0;
+        } else {
+          if (order.payment_method === 'cash') {
+            salesByDate[dateKey].cashSales += order.total || 0;
+          } else if (order.payment_method === 'card') {
+            salesByDate[dateKey].cardSales += order.total || 0;
+          }
         }
       });
 
@@ -337,7 +343,7 @@ export const usePOSReports = (locationId: string) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('total, payment_method')
+        .select('total, payment_method, cash_amount, card_amount')
         .eq('location_id', locationId)
         .gte('created_at', toMountainDayStart(start))
         .lte('created_at', toMountainDayEnd(end))
@@ -350,20 +356,29 @@ export const usePOSReports = (locationId: string) => {
       let totalSales = 0;
 
       (data || []).forEach(order => {
-        const method = order.payment_method || 'Unknown';
-        
-        if (!salesByPayment[method]) {
-          salesByPayment[method] = {
-            method: formatPaymentMethod(method),
-            totalSales: 0,
-            orderCount: 0,
-            percentage: 0,
-          };
+        if (order.cash_amount != null || order.card_amount != null) {
+          // Split payment - add to both cash and card
+          if ((order.cash_amount || 0) > 0) {
+            if (!salesByPayment['cash']) salesByPayment['cash'] = { method: 'Cash', totalSales: 0, orderCount: 0, percentage: 0 };
+            salesByPayment['cash'].totalSales += order.cash_amount || 0;
+            salesByPayment['cash'].orderCount += 1;
+            totalSales += order.cash_amount || 0;
+          }
+          if ((order.card_amount || 0) > 0) {
+            if (!salesByPayment['card']) salesByPayment['card'] = { method: 'Card', totalSales: 0, orderCount: 0, percentage: 0 };
+            salesByPayment['card'].totalSales += order.card_amount || 0;
+            salesByPayment['card'].orderCount += 1;
+            totalSales += order.card_amount || 0;
+          }
+        } else {
+          const method = order.payment_method || 'Unknown';
+          if (!salesByPayment[method]) {
+            salesByPayment[method] = { method: formatPaymentMethod(method), totalSales: 0, orderCount: 0, percentage: 0 };
+          }
+          salesByPayment[method].totalSales += order.total || 0;
+          salesByPayment[method].orderCount += 1;
+          totalSales += order.total || 0;
         }
-
-        salesByPayment[method].totalSales += order.total || 0;
-        salesByPayment[method].orderCount += 1;
-        totalSales += order.total || 0;
       });
 
       // Calculate percentages
@@ -474,7 +489,7 @@ export const usePOSReports = (locationId: string) => {
       // Fetch orders with pos_staff_id in the date range
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, total, payment_method, pos_staff_id, status')
+        .select('id, total, payment_method, pos_staff_id, status, cash_amount, card_amount')
         .eq('location_id', locationId)
         .gte('created_at', toMountainDayStart(start))
         .lte('created_at', toMountainDayEnd(end))
@@ -516,10 +531,16 @@ export const usePOSReports = (locationId: string) => {
         if (staffId && staffMap[staffId]) {
           staffMap[staffId].totalSales += order.total || 0;
           staffMap[staffId].orderCount += 1;
-          if (order.payment_method === 'cash') {
-            staffMap[staffId].cashSales += order.total || 0;
-          } else if (order.payment_method === 'card') {
-            staffMap[staffId].cardSales += order.total || 0;
+          // Use cash_amount/card_amount for accurate split payment tracking
+          if (order.cash_amount != null || order.card_amount != null) {
+            staffMap[staffId].cashSales += order.cash_amount || 0;
+            staffMap[staffId].cardSales += order.card_amount || 0;
+          } else {
+            if (order.payment_method === 'cash') {
+              staffMap[staffId].cashSales += order.total || 0;
+            } else if (order.payment_method === 'card') {
+              staffMap[staffId].cardSales += order.total || 0;
+            }
           }
         }
       });
@@ -591,6 +612,8 @@ const formatPaymentMethod = (method: string): string => {
   const map: Record<string, string> = {
     cash: 'Cash',
     card: 'Card',
+    split: 'Split (Cash+Card)',
+    points: 'Points',
   };
   return map[method] || method;
 };

@@ -681,8 +681,8 @@ const POSDashboard = ({
       setShowPaymentChoice(false);
       setPointsModalOpen(true);
     } else {
-      // Card payment - mark as paid directly
-      updatePaymentStatus(updatedOrder.id, 'paid', method);
+      // Card payment - mark as paid directly with full amount as card
+      updatePaymentStatus(updatedOrder.id, 'paid', method, { cardAmount: updatedOrder.total });
       // Auto-print kitchen ticket
       printKitchenTicket(updatedOrder);
       setShowPaymentChoice(false);
@@ -745,7 +745,7 @@ const POSDashboard = ({
       setCashModalOpen(true);
     } else {
       // Card — mark as paid
-      updatePaymentStatus(targetOrder.id, 'paid', 'card');
+      updatePaymentStatus(targetOrder.id, 'paid', 'card', { cardAmount: balanceRemaining });
       // Auto-print kitchen ticket
       if (targetOrder) printKitchenTicket(targetOrder);
       setPointsDiscountApplied(null);
@@ -770,13 +770,19 @@ const POSDashboard = ({
       }
     } else {
       // Card payment - mark as paid directly (terminal handles it)
-      updatePaymentStatus(selectedOrderId, 'paid', 'card');
+      const order = orders.find(o => o.id === selectedOrderId);
+      updatePaymentStatus(selectedOrderId, 'paid', 'card', { cardAmount: order?.total || 0 });
     }
   };
 
   const handlePaymentComplete = (method: 'cash' | 'card' = 'cash') => {
     if (pendingPaymentOrderId) {
-      updatePaymentStatus(pendingPaymentOrderId, 'paid', method);
+      const orderToPay = newOrderPending || existingPointsOrder || orders.find(o => o.id === pendingPaymentOrderId);
+      const total = orderToPay?.total || 0;
+      const splitAmounts = method === 'cash' 
+        ? { cashAmount: total } 
+        : { cardAmount: total };
+      updatePaymentStatus(pendingPaymentOrderId, 'paid', method, splitAmounts);
       // Auto-print kitchen ticket
       const orderToPrint = newOrderPending || existingPointsOrder || orders.find(o => o.id === pendingPaymentOrderId);
       if (orderToPrint) {
@@ -1104,12 +1110,13 @@ const POSDashboard = ({
           // Switch from cash to card payment
           setCashModalOpen(false);
           if (newOrderPending) {
-            updatePaymentStatus(newOrderPending.id, 'paid', 'card');
+            updatePaymentStatus(newOrderPending.id, 'paid', 'card', { cardAmount: newOrderPending.total });
             setNewOrderPending(null);
             setSelectedOrderId(null);
             setPendingPaymentOrderId(null);
           } else if (pendingPaymentOrderId) {
-            updatePaymentStatus(pendingPaymentOrderId, 'paid', 'card');
+            const order = orders.find(o => o.id === pendingPaymentOrderId);
+            updatePaymentStatus(pendingPaymentOrderId, 'paid', 'card', { cardAmount: order?.total || 0 });
             setPendingPaymentOrderId(null);
           }
         }}
@@ -1117,10 +1124,12 @@ const POSDashboard = ({
           // Split payment: partial cash + remainder on card
           setCashModalOpen(false);
           const orderId = newOrderPending?.id || pendingPaymentOrderId;
+          const orderTotal = newOrderPending?.total || orders.find(o => o.id === pendingPaymentOrderId)?.total || 0;
+          const cardPortion = Math.max(0, orderTotal - cashAmount);
           if (orderId) {
-            // Mark as paid - payment_method records as 'cash' (split)
-            updatePaymentStatus(orderId, 'paid', 'cash');
-            toast.success(`Split payment: $${cashAmount.toFixed(2)} cash + rest on card`);
+            // Mark as paid with split amounts tracked
+            updatePaymentStatus(orderId, 'paid', 'split', { cashAmount, cardAmount: cardPortion });
+            toast.success(`Split payment: $${cashAmount.toFixed(2)} cash + $${cardPortion.toFixed(2)} card`);
           }
           setPendingPaymentOrderId(null);
           setPointsDiscountApplied(null);
