@@ -28,7 +28,7 @@ export const POSPizzaModalSmall = (props: POSPizzaModalProps) => {
       >
         {/* ROW 1: Pizza Name | Sizes | Crust */}
         <div className="flex flex-wrap items-center gap-0.5 pb-0.5 border-b border-slate-200 pr-8 flex-shrink-0">
-          <span className="font-serif text-[11px] font-bold px-2 py-0.5 rounded whitespace-nowrap uppercase" style={{ ...blueStyle, minWidth: 120 }}>{item.name}</span>
+          <span className={cn(btnSmall, "font-bold uppercase")} style={{ ...blueStyle, minWidth: 120 }}>{item.name}</span>
           {item.sizes?.map(size => (
             <button key={size.id} onClick={() => m.setSelectedSize({ id: size.id, name: size.name, price: size.price })} className={cn(btnSmall, "px-2")} style={m.selectedSize?.id === size.id ? blueStyle : darkStyle}>
               <span className="text-[11px] font-medium whitespace-nowrap">{size.name} {size.price.toFixed(2)}</span>
@@ -173,7 +173,7 @@ export const POSPizzaModalSmall = (props: POSPizzaModalProps) => {
           {/* EXTRA TOPPINGS - 3 column grid */}
           {m.availableExtraToppings.length > 0 && (
             <div className="!mt-0" style={{ marginTop: 0 }}>
-              <div className="grid gap-px grid-cols-3">
+              <div className="grid gap-1.5 grid-cols-3">
                 {m.availableExtraToppings.map(topping => {
                   const selected = m.extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
