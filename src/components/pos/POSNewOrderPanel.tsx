@@ -844,7 +844,7 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
 
         <div className="flex-1 flex overflow-hidden min-w-0">
           {/* Menu Selection */}
-          <div className="flex-1 flex flex-col" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
+          <div className="flex-1 min-w-0 flex flex-col overflow-hidden" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
             {/* Category Tabs - Compact for small tablets, larger for big screens */}
             <div className="flex gap-1.5 lg:gap-3 p-2 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
