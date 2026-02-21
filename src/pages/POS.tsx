@@ -1173,6 +1173,7 @@ const POSDashboard = ({
         orderNumber={newOrderPending?.id ?? ''}
         orderTotal={newOrderPending?.total ?? 0}
         orderSubtotal={newOrderPending?.subtotal ?? 0}
+        customerPhone={newOrderPending?.customerPhone}
         onPaymentChoice={handleNewOrderPaymentChoice}
         onSkip={() => {
           if (newOrderPending) {
