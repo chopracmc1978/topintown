@@ -146,10 +146,18 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
             🆕 New!
           </span>
         )}
-        <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
-          <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
-          {source.label}
-        </span>
+        <div className="flex items-center justify-between gap-1">
+          <span className="pos-badge" style={{ background: 'hsl(220,22%,28%)', borderColor: 'hsl(220,20%,35%)', color: 'hsl(210,15%,75%)' }}>
+            <SourceIcon className="inline w-3 h-3 mr-1 -mt-0.5" />
+            {source.label}
+          </span>
+          {countdown && (
+            <span className="text-sm font-bold flex items-center gap-1 shrink-0" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
+              <Timer className="w-3.5 h-3.5" />
+              {countdown}
+            </span>
+          )}
+        </div>
         <span className={
           order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? 'pos-badge'
@@ -210,14 +218,6 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
             Pickup
           </div>
           <div>{new Date(order.pickupTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {new Date(order.pickupTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
-        </div>
-      )}
-
-      {/* Countdown timer for pickup orders */}
-      {countdown && (
-        <div className="text-sm font-bold mb-1 flex items-center justify-end gap-1" style={{ color: isUrgent ? '#ef4444' : '#22c55e' }}>
-          <Timer className="w-3.5 h-3.5" />
-          <span>{countdown}</span>
         </div>
       )}
 
