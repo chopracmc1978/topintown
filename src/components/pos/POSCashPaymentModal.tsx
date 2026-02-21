@@ -22,6 +22,7 @@ const quickAmounts = [20, 50, 100];
 
 export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPayment, onSplitPayment }: POSCashPaymentModalProps) => {
   const [rawDigits, setRawDigits] = useState<string>('');
+  const [selectedAction, setSelectedAction] = useState<'full' | 'split' | 'accept-short' | null>(null);
 
   // Auto-decimal: raw digits "3463" → 34.63
   const received = rawDigits.length > 0 ? parseInt(rawDigits, 10) / 100 : 0;
@@ -41,14 +42,27 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
   };
 
   const handleConfirm = () => {
-    if (isValid) {
+    if (selectedAction === 'split' && isPartial && onSplitPayment) {
+      const cashAmt = received;
+      setRawDigits('');
+      setSelectedAction(null);
+      onSplitPayment(cashAmt);
+    } else if (selectedAction === 'accept-short' && isPartial) {
+      setRawDigits('');
+      setSelectedAction(null);
+      onConfirm();
+    } else if (isValid) {
+      setSelectedAction(null);
       onConfirm();
       setRawDigits('');
     }
   };
 
+  const canComplete = isValid || selectedAction === 'split' || selectedAction === 'accept-short';
+
   const handleClose = () => {
     setRawDigits('');
+    setSelectedAction(null);
     onClose();
   };
 
@@ -132,8 +146,8 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
 
             {/* Split Payment */}
             {isPartial && onSplitPayment && (
-              <Button variant="outline" onClick={() => { const cashAmt = received; setRawDigits(''); onSplitPayment(cashAmt); }}
-                className="w-full h-10 text-sm font-semibold border-blue-300 text-blue-600 hover:bg-blue-50">
+              <Button variant="outline" onClick={() => setSelectedAction(selectedAction === 'split' ? null : 'split')}
+                className={cn("w-full h-10 text-sm font-semibold border-blue-300 text-blue-600 hover:bg-blue-50", selectedAction === 'split' && "bg-blue-100 ring-2 ring-blue-400")}>
                 <DollarSign className="w-4 h-4 mr-1" />
                 Cash ${received.toFixed(2)} + Card ${cardRemainder.toFixed(2)}
               </Button>
@@ -141,8 +155,8 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
 
             {/* Accept as Full */}
             {isPartial && (
-              <Button variant="outline" onClick={() => { setRawDigits(''); onConfirm(); }}
-                className="w-full h-10 text-sm font-semibold border-green-300 text-green-600 hover:bg-green-50">
+              <Button variant="outline" onClick={() => setSelectedAction(selectedAction === 'accept-short' ? null : 'accept-short')}
+                className={cn("w-full h-10 text-sm font-semibold border-green-300 text-green-600 hover:bg-green-50", selectedAction === 'accept-short' && "bg-green-100 ring-2 ring-green-400")}>
                 Accept ${received.toFixed(2)} as Full (−${cardRemainder.toFixed(2)})
               </Button>
             )}
@@ -184,7 +198,7 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
               Card
             </Button>
           )}
-          <Button variant="pizza" onClick={handleConfirm} disabled={!isValid} className="flex-1 h-10">
+          <Button variant="pizza" onClick={handleConfirm} disabled={!canComplete} className="flex-1 h-10">
             <Calculator className="w-4 h-4 mr-1" />
             Complete
           </Button>
