@@ -244,13 +244,18 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         <span className="text-sm font-bold" style={{ color: 'hsl(217,91%,60%)' }}>
           ${order.total.toFixed(2)}
         </span>
+        {isOverdue && (
+          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold animate-bounce" style={{ background: 'hsl(36,90%,45%)', color: '#fff' }}>
+            <CalendarClock className="w-3 h-3" />
+            Due!
+          </span>
+        )}
          {(() => {
            // Calculate balance due
            const amountPaid = order.amountPaid ?? (order.paymentStatus === 'paid' ? order.total : 0);
            const balanceDue = Math.max(0, order.total - amountPaid);
            
            if (order.paymentStatus === 'paid' && balanceDue > 0.01) {
-             // Paid but has balance due after editing
              return (
                <span className="pos-badge" style={{ 
                  background: 'hsl(30,60%,25%)', 
