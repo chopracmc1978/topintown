@@ -71,7 +71,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       )}
     >
       {/* Order ID */}
-      <div className="font-mono font-bold text-lg mb-1 truncate" style={{ color: '#ffffff' }}>
+      <div className="font-mono font-bold text-base 2xl:text-lg mb-1 truncate" style={{ color: '#ffffff' }}>
         {order.id}
       </div>
 
