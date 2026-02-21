@@ -829,7 +829,7 @@ const POSDashboard = ({
         hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : "",
         hasAdvanceAlerts && !hasPendingRemoteOrders ? "pos-bg-amber-900-50 animate-pulse" : ""
       )}>
-        <div className="flex items-center gap-1 lg:gap-2 w-full">
+        <div className="flex items-center gap-1 lg:gap-2 w-full min-w-0 overflow-hidden">
           <div className="flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
             <span
               title="Home"
@@ -881,7 +881,7 @@ const POSDashboard = ({
           </div>
           
           {/* Status Tabs - Compact for small tablets, larger for big screens */}
-          <div className="flex gap-1 lg:gap-1.5 flex-1 justify-center">
+          <div className="flex gap-1 lg:gap-1.5 flex-1 justify-center min-w-0 overflow-hidden">
             {statusTabs.map(tab => (
               <button
                 key={tab.id}
