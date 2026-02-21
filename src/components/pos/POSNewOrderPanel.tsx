@@ -847,13 +847,13 @@ export const POSNewOrderPanel = ({ onCreateOrder, onCancel, editingOrder, onUpda
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden" style={{ borderRight: '1px solid hsl(220, 20%, 28%)' }}>
 
             {/* Category Tabs - Compact for small tablets, larger for big screens */}
-            <div className="flex gap-1.5 lg:gap-3 p-2 lg:p-4 overflow-x-auto" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
+            <div className="flex gap-1 lg:gap-3 p-1.5 lg:p-4 flex-wrap" style={{ borderBottom: '1px solid hsl(220, 20%, 28%)' }}>
               {categories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   className={cn(
-                    "px-3 py-2 lg:px-7 lg:py-4 rounded-lg text-sm lg:text-lg font-medium whitespace-nowrap transition-colors",
+                    "px-2 py-1.5 lg:px-7 lg:py-4 rounded-md lg:rounded-lg text-xs lg:text-lg font-medium whitespace-nowrap transition-colors",
                     activeCategory === cat.id
                       ? "bg-blue-600 text-white"
                       : "text-gray-300 hover:bg-gray-700"
