@@ -535,7 +535,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                   const isSelected = !!selected;
                   return (
                     <div key={topping.id} className="flex items-center gap-1 lg:gap-1.5">
-                      <button onClick={() => toggleExtraTopping(topping)} className="flex items-center justify-start px-1.5 lg:px-2 py-1 lg:py-1.5 rounded border font-medium truncate" style={{ ...(isSelected ? blueStyle : darkStyle), flex: '1 1 0%', minWidth: 0 }}>
+                      <button onClick={() => toggleExtraTopping(topping)} className="flex items-center justify-start px-1.5 lg:px-2 py-0.5 lg:py-1.5 rounded border font-medium truncate" style={{ ...(isSelected ? blueStyle : darkStyle), flex: '1 1 0%', minWidth: 0 }}>
                         <span className="text-[10px] lg:text-xs truncate">{topping.name}</span>
                       </button>
                       {isLargePizza ? (
@@ -546,13 +546,13 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
                               if (isThisSideActive) { toggleExtraTopping(topping); }
                               else if (!isSelected) { toggleExtraTopping(topping); setTimeout(() => updateExtraToppingSide(topping.id, side.value as PizzaSide), 0); }
                               else { updateExtraToppingSide(topping.id, side.value as PizzaSide); }
-                            }} className="py-1 lg:py-1.5 px-1 lg:px-2 text-[9px] lg:text-[11px] rounded border font-medium text-center whitespace-nowrap" style={isThisSideActive ? blueStyle : darkStyle}>
+                            }} className="py-0.5 lg:py-1.5 px-1 lg:px-2 text-[9px] lg:text-[11px] rounded border font-medium text-center whitespace-nowrap" style={isThisSideActive ? blueStyle : darkStyle}>
                               {side.label}
                             </button>
                           );
                         })
                       ) : (
-                        <button type="button" onClick={() => toggleExtraTopping(topping)} className="py-1 lg:py-1.5 px-1.5 lg:px-3 text-[9px] lg:text-[11px] rounded border font-medium text-center whitespace-nowrap" style={isSelected ? blueStyle : darkStyle}>
+                        <button type="button" onClick={() => toggleExtraTopping(topping)} className="py-0.5 lg:py-1.5 px-1.5 lg:px-3 text-[9px] lg:text-[11px] rounded border font-medium text-center whitespace-nowrap" style={isSelected ? blueStyle : darkStyle}>
                           Whole
                         </button>
                       )}
