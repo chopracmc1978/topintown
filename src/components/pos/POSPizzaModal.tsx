@@ -496,11 +496,11 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           </div>
 
           {/* Gap after sauce section */}
-          <div style={{ height: '12px' }} />
+          <div className="h-1 lg:h-3" />
 
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
-            <div className="flex flex-wrap gap-1 lg:gap-2">
+            <div className="flex flex-wrap gap-0.5 lg:gap-2">
               {defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
@@ -526,12 +526,12 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Gap before extra toppings */}
-          <div style={{ height: '12px' }} />
+          <div className="h-1 lg:h-3" />
 
           {/* EXTRA TOPPINGS - 3 column grid */}
           {availableExtraToppings.length > 0 && (
             <div className="!mt-0" style={{ marginTop: 0 }}>
-              <div className="grid gap-0.5 lg:gap-1.5 grid-cols-3">
+              <div className="grid gap-px lg:gap-1.5 grid-cols-3">
                 {availableExtraToppings.map(topping => {
                   const selected = extraToppings.find(t => t.id === topping.id);
                   const isSelected = !!selected;
@@ -565,16 +565,17 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
             </div>
           )}
 
-          {/* FOOTER - single row */}
-          <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0" style={{ marginTop: '2px', borderTop: '1px solid #9ab8c8', paddingTop: 4 }}>
-            <input type="text" value={note} onChange={(e) => { const val = e.target.value; if (shortcutMap[val]) { setNote(shortcutMap[val]); } else { setNote(val); } }} placeholder={shortcutPlaceholder} className="flex-[2] px-2 lg:px-2.5 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
-            <input type="text" inputMode="decimal" value={extraAmount || ''} onChange={(e) => { const val = e.target.value.replace(/[^0-9.]/g, ''); setExtraAmount(parseFloat(val) || 0); }} placeholder="0.00" className="w-[70px] lg:w-[90px] px-1.5 lg:px-2 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
-            <span className="text-xs lg:text-lg font-bold text-slate-900 whitespace-nowrap min-w-[55px] lg:min-w-[70px] text-center">${totalPrice.toFixed(2)}</span>
-            <Button variant="outline" onClick={onClose} className="text-[9px] lg:text-sm px-2 lg:px-4 py-1 lg:py-2 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
-            <Button variant="default" onClick={handleAddToOrder} disabled={!selectedSize || !selectedCrust} className="text-[9px] lg:text-sm px-3 lg:px-6 py-1 lg:py-2 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
-              {editingItem ? 'Update' : 'ADD'}
-            </Button>
-          </div>
+        </div>
+
+        {/* FOOTER - single row, outside overflow-hidden */}
+        <div className="flex items-center gap-1 lg:gap-1.5 flex-shrink-0" style={{ borderTop: '1px solid #9ab8c8', paddingTop: 4, marginTop: 2 }}>
+          <input type="text" value={note} onChange={(e) => { const val = e.target.value; if (shortcutMap[val]) { setNote(shortcutMap[val]); } else { setNote(val); } }} placeholder={shortcutPlaceholder} className="flex-[2] px-2 lg:px-2.5 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
+          <input type="text" inputMode="decimal" value={extraAmount || ''} onChange={(e) => { const val = e.target.value.replace(/[^0-9.]/g, ''); setExtraAmount(parseFloat(val) || 0); }} placeholder="0.00" className="w-[70px] lg:w-[90px] px-1.5 lg:px-2 py-1 lg:py-2 text-[9px] lg:text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
+          <span className="text-xs lg:text-lg font-bold text-slate-900 whitespace-nowrap min-w-[55px] lg:min-w-[70px] text-center">${totalPrice.toFixed(2)}</span>
+          <Button variant="outline" onClick={onClose} className="text-[9px] lg:text-sm px-2 lg:px-4 py-1 lg:py-2 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
+          <Button variant="default" onClick={handleAddToOrder} disabled={!selectedSize || !selectedCrust} className="text-[9px] lg:text-sm px-3 lg:px-6 py-1 lg:py-2 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
+            {editingItem ? 'Update' : 'ADD'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
