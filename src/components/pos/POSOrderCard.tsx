@@ -66,7 +66,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
     <div
       onClick={onClick}
       className={cn(
-        'pos-order-card p-2.5 cursor-pointer max-w-[240px]',
+        'pos-order-card p-2.5 cursor-pointer max-w-[240px] 2xl:max-w-[300px]',
         isSelected && 'selected'
       )}
     >
