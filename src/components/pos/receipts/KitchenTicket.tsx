@@ -32,10 +32,10 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     }
   }
   
-  // Sauce - always show sauce name
+  // Sauce - only show if changed from default or "no sauce" or extra quantity
   if (customization.sauceName?.toLowerCase() === 'no sauce') {
     details.push('No Sauce');
-  } else if (customization.sauceName) {
+  } else if (customization.sauceName && (!(customization as any).isDefaultSauce || (customization.sauceQuantity && customization.sauceQuantity !== 'normal'))) {
     const qtyPrefix = customization.sauceQuantity && customization.sauceQuantity !== 'normal'
       ? `${customization.sauceQuantity} ` : '';
     details.push(`Sauce: ${qtyPrefix}${customization.sauceName}`);

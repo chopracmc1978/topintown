@@ -118,8 +118,11 @@ const CartItemCard = ({ item, onEditPizza, onEditWings }: CartItemCardProps) => 
                 )}
               </div>
 
-              {/* Sauce */}
-              {pizzaCustomization.sauceName && (
+              {/* Sauce - only show if changed from default */}
+              {pizzaCustomization.sauceName?.toLowerCase() === 'no sauce' && (
+                <div><span className="font-medium text-muted-foreground">No Sauce</span></div>
+              )}
+              {pizzaCustomization.sauceName && pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && (!(pizzaCustomization as any).isDefaultSauce || pizzaCustomization.sauceQuantity === 'extra') && (
                 <div>
                   <span className="font-medium text-muted-foreground">Sauce: </span>
                   <span>{pizzaCustomization.sauceName}</span>

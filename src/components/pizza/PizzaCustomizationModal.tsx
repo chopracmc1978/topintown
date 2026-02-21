@@ -219,6 +219,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
       sauceId: selectedSauceId,
       sauceName,
       sauceQuantity,
+      isDefaultSauce: !!(selectedSauceId && defaultSauceIds.includes(selectedSauceId)),
       freeToppings: freeToppingsData?.filter(f => selectedFreeToppings.includes(f.id)).map(f => f.name) || [],
       spicyLevel,
       defaultToppings,
