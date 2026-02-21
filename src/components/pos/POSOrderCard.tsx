@@ -130,6 +130,15 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
 
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Distinguish true advance/scheduled orders from prep-time orders
+  // Prep-time: staff sets "ready in X min" → pickupTime is close to createdAt (≤65 min)
+  // Advance: customer schedules for a future time → pickupTime is far from createdAt (>65 min)
+  const isAdvanceOrder = (() => {
+    if (!order.pickupTime || !order.createdAt) return false;
+    const leadMin = (new Date(order.pickupTime).getTime() - new Date(order.createdAt).getTime()) / 60000;
+    return leadMin > 65;
+  })();
+
   // Show "New!" badge for web/app orders until accepted (no longer pending)
   const isNewRemoteOrder = (order.source === 'web' || order.source === 'app' || order.source === 'online') 
     && order.status === 'pending';
@@ -172,15 +181,15 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
           )}
         </div>
         <span className={
-          order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+          isAdvanceOrder && order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? 'pos-badge'
             : (statusBadgeClass[order.status] || 'pos-badge')
         } style={
-          order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+          isAdvanceOrder && order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? { background: 'hsl(260,50%,30%)', borderColor: 'hsl(260,60%,50%)', color: 'hsl(260,80%,80%)' }
             : undefined
         }>
-          {order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
+          {isAdvanceOrder && order.status === 'preparing' && order.pickupTime && new Date(order.pickupTime) > new Date()
             ? 'Scheduled'
             : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
         </span>
@@ -224,7 +233,7 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       </div>
 
       {/* Scheduled pickup time for advance orders */}
-      {order.pickupTime && new Date(order.pickupTime) > new Date() && (
+      {isAdvanceOrder && order.pickupTime && new Date(order.pickupTime) > new Date() && (
         <div className="text-sm font-semibold mb-1" style={{ color: 'hsl(260,70%,75%)' }}>
           <div className="flex items-center gap-1">
             <CalendarClock className="w-3.5 h-3.5" />
