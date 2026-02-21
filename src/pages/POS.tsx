@@ -898,10 +898,7 @@ const POSDashboard = ({
       {/* Main POS container - truly full viewport, no rounding or padding */}
       <div className="flex-1 flex flex-col overflow-hidden w-full h-full" style={{ background: 'hsl(220, 26%, 14%)' }}>
       {/* Header - Compact for small tablets, normal for large screens */}
-      <header className={cn(
-        "border-b py-1.5 lg:py-2.5 px-2 lg:px-4 flex-shrink-0 shadow-sm transition-colors pos-header",
-        hasPendingRemoteOrders ? "pos-bg-orange-900-50 animate-pulse" : ""
-      )}>
+      <header className="border-b py-1.5 lg:py-2.5 px-2 lg:px-4 flex-shrink-0 shadow-sm transition-colors pos-header">
         <div className="flex items-center gap-1 lg:gap-2 w-full min-w-0 overflow-hidden">
           <div className="flex items-center gap-1.5 lg:gap-2 flex-shrink-0">
             <span
