@@ -121,6 +121,15 @@ export const CustomerReceipt = ({
               {item.pizzaCustomization && !hasCombo && (
                 <div className="text-xs text-gray-600 ml-3">
                   <p>{typeof item.pizzaCustomization.size === 'object' ? item.pizzaCustomization.size?.name : item.pizzaCustomization.size}, {typeof item.pizzaCustomization.crust === 'object' ? item.pizzaCustomization.crust?.name : item.pizzaCustomization.crust}</p>
+                  {/* Cheese changes */}
+                  {(item.pizzaCustomization as any).cheeseType && (() => {
+                    const ct = (item.pizzaCustomization as any).cheeseType.toLowerCase();
+                    const cq = (item.pizzaCustomization as any).cheeseQuantity;
+                    if (ct === 'no cheese' || ct === 'none') return <p>Cheese: None</p>;
+                    if (ct === 'dairy free') return <p>Cheese: Dairy Free</p>;
+                    if (cq && cq !== 'regular' && cq !== 'normal') return <p>Cheese: {cq} {(item.pizzaCustomization as any).cheeseType}</p>;
+                    return null;
+                  })()}
                   {item.pizzaCustomization.sauceName && item.pizzaCustomization.sauceName.toLowerCase() !== 'no sauce' && (
                     <p>Sauce: {item.pizzaCustomization.sauceQuantity && item.pizzaCustomization.sauceQuantity !== 'normal' ? `${item.pizzaCustomization.sauceQuantity} ` : ''}{item.pizzaCustomization.sauceName}</p>
                   )}

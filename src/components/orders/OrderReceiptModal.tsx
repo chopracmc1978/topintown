@@ -254,14 +254,22 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                   customizationLines.push(`Sauce: ${sauceText}`);
                 }
                 
-                // Cheese (only if non-default)
-                if (customizations?.cheeseType && customizations.cheeseType !== 'mozzarella') {
-                  const cheeseText = customizations.cheeseType === 'none' 
-                    ? 'No Cheese' 
-                    : customizations.cheeseType === 'dairy_free' 
-                      ? 'Dairy Free Cheese' 
-                      : customizations.cheeseType;
-                  customizationLines.push(cheeseText);
+                // Cheese (show if non-default)
+                if (customizations?.cheeseType) {
+                  const ct = customizations.cheeseType.toLowerCase();
+                  if (ct === 'none' || ct === 'no cheese') {
+                    customizationLines.push('Cheese: None');
+                  } else if (ct === 'dairy_free' || ct === 'dairy free') {
+                    customizationLines.push('Cheese: Dairy Free');
+                  } else if (ct !== 'mozzarella') {
+                    customizationLines.push(`Cheese: ${customizations.cheeseType}`);
+                  } else {
+                    // Mozzarella but check quantity
+                    const cq = (customizations as any).cheeseQuantity;
+                    if (cq && cq !== 'regular' && cq !== 'normal') {
+                      customizationLines.push(`Cheese: ${cq} ${customizations.cheeseType}`);
+                    }
+                  }
                 }
                 
                 // Spicy Level
