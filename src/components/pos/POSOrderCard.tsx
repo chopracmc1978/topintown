@@ -57,21 +57,34 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
       return;
     }
 
-    const playBeep = () => {
+    const playDoubleBeep = () => {
       try {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.6, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.4);
-        setTimeout(() => ctx.close(), 500);
+        // First beep
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, ctx.currentTime);
+        gain1.gain.setValueAtTime(0.6, ctx.currentTime);
+        gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+        osc1.start(ctx.currentTime);
+        osc1.stop(ctx.currentTime + 0.3);
+        // Second beep after short gap
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.45);
+        gain2.gain.setValueAtTime(0, ctx.currentTime);
+        gain2.gain.setValueAtTime(0.6, ctx.currentTime + 0.45);
+        gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.75);
+        osc2.start(ctx.currentTime + 0.45);
+        osc2.stop(ctx.currentTime + 0.75);
+        setTimeout(() => ctx.close(), 1000);
       } catch (e) { /* silent fail */ }
     };
 
@@ -94,10 +107,10 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
         setIsOverdue(false);
         setIsUrgent(diff < 5 * 60000); // red when < 5 min
 
-        // Single beep at 2 minutes remaining
-        if (diff <= 2 * 60000 && !beeped2MinRef.current) {
+        // Double beep once at 1 minute remaining
+        if (diff <= 1 * 60000 && !beeped2MinRef.current) {
           beeped2MinRef.current = true;
-          playBeep();
+          playDoubleBeep();
         }
       }
     };
