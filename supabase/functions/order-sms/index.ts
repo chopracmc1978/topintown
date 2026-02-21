@@ -232,7 +232,7 @@ const handler = async (req: Request): Promise<Response> => {
         message = `Top In Town Pizza: Thank you for choosing us! We hope you enjoyed your order ${orderNumber}. See you again soon! 🍕`;
         break;
       case "cancelled":
-        message = `Top In Town Pizza: Your order ${orderNumber} has been cancelled. If you have any questions, please contact us. We hope to serve you again soon!`;
+        message = `Top In Town Pizza: Your order ${orderNumber} has been cancelled. If you have any questions, please contact us${locationPhone ? ' at ' + locationPhone : ''}.  We hope to serve you again soon!`;
         break;
       default:
         return json(400, { error: "Invalid SMS type" });
