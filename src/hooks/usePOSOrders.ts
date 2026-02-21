@@ -844,7 +844,7 @@ export const usePOSOrders = (locationId?: string) => {
     // Polling fallback – ensures web orders appear even if Realtime is slow
     const pollInterval = setInterval(() => {
       fetchOrders();
-    }, 15_000);
+    }, 5_000);
 
     // Subscribe to new orders and updates for this location
     const channelName = currentLocationId ? `pos-orders-${currentLocationId}` : 'pos-orders-all';
@@ -923,7 +923,9 @@ export const usePOSOrders = (locationId?: string) => {
           }));
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('POS Realtime subscription status:', status);
+      });
 
     return () => {
       clearInterval(pollInterval);
