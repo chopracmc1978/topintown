@@ -15,11 +15,12 @@ interface POSCashPaymentModalProps {
   total: number;
   onConfirm: () => void;
   onCardPayment?: () => void;
+  onSplitPayment?: (cashAmount: number) => void;
 }
 
 const quickAmounts = [20, 50, 100];
 
-export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPayment }: POSCashPaymentModalProps) => {
+export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPayment, onSplitPayment }: POSCashPaymentModalProps) => {
   const [rawDigits, setRawDigits] = useState<string>('');
 
   // Auto-decimal: raw digits "3463" → 34.63
@@ -27,6 +28,8 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
   const amountDisplay = rawDigits.length > 0 ? `$${received.toFixed(2)}` : '$0.00';
   const change = received - total;
   const isValid = received >= total;
+  const isPartial = received > 0 && received < total;
+  const cardRemainder = total - received;
 
   const handleQuickAmount = (amount: number) => {
     // Convert dollar amount to raw digits (e.g. 50 → "5000")
@@ -138,6 +141,22 @@ export const POSCashPaymentModal = ({ open, onClose, total, onConfirm, onCardPay
                 ${Math.max(0, change).toFixed(2)}
               </p>
             </div>
+
+            {/* Split Payment Button */}
+            {isPartial && onSplitPayment && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const cashAmt = received;
+                  setRawDigits('');
+                  onSplitPayment(cashAmt);
+                }}
+                className="w-full h-10 text-sm font-semibold border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                <DollarSign className="w-4 h-4 mr-1" />
+                Cash ${received.toFixed(2)} + Card ${cardRemainder.toFixed(2)}
+              </Button>
+            )}
 
             {/* Actions */}
             <div className="flex gap-2 pt-1">

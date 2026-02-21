@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { Plus, Clock, CheckCircle, Package, Loader2, MapPin, LogOut, ChefHat, Bell, Settings, CalendarClock, User } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -1103,15 +1104,34 @@ const POSDashboard = ({
           // Switch from cash to card payment
           setCashModalOpen(false);
           if (newOrderPending) {
-            // For new order flow - mark as paid with card
             updatePaymentStatus(newOrderPending.id, 'paid', 'card');
             setNewOrderPending(null);
             setSelectedOrderId(null);
             setPendingPaymentOrderId(null);
           } else if (pendingPaymentOrderId) {
-            // For existing order flow
             updatePaymentStatus(pendingPaymentOrderId, 'paid', 'card');
             setPendingPaymentOrderId(null);
+          }
+        }}
+        onSplitPayment={(cashAmount) => {
+          // Split payment: partial cash + remainder on card
+          setCashModalOpen(false);
+          const orderId = newOrderPending?.id || pendingPaymentOrderId;
+          if (orderId) {
+            // Mark as paid - payment_method records as 'cash' (split)
+            updatePaymentStatus(orderId, 'paid', 'cash');
+            toast.success(`Split payment: $${cashAmount.toFixed(2)} cash + rest on card`);
+          }
+          setPendingPaymentOrderId(null);
+          setPointsDiscountApplied(null);
+          if (newOrderPending) {
+            // Auto-print kitchen ticket for new orders
+            printKitchenTicket(newOrderPending);
+            setNewOrderPending(null);
+            setSelectedOrderId(null);
+          }
+          if (existingPointsOrder) {
+            setExistingPointsOrder(null);
           }
         }}
       />
