@@ -946,12 +946,6 @@ const POSDashboard = ({
                 <span className="font-semibold">{pendingCount} New!</span>
               </button>
             )}
-            {hasAdvanceAlerts && !hasPendingRemoteOrders && (
-              <div className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full animate-bounce text-xs">
-                <CalendarClock className="w-3.5 h-3.5" />
-                <span className="font-semibold">{advanceAlertCount} Due!</span>
-              </div>
-            )}
           </div>
           
           {/* Status Tabs - Compact for small tablets, larger for big screens */}
