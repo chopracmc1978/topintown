@@ -496,7 +496,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           </div>
 
           {/* Gap after sauce section */}
-          <div className="h-1 lg:h-3" />
+          <div className="h-0 lg:h-3" />
 
           {/* DEFAULT TOPPINGS - Name on top, L/W/R below */}
           {pizzaDefaultToppings.length > 0 && (
@@ -526,7 +526,7 @@ export const POSPizzaModal = ({ item, isOpen, onClose, onAddToOrder, editingItem
           )}
 
           {/* Gap before extra toppings */}
-          <div className="h-1 lg:h-3" />
+          <div className="h-0 lg:h-3" />
 
           {/* EXTRA TOPPINGS - 3 column grid */}
           {availableExtraToppings.length > 0 && (
