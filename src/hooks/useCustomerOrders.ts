@@ -59,6 +59,8 @@ export interface CustomerOrder {
   customerPhone: string | null;
   paymentStatus: string;
   paymentMethod: string | null;
+  cashAmount?: number | null;
+  cardAmount?: number | null;
   items: OrderItem[];
 }
 
@@ -99,6 +101,8 @@ export const useCustomerOrders = (customerId: string | undefined) => {
         customerPhone: order.customer_phone,
         paymentStatus: order.payment_status,
         paymentMethod: order.payment_method,
+        cashAmount: order.cash_amount != null ? Number(order.cash_amount) : null,
+        cardAmount: order.card_amount != null ? Number(order.card_amount) : null,
         items: (order.items || []).map((item: any) => ({
           id: item.id,
           name: item.name,

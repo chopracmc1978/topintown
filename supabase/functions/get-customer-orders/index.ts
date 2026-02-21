@@ -95,7 +95,7 @@ serve(async (req: Request) => {
     // Fetch orders for this customer (excluding cancelled)
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
-      .select("id, order_number, location_id, status, order_type, subtotal, tax, total, notes, created_at, pickup_time, customer_name, customer_phone, payment_status, payment_method, discount, coupon_code, rewards_used, rewards_discount")
+      .select("id, order_number, location_id, status, order_type, subtotal, tax, total, notes, created_at, pickup_time, customer_name, customer_phone, payment_status, payment_method, cash_amount, card_amount, discount, coupon_code, rewards_used, rewards_discount")
       .eq("customer_id", customerId)
       .neq("status", "cancelled")
       .order("created_at", { ascending: false });

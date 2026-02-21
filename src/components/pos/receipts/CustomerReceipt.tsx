@@ -210,13 +210,52 @@ export const CustomerReceipt = ({
       <Separator className="border-dashed border-black my-3" />
       
       {/* Payment Info */}
-      <div className="text-center text-xs space-y-1">
-        <div className="flex justify-between">
-          <span>Payment:</span>
-          <span className="uppercase font-medium">
-            {order.paymentStatus === 'paid' ? `${order.paymentMethod || 'CARD'} - PAID` : 'UNPAID'}
-          </span>
-        </div>
+      <div className="text-xs space-y-1">
+        {order.paymentStatus === 'paid' ? (
+          <>
+            {/* Split payment or explicit amounts */}
+            {(order.cashAmount != null && order.cashAmount > 0) && (
+              <div className="flex justify-between">
+                <span>Cash:</span>
+                <span className="font-medium">${order.cashAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {(order.cardAmount != null && order.cardAmount > 0) && (
+              <div className="flex justify-between">
+                <span>Card:</span>
+                <span className="font-medium">${order.cardAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {/* Fallback for legacy orders without split amounts */}
+            {order.cashAmount == null && order.cardAmount == null && order.paymentMethod === 'cash' && (
+              <div className="flex justify-between">
+                <span>Cash:</span>
+                <span className="font-medium">${order.total.toFixed(2)}</span>
+              </div>
+            )}
+            {order.cashAmount == null && order.cardAmount == null && order.paymentMethod === 'card' && (
+              <div className="flex justify-between">
+                <span>Card:</span>
+                <span className="font-medium">${order.total.toFixed(2)}</span>
+              </div>
+            )}
+            {order.paymentMethod === 'points' && (
+              <div className="flex justify-between">
+                <span>Points:</span>
+                <span className="font-medium">${order.total.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold">
+              <span>Status:</span>
+              <span>PAID</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between">
+            <span>Payment:</span>
+            <span className="uppercase font-medium">UNPAID</span>
+          </div>
+        )}
       </div>
       
       {/* Reward Points */}
