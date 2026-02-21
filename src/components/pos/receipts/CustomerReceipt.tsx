@@ -269,15 +269,13 @@ export const CustomerReceipt = ({
               <span className="font-medium">{rewardPoints.lastBalance} pts</span>
             </div>
             <div className="flex justify-between" style={{ color: '#2e7d32' }}>
-              <span>Add:</span>
+              <span>Earned:</span>
               <span className="font-medium">+{rewardPoints.earned} pts</span>
             </div>
-            {rewardPoints.used > 0 && (
-              <div className="flex justify-between" style={{ color: '#d32f2f' }}>
-                <span>Used:</span>
-                <span className="font-medium">-{rewardPoints.used} pts</span>
-              </div>
-            )}
+            <div className="flex justify-between" style={{ color: '#d32f2f' }}>
+              <span>Used:</span>
+              <span className="font-medium">-{rewardPoints.used} pts</span>
+            </div>
             <div className="flex justify-between font-bold">
               <span>Balance:</span>
               <span>{rewardPoints.balance} pts</span>

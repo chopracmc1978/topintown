@@ -468,15 +468,13 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                   <span className="font-medium">{rewardPoints.lastBalance} pts</span>
                 </div>
                 <div className="flex justify-between text-green-700">
-                  <span>Add:</span>
+                  <span>Earned:</span>
                   <span className="font-medium">+{rewardPoints.earned} pts</span>
                 </div>
-                {rewardPoints.used > 0 && (
-                  <div className="flex justify-between text-red-700">
-                    <span>Used:</span>
-                    <span className="font-medium">-{rewardPoints.used} pts</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-red-700">
+                  <span>Used:</span>
+                  <span className="font-medium">-{rewardPoints.used} pts</span>
+                </div>
                 <div className="flex justify-between font-bold">
                   <span>Balance:</span>
                   <span>{rewardPoints.balance} pts</span>
