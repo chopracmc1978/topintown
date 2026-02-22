@@ -29,9 +29,11 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     const now = Date.now();
     return orders.filter(o => {
       if (!o.pickupTime) return false;
-      // Only trigger for pending advance orders — once accepted (preparing), the
-      // regular countdown timer + 1-min beep in POSOrderCard takes over
-      if (o.status !== 'pending') return false;
+      // Trigger for both pending (web/app awaiting accept) AND preparing (walk-in
+      // advance orders that skip pending). Once "Start Preparing" is clicked the
+      // pickup_time is reset to now+prepTime which drops originalLeadMinutes below
+      // 65 so the order naturally exits this filter.
+      if (o.status !== 'pending' && o.status !== 'preparing') return false;
 
       const pickupMs = new Date(o.pickupTime).getTime();
       const createdMs = o.createdAt ? new Date(o.createdAt).getTime() : now;
