@@ -171,7 +171,16 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
     }
   }, [isLarge]);
 
-  const toppingPrice = selectedSize?.name.includes('Small') ? 2 : selectedSize?.name.includes('Large') ? 3 : 2.5;
+  const toppingPrice = selectedSize?.name.includes('Small') ? 2 : selectedSize?.name.includes('Large') ? 3 : 2.5; // generic price for cheese extra
+  
+  // Helper to get per-topping price from DB
+  const getToppingDbPrice = (topping: { id: string }) => {
+    const t = allToppings?.find(at => at.id === topping.id);
+    if (!t) return toppingPrice;
+    if (selectedSize?.name.includes('Small')) return t.price_small || t.price || 2;
+    if (selectedSize?.name.includes('Large')) return t.price_large || t.price || 3;
+    return t.price_medium || t.price || 2.5;
+  };
 
   // Dairy Free cheese pricing: Small/Medium/GlutenFree = $2, Large = $3
   const dairyFreePrice = isLarge ? 3 : 2;
@@ -338,8 +347,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
   };
 
   const addExtraTopping = (t: { id: string; name: string; is_veg: boolean }) => {
+    const price = getToppingDbPrice(t);
     setExtraToppings(p => [...p, { 
-      id: t.id, name: t.name, quantity: 'regular', price: toppingPrice, 
+      id: t.id, name: t.name, quantity: 'regular', price, 
       isDefault: false, isVeg: t.is_veg, side: 'whole' 
     }]);
   };

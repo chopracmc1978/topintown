@@ -32,6 +32,13 @@ export const getExtraToppingPrice = (sizeName: string): number => {
   return 3;
 };
 
+// Get per-topping price from DB (falls back to generic size price)
+export const getToppingDbPrice = (topping: { price_small?: number; price_medium?: number; price_large?: number; price?: number }, sizeName: string): number => {
+  if (sizeName.includes('Small')) return topping.price_small || topping.price || 2;
+  if (sizeName.includes('Medium') || sizeName.toLowerCase().includes('gluten')) return topping.price_medium || topping.price || 2.5;
+  return topping.price_large || topping.price || 3;
+};
+
 export interface FreeToppingSelection {
   name: string;
   side: Side;
@@ -174,7 +181,7 @@ export function usePOSPizzaModal({ item, isOpen, onClose, onAddToOrder, editingI
     setExtraToppings(prev => {
       const existing = prev.find(t => t.id === topping.id);
       if (existing) return prev.filter(t => t.id !== topping.id);
-      const toppingPrice = getExtraToppingPrice(selectedSize?.name || '');
+      const toppingPrice = getToppingDbPrice(topping, selectedSize?.name || '');
       return [...prev, {
         id: topping.id, name: topping.name, quantity: 'regular' as ToppingQuantity,
         side: 'whole' as PizzaSide, isVeg: topping.is_veg, price: toppingPrice,
@@ -247,7 +254,7 @@ export function usePOSPizzaModal({ item, isOpen, onClose, onAddToOrder, editingI
     }
     const tp = getExtraToppingPrice(selectedSize?.name || '');
     defaultToppings.forEach(t => { if (t.quantity === 'extra') price += tp; });
-    price += extraToppings.length * tp;
+    extraToppings.forEach(t => price += t.price);
     price += extraAmount;
     return price;
   };

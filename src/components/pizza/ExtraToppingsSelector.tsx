@@ -14,17 +14,26 @@ interface ExtraToppingsSelectorProps {
   onUpdateTopping: (id: string, quantity: ToppingQuantity, side: PizzaSide, price: number) => void;
 }
 
-// Get topping price based on size/crust
-const getToppingPrice = (size: string, isGlutenFree: boolean): number => {
-  if (!size) return 2;
+// Get topping price based on size/crust, using per-topping DB prices
+const getToppingPriceForTopping = (topping: Topping, size: string, isGlutenFree: boolean): number => {
+  if (!size) return topping.price_small || topping.price || 2;
   
   const isSmall = size.includes('Small');
   const isMedium = size.includes('Medium');
   const isLarge = size.includes('Large');
 
-  if (isSmall) return 2;
-  if (isMedium || isGlutenFree) return 2.5;
-  if (isLarge) return 3;
+  if (isSmall) return topping.price_small || topping.price || 2;
+  if (isMedium || isGlutenFree) return topping.price_medium || topping.price || 2.5;
+  if (isLarge) return topping.price_large || topping.price || 3;
+  return topping.price_small || topping.price || 2;
+};
+
+// Generic size-based price (for display of "extra" default toppings where we don't have per-topping data)
+const getGenericToppingPrice = (size: string, isGlutenFree: boolean): number => {
+  if (!size) return 2;
+  if (size.includes('Small')) return 2;
+  if (size.includes('Medium') || isGlutenFree) return 2.5;
+  if (size.includes('Large')) return 3;
   return 2;
 };
 
@@ -57,15 +66,15 @@ const ExtraToppingsSelector = ({
   const vegToppings = availableToppings.filter(t => t.is_veg);
   const nonVegToppings = availableToppings.filter(t => !t.is_veg);
 
-  const toppingPrice = getToppingPrice(selectedSize, isGlutenFree);
-  const extraPrice = toppingPrice * 1.5; // +50% for extra
+  const genericPrice = getGenericToppingPrice(selectedSize, isGlutenFree);
 
   const addTopping = (topping: Topping) => {
+    const price = getToppingPriceForTopping(topping, selectedSize, isGlutenFree);
     onAddTopping({
       id: topping.id,
       name: topping.name,
       quantity: 'regular',
-      price: toppingPrice,
+      price,
       isDefault: false,
       isVeg: topping.is_veg,
       side: 'whole',
@@ -73,6 +82,7 @@ const ExtraToppingsSelector = ({
   };
 
   const ToppingButton = ({ topping }: { topping: Topping }) => {
+    const price = getToppingPriceForTopping(topping, selectedSize, isGlutenFree);
     return (
       <button
         onClick={() => addTopping(topping)}
@@ -80,7 +90,7 @@ const ExtraToppingsSelector = ({
       >
         <Plus className="w-4 h-4 text-primary" />
         <span>{topping.name}</span>
-        <span className="text-primary font-medium">+${toppingPrice.toFixed(2)}</span>
+        <span className="text-primary font-medium">+${price.toFixed(2)}</span>
       </button>
     );
   };
@@ -110,7 +120,7 @@ const ExtraToppingsSelector = ({
                       {topping.isVeg ? 'Veg' : 'Non-Veg'}
                     </span>
                     <span className="text-sm text-primary font-medium">
-                      +${(topping.quantity === 'extra' ? extraPrice : toppingPrice).toFixed(2)}
+                      +${(topping.quantity === 'extra' ? topping.price * 1.5 : topping.price).toFixed(2)}
                     </span>
                   </div>
                   <button
@@ -127,7 +137,7 @@ const ExtraToppingsSelector = ({
                   {QUANTITY_OPTIONS.map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => onUpdateTopping(topping.id, option.value, topping.side || 'whole', toppingPrice)}
+                      onClick={() => onUpdateTopping(topping.id, option.value, topping.side || 'whole', topping.price)}
                       className={cn(
                         "px-3 py-1 rounded-full text-xs border transition-all",
                         topping.quantity === option.value
@@ -140,7 +150,7 @@ const ExtraToppingsSelector = ({
                   ))}
                   {/* Extra Button with +50% price */}
                   <button
-                    onClick={() => onUpdateTopping(topping.id, 'extra', topping.side || 'whole', extraPrice)}
+                    onClick={() => onUpdateTopping(topping.id, 'extra', topping.side || 'whole', topping.price * 1.5)}
                     className={cn(
                       "px-3 py-1 rounded-full text-xs border transition-all",
                       topping.quantity === 'extra'
@@ -159,7 +169,7 @@ const ExtraToppingsSelector = ({
                     <button
                       key={side.value}
                       onClick={() => {
-                        const price = topping.quantity === 'extra' ? extraPrice : toppingPrice;
+                        const price = topping.quantity === 'extra' ? topping.price * 1.5 : topping.price;
                         onUpdateTopping(topping.id, topping.quantity as Exclude<ToppingQuantity, 'none'>, side.value, price);
                       }}
                       className={cn(
