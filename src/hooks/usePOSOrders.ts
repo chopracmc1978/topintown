@@ -934,35 +934,37 @@ export const usePOSOrders = (locationId?: string) => {
     };
   }, [currentLocationId]);
 
-  // Start preparing an advance order: clears future pickup_time so it moves from Advance → Preparing tab
-  const startPreparingAdvanceOrder = async (orderNumber: string, prepTime?: number) => {
+  // Start preparing an advance order: updates pickup_time to now+prepTime so countdown works
+  const startPreparingAdvanceOrder = async (orderId: string, prepTime?: number) => {
     try {
       const now = new Date();
       const effectivePrepTime = prepTime || 20;
       const newPickup = new Date(now.getTime() + effectivePrepTime * 60000);
       
-      // Set pickup_time to now + prepTime so countdown timer works
+      // Find the order to get the actual database UUID
+      const order = orders.find(o => o.id === orderId);
+      const dbId = order?.dbId || orderId;
+      
+      // Update pickup_time to now + prepTime and ensure status is 'preparing'
       const { error } = await supabase
         .from('orders')
         .update({ 
           pickup_time: newPickup.toISOString(),
+          status: 'preparing',
           updated_at: now.toISOString() 
         })
-        .eq('order_number', orderNumber);
+        .eq('id', dbId);
 
       if (error) throw error;
 
-      // Get order for SMS
-      const order = orders.find(o => o.id === orderNumber);
-      
       // Send "preparing" SMS with prep time
       if (order?.customerPhone || order?.customerId) {
-        await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime: effectivePrepTime, locationId });
+        await sendOrderSms(orderId, order.customerPhone, order.customerId, 'preparing', { prepTime: effectivePrepTime, locationId });
       }
 
-      // Update local state
+      // Update local state — set new pickupTime AND status to preparing
       setOrders(prev => prev.map(o => 
-        o.id === orderNumber ? { ...o, pickupTime: newPickup } : o
+        o.id === orderId ? { ...o, pickupTime: newPickup, status: 'preparing' as any } : o
       ));
 
       toast.success(`Order moved to Preparing (${effectivePrepTime} min)`);
