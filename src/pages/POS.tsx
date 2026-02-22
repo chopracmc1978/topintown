@@ -615,18 +615,8 @@ const POSDashboard = ({
       }
     }
     
-    // If changing to "preparing", check if it's an advance order
+    // If changing to "preparing", always show prep time modal
     if (status === 'preparing' && !prepTime) {
-      const order = orders.find(o => o.id === selectedOrderId);
-      
-      // For advance orders with pickupTime, skip prep time modal and just accept
-      if (order?.pickupTime) {
-        updateOrderStatus(selectedOrderId, 'preparing', undefined, currentLocationId);
-        setSelectedOrderId(null);
-        return;
-      }
-      
-      // For ASAP orders, show prep time modal
       setPendingPrepOrderId(selectedOrderId);
       setPrepTimeModalOpen(true);
       return;
@@ -705,11 +695,22 @@ const POSDashboard = ({
       return;
     }
     
-    // Normal flow for existing orders (e.g. web orders → Start Preparing)
+    // Normal flow for existing orders
     if (pendingPrepOrderId) {
-      updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime, currentLocationId);
-      // Auto-print kitchen ticket for web/app orders
       const orderToPrint = orders.find(o => o.id === pendingPrepOrderId);
+      
+      // Check if this is an advance order already in "preparing" status (Start Preparing flow)
+      const isAdvanceStartPreparing = orderToPrint && orderToPrint.status === 'preparing' && orderToPrint.pickupTime;
+      
+      if (isAdvanceStartPreparing) {
+        // Advance order "Start Preparing": update pickup_time and send SMS
+        startPreparingAdvanceOrder(pendingPrepOrderId, prepTime);
+      } else {
+        // Normal accept flow: set status to preparing
+        updateOrderStatus(pendingPrepOrderId, 'preparing', prepTime, currentLocationId);
+      }
+      
+      // Auto-print kitchen ticket
       if (orderToPrint) {
         printKitchenTicket(orderToPrint);
       }
@@ -1135,8 +1136,8 @@ const POSDashboard = ({
               onEditOrder={handleEditOrder}
               onStartPreparing={() => {
                 if (selectedOrderId) {
-                  startPreparingAdvanceOrder(selectedOrderId);
-                  setSelectedOrderId(null);
+                  setPendingPrepOrderId(selectedOrderId);
+                  setPrepTimeModalOpen(true);
                 }
               }}
             />

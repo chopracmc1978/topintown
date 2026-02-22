@@ -934,15 +934,17 @@ export const usePOSOrders = (locationId?: string) => {
   }, [currentLocationId]);
 
   // Start preparing an advance order: clears future pickup_time so it moves from Advance → Preparing tab
-  const startPreparingAdvanceOrder = async (orderNumber: string) => {
+  const startPreparingAdvanceOrder = async (orderNumber: string, prepTime?: number) => {
     try {
       const now = new Date();
+      const effectivePrepTime = prepTime || 20;
+      const newPickup = new Date(now.getTime() + effectivePrepTime * 60000);
       
-      // Set pickup_time to now so it's no longer "in the future"
+      // Set pickup_time to now + prepTime so countdown timer works
       const { error } = await supabase
         .from('orders')
         .update({ 
-          pickup_time: now.toISOString(),
+          pickup_time: newPickup.toISOString(),
           updated_at: now.toISOString() 
         })
         .eq('order_number', orderNumber);
@@ -952,17 +954,17 @@ export const usePOSOrders = (locationId?: string) => {
       // Get order for SMS
       const order = orders.find(o => o.id === orderNumber);
       
-      // Send "preparing" SMS
+      // Send "preparing" SMS with prep time
       if (order?.customerPhone || order?.customerId) {
-        await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime: 20 });
+        await sendOrderSms(orderNumber, order.customerPhone, order.customerId, 'preparing', { prepTime: effectivePrepTime, locationId });
       }
 
       // Update local state
       setOrders(prev => prev.map(o => 
-        o.id === orderNumber ? { ...o, pickupTime: now } : o
+        o.id === orderNumber ? { ...o, pickupTime: newPickup } : o
       ));
 
-      toast.success('Order moved to Preparing');
+      toast.success(`Order moved to Preparing (${effectivePrepTime} min)`);
     } catch (err: any) {
       console.error('Error starting advance order preparation:', err);
       setError(err.message);
