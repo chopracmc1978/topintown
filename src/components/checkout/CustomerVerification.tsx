@@ -82,8 +82,8 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
         setCustomerId(custId);
         setExistingCustomer(true);
 
-        // If already fully verified, redirect to login
-        if (existing.email_verified && existing.phone_verified) {
+        // If already fully verified and creating account, redirect to login
+        if (createAccount && existing.email_verified && existing.phone_verified) {
           toast.info('Account exists. Please login to continue.');
           onBack();
           return;
@@ -117,7 +117,21 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
         setCustomerId(custId);
       }
 
-      // Send email OTP
+      // Guest mode: skip OTP, just save info and continue
+      if (!createAccount) {
+        setCustomer({
+          id: custId,
+          email: email.toLowerCase().trim(),
+          phone,
+          fullName,
+          emailVerified: false,
+          phoneVerified: false,
+        });
+        onComplete(custId);
+        return;
+      }
+
+      // Account creation: Send email OTP
       const { error: otpError } = await supabase.functions.invoke('send-otp', {
         body: { email: email.toLowerCase().trim(), type: 'email', customerId: custId },
       });
@@ -322,7 +336,7 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
   // Calculate steps for progress indicator
   const steps = createAccount 
     ? ['info', 'email-otp', 'phone-otp', 'password'] 
-    : ['info', 'email-otp'];
+    : ['info'];
 
   return (
     <div className="space-y-6">
