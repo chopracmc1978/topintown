@@ -89,34 +89,37 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
   const isWingsStep = currentStep?.category === 'chicken_wings';
 
   const getItemQuantity = (itemId: string) => {
-    return selectedItems.find(i => i.id === itemId)?.quantity || 0;
+    // For wings, count all entries that start with the base item id
+    return selectedItems
+      .filter(i => i.id === itemId || i.id.startsWith(`${itemId}-`))
+      .reduce((sum, i) => sum + i.quantity, 0);
   };
 
-  const getItemFlavor = (itemId: string) => {
-    return selectedItems.find(i => i.id === itemId)?.flavor;
+  const getItemFlavors = (itemId: string): string[] => {
+    return selectedItems
+      .filter(i => i.id.startsWith(`${itemId}-`) && i.flavor)
+      .map(i => i.flavor!);
   };
 
   const handleAddWingsItem = (item: { id: string; name: string; base_price: number; image_url?: string | null }) => {
-    // Show flavor picker for this item
     setFlavorPickerItemId(item.id);
   };
 
   const handleFlavorSelect = (item: { id: string; name: string; base_price: number; image_url?: string | null }, flavorName: string) => {
-    setSelectedItems(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1, flavor: flavorName } : i);
-      }
-      return [...prev, {
-        id: item.id,
+    // Always add a new entry so customer can have multiple flavors (e.g. Hot + BBQ)
+    const uniqueId = `${item.id}-${flavorName}-${Date.now()}`;
+    setSelectedItems(prev => [
+      ...prev,
+      {
+        id: uniqueId,
         name: item.name,
         price: item.base_price,
         image_url: item.image_url,
         quantity: 1,
         flavor: flavorName,
         category: 'chicken_wings',
-      }];
-    });
+      },
+    ]);
     setFlavorPickerItemId(null);
   };
 
@@ -139,6 +142,16 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
         }];
       }
       return prev;
+    });
+  };
+
+  // Remove the last wings entry for a given base item id
+  const removeLastWingsEntry = (baseItemId: string) => {
+    setSelectedItems(prev => {
+      const wingsEntries = prev.filter(i => i.id.startsWith(`${baseItemId}-`));
+      if (wingsEntries.length === 0) return prev;
+      const lastEntry = wingsEntries[wingsEntries.length - 1];
+      return prev.filter(i => i.id !== lastEntry.id);
     });
   };
 
@@ -195,7 +208,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
               {currentItems.map((item) => {
                 const qty = getItemQuantity(item.id);
                 const isSelected = qty > 0;
-                const flavor = getItemFlavor(item.id);
+                const flavors = getItemFlavors(item.id);
                 const showFlavorPicker = isWingsStep && flavorPickerItemId === item.id;
                 
                 return (
@@ -232,8 +245,8 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                     <p className="text-primary font-bold text-xs mb-1">${item.base_price.toFixed(2)}</p>
                     
                     {/* Show selected flavor label */}
-                    {isWingsStep && isSelected && flavor && (
-                      <p className="text-[10px] text-muted-foreground mb-1 truncate">🌶 {flavor}</p>
+                    {isWingsStep && isSelected && flavors.length > 0 && (
+                      <p className="text-[10px] text-muted-foreground mb-1 truncate">🌶 {flavors.join(', ')}</p>
                     )}
 
                     {/* Flavor picker dropdown */}
@@ -255,7 +268,7 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
                       {isSelected ? (
                         <>
                           <button
-                            onClick={(e) => { e.stopPropagation(); updateItemQuantity(item, -1); }}
+                            onClick={(e) => { e.stopPropagation(); isWingsStep ? removeLastWingsEntry(item.id) : updateItemQuantity(item, -1); }}
                             className="w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 flex items-center justify-center transition-colors"
                           >
                             <Minus className="w-3 h-3" />
