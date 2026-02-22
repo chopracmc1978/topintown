@@ -29,8 +29,9 @@ export const usePOSNotificationSound = (orders: Order[]) => {
     const now = Date.now();
     return orders.filter(o => {
       if (!o.pickupTime) return false;
-      // Only trigger for pending or preparing (scheduled/advance) orders
-      if (o.status !== 'pending' && o.status !== 'preparing') return false;
+      // Only trigger for pending advance orders — once accepted (preparing), the
+      // regular countdown timer + 1-min beep in POSOrderCard takes over
+      if (o.status !== 'pending') return false;
 
       const pickupMs = new Date(o.pickupTime).getTime();
       const createdMs = o.createdAt ? new Date(o.createdAt).getTime() : now;
