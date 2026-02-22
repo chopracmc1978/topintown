@@ -306,12 +306,18 @@ export const OrderReceiptModal = ({ order, open, onClose }: OrderReceiptModalPro
                   const modified = customizations.defaultToppings.filter((t: any) => t.quantity !== 'regular');
                   if (modified.length > 0) {
                     const modifiedText = modified.map((t: any) => {
+                      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
                       if (t.quantity === 'none') return `NO ${t.name}`;
-                      if (t.quantity === 'less') return `Less ${t.name}`;
-                      if (t.quantity === 'extra') return `Extra ${t.name}`;
+                      if (t.quantity === 'less') return `Less ${t.name}${sideInfo}`;
+                      if (t.quantity === 'extra') return `Extra ${t.name}${sideInfo}`;
                       return t.name;
                     }).join(', ');
                     customizationLines.push(modifiedText);
+                  }
+                  // Default toppings with side changed (regular quantity but left/right)
+                  const sideChanged = customizations.defaultToppings.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole');
+                  if (sideChanged.length > 0) {
+                    customizationLines.push(sideChanged.map((t: any) => `${t.name} (${t.side})`).join(', '));
                   }
                 }
                 

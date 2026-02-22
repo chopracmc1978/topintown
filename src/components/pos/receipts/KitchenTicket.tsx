@@ -85,6 +85,16 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     });
   }
   
+  // Default toppings with side changed (regular quantity but left/right)
+  const sideChangedDefaults = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole'
+  );
+  if (sideChangedDefaults && sideChangedDefaults.length > 0) {
+    sideChangedDefaults.forEach((t: any) => {
+      details.push(`${t.name} (${t.side})`);
+    });
+  }
+  
   // Extra Toppings
   if (customization.extraToppings && customization.extraToppings.length > 0) {
     const extraList = customization.extraToppings.map(t => {

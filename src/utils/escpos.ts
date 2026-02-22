@@ -356,6 +356,16 @@ const formatPizzaDetailsForKitchen = (customization: any, maxWidth: number): str
     });
   }
   
+  // Default toppings with side changed (regular quantity but left/right)
+  const sideChangedDefaults = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole'
+  );
+  if (sideChangedDefaults?.length > 0) {
+    sideChangedDefaults.forEach((t: any) => {
+      lines.push(`${t.name} (${t.side})`);
+    });
+  }
+  
   // Note - only show if present
   if (customization.note) {
     lines.push(`Note : ${customization.note}`);
@@ -713,6 +723,16 @@ const formatPizzaDetailsForReceipt = (customization: any, maxWidth: number): str
     });
   }
   
+  // Default toppings with side changed (regular quantity but left/right)
+  const sideChangedDefaults2 = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole'
+  );
+  if (sideChangedDefaults2?.length > 0) {
+    sideChangedDefaults2.forEach((t: any) => {
+      lines.push(`${t.name} (${t.side})`);
+    });
+  }
+  
   // Note - only show if present
   if (customization.note) {
     lines.push(`Note : ${customization.note}`);
@@ -834,6 +854,16 @@ const formatPizzaDetailsForPrint = (customization: any): string[] => {
     modifiedDefaults.forEach((t: any) => {
       const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
       details.push(`${t.quantity} ${t.name}${sideInfo}`);
+    });
+  }
+  
+  // Default toppings with side changed (regular quantity but left/right)
+  const sideChangedDefaults3 = customization.defaultToppings?.filter(
+    (t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole'
+  );
+  if (sideChangedDefaults3?.length > 0) {
+    sideChangedDefaults3.forEach((t: any) => {
+      details.push(`${t.name} (${t.side})`);
     });
   }
   
