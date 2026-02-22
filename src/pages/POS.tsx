@@ -615,8 +615,19 @@ const POSDashboard = ({
       }
     }
     
-    // If changing to "preparing", always show prep time modal
+    // If changing to "preparing", check if advance order or regular
     if (status === 'preparing' && !prepTime) {
+      const order = orders.find(o => o.id === selectedOrderId);
+      
+      // Advance orders: just accept (no prep time modal) — they stay in Advance tab
+      // The prep time modal is shown later when "Start Preparing" is clicked
+      if (order?.pickupTime) {
+        updateOrderStatus(selectedOrderId, 'preparing', undefined, currentLocationId);
+        setSelectedOrderId(null);
+        return;
+      }
+      
+      // Regular ASAP orders: show prep time modal
       setPendingPrepOrderId(selectedOrderId);
       setPrepTimeModalOpen(true);
       return;
