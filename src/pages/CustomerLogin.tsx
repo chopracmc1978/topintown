@@ -483,8 +483,8 @@ const CustomerLogin = () => {
               <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
                 <p>
                   Don't have an account?{' '}
-                  <Link to={`/checkout?action=create-account`} className="text-primary hover:underline font-medium">
-                    Create one during checkout
+                  <Link to="/checkout?action=create-account" className="text-primary hover:underline font-medium">
+                    Create one here
                   </Link>
                 </p>
               </div>
