@@ -224,17 +224,14 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
   const newDiscounts = couponDiscount + manualDiscountVal;
   const hasNewDiscount = newDiscounts > 0;
   
-  // Check if this is an advance order (has scheduled pickup time in the future)
-  // Check if this is a genuine advance/scheduled order (not just an ASAP with prep time)
-  // Advance orders have a large gap (>65 min) between creation and pickup time
-  const isGenuineAdvanceOrder = (() => {
+  // Advance order = preparing + pickupTime far from updatedAt (>65 min gap)
+  // After "Start Preparing" resets pickup_time to now+prepTime, the gap shrinks to ≤65 min
+  const isAdvanceOrder = (() => {
     if (!order.pickupTime || order.status !== 'preparing') return false;
-    const createdAt = new Date(order.createdAt).getTime();
-    const pickupAt = new Date(order.pickupTime).getTime();
-    const leadTimeMin = (pickupAt - createdAt) / 60000;
-    return leadTimeMin > 65;
+    const pickupMs = new Date(order.pickupTime).getTime();
+    const updatedMs = order.updatedAt ? new Date(order.updatedAt).getTime() : new Date(order.createdAt).getTime();
+    return (pickupMs - updatedMs) / 60000 > 65;
   })();
-  const isAdvanceOrder = isGenuineAdvanceOrder;
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
