@@ -61,6 +61,13 @@ export const CustomerVerification = ({ onComplete, onBack, createAccount = true 
       return;
     }
 
+    // Validate phone number (minimum 10 digits)
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Please enter a valid 10-digit phone number');
+      return;
+    }
+
     setLoading(true);
     try {
       // Check if customer exists via edge function (avoids public SELECT on customers table)
