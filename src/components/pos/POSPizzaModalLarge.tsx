@@ -143,7 +143,7 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
             })}
           </div>
 
-          <div className="h-2" />
+          <div className="h-1" />
 
           {/* DEFAULT TOPPINGS */}
           {m.pizzaDefaultToppings.length > 0 && (
@@ -155,7 +155,7 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
                     <button onClick={() => m.toggleDefaultTopping(topping.id)} className={cn(btn, "rounded-b-none text-center justify-center px-4")} style={isRemoved ? removedStyle : blueStyle}>
                       <span className={isRemoved ? "line-through" : ""}>{topping.name}</span>
                     </button>
-                    <div className="flex gap-px mt-px">
+                    <div className="flex gap-px" style={{ marginTop: 3 }}>
                       {SIDE_OPTIONS.map(side => {
                         const isSideDisabled = !m.isLargePizza && side.value !== 'whole';
                         const isSideActive = !isRemoved && (topping.side === side.value || (!m.isLargePizza && side.value === 'whole'));
@@ -172,7 +172,7 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
             </div>
           )}
 
-          <div className="h-2" />
+          <div className="h-1" />
 
           {/* EXTRA TOPPINGS - 3 column grid, full names, gap between name & L/W/R */}
           {m.availableExtraToppings.length > 0 && (
