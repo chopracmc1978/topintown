@@ -1,4 +1,4 @@
-import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock, Users, Hash } from 'lucide-react';
+import { X, Clock, Printer, History, BarChart3, Volume2, VolumeX, FileText, Volume1, Play, CalendarClock, Users, Hash, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -21,9 +21,12 @@ interface POSSettingsPanelProps {
   onToggleAudio?: (enabled: boolean) => void;
   onVolumeChange?: (volume: number) => void;
   onTestSound?: () => void;
+  isScreenAwake?: boolean;
+  onToggleScreenAwake?: (enabled: boolean) => void;
+  isScreenAwakeSupported?: boolean;
 }
 
-export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled = false, volume = 0.8, onToggleAudio, onVolumeChange, onTestSound }: POSSettingsPanelProps) => {
+export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled = false, volume = 0.8, onToggleAudio, onVolumeChange, onTestSound, isScreenAwake = false, onToggleScreenAwake, isScreenAwakeSupported = false }: POSSettingsPanelProps) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -227,6 +230,28 @@ export const POSSettingsPanel = ({ locationId, onClose, onEndDay, isAudioEnabled
                   <Play className="w-5 h-5 mr-2" />
                   Test Sound
                 </Button>
+
+                {/* Keep Screen Awake */}
+                {isScreenAwakeSupported && (
+                  <div
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                    style={{ backgroundColor: 'hsl(0, 0%, 98%)' }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Smartphone className={`w-6 h-6 ${isScreenAwake ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      <div>
+                        <Label className="text-base font-medium">Keep Screen Awake</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {isScreenAwake ? 'Screen will stay on' : 'Screen may go to sleep'}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={isScreenAwake}
+                      onCheckedChange={(checked) => onToggleScreenAwake?.(checked)}
+                    />
+                  </div>
+                )}
               </div>
             </TabsContent>
 
