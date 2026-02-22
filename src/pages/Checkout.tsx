@@ -275,9 +275,32 @@ const OrderItemCard = ({
                         }</p>
                       )}
                       
+                      {/* Modified default toppings (less/extra) */}
+                      {selection.pizzaCustomization.defaultToppings.some(t => t.quantity === 'less' || t.quantity === 'extra') && (
+                        <p>{selection.pizzaCustomization.defaultToppings
+                          .filter(t => t.quantity === 'less' || t.quantity === 'extra')
+                          .map(t => {
+                            const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : '';
+                            return `${t.quantity === 'less' ? 'Less' : 'Extra'} ${t.name}${sideInfo}`;
+                          }).join(', ')
+                        }</p>
+                      )}
+                      
+                      {/* Default toppings with side changed */}
+                      {selection.pizzaCustomization.defaultToppings.some(t => t.quantity === 'regular' && t.side && t.side !== 'whole') && (
+                        <p>{selection.pizzaCustomization.defaultToppings
+                          .filter(t => t.quantity === 'regular' && t.side && t.side !== 'whole')
+                          .map(t => `${t.name} (${t.side === 'left' ? 'L' : 'R'})`)
+                          .join(', ')
+                        }</p>
+                      )}
+                      
                       {selection.pizzaCustomization.extraToppings.length > 0 && (
                         <p className="text-primary">Extra: {
-                          selection.pizzaCustomization.extraToppings.map(t => t.name).join(', ')
+                          selection.pizzaCustomization.extraToppings.map(t => {
+                            const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side === 'left' ? 'L' : 'R'})` : '';
+                            return `${t.name}${sideInfo}`;
+                          }).join(', ')
                         }</p>
                       )}
                       
