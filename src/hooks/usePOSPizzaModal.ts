@@ -34,9 +34,9 @@ export const getExtraToppingPrice = (sizeName: string): number => {
 
 // Get per-topping price from DB (falls back to generic size price)
 export const getToppingDbPrice = (topping: { price_small?: number; price_medium?: number; price_large?: number; price?: number }, sizeName: string): number => {
-  if (sizeName.includes('Small')) return topping.price_small || topping.price || 2;
-  if (sizeName.includes('Medium') || sizeName.toLowerCase().includes('gluten')) return topping.price_medium || topping.price || 2.5;
-  return topping.price_large || topping.price || 3;
+  if (sizeName.includes('Small')) return topping.price_small ?? topping.price ?? 2;
+  if (sizeName.includes('Medium') || sizeName.toLowerCase().includes('gluten')) return topping.price_medium ?? topping.price ?? 2.5;
+  return topping.price_large ?? topping.price ?? 3;
 };
 
 export interface FreeToppingSelection {
