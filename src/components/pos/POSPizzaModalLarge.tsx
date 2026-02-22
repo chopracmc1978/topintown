@@ -13,8 +13,8 @@ import {
 import type { PizzaSide } from '@/types/pizzaCustomization';
 import { cn } from '@/lib/utils';
 
-const btn = "h-8 px-3 text-xs rounded border font-medium transition-colors text-foreground inline-flex items-center justify-center text-center leading-tight whitespace-nowrap min-w-0";
-const labelBox = "h-8 px-3 text-xs font-semibold rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
+const btn = "h-9 px-4 text-xs rounded border font-medium transition-colors text-foreground inline-flex items-center justify-center text-center leading-tight whitespace-nowrap min-w-0";
+const labelBox = "h-9 px-4 text-xs font-semibold rounded grid place-items-center text-center leading-tight whitespace-normal min-w-0";
 
 export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
   const { item, isOpen, onClose, editingItem } = props;
@@ -23,14 +23,14 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="max-w-[1100px] w-[96vw] p-4 pt-3 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100 !gap-0"
+        className="max-w-[1100px] w-[96vw] p-5 pt-4 overflow-hidden max-h-[96vh] text-slate-900 !duration-300 !animate-in !fade-in-0 !zoom-in-100 data-[state=closed]:!zoom-out-100 !gap-0"
         style={{ backgroundColor: '#c5dbe8', background: '#c5dbe8', textRendering: 'optimizeLegibility', WebkitFontSmoothing: 'antialiased' as any, display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: '96vh' }}
       >
         {/* ROW 1: Pizza Name | Sizes | Crust */}
-        <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-300 pr-12 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-300 pr-12 flex-shrink-0">
           <span className="font-serif text-sm font-bold px-5 py-2 rounded whitespace-nowrap uppercase" style={{ ...blueStyle, minWidth: 130 }}>{item.name}</span>
           {item.sizes?.map(size => (
-            <button key={size.id} onClick={() => m.setSelectedSize({ id: size.id, name: size.name, price: size.price })} className={cn(btn, "px-3")} style={m.selectedSize?.id === size.id ? blueStyle : darkStyle}>
+            <button key={size.id} onClick={() => m.setSelectedSize({ id: size.id, name: size.name, price: size.price })} className={cn(btn, "px-4")} style={m.selectedSize?.id === size.id ? blueStyle : darkStyle}>
               <span className="text-xs font-medium whitespace-nowrap">{size.name} {size.price.toFixed(2)}</span>
             </button>
           ))}
@@ -38,14 +38,14 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
             const isGluten = crust.name.toLowerCase().includes('gluten');
             const disabled = isGluten && !m.isGlutenFreeAllowed;
             return (
-              <button key={crust.id} onClick={() => !disabled && m.setSelectedCrust(crust)} disabled={disabled} className={cn(btn, "px-3")} style={disabled ? { ...darkStyle, opacity: 0.4 } : m.selectedCrust?.id === crust.id ? blueStyle : darkStyle}>
+              <button key={crust.id} onClick={() => !disabled && m.setSelectedCrust(crust)} disabled={disabled} className={cn(btn, "px-4")} style={disabled ? { ...darkStyle, opacity: 0.4 } : m.selectedCrust?.id === crust.id ? blueStyle : darkStyle}>
                 {isGluten ? 'Gluten' : 'Regular'}
               </button>
             );
           })}
         </div>
 
-        <div className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-y-auto pt-2" style={{ flex: '1 1 0%' }}>
+        <div className="flex flex-col gap-2.5 flex-1 min-h-0 overflow-y-auto pt-3" style={{ flex: '1 1 0%' }}>
           {/* ROW 2: Cheese */}
           <div className="flex items-center gap-2">
             <span className={cn(labelBox, "px-4 whitespace-nowrap")} style={m.selectedCheese !== 'No Cheese' ? blueStyle : darkStyle}>Cheese</span>
@@ -95,13 +95,13 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
 
           {/* ROW 4: Free Toppings */}
           {m.freeToppings.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               {m.freeToppings.map((topping, idx) => {
                 const sel = m.freeToppingSelections.find(f => f.name === topping.name);
                 const isSelected = !!sel;
                 return (
-                  <div key={topping.id} className="flex items-center gap-1">
-                    {idx > 0 && <div style={{ width: 24 }} />}
+                  <div key={topping.id} className="flex items-center gap-1.5">
+                    {idx > 0 && <div style={{ width: 28 }} />}
                     <button onClick={() => m.toggleFreeTopping(topping.name)} className={btn} style={isSelected ? blueStyle : darkStyle}>{topping.name}</button>
                     <div className="flex gap-1">
                       {(['left', 'whole', 'right'] as const).map(side => {
@@ -143,24 +143,24 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
             })}
           </div>
 
-          <div className="h-4" />
+          <div className="h-3" />
 
           {/* DEFAULT TOPPINGS */}
           {m.pizzaDefaultToppings.length > 0 && (
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4">
               {m.defaultToppings.map(topping => {
                 const isRemoved = topping.quantity === 'none';
                 return (
                   <div key={topping.id} className="flex flex-col items-stretch">
-                    <button onClick={() => m.toggleDefaultTopping(topping.id)} className={cn(btn, "rounded-b-none text-center justify-center px-4")} style={isRemoved ? removedStyle : blueStyle}>
+                    <button onClick={() => m.toggleDefaultTopping(topping.id)} className={cn(btn, "rounded-b-none text-center justify-center px-5 h-9")} style={isRemoved ? removedStyle : blueStyle}>
                       <span className={isRemoved ? "line-through" : ""}>{topping.name}</span>
                     </button>
-                    <div className="flex">
+                    <div className="flex gap-0.5 mt-0.5">
                       {SIDE_OPTIONS.map(side => {
                         const isSideDisabled = !m.isLargePizza && side.value !== 'whole';
                         const isSideActive = !isRemoved && (topping.side === side.value || (!m.isLargePizza && side.value === 'whole'));
                         return (
-                          <button key={side.value} onClick={() => { if (isRemoved) m.toggleDefaultTopping(topping.id); m.updateDefaultToppingSide(topping.id, side.value as PizzaSide); }} disabled={isRemoved || isSideDisabled} className={cn(btn, "flex-1 rounded-t-none justify-center")} style={(isRemoved || isSideDisabled) ? disabledStyle : isSideActive ? blueStyle : darkStyle}>
+                          <button key={side.value} onClick={() => { if (isRemoved) m.toggleDefaultTopping(topping.id); m.updateDefaultToppingSide(topping.id, side.value as PizzaSide); }} disabled={isRemoved || isSideDisabled} className={cn(btn, "flex-1 rounded-t-none justify-center h-8")} style={(isRemoved || isSideDisabled) ? disabledStyle : isSideActive ? blueStyle : darkStyle}>
                             {side.label}
                           </button>
                         );
@@ -172,34 +172,36 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
             </div>
           )}
 
-          <div className="h-4" />
+          <div className="h-3" />
 
-          {/* EXTRA TOPPINGS - 4 column grid for big screen */}
+          {/* EXTRA TOPPINGS - 3 column grid, full names, gap between name & sides */}
           {m.availableExtraToppings.length > 0 && (
-            <div className="grid gap-2 grid-cols-4">
+            <div className="grid gap-x-4 gap-y-1.5 grid-cols-3">
               {m.availableExtraToppings.map(topping => {
                 const selected = m.extraToppings.find(t => t.id === topping.id);
                 const isSelected = !!selected;
                 return (
-                  <div key={topping.id} className="flex items-center gap-1.5">
-                    <button onClick={() => m.toggleExtraTopping(topping)} className="flex items-center justify-start px-3 py-2 rounded border font-medium truncate" style={{ ...(isSelected ? blueStyle : darkStyle), flex: '1 1 0%', minWidth: 0 }}>
-                      <span className="text-xs truncate">{topping.name}</span>
+                  <div key={topping.id} className="flex items-center gap-2">
+                    <button onClick={() => m.toggleExtraTopping(topping)} className="flex items-center justify-start px-4 h-9 rounded border font-medium" style={{ ...(isSelected ? blueStyle : darkStyle), flex: '1 1 0%', minWidth: 0 }}>
+                      <span className="text-xs">{topping.name}</span>
                     </button>
                     {m.isLargePizza ? (
-                      SIDE_OPTIONS.map(side => {
-                        const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value);
-                        return (
-                          <button key={side.value} type="button" onClick={() => {
-                            if (isThisSideActive) m.toggleExtraTopping(topping);
-                            else if (!isSelected) { m.toggleExtraTopping(topping); setTimeout(() => m.updateExtraToppingSide(topping.id, side.value as PizzaSide), 0); }
-                            else m.updateExtraToppingSide(topping.id, side.value as PizzaSide);
-                          }} className="py-2 px-2.5 text-xs rounded border font-medium text-center whitespace-nowrap" style={isThisSideActive ? blueStyle : darkStyle}>
-                            {side.label}
-                          </button>
-                        );
-                      })
+                      <div className="flex gap-1">
+                        {SIDE_OPTIONS.map(side => {
+                          const isThisSideActive = isSelected && ((selected?.side || 'whole') === side.value);
+                          return (
+                            <button key={side.value} type="button" onClick={() => {
+                              if (isThisSideActive) m.toggleExtraTopping(topping);
+                              else if (!isSelected) { m.toggleExtraTopping(topping); setTimeout(() => m.updateExtraToppingSide(topping.id, side.value as PizzaSide), 0); }
+                              else m.updateExtraToppingSide(topping.id, side.value as PizzaSide);
+                            }} className="h-9 px-3 text-xs rounded border font-medium text-center whitespace-nowrap" style={isThisSideActive ? blueStyle : darkStyle}>
+                              {side.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     ) : (
-                      <button type="button" onClick={() => m.toggleExtraTopping(topping)} className="py-2 px-3 text-xs rounded border font-medium text-center whitespace-nowrap" style={isSelected ? blueStyle : darkStyle}>
+                      <button type="button" onClick={() => m.toggleExtraTopping(topping)} className="h-9 px-4 text-xs rounded border font-medium text-center whitespace-nowrap" style={isSelected ? blueStyle : darkStyle}>
                         Whole
                       </button>
                     )}
@@ -211,12 +213,12 @@ export const POSPizzaModalLarge = (props: POSPizzaModalProps) => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center gap-2 flex-shrink-0" style={{ borderTop: '2px solid #9ab8c8', paddingTop: 8, marginTop: 6 }}>
-          <input type="text" value={m.note} onChange={(e) => m.handleNoteChange(e.target.value)} placeholder={m.shortcutPlaceholder} className="flex-[2] px-3 py-2.5 text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
-          <input type="text" inputMode="decimal" value={m.extraAmount || ''} onChange={(e) => m.handleExtraAmountChange(e.target.value)} placeholder="0.00" className="w-[100px] px-3 py-2.5 text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
+        <div className="flex items-center gap-3 flex-shrink-0" style={{ borderTop: '2px solid #9ab8c8', paddingTop: 10, marginTop: 8 }}>
+          <input type="text" value={m.note} onChange={(e) => m.handleNoteChange(e.target.value)} placeholder={m.shortcutPlaceholder} className="flex-[2] px-4 py-3 text-xs border border-slate-800 rounded bg-white text-slate-800 placeholder:text-slate-400" />
+          <input type="text" inputMode="decimal" value={m.extraAmount || ''} onChange={(e) => m.handleExtraAmountChange(e.target.value)} placeholder="0.00" className="w-[100px] px-3 py-3 text-xs border border-slate-800 rounded bg-white text-center text-slate-800" />
           <span className="text-xl font-bold text-slate-900 whitespace-nowrap min-w-[80px] text-center">${m.totalPrice.toFixed(2)}</span>
-          <Button variant="outline" onClick={onClose} className="text-sm px-5 py-2.5 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
-          <Button variant="default" onClick={m.handleAddToOrder} disabled={!m.selectedSize || !m.selectedCrust} className="text-sm px-8 py-2.5 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
+          <Button variant="outline" onClick={onClose} className="text-sm px-6 py-3 h-auto font-semibold" style={{ backgroundColor: '#f4a27a', borderColor: '#f4a27a', color: '#1a1a1a' }}>Cancel</Button>
+          <Button variant="default" onClick={m.handleAddToOrder} disabled={!m.selectedSize || !m.selectedCrust} className="text-sm px-8 py-3 h-auto font-bold bg-slate-900 text-white hover:bg-slate-800">
             {editingItem ? 'Update' : 'ADD'}
           </Button>
         </div>
