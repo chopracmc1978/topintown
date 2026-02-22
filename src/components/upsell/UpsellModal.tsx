@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { cn } from '@/lib/utils';
 import { Plus, Minus, ArrowRight, Check, X } from 'lucide-react';
-import OptimizedImage from '@/components/OptimizedImage';
+import OptimizedImage, { preloadImages } from '@/components/OptimizedImage';
 
 const WING_FLAVORS = [
   { id: 'hot', name: 'Hot' },
@@ -77,6 +77,14 @@ const UpsellModal = ({ isOpen, onClose, onComplete, excludeSteps = [] }: UpsellM
         return [];
     }
   }, [currentStep?.category, drinks, dippingSauces, wings, bakedLasagna]);
+
+  // Preload all upsell images as soon as data arrives
+  useEffect(() => {
+    const allItems = [...(drinks || []), ...(dippingSauces || []), ...(wings || []), ...(bakedLasagna || [])];
+    if (allItems.length > 0) {
+      preloadImages(allItems.map(i => i.image_url), 200);
+    }
+  }, [drinks, dippingSauces, wings, bakedLasagna]);
 
   const isWingsStep = currentStep?.category === 'chicken_wings';
 
