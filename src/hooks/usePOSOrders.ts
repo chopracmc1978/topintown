@@ -127,9 +127,10 @@ export const usePOSOrders = (locationId?: string) => {
   }, [locationId]);
 
   // Fetch orders with their items - filtered by location
-  const fetchOrders = async () => {
+  const fetchOrders = async (isInitial = false) => {
     try {
-      setLoading(true);
+      // Only show loading spinner on initial fetch, not on polling refreshes
+      if (isInitial) setLoading(true);
       
       // Fetch orders from today, filtered by location
       const today = new Date();
@@ -839,7 +840,7 @@ export const usePOSOrders = (locationId?: string) => {
   // Set up realtime subscription for new orders - filtered by location
   // Also poll every 15s as a fallback in case Realtime events are delayed
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(true);
 
     // Polling fallback – ensures web orders appear even if Realtime is slow
     const pollInterval = setInterval(() => {
