@@ -127,47 +127,28 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Try to find customer
-    let customer: { id: string; phone: string; phone_verified: boolean } | null = null;
+    // Determine the phone number to send SMS to
+    let smsPhone: string | null = null;
 
     if (customerId) {
       const { data, error } = await supabase
         .from("customers")
-        .select("id, phone, phone_verified")
+        .select("id, phone")
         .eq("id", customerId)
         .maybeSingle();
       
-      if (error) {
-        console.error("Error looking up customer by ID:", error);
-      } else {
-        customer = data;
+      if (!error && data?.phone) {
+        smsPhone = data.phone;
       }
     }
 
-    if (!customer && phone) {
-      const normalizedPhone = phone.replace(/\D/g, "");
-      const { data, error } = await supabase
-        .from("customers")
-        .select("id, phone, phone_verified")
-        .eq("phone", normalizedPhone)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error looking up customer by phone:", error);
-      } else {
-        customer = data;
-      }
+    // Fall back to the phone number provided directly (e.g. from POS walk-in orders)
+    if (!smsPhone && phone) {
+      smsPhone = phone.replace(/\D/g, "");
     }
 
-    if (!customer) {
-      console.log("No customer found, skipping SMS");
-      return json(200, { success: true, message: "Customer not found, SMS skipped" });
-    }
-
-    // Phone verified check removed - paid Twilio account can send to any number
-
-    if (!customer.phone) {
-      console.log("Customer has no phone, skipping SMS");
+    if (!smsPhone) {
+      console.log("No phone number available, skipping SMS");
       return json(200, { success: true, message: "No phone number, SMS skipped" });
     }
 
@@ -238,7 +219,7 @@ const handler = async (req: Request): Promise<Response> => {
         return json(400, { error: "Invalid SMS type" });
     }
 
-    await sendSmsWithTwilio(customer.phone, message);
+    await sendSmsWithTwilio(smsPhone, message);
 
     return json(200, { success: true, message: `SMS sent for ${type}` });
   } catch (error: any) {
