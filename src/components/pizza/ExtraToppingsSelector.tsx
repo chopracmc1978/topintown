@@ -16,16 +16,16 @@ interface ExtraToppingsSelectorProps {
 
 // Get topping price based on size/crust, using per-topping DB prices
 const getToppingPriceForTopping = (topping: Topping, size: string, isGlutenFree: boolean): number => {
-  if (!size) return topping.price_small || topping.price || 2;
+  if (!size) return topping.price_small ?? topping.price ?? 2;
   
   const isSmall = size.includes('Small');
   const isMedium = size.includes('Medium');
   const isLarge = size.includes('Large');
 
-  if (isSmall) return topping.price_small || topping.price || 2;
-  if (isMedium || isGlutenFree) return topping.price_medium || topping.price || 2.5;
-  if (isLarge) return topping.price_large || topping.price || 3;
-  return topping.price_small || topping.price || 2;
+  if (isSmall) return topping.price_small ?? topping.price ?? 2;
+  if (isMedium || isGlutenFree) return topping.price_medium ?? topping.price ?? 2.5;
+  if (isLarge) return topping.price_large ?? topping.price ?? 3;
+  return topping.price_small ?? topping.price ?? 2;
 };
 
 // Generic size-based price (for display of "extra" default toppings where we don't have per-topping data)

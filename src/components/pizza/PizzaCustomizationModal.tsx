@@ -177,9 +177,9 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
   const getToppingDbPrice = (topping: { id: string }) => {
     const t = allToppings?.find(at => at.id === topping.id);
     if (!t) return toppingPrice;
-    if (selectedSize?.name.includes('Small')) return t.price_small || t.price || 2;
-    if (selectedSize?.name.includes('Large')) return t.price_large || t.price || 3;
-    return t.price_medium || t.price || 2.5;
+    if (selectedSize?.name.includes('Small')) return t.price_small ?? t.price ?? 2;
+    if (selectedSize?.name.includes('Large')) return t.price_large ?? t.price ?? 3;
+    return t.price_medium ?? t.price ?? 2.5;
   };
 
   // Dairy Free cheese pricing: Small/Medium/GlutenFree = $2, Large = $3
@@ -812,7 +812,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                         key={t.id}
                         topping={t}
                         canShowSides={canShowSides}
-                        toppingPrice={toppingPrice}
+                        toppingPrice={t.price}
                         onUpdate={(q, s, p) => updateTopping(t.id, q, s, p, true)}
                         onRemove={() => setExtraToppings(prev => prev.filter(x => x.id !== t.id))}
                         showRemove
@@ -826,7 +826,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
               {/* Add Extra Toppings */}
               <div className="border-t pt-4">
                 <p className="text-base font-bold text-foreground mb-3">
-                  Add Extra Toppings <span className="text-primary">+${toppingPrice} each</span>
+                  Add Extra Toppings
                 </p>
                 
                 {/* Veg Extras (Non-meats first) */}
@@ -838,9 +838,10 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
-                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors"
+                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center"
                         >
-                          + {t.name}
+                          <span>+ {t.name}</span>
+                          <span className="text-xs text-primary">${getToppingDbPrice(t).toFixed(2)}</span>
                         </button>
                       ))}
                     </div>
@@ -856,9 +857,10 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
                         <button
                           key={t.id}
                           onClick={() => addExtraTopping(t)}
-                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors"
+                          className="text-sm px-3 py-2 border rounded-md hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center"
                         >
-                          + {t.name}
+                          <span>+ {t.name}</span>
+                          <span className="text-xs text-primary">${getToppingDbPrice(t).toFixed(2)}</span>
                         </button>
                       ))}
                     </div>
@@ -948,7 +950,7 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
           checked={isActive}
           onCheckedChange={(checked) => {
             if (checked) {
-              onUpdate('regular', 'whole', isExtraTopping ? toppingPrice : 0);
+              onUpdate('regular', 'whole', isExtraTopping ? topping.price : 0);
             } else {
               onRemove();
             }
@@ -970,7 +972,7 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
                   key={side}
                   side={side}
                   selected={topping.side === side}
-                  onClick={() => onUpdate(topping.quantity, side, topping.quantity === 'extra' ? toppingPrice : (isExtraTopping ? toppingPrice : 0))}
+                  onClick={() => onUpdate(topping.quantity, side, topping.quantity === 'extra' ? (isExtraTopping ? topping.price : toppingPrice) : (isExtraTopping ? topping.price : 0))}
                 />
               ))}
             </div>
@@ -988,14 +990,14 @@ const ToppingRow = ({ topping, canShowSides, toppingPrice, onUpdate, onRemove, s
               <SelectContent>
                 <SelectItem value="light">Light</SelectItem>
                 <SelectItem value="regular">Normal</SelectItem>
-                <SelectItem value="extra">Extra +${toppingPrice}</SelectItem>
+                <SelectItem value="extra">Extra +${toppingPrice.toFixed(2)}</SelectItem>
               </SelectContent>
             </Select>
           )}
           
           {/* For extra toppings, just show the price */}
           {isExtraTopping && (
-            <span className="text-xs text-primary font-medium">+${toppingPrice}</span>
+            <span className="text-xs text-primary font-medium">+${topping.price.toFixed(2)}</span>
           )}
         </div>
       )}
