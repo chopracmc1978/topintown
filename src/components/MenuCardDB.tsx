@@ -112,7 +112,7 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
         className="group overflow-hidden border-0 shadow-card hover:shadow-warm transition-all duration-300 bg-card cursor-pointer flex flex-col h-full"
         onClick={handleAddToCart}
       >
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[16/10] overflow-hidden">
           <OptimizedImage
             src={item.image_url}
             alt={item.name}
@@ -121,22 +121,22 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           {item.is_popular && (
-            <div className="absolute top-3 left-3 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
+            <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
               Popular
             </div>
           )}
         </div>
-        <CardContent className="p-4 flex flex-col flex-1">
-          <div className="flex-1 space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-serif text-lg font-semibold text-foreground">{item.name}</h3>
-                <p className="text-sm text-muted-foreground">{item.description}</p>
-              </div>
+        <CardContent className="p-3 flex flex-col flex-1">
+          <div className="flex-1 space-y-1.5">
+            <div>
+              <h3 className="font-serif text-base font-semibold text-foreground leading-tight">{item.name}</h3>
+              {item.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{item.description}</p>
+              )}
             </div>
 
             {item.default_toppings && item.default_toppings.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground line-clamp-1">
                 Includes: {item.default_toppings.map(t => t.topping?.name).filter(Boolean).join(', ')}
               </p>
             )}
@@ -161,9 +161,9 @@ const MenuCardDB = ({ item }: MenuCardDBProps) => {
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-border">
+          <div className="flex items-center justify-between pt-2 mt-2 border-t border-border">
             <div>
-              <span className="text-xl font-bold text-primary">
+              <span className="text-lg font-bold text-primary">
                 {isPizza ? `From $${(item.sizes?.[0]?.price || item.base_price).toFixed(2)}` : `$${currentPrice.toFixed(2)}`}
               </span>
             </div>
