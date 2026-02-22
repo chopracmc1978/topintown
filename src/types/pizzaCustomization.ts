@@ -1,5 +1,5 @@
 export type ToppingQuantity = 'none' | 'less' | 'regular' | 'extra';
-export type SauceQuantity = 'regular' | 'extra';
+export type SauceQuantity = 'less' | 'regular' | 'extra';
 export type SpicyLevel = 'none' | 'medium' | 'hot';
 export type PizzaSide = 'left' | 'right' | 'whole';
 

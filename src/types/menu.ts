@@ -19,7 +19,7 @@ export interface CartPizzaCustomization {
   cheeseSides: { side: string; quantity: string }[];
   sauceId: string | null;
   sauceName: string;
-  sauceQuantity: 'normal' | 'extra';
+  sauceQuantity: 'less' | 'normal' | 'extra';
   isDefaultSauce?: boolean;
   freeToppings: string[];
   spicyLevel: SideSpicyLevel;

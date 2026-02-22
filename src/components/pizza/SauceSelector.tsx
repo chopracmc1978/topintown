@@ -119,6 +119,17 @@ const SauceSelector = ({ sauces, selectedSauces, defaultSauceIds, onUpdateSauces
               {isSelected && (
                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onClick={() => updateQuantity(sauce.id, 'less')}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs border transition-all",
+                      selectedSauce?.quantity === 'less'
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    Less
+                  </button>
+                  <button
                     onClick={() => updateQuantity(sauce.id, 'regular')}
                     className={cn(
                       "px-3 py-1 rounded-full text-xs border transition-all",

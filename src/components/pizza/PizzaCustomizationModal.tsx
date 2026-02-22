@@ -85,7 +85,7 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
   const [selectedSauceId, setSelectedSauceId] = useState<string | null>(
     editCustomization?.sauceId || null
   );
-  const [sauceQuantity, setSauceQuantity] = useState<'normal' | 'extra'>(
+  const [sauceQuantity, setSauceQuantity] = useState<'less' | 'normal' | 'extra'>(
     editCustomization?.sauceQuantity || 'normal'
   );
   // Prevent default sauce auto-selection from overriding an explicit user choice (e.g. "No Sauce")
@@ -599,11 +599,12 @@ const PizzaCustomizationModal = ({ item, isOpen, onClose, editingCartItem, onCus
               {selectedSauceId && (
                 <div className="flex items-center gap-3 pt-2 border-t">
                   <span className="text-sm text-muted-foreground">Amount:</span>
-                  <Select value={sauceQuantity} onValueChange={(v) => setSauceQuantity(v as 'normal' | 'extra')}>
+                  <Select value={sauceQuantity} onValueChange={(v) => setSauceQuantity(v as 'less' | 'normal' | 'extra')}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="less">Less</SelectItem>
                       <SelectItem value="normal">Normal</SelectItem>
                       <SelectItem value="extra">Extra</SelectItem>
                     </SelectContent>
