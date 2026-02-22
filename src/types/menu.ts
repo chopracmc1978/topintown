@@ -82,6 +82,7 @@ export interface Order {
    discount?: number;
    couponCode?: string;
   createdAt: Date;
+  updatedAt?: Date;
   notes?: string;
   // New POS fields
   source: OrderSource;

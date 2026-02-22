@@ -36,12 +36,17 @@ export const usePOSNotificationSound = (orders: Order[]) => {
       if (o.status !== 'pending' && o.status !== 'preparing') return false;
 
       const pickupMs = new Date(o.pickupTime).getTime();
+      // Use updatedAt to detect if "Start Preparing" was already clicked
+      // After clicking, updatedAt ≈ now and pickupTime ≈ now+prepTime → gap ≤65 min
+      // Before clicking, updatedAt ≈ createdAt and pickupTime is far future → gap >65 min
+      const updatedMs = o.updatedAt ? new Date(o.updatedAt).getTime() : (o.createdAt ? new Date(o.createdAt).getTime() : now);
+      const leadFromUpdate = (pickupMs - updatedMs) / (1000 * 60);
+
+      // If "Start Preparing" was already clicked, the gap is small — skip
+      if (leadFromUpdate <= 65) return false;
+
       const createdMs = o.createdAt ? new Date(o.createdAt).getTime() : now;
       const originalLeadMinutes = (pickupMs - createdMs) / (1000 * 60);
-
-      // Skip prep-time orders (≤65 min lead) — those are NOT advance orders
-      // They have their own per-card 1-min beep handled in POSOrderCard
-      if (originalLeadMinutes <= 65) return false;
 
       const minutesUntil = (pickupMs - now) / (1000 * 60);
 

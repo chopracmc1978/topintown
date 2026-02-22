@@ -131,12 +131,13 @@ export const POSOrderCard = ({ order, isSelected, onClick, rewardInfo }: POSOrde
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Distinguish true advance/scheduled orders from prep-time orders
-  // Prep-time: staff sets "ready in X min" → pickupTime is close to createdAt (≤65 min)
-  // Advance: customer schedules for a future time → pickupTime is far from createdAt (>65 min)
+  // After "Start Preparing" resets pickup_time, (pickupTime - updatedAt) becomes small (≤65 min)
+  // Before that, the gap between pickupTime and updatedAt is large (>65 min)
   const isAdvanceOrder = (() => {
-    if (!order.pickupTime || !order.createdAt) return false;
-    const leadMin = (new Date(order.pickupTime).getTime() - new Date(order.createdAt).getTime()) / 60000;
-    return leadMin > 65;
+    if (!order.pickupTime) return false;
+    const pickupMs = new Date(order.pickupTime).getTime();
+    const updatedMs = order.updatedAt ? new Date(order.updatedAt).getTime() : new Date(order.createdAt).getTime();
+    return (pickupMs - updatedMs) / 60000 > 65;
   })();
 
   // Show "New!" badge for web/app orders until accepted (no longer pending)

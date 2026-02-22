@@ -101,6 +101,7 @@ const convertDBOrder = (dbOrder: DBOrder, dbItems: DBOrderItem[]): Order => {
      discount: dbOrder.discount || undefined,
      couponCode: dbOrder.coupon_code || undefined,
     createdAt: new Date(dbOrder.created_at),
+    updatedAt: new Date(dbOrder.updated_at),
     notes: dbOrder.notes || undefined,
     source: (dbOrder.source || 'web') as OrderSource,
     paymentStatus: (dbOrder.payment_status || 'unpaid') as PaymentStatus,
@@ -470,6 +471,7 @@ export const usePOSOrders = (locationId?: string) => {
         dbId: newOrder.id, // Actual database UUID – needed for rewards_history linking
         customerId: linkedCustomerId || undefined,
         createdAt: new Date(newOrder.created_at),
+        updatedAt: new Date(newOrder.created_at),
       };
 
       // Add to local state immediately
@@ -918,6 +920,7 @@ export const usePOSOrders = (locationId?: string) => {
                  cashAmount: updatedOrder.cash_amount || undefined,
                  cardAmount: updatedOrder.card_amount || undefined,
                 pickupTime: updatedOrder.pickup_time ? new Date(updatedOrder.pickup_time) : undefined,
+                updatedAt: new Date(updatedOrder.updated_at),
               };
             }
             return order;
@@ -964,7 +967,7 @@ export const usePOSOrders = (locationId?: string) => {
 
       // Update local state — set new pickupTime AND status to preparing
       setOrders(prev => prev.map(o => 
-        o.id === orderId ? { ...o, pickupTime: newPickup, status: 'preparing' as any } : o
+        o.id === orderId ? { ...o, pickupTime: newPickup, status: 'preparing' as any, updatedAt: now } : o
       ));
 
       toast.success(`Order moved to Preparing (${effectivePrepTime} min)`);

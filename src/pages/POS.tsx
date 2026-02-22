@@ -464,15 +464,21 @@ const POSDashboard = ({
     fetchRewards();
   }, [orders, rewardsVersion]);
 
+  // An advance order is any 'preparing' order whose pickup time is still in the future
+  // AND has NOT been through "Start Preparing" yet.
+  // After "Start Preparing", pickup_time is reset to now+prepTime which makes
+  // (pickupTime - updatedAt) small (≤65 min). Before that, the gap is large.
   const isAdvanceOrder = (o: Order) => {
     if (o.status !== 'preparing' || !o.pickupTime) return false;
     const pickupMs = new Date(o.pickupTime).getTime();
     const now = Date.now();
     if (pickupMs <= now) return false; // pickup time has passed
-    const createdMs = new Date(o.createdAt).getTime();
-    const originalLeadMinutes = (pickupMs - createdMs) / (1000 * 60);
-    // Only treat as advance if the original lead time was > 65 minutes
-    return originalLeadMinutes > 65;
+    // Use updatedAt to detect if "Start Preparing" was clicked:
+    // After clicking, updatedAt ≈ now and pickupTime ≈ now+prepTime → gap is small
+    // Before clicking, updatedAt ≈ createdAt and pickupTime is far future → gap is large
+    const updatedMs = o.updatedAt ? new Date(o.updatedAt).getTime() : new Date(o.createdAt).getTime();
+    const leadFromUpdate = (pickupMs - updatedMs) / (1000 * 60);
+    return leadFromUpdate > 65;
   };
 
   // Filter orders
