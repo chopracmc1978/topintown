@@ -132,7 +132,8 @@ const buildPizzaDetailsHtml = (pc: any, indent: number = 15): string => {
     lines.push(`<div style="${style}">${pc.size.name}, ${pc.crust?.name || 'Regular'}</div>`);
   }
   if (pc.sauceName) {
-    const sauceLabel = pc.sauceQuantity === 'extra' ? `${pc.sauceName} (Extra)` : pc.sauceName;
+    const qtyLabel = pc.sauceQuantity === 'extra' ? ' (Extra)' : pc.sauceQuantity === 'less' ? ' (Less)' : '';
+    const sauceLabel = `${pc.sauceName}${qtyLabel}`;
     lines.push(`<div style="${style}">Sauce: ${sauceLabel}</div>`);
   }
   if (pc.cheeseType) {
@@ -154,9 +155,28 @@ const buildPizzaDetailsHtml = (pc: any, indent: number = 15): string => {
     if (removed.length > 0) {
       lines.push(`<div style="${style}">NO ${removed.map((t: any) => t.name).join(', ')}</div>`);
     }
+    // Modified default toppings (less/extra)
+    const modified = pc.defaultToppings.filter((t: any) => t.quantity === 'less' || t.quantity === 'extra');
+    if (modified.length > 0) {
+      modified.forEach((t: any) => {
+        const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+        lines.push(`<div style="${style}">${t.quantity} ${t.name}${sideInfo}</div>`);
+      });
+    }
+    // Default toppings with side changed (regular quantity but left/right)
+    const sideChanged = pc.defaultToppings.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole');
+    if (sideChanged.length > 0) {
+      sideChanged.forEach((t: any) => {
+        lines.push(`<div style="${style}">${t.name} (${t.side})</div>`);
+      });
+    }
   }
   if (pc.extraToppings && pc.extraToppings.length > 0) {
-    lines.push(`<div style="${style}">+${pc.extraToppings.map((t: any) => t.name).join(', ')}</div>`);
+    const extraList = pc.extraToppings.map((t: any) => {
+      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+      return `${t.name}${sideInfo}`;
+    });
+    lines.push(`<div style="${style}">+${extraList.join(', ')}</div>`);
   }
   if (pc.note) {
     lines.push(`<div style="${style}; font-style: italic;">Note: ${pc.note}</div>`);
