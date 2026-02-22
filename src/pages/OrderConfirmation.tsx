@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
+import { useCustomer } from '@/contexts/CustomerContext';
 
 interface OrderData {
   id: string;
@@ -35,6 +36,7 @@ const OrderConfirmation = () => {
   const sessionId = searchParams.get('session_id');
 
   const { clearCart } = useCart();
+  const { customer, logout: logoutCustomer } = useCustomer();
   const didClearRef = useRef(false);
   
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -49,10 +51,14 @@ const OrderConfirmation = () => {
     try {
       clearCart();
       localStorage.removeItem('checkout_state');
+      // Clear guest customer data (not fully verified = guest)
+      if (customer && (!customer.emailVerified || !customer.phoneVerified)) {
+        logoutCustomer();
+      }
     } catch {
       // ignore
     }
-  }, [order, clearCart]);
+  }, [order, clearCart, customer, logoutCustomer]);
 
   useEffect(() => {
     const finalizeAndFetchOrder = async () => {
