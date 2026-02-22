@@ -74,13 +74,20 @@ const OptimizedImage = ({
   const [error, setError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // Synchronously check browser cache on every render to prevent shimmer flash
+  // This runs before paint, unlike useEffect
+  if (!loaded && imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+    loadedImages.add(optimizedSrc);
+    // Use a ref-based flag to set state after render without extra flicker
+  }
+
   // Check if image is already complete (browser cache hit)
   useEffect(() => {
-    if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+    if (!loaded && imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
       setLoaded(true);
       loadedImages.add(optimizedSrc);
     }
-  }, [optimizedSrc]);
+  }, [optimizedSrc, loaded]);
 
   const handleLoad = useCallback(() => {
     setLoaded(true);
@@ -98,10 +105,13 @@ const OptimizedImage = ({
     return <>{fallback}</>;
   }
 
+  // Determine if we should skip shimmer entirely
+  const skipShimmer = loaded || alreadyCached;
+
   return (
     <div className={cn('relative overflow-hidden bg-muted', containerClassName)}>
       {/* Skeleton shimmer while loading - skip if already cached */}
-      {!loaded && (
+      {!skipShimmer && (
         <div className="absolute inset-0 bg-muted animate-pulse" />
       )}
       <img
@@ -114,7 +124,7 @@ const OptimizedImage = ({
         onError={handleError}
         className={cn(
           // Use instant display if already cached, otherwise fast fade
-          alreadyCached
+          skipShimmer
             ? 'opacity-100'
             : cn('transition-opacity duration-150', loaded ? 'opacity-100' : 'opacity-0'),
           className
