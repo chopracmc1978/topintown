@@ -289,11 +289,21 @@ const MyOrders = () => {
                                       {customizations.defaultToppings
                                         .filter((t: any) => t.quantity !== 'regular')
                                         .map((t: any) => {
+                                          const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
                                           if (t.quantity === 'none') return `NO: ${t.name}`;
-                                          if (t.quantity === 'less') return `Less ${t.name}`;
-                                          if (t.quantity === 'extra') return `Extra ${t.name}`;
+                                          if (t.quantity === 'less') return `Less ${t.name}${sideInfo}`;
+                                          if (t.quantity === 'extra') return `Extra ${t.name}${sideInfo}`;
                                           return t.name;
                                         })
+                                        .join(', ')}
+                                    </p>
+                                  )}
+                                  {/* Default toppings with side changed */}
+                                  {customizations.defaultToppings && customizations.defaultToppings.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole').length > 0 && (
+                                    <p>
+                                      {customizations.defaultToppings
+                                        .filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole')
+                                        .map((t: any) => `${t.name} (${t.side})`)
                                         .join(', ')}
                                     </p>
                                   )}

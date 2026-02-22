@@ -140,10 +140,16 @@ export const CustomerReceipt = ({
                     <p>No Sauce</p>
                   )}
                   {item.pizzaCustomization.extraToppings?.length > 0 && (
-                    <p>+{item.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                    <p>+{item.pizzaCustomization.extraToppings.map((t: any) => {
+                      const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+                      return `${t.name}${sideInfo}`;
+                    }).join(', ')}</p>
                   )}
                   {item.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
                     <p>NO: {item.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                  )}
+                  {item.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole').length > 0 && (
+                    <p>{item.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole').map((t: any) => `${t.name} (${t.side})`).join(', ')}</p>
                   )}
                 </div>
               )}
@@ -172,10 +178,16 @@ export const CustomerReceipt = ({
                             <p>{selection.pizzaCustomization.size.name}, {selection.pizzaCustomization.crust?.name || 'Regular'}</p>
                           )}
                           {selection.pizzaCustomization.extraToppings?.length > 0 && (
-                            <p>+{selection.pizzaCustomization.extraToppings.map((t: any) => t.name).join(', ')}</p>
+                            <p>+{selection.pizzaCustomization.extraToppings.map((t: any) => {
+                              const sideInfo = t.side && t.side !== 'whole' ? ` (${t.side})` : '';
+                              return `${t.name}${sideInfo}`;
+                            }).join(', ')}</p>
                           )}
                           {selection.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'none').length > 0 && (
                             <p>NO: {selection.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'none').map((t: any) => t.name).join(', ')}</p>
+                          )}
+                          {selection.pizzaCustomization.defaultToppings?.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole').length > 0 && (
+                            <p>{selection.pizzaCustomization.defaultToppings.filter((t: any) => t.quantity === 'regular' && t.side && t.side !== 'whole').map((t: any) => `${t.name} (${t.side})`).join(', ')}</p>
                           )}
                         </div>
                       )}
