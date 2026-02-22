@@ -117,6 +117,16 @@ const formatPizzaDetails = (customization: CartPizzaCustomization): string[] => 
     });
   }
   
+  // Default toppings with side changed (regular quantity but left/right)
+  const sideChangedDefaults = customization.defaultToppings?.filter(
+    t => t.quantity === 'regular' && t.side && t.side !== 'whole'
+  );
+  if (sideChangedDefaults && sideChangedDefaults.length > 0) {
+    sideChangedDefaults.forEach(t => {
+      details.push(`${t.name} (${t.side})`);
+    });
+  }
+  
   // Extra Toppings - always show if any
   if (customization.extraToppings && customization.extraToppings.length > 0) {
     const extraList = customization.extraToppings.map(t => {
@@ -215,9 +225,16 @@ export const POSOrderDetail = ({ order, locationId, onUpdateStatus, onPayment, o
   const hasNewDiscount = newDiscounts > 0;
   
   // Check if this is an advance order (has scheduled pickup time in the future)
-  const hasFuturePickup = order.pickupTime && new Date(order.pickupTime) > new Date();
-  // Only show as "advance/scheduled" when already accepted (preparing status)
-  const isAdvanceOrder = hasFuturePickup && order.status === 'preparing';
+  // Check if this is a genuine advance/scheduled order (not just an ASAP with prep time)
+  // Advance orders have a large gap (>65 min) between creation and pickup time
+  const isGenuineAdvanceOrder = (() => {
+    if (!order.pickupTime || order.status !== 'preparing') return false;
+    const createdAt = new Date(order.createdAt).getTime();
+    const pickupAt = new Date(order.pickupTime).getTime();
+    const leadTimeMin = (pickupAt - createdAt) / 60000;
+    return leadTimeMin > 65;
+  })();
+  const isAdvanceOrder = isGenuineAdvanceOrder;
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
