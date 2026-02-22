@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePOSOrders } from '@/hooks/usePOSOrders';
 import { usePOSNotificationSound } from '@/hooks/usePOSNotificationSound';
 import { usePrintReceipts } from '@/hooks/usePrintReceipts';
+import { useWakeLock } from '@/hooks/useWakeLock';
 import { usePOSSession } from '@/hooks/usePOSSession';
 import { usePOSStaff, type POSStaffMember } from '@/hooks/usePOSStaff';
 import { Order, OrderStatus, CartItem, OrderType, OrderSource } from '@/types/menu';
@@ -302,6 +303,9 @@ const POSDashboard = ({
   // Notification sound for new web/app orders
   const { hasPendingRemoteOrders, pendingCount, hasAdvanceAlerts, advanceAlertCount, isAudioEnabled, volume, toggleAudio, adjustVolume, playTestSound } = usePOSNotificationSound(orders);
   
+  // Keep screen awake
+  const wakeLock = useWakeLock();
+
   // Incoming phone call detection
   const { incomingCall, handleCall, dismissCall } = useIncomingCalls(currentLocationId);
 
@@ -1364,6 +1368,9 @@ const POSDashboard = ({
           onToggleAudio={toggleAudio}
           onVolumeChange={adjustVolume}
           onTestSound={playTestSound}
+          isScreenAwake={wakeLock.isEnabled}
+          onToggleScreenAwake={wakeLock.toggle}
+          isScreenAwakeSupported={wakeLock.isSupported}
         />
       )}
 
